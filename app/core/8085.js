@@ -130,6 +130,31 @@ define([utils, RAM], function (utils, RAM) {
         function checkAndSetCarry (a, b, op) {
             register.flags.carry = (isCarry(a, b, op)) ? 1 : 0;
         }
+
+        function getParity (data) {
+            var mask = 1,
+                cnt = 0;
+
+            while (mask) {
+                if (data & mask)
+                    cnt++;
+                mask <<= 1;
+            }
+            return (cnt % 2 === 0 ? 1 : 0);
+        }
+
+        function isAuxillaryCarry (a, b, op) {
+          /* zero the higher 4 bits */
+          a <<= 4;
+          a >>= 4;
+          b <<= 4;
+          b >>= 4;
+
+          if (op == '+')
+            return ((a + b) >= 16);
+          else
+            return ((a - b) > a);
+        }
          
         function checkAndSetFlags (result) {
             registers.flags.zero = (result === 0);
