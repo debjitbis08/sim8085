@@ -108,16 +108,49 @@ define([utils, RAM], function (utils, RAM) {
 
     (function () {
 
-        function validateRegisters () {
-            if (register.A > 0xFF) {
+        function setRegister (register, data) {
+            if (data > 0xFF) {
+                data -= 256;
             }
+            register = data;
+        }
+
+        function isCarry (a, b, op) {
+            if (op !== '+' || op !== '-') {
+                throw new Error("op should be either \"+\" or \"-\"");
+            }
+            if (op === "+") {
+                return !(a + b < DATA_MAX + 1);
+            }
+            else {
+                return a < b;
+            }
+        }
+
+        function checkAndSetCarry (a, b, op) {
+            register.flags.carry = (isCarry(a, b, op)) ? 1 : 0;
+        }
+         
+        function checkAndSetFlags (result) {
+            registers.flags.zero = (result === 0);
+
+            var data = (DATA_MAX + 1) / 2;
+            if (data > 0xFF) {
+                data -= 256;
+            }
+            registers.flags.s = (result >= data);
+
+            registers.flags.p = getParity(result);
         }
 
         function ACI (data) {
             if (data > 0xFF) {
                 throw new RangeError("ACI: Data cannot be more than 1 byte");
             }
-            registers.A += data + registers.flags.carry;
+            var registerABackup = registers.A;
+            setRegister(registers.A, registers.A + data + registers.flags.carry);
+            checkAndSetCarry(registerABackup, registerABackup + data + registers.flags.carry);
+            checkAndSetFlags(registers.A);
         }
         
         /**
