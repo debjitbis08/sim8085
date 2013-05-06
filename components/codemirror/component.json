@@ -1,0 +1,54 @@
+{
+  "name": "codemirror",
+  "version": "0.0.0",
+  "main": "codemirror.js",
+  "description": "In-browser code editing made bearable",
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "http://codemirror.net/LICENSE"
+    }
+  ],
+  "directories": {
+    "lib": "./lib"
+  },
+  "scripts": {
+    "test": "node ./test/run.js"
+  },
+  "devDependencies": {
+    "node-static": "0.6.0"
+  },
+  "bugs": "http://github.com/marijnh/CodeMirror/issues",
+  "keywords": [
+    "JavaScript",
+    "CodeMirror",
+    "Editor"
+  ],
+  "homepage": "http://codemirror.net",
+  "maintainers": [
+    {
+      "name": "Marijn Haverbeke",
+      "email": "marijnh@gmail.com",
+      "url": "http://marijnhaverbeke.nl"
+    }
+  ],
+  "repositories": [
+    {
+      "type": "git",
+      "url": "http://marijnhaverbeke.nl/git/codemirror"
+    },
+    {
+      "type": "git",
+      "url": "https://github.com/marijnh/CodeMirror.git"
+    }
+  ],
+  "gitHead": "c3f655b5311ba5e54af9198cd2bcde3e16e65817",
+  "readme": "# CodeMirror [![Build Status](https://secure.travis-ci.org/marijnh/CodeMirror.png?branch=master)](http://travis-ci.org/marijnh/CodeMirror)\n\nCodeMirror is a JavaScript component that provides a code editor in\nthe browser. When a mode is available for the language you are coding\nin, it will color your code, and optionally help with indentation.\n\nThe project page is http://codemirror.net  \nThe manual is at http://codemirror.net/doc/manual.html  \nThe contributing guidelines are in [CONTRIBUTING.md](https://github.com/marijnh/CodeMirror/blob/master/CONTRIBUTING.md)\n",
+  "readmeFilename": "README.md",
+  "_id": "codemirror@3.10.01",
+  "commit": "c3f655b5311ba5e54af9198cd2bcde3e16e65817",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/marijnh/CodeMirror.git"
+  }
+}
