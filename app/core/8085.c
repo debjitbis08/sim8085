@@ -688,9 +688,9 @@ int Emulate8085Op(State8085* state)
 		case 0x39: UnimplementedInstruction(state); break;
 		case 0x3a: 							    //LDA (word)
 			{
-			uint16_t offset = (opcode[2]<<8) | (opcode[1]);
-			state->a = state->memory[offset];
-			state->pc+=2;
+                uint16_t offset = (opcode[2]<<8) | (opcode[1]);
+                state->a = state->memory[offset];
+                state->pc+=2;
 			}
 			break;
 		case 0x3b:                              //DCX SP
@@ -719,22 +719,32 @@ int Emulate8085Op(State8085* state)
 			state->pc++;
 			break;
 		case 0x3f: UnimplementedInstruction(state); break;
-		case 0x40: UnimplementedInstruction(state); break;
-		case 0x41: UnimplementedInstruction(state); break;
-		case 0x42: UnimplementedInstruction(state); break;
-		case 0x43: UnimplementedInstruction(state); break;
-		case 0x44: UnimplementedInstruction(state); break;
-		case 0x45: UnimplementedInstruction(state); break;
-		case 0x46: UnimplementedInstruction(state); break;
+		case 0x40: state->b = state->b; break;
+		case 0x41: state->b = state->c; break;
+		case 0x42: state->b = state->d; break;
+		case 0x43: state->b = state->e; break;
+		case 0x44: state->b = state->h; break;
+		case 0x45: state->b = state->l; break;
+		case 0x46:                            //MOV B,M
+            {
+                uint16_t offset = (state->h<<8) | (state->l);
+                state->b = state->memory[offset];
+            }
+            break;
 		case 0x47: state->b = state->a; break;
-		case 0x48: UnimplementedInstruction(state); break;
-		case 0x49: UnimplementedInstruction(state); break;
-		case 0x4a: UnimplementedInstruction(state); break;
-		case 0x4b: UnimplementedInstruction(state); break;
-		case 0x4c: UnimplementedInstruction(state); break;
-		case 0x4d: UnimplementedInstruction(state); break;
-		case 0x4e: UnimplementedInstruction(state); break;
-		case 0x4f: UnimplementedInstruction(state); break;
+		case 0x48: state->c = state->b; break;
+		case 0x49: state->c = state->c; break;
+		case 0x4a: state->c = state->d; break;
+		case 0x4b: state->c = state->e; break;
+		case 0x4c: state->c = state->h; break;
+		case 0x4d: state->c = state->l; break;
+        case 0x4e:                            //MOV C,M
+            {
+                uint16_t offset = (state->h<<8) | (state->l);
+                state->c = state->memory[offset];
+            }
+            break;
+		case 0x4f: state->c = state->a; break;
 		case 0x50: UnimplementedInstruction(state); break;
 		case 0x51: UnimplementedInstruction(state); break;
 		case 0x52: UnimplementedInstruction(state); break;
@@ -743,8 +753,8 @@ int Emulate8085Op(State8085* state)
 		case 0x55: UnimplementedInstruction(state); break;
 		case 0x56: 							//MOV D,M
 			{
-			uint16_t offset = (state->h<<8) | (state->l);
-			state->d = state->memory[offset];
+                uint16_t offset = (state->h<<8) | (state->l);
+                state->d = state->memory[offset];
 			}
 			break;
 		case 0x57: UnimplementedInstruction(state); break;
