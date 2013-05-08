@@ -21,8 +21,16 @@ module.exports = function (grunt) {
         dist: 'dist'
     };
 
+    var emscriptenConfig = {
+        exec: '/home/debjit/github/emscripten/emcc',
+        exportedFunctions: 'ExecuteProgram',
+        srcFile: '<%= yeoman.app %>/core/8085.c',
+        outFile: '<%= yeoman.dist %>/core/8085.js'
+    };
+
     grunt.initConfig({
         yeoman: yeomanConfig,
+        emscripten: emscriptenConfig,
         watch: {
             coffee: {
                 files: ['<%= yeoman.app %>/scripts/{,*/}*.coffee'],
@@ -300,59 +308,22 @@ module.exports = function (grunt) {
             }
         },
         shell: {
-            emscripten: '/home/debjit/github/emscripten/emcc',
-            exportedFunctions: ['ExecuteProgram'],
-            outFile: 'core/8085.js',
             dist: {
-                command: [
-                    '<%= emscripten %>',
-                    '',
-                    '-s EXPORTED_FUNCTIONS="[\'_<%= exportedFunctions %>\']"'
-                ].join(' '),
+                command: '<%= emscripten.exec %> \
+                    <%= emscripten.srcFile %> \
+                    -o <%= emscripten.outFile %> \
+                    -O2 \
+                    --closure 1 \
+                    -s EXPORTED_FUNCTIONS="[\'_<%= emscripten.exportedFunctions %>\']"',
                 options: {
-                    stdout: true
-                },
-                files: [{
-                    cwd: '<%= yeoman.app %>',
-                    dest: '<%= yeoman.dist %>',
-                    src: [
-                        'core/8085.c',
-                    ]
-                }],
+                    stdout: true,
+                    stderr: true
+                }
             }
         }
     });
 
     grunt.renameTask('regarde', 'watch');
-
-    /*
-    grunt.registerMultiTask('emscripten', 'Run emscripten on the C files', function () {
-        var done = this.async();
-
-        grunt.log.writeln(this.data.files[0].dest + '/core/8085.js');
-        grunt.util.spawn({
-            cmd: '/home/debjit/github/emscripten/emcc',
-            args: [
-                this.data.files[0].cwd + '/' + this.data.files[0].src,
-                '-o',
-                this.data.files[0].dest + '/core/8085.js',
-                '-s',
-                'EXPORTED_FUNCTIONS="[\'_ExecuteProgram\']"'
-            ],
-            opts: {stdio: 'inherit'}
-        }, function(error, result, code) {
-            grunt.log.writeln('done');
-            if (error) {
-                grunt.log.writeln(result.stderr);
-                done();
-            } else {
-                grunt.log.writeln(code);
-                grunt.log.writeln(result.stdout);
-                done();
-            }
-        });
-    });
-    */
 
     grunt.registerTask('emscripten', 'Run emscripten on the C files', function () {
         grunt.task.run([
