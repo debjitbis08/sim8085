@@ -7,5 +7,7 @@
     "modernizr": "~2.6.2",
     "jquery": "~1.9.1"
   },
-  "devDependencies": {}
+  "devDependencies": {
+  	"emscripten": "git://github.com/kripken/emscripten.git"
+  }
 }

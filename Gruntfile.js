@@ -22,7 +22,7 @@ module.exports = function (grunt) {
     };
 
     var emscriptenConfig = {
-        exec: '/home/debjit/github/emscripten/emcc',
+        exec: 'app/components/emscripten/emcc',
         exportedFunctions: 'ExecuteProgram',
         srcFile: '<%= yeoman.app %>/core/8085.c',
         outFile: '<%= yeoman.dist %>/core/8085.js'
