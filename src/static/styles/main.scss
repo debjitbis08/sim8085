@@ -1,0 +1,85 @@
+$icon-font-path: '~bootstrap-sass/assets/fonts/bootstrap/';
+@import '~bootstrap-sass/assets/stylesheets/bootstrap/_mixins.scss';
+@import '~bootstrap-sass/assets/stylesheets/_bootstrap.scss';
+
+// can add Boostrap overrides, additional Sass/CSS below...
+
+.coding-area__editor-container {
+  border: 1px solid #CCC;
+  border-top: none;
+  height: 425px;
+}
+
+.coding-area__editor-container .CodeMirror {
+  height: 424px;
+}
+
+.coding-area__btn-toolbar {
+  margin-bottom: 20px;
+}
+
+.memory-view__cells  {
+    list-style: none;
+    padding: 0;
+    font-size: 0.8em;
+    margin-bottom: 10px;
+}
+
+.memory-view__cells tbody > tr > td,
+.memory-view__cells tbody > tr > th {
+    padding: 5px;
+    text-align: center;
+}
+
+td.memory-view__cell_highlight {
+    background: #ffe976;
+}
+
+table.memory-view__cells {
+  overflow: hidden;
+}
+
+table.memory-view__cells td,
+table.memory-view__cells th {
+  padding: 10px;
+  position: relative;
+  outline: 0;
+}
+
+body:not(.nohover) tbody tr:hover {
+  background-color: #ffa !important;
+}
+
+table.memory-view__cells td:hover::after,
+table.memory-view__cells thead th:not(:empty):hover::after,
+table.memory-view__cells td:focus::after,
+table.memory-view__cells thead th:not(:empty):focus::after {
+  content: '';
+  height: 10000px;
+  left: 0;
+  position: absolute;
+  top: -5000px;
+  width: 100%;
+  z-index: -1;
+}
+
+table.memory-view__cells td:hover::after,
+table.memory-view__cells th:hover::after {
+  background-color: #ffa !important;
+}
+
+table.memory-view__cells td:focus::after,
+table.memory-view__cells th:focus::after {
+  background-color: lightblue;
+}
+
+ul.memory-view__range-scale {
+    padding: 0;
+    list-style: none;
+}
+
+ul.memory-view__range-scale li {
+    float: left;
+    padding-right: 3px;
+    font-size: 0.7em;
+}

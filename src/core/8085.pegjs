@@ -271,8 +271,10 @@ machineCode = prg:program {
     for (i = 0; i < lines; i += 1) {
         line = prg[i];
 
+        if (line == null) continue;
+
         if (!line.opcode) continue;
-        
+
         if (line.size === 1) {
             objCode.push(line.opcode);
         } else if (line.size === 2) {
@@ -302,14 +304,18 @@ program = __ first:line rest:(eol l:line {return l})* {return [first].concat(res
 
 line = whitespace* label:labelPart? op:operation? comment:comment? {
     if (label !== "") {
-        symbolTable[label] = ilc; 
+        symbolTable[label] = ilc;
     }
-    ilc += op.size;
-    return op;
+
+    if (op !== null) {
+      ilc += op.size;
+      return op;
+    }
+
 }
 
 labelPart = label:label ":" whitespace* {return label;}
-label = first:[a-zA-Z?@] rest:([a-zA-Z0-9]*) {return first + rest.join("");}
+label "label" = first:[a-zA-Z?@] rest:([a-zA-Z0-9]*) {return first + rest.join("");}
 
 paramList = whitespace+ first:value rest:(whitespace* ',' whitespace* v:value { return v; })* {
     return [first].concat(rest);
@@ -327,7 +333,7 @@ registerPairH = l:[Hh] !identLetter { return l.toLowerCase(); }
 registerPairPSW = l:("PSW" / "psw") !identLetter { return l.toLowerCase(); }
 stackPointer = l:("SP" / "sp") !identLetter { return l.toLowerCase(); }
 
-data8 = n:numLiteral {
+data8 "byte" = n:numLiteral {
     if (n > 0xFF) {
         var e = new Error();
         e.message = "8-bit data expected.";
@@ -340,7 +346,7 @@ data8 = n:numLiteral {
     }
 }
 
-data16 = n:numLiteral {
+data16 "word" = n:numLiteral {
     if (n > 0xFFFF) {
         var e = new Error();
         e.message = "16-bit data expected.";
@@ -354,11 +360,11 @@ data16 = n:numLiteral {
 }
 
 numLiteral "numeric literal" = binLiteral / hexLiteral / decLiteral
- 
+
 decLiteral "decimal literal" = neg:[-]? digits:digit+ {
     return parseInt((!neg ? "":"-") + digits.join(""), 10);
 }
- 
+
 hexLiteral "hex literal" = hexForm1 / hexForm2
 
 hexForm1 = '0x' hexits:hexit+ {
@@ -379,7 +385,7 @@ digit "digit" = [0-9]
 hexit "hex digit" = [0-9a-fA-F]
 bit "bit" = [01]
 
-//expression "expression" = 
+//expression "expression" =
 
 comment "comment" = ";" c:[^\n\r\n\u2028\u2029]* {return c.join("");}
 
@@ -399,11 +405,11 @@ operation = inst:(carryBitInstructions / singleRegInstructions / nopInstruction 
         paramTypesStr = paramTypes.join(","),
         opcode = mnemonics[inst.name.toLowerCase() + (paramTypesStr === "" ? "" : " ") + paramTypesStr];
 
-    if (typeof paramTypes[0] !== "undefined" && 
+    if (typeof paramTypes[0] !== "undefined" &&
         (paramTypes[0] === "adr" || paramTypes[0] === "d16" || paramTypes[0] === "d8")) {
         data = inst.params[0];
     }
-    else if (typeof paramTypes[1] !== "undefined" && 
+    else if (typeof paramTypes[1] !== "undefined" &&
         (paramTypes[1] === "adr" || paramTypes[1] === "d16" || paramTypes[1] === "d8")) {
         data = inst.params[1];
     }
@@ -426,7 +432,7 @@ singleRegInstructions = op:(op_inr / op_dcr / op_cma / op_daa) {
     var name, params, paramTypes;
 
     if (typeof op === "string") {
-        name = op; 
+        name = op;
         params = [];
         paramTypes = [];
     } else {
@@ -584,7 +590,7 @@ haltInstruction = op:(op_hlt) {
         paramTypes: []
     };
 }
-    
+
 
 op_stc  = ("STC"  / "stc" )
 op_cmc  = ("CMC"  / "cmc" )
@@ -666,4 +672,3 @@ op_cpo  = ("CPO"  / "cpo" ) whitespace+ (data16 / label)
 op_mov  = ("MOV"  / "mov" ) whitespace+ register whitespace* [,] whitespace* register
 op_lxi  = ("LXI"  / "lxi" ) whitespace+ register whitespace* [,] whitespace* (data16 / label)
 op_mvi  = ("MVI"  / "mvi" ) whitespace+ register whitespace* [,] whitespace* (data8 / label)
-
