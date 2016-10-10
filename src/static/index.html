@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="en-us">
   <head>
-    <meta charSet="utf-8"/>
+    <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Sim8085</title>
-    <meta name="description" content="Development Environment for Intel 8085 microprocessor."/>
+    <title>Sim8085 - A 8085 microprocessor simulator</title>
+    <meta name="description" content="Simulator, Assembler and Debugger for Intel 8085 microprocessor."/>
     <meta name="author" content="Debjit Biswas"/>
     <link rel="shortcut icon" type="image/x-icon" href="favicon.ico"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.css"/>
@@ -12,114 +12,95 @@
   </head>
   <body>
     <div class="container">
-      <div class="navbar navbar-default">
-        <div class="navbar-inner clearfix">
-          <a class="navbar-brand" href="#">Sim8085</a>
-          <div class="btn-group pull-right">
-            <button class="btn dropdown-toggle push-right" data-toggle="dropdown" href="#">
-              Account <span class="caret"></span>
+      <nav class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container-fluid">
+          <div class="navbar-header">
+            <button type="button" class="collapsed navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-9" aria-expanded="false">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span> <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
             </button>
-            <ul class="dropdown-menu">
-                <li><a href="#">Profile</a></li>
-                <li><a href="#">Log Out</a></li>
+            <a href="#" class="navbar-brand">Sim8085</a>
+          </div>
+          <div class="collapse navbar-collapse">
+            <ul class="nav navbar-nav navbar-right">
+              <li><a href="#" data-toggle="modal" data-target=".about-modal">About</a></li>
+              <li><a href="https://github.com/debjitbis08/sim8085">GitHub</a></li>
             </ul>
           </div>
         </div>
-      </div>
-
-      <div class="row">
-        <!--
-        <div class="col-md-2">
-            <div>
-              <h3>Registers</h3>
-              <table class="table table-striped">
-                  <tr>
-                      <th scope="row">A</th>
-                      <td>23</td>
-                      <td>--</td>
-                  </tr>
-                  <tr>
-                      <th scope="row">BC</th>
-                      <td>46</td>
-                      <td>00</td>
-                  </tr>
-                  <tr>
-                      <th scope="row">DE</th>
-                      <td>00</td>
-                      <td>00</td>
-                  </tr>
-                  <tr>
-                      <th scope="row">HL</th>
-                      <td>00</td>
-                      <td>00</td>
-                  </tr>
-                  <tr>
-                      <th scope="row">PSW</th>
-                      <td>00</td>
-                      <td>00</td>
-                  </tr>
-                  <tr>
-                      <th scope="row">PC</th>
-                      <td>42</td>
-                      <td>09</td>
-                  </tr>
-              </table>
+      </nav>
+      <div class="modal fade about-modal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-md" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+              <h4 class="modal-title"> About </h4>
             </div>
-            <div>
-              <h3>Flags</h3>
-              <table class="table table-striped">
-                  <tr>
-                      <th scope="row">S</th>
-                      <td>1</td>
-                  </tr>
-                  <tr>
-                      <th scope="row">Z</th>
-                      <td>0</td>
-                  </tr>
-                  <tr>
-                      <th scope="row">AC</th>
-                      <td>0</td>
-                  </tr>
-                  <tr>
-                      <th scope="row">P</th>
-                      <td>0</td>
-                  </tr>
-                  <tr>
-                      <th scope="row">C</th>
-                      <td>1</td>
-                  </tr>
-              </table>
+            <div class="modal-body">
+              <section>
+                <p>
+                  Sim8085 is a online development environment for writing Intel
+                  8085 microprocessor code. It can assemble, debug 8085 assembly
+                  code and simulate the 8085 microprocessor.
+                </p>
+                <p>
+                  The simulator has two parts, an assembler (built using PEGjs)
+                  which translates 8085 assembly code to machine code and a 8085
+                  microprocessor simulator (written in C and compiled to JS using
+                  Emscripten) which executes machine code. This web application is
+                  a graphical interface for the simulator.
+                </p>
+                <p>
+                  <strong>Currently the application is in alpha stage and lot remains to
+                  be done to make it a joy to use.</strong>
+                  If you want to contribute to please <a target="_blank" href="https://github.com/debjitbis08/sim8085">fork</a>
+                  the source code repository.
+                </p>
+              </section>
+              <section>
+                <h3>Source code and Reporting Bugs</h3>
+                <p>
+                  The complete source for this application is available on
+                  <a target="_blank" href="https://github.com/debjitbis08/sim8085">GitHub</a>.
+                  Please report any bugs on the Github
+                  <a target="_blank" href="https://github.com/debjitbis08/sim8085/issues">issue tracker</a>.
+                </p>
+              </section>
+              <section>
+                <h3>Credits and License</h3>
+                <p>
+                  Sim8085 was developed by <a target="_blank" href="http://www.debjitbiswas.com">Debjit Biswas</a>.
+                  All source code and contents of this application are licensed under
+                  <a target="_blank" href="https://github.com/debjitbis08/sim8085/blob/master/LICENSE">BSD 3-Clause</a>.
+                </p>
+                <p>
+                  Sim8085 is built with with
+                  <a target="_blank" href="https://kripken.github.io/emscripten-site/">Emscripten</a>,
+                  <a target="_blank" href="http://pegjs.org/">PEG.js</a>,
+                  <a target="_blank" href="http://elm-lang.org/">Elm</a>,
+                  <a target="_blank" href="http://getbootstrap.com/">Bootstrap</a>.
+                  A lot of inspiration has been taken from
+                  <a target="_blank" href="https://gnusim8085.github.io/">GNUSim8085</a> and
+                  <a target="_blank" href="http://ivanzuzak.info/FRISCjs/webapp/">FRISCjs</a>.
+                </p>
+              </section>
             </div>
+          </div>
         </div>
-        <div class="col-md-5">
-            <div class="btn-toolbar">
-              <div class="btn-group">
-                <button class="btn btn-success" href="#"><i class="icon-play icon-white"></i> Run</button>
-              </div>
-              <div class="btn-group">
-                <button class="btn" href="#">Debug</button>
-              </div>
-            </div>
-            <ul class="nav nav-tabs">
-              <li role="presentation" class="active"><a href="#">sorting.asm</a></li>
-              <li role="presentation"><a href="#">addwithcarry.asm</a></li>
-              <li role="presentation"><a href="#">bcd2bin.asm</a></li>
-            </ul>
-            <textarea id="coding-area" class="form-control"></textarea>
-        </div>
-        <div class="col-md-5">
-        </div>
-        -->
       </div>
       <div id="main"></div>
+      <footer class="footer clearfix">
+        <p class="pull-left">© 2016 Debjit Biswas</p>
+        <p class="pull-right">
+          Made with <a target="_blank" href="https://kripken.github.io/emscripten-site/">Emscripten</a>,
+          <a target="_blank" href="http://pegjs.org/">PEG.js</a>,
+          <a target="_blank" href="http://elm-lang.org/">Elm</a>,
+          <a target="_blank" href="http://getbootstrap.com/">Bootstrap</a> and
+          <span style="color:red">💖</span>
+        </p>
+      </footer>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.19.0/codemirror.min.js"></script>
-    <!--
-    <script>
-      var editor = CodeMirror.fromTextArea(document.getElementById("coding-area"), {
-        lineNumbers: true
-      });
-    </script>
-    -->
   </body>
 </html>

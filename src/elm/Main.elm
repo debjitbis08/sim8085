@@ -10,6 +10,12 @@ import Bitwise exposing (..)
 import Char exposing (..)
 import String exposing (..)
 
+type ProgramState
+  = Idle
+  | Loaded
+  | Running
+  | Paused
+
 -- APP
 main : Program Never
 main =
@@ -18,19 +24,21 @@ main =
 -- MODEL
 type alias Model =
   { code: String
-  , assembled: Array Int
+  , error: Maybe AssemblerError
+  , assembled: Array AssembledCode
+  , breakpoints: List Int
   , loadAddr: Int
-  , running: Bool
-  , debugging: Bool
+  , programState: ProgramState
   , accumulator: Int
-  , registers: List Register
+  , registers: Register
   , stackPtr: Int
   , programCounter: Int
+  , statePtr: Maybe Int
   , memory: Array Int
   , memoryStart: Int
   , memoryStartLarge: Int
   , memoryStartSmall: Int
-  , flags: List Flag
+  , flags: Flags
   , activeFile: String
   , openFiles: List File
   }
@@ -38,14 +46,16 @@ type alias Model =
 init : ( Model, Cmd Msg )
 init =
   ( { code = initialCode
+    , error = Nothing
     , assembled = Array.empty
-    , loadAddr = 1024
-    , running = False
-    , debugging = False
+    , breakpoints = []
+    , loadAddr = 2048
+    , programState = Idle
     , accumulator = 0
     , registers = registers
     , stackPtr = 0
     , programCounter = 0
+    , statePtr = Nothing
     , memory = Array.repeat 65536 0
     , memoryStart = 0
     , memoryStartLarge = 0
@@ -56,30 +66,33 @@ init =
     }, Cmd.none )
 
 initialCode =
-  """
-  ;<Program title>
+  """;<Program title>
 
-  jmp start
+jmp start
 
-  ;data
+;data
 
-
-  ;code
-  start: nop
+;code
+start: nop
 
 
-  hlt
-  """
+hlt"""
+
+type alias RegisterValue =
+  { high: Int, low: Int }
 
 type alias Register =
-  { name: String
-  , high: Int
-  , low: Int
+  { bc: RegisterValue
+  , de: RegisterValue
+  , hl: RegisterValue
   }
 
-type alias Flag =
-  { name: String
-  , value: Bool
+type alias Flags =
+  { s: Bool
+  , z: Bool
+  , ac: Bool
+  , p: Bool
+  , c: Bool
   }
 
 type alias File =
@@ -87,21 +100,21 @@ type alias File =
   , code: String
   }
 
-registers : List Register
+registers : Register
 registers =
-  [ { name = "BC", high = 0, low = 0 }
-  , { name = "DE", high = 0, low = 0 }
-  , { name = "HL", high = 0, low = 0 }
-  ]
+  { bc = { high = 0, low = 0 }
+  , de = { high = 0, low = 0 }
+  , hl = { high = 0, low = 0 }
+  }
 
-flags : List Flag
+flags : Flags
 flags =
-  [ { name = "S", value = False }
-  , { name = "Z", value = False }
-  , { name = "AC", value = False }
-  , { name = "P", value = False }
-  , { name = "C", value = False }
-  ]
+  { s = False
+  , z = False
+  , ac = False
+  , p = False
+  , c = False
+  }
 
 
 
@@ -110,32 +123,64 @@ flags =
 
 type Msg
   = Run
+  | RunOne
+  | Load
   | UpdateCode String
-  | UpdateAssembledCode (Array Int)
+  | UpdateAssembledCode (Array AssembledCode)
+  | UpdateAssemblerError AssemblerError
   | UpdateState ExternalState
   | PreviousMemoryPage
   | NextMemoryPage
   | ChangeMemoryStart String
   | ChangeMemoryStartSmall String
+  | UpdateBreakpoints BreakPointAction
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
   case msg of
-    Run -> (model, run model.assembled)
+    Run -> (model, run { assembled = (Array.map (.data) model.assembled), state = createExternalStateFromModel model })
+    RunOne ->
+      if model.programState == Loaded
+      then
+        ({ model | programState = Paused, programCounter = model.loadAddr }
+        , debug { state = (let s = createExternalStateFromModel model in { s | pc = model.loadAddr })
+                , nextLine = case findLineAtPC (model.programCounter) model.assembled model.memory of
+                              Nothing -> model.programCounter - model.loadAddr
+                              Just l -> l }
+        )
+      else
+      (
+        { model | programState = Running }
+      , runOne { state = createExternalStateFromModel model }
+      )
+    Load -> (model, load { offset = model.loadAddr, code = model.code })
+    UpdateState state ->
+      ({ model | accumulator = state.a
+              , registers = readRegistersFromExternalState state
+              , flags = readFlagsFromExternalState state
+              , stackPtr = state.sp
+              , programCounter = state.pc
+              , statePtr = state.ptr
+              , programState =
+                  case state.programState of
+                    "Loaded" -> Loaded
+                    "Idle" -> Idle
+                    "Running" -> Idle
+                    "Paused" -> Paused
+                    _ -> Idle
+              , memory = state.memory }
+      , if state.programState == "Paused"
+        then nextLine (case findLineAtPC (state.pc) model.assembled model.memory of
+                        Nothing -> model.programCounter - model.loadAddr
+                        Just l -> l)
+        else Cmd.none )
     _ -> ( updateHelper msg model, Cmd.none )
 
 updateHelper : Msg -> Model -> Model
 updateHelper msg model =
   case msg of
     UpdateCode code -> { model | code = code }
-    UpdateAssembledCode code -> { model | assembled = code }
-    UpdateState state ->
-      { model | accumulator = state.a
-              , registers = readRegistersFromExternalState state
-              , flags = readFlagsFromExternalState state
-              , stackPtr = state.sp
-              , programCounter = state.pc
-              , memory = state.memory }
+    UpdateAssembledCode code -> { model | assembled = code, error = Nothing }
     PreviousMemoryPage -> { model | memoryStart = if model.memoryStart == 0 then 0 else model.memoryStart - 256 }
     NextMemoryPage -> { model | memoryStart = if model.memoryStart == 65536 - 128 then model.memoryStart else model.memoryStart + 256 }
     ChangeMemoryStart v ->
@@ -150,21 +195,69 @@ updateHelper msg model =
       in
         { model | memoryStartSmall = n
                 , memoryStart = n + model.memoryStartLarge }
+    UpdateAssemblerError e -> { model | error = Just e, assembled = Array.empty }
+    UpdateBreakpoints ba ->
+      { model | breakpoints = if ba.action == "add"
+                              then  ba.line :: model.breakpoints
+                              else List.filter (\b -> b /= ba.line) model.breakpoints }
     _ -> model
 
+findLineAtPC pc assembled memory =
+  let
+    opcode = Array.get pc memory
+  in
+    case opcode of
+      Nothing -> Nothing
+      Just code ->
+        case Array.get 0 (Array.filter (\c -> c.data == code) assembled) of
+          Nothing -> Nothing
+          Just a -> Just a.location.start.line
+
 readRegistersFromExternalState state =
-  [ { name = "BC", high = state.b, low = state.c }
-  , { name = "DE", high = state.d, low = state.e }
-  , { name = "HL", high = state.h, low = state.l }
-  ]
+  { bc = { high = state.b, low = state.c }
+  , de = { high = state.d, low = state.e }
+  , hl = { high = state.h, low = state.l }
+  }
 
 readFlagsFromExternalState state =
-  [ { name = "S", value = state.flags.s }
-  , { name = "Z", value = state.flags.z }
-  , { name = "AC", value = state.flags.ac }
-  , { name = "P", value = state.flags.p }
-  , { name = "C", value = state.flags.cy }
-  ]
+  { s = state.flags.s
+  , z = state.flags.z
+  , ac = state.flags.ac
+  , p = state.flags.p
+  , c = state.flags.cy
+  }
+
+createExternalStateFromModel model =
+  { a = model.accumulator
+  , b = model.registers.bc.high
+  , c = model.registers.bc.low
+  , d = model.registers.de.high
+  , e = model.registers.de.low
+  , h = model.registers.hl.high
+  , l = model.registers.hl.low
+  , sp = model.stackPtr
+  , pc = model.programCounter
+  , flags =
+    { z = model.flags.s
+    , s = model.flags.z
+    , p = model.flags.p
+    , cy = model.flags.c
+    , ac = model.flags.ac
+    }
+  , memory = model.memory
+  , ptr = model.statePtr
+  , programState = getProgramState model.programState
+  }
+
+getProgramState programState =
+  case programState of
+    Idle -> "Idle"
+    Loaded -> "Loaded"
+    Running -> "Running"
+    Paused -> "Paused"
+
+
+
 
 
 -- SUBSCRIPTIONS
@@ -175,6 +268,8 @@ subscriptions model =
     [ code UpdateCode
     , assembled UpdateAssembledCode
     , state UpdateState
+    , error UpdateAssemblerError
+    , breakpoints UpdateBreakpoints
     ]
 
 
@@ -190,53 +285,127 @@ view model =
             div [] [
               h3 [] [ text "Registers" ]
             , table [ class "table table-striped" ] [
-                tbody [] (
-                  showRegister { name = "A", high = 0, low = model.accumulator }
-                  :: showRegister { name = "SP", high = (model.stackPtr `shiftRight` 8) `and` 0xff, low = model.stackPtr `and` 0xff }
-                  :: showRegister { name = "PC", high = (model.programCounter `shiftRight` 8) `and` 0xff, low = model.programCounter `and` 0xff }
-                  :: (List.map showRegister model.registers))
+                tbody [] (showRegisters model.accumulator model.registers model.stackPtr model.programCounter)
               ]
             ]
           , div [] [
               h3 [] [ text "Flags" ]
-            , table [ class "table table-striped" ] [ tbody [] (List.map showFlag model.flags) ]
+            , table [ class "table table-striped" ] [ tbody [] (showFlags model.flags) ]
             ]
         ]
         , div [ class "col-md-5 coding-area" ] [
-              div [ class "btn-toolbar coding-area__btn-toolbar" ] [
-                div [ class "btn-group" ] [
-                  button [ class "btn btn-success", onClick Run, title "Run Program" ] [
-                      span [ class "glyphicon glyphicon-play"] []
+              div [ class "coding-area__toolbar"] [
+                  div [ class "btn-toolbar coding-area__btn-toolbar" ] [
+                      div [ class "btn-group" ] [
+                          toolbarButton (model.programState /= Idle) "success" Load "Assemble and Load Program" "save"
+                        , toolbarButton (model.programState /= Loaded) "success" Run "Run Program" "fast-forward"
+                        , toolbarButton (model.programState /= Loaded && model.programState /= Paused)
+                                        "success" RunOne "Run one instruction" "step-forward"
+                      ]
+                    , div [ class "btn-group" ] [
+                        toolbarButton (model.programState == Idle) "danger" Run "Reset Everything" "refresh"
+                      ]
                   ]
-                -- , button [ class "btn" ] [ text "Debug" ]
-                ]
+                , div [ class "pull-right" ] [
+                      text "Load at "
+                    , text "0x0800"
+                  ]
               ]
-            , ul [ class "nav nav-tabs" ] (List.map (showOpenFileTabs model.activeFile) model.openFiles)
+            , ul [ class "nav nav-tabs" ]
+                 (List.append (List.map (showOpenFileTabs model.activeFile) model.openFiles) [tabAddButton])
             , div [ class "coding-area__editor-container" ] [
-                  textarea [ id "coding-area__editor" ] []
+                  textarea [ id "coding-area__editor", value model.code ] []
               ]
           ]
         , div [ class "col-md-4" ] [
               div [ class "" ] [ showMemory model.memory model.memoryStart model.memoryStartSmall ]
           ]
       ]
-    , div [] [ text <| toString <| model.assembled ]
+    , div [ class "row" ] [
+          div [ class "col-md-7" ] [
+              div [ class "panel panel-default" ] [
+                  div [ class "panel-heading" ] [ h3 [ class "panel-title" ] [ text "Assembler Output" ] ]
+                , div [ class "panel-body" ] [
+                      case model.error of
+                        Nothing -> (showAssembled model.assembled model.code)
+                        Just error -> showAssemblerError error model.code
+                  ]
+              ]
+          ]
+      ]
   ]
 
 
-showRegister : Register -> Html msg
-showRegister { name, high, low } =
+toolbarButton isDisabled type' msg tooltip icon =
+    button [ class ("btn  btn-sm btn-" ++ type'), onClick msg, title tooltip, disabled isDisabled ] [
+        span [ class ("glyphicon glyphicon-" ++ icon) ] []
+    ]
+
+tabAddButton =
+    li [ class "" ] [
+       button [ class "btn" ] [ span [ class "glyphicon glyphicon-plus" ] [] ]
+    ]
+
+showAssemblerError error code =
+  text ("Line " ++ (toString error.line) ++ ", Column " ++ (toString error.column) ++ ": " ++ error.msg)
+
+zipAssembledSource assembled source =
+  let
+    sourceLines = Array.fromList (String.split "\n" source)
+    findAssembled ln =
+      Array.map (\a -> { data = a.data, kind = a.kind }) (Array.filter (\c -> (c.location.start.line - 1) == ln) assembled)
+  in
+    Array.indexedMap (\i s -> (findAssembled i, s)) sourceLines
+
+showAssembled assembled source =
+  let
+    ls = zipAssembledSource assembled source
+    showSingleLine l =
+      tr [] [
+          td [] [ text  <| showCode (fst l) ]
+        , td [] [ text (snd l) ]
+      ]
+  in
+    table [ class "table" ] [ tbody [] (Array.toList (Array.map showSingleLine ls)) ]
+
+showCode codes =
+  let
+    code = Array.map (.data) (Array.filter (\c -> c.kind == "code") codes)
+    data = Array.map (.data) (Array.filter (\c -> c.kind /= "code") codes)
+  in
+    (String.toUpper <| toRadix 16 <| (Maybe.withDefault 0 (Array.get 0 code))) ++ "  " ++
+      (Array.foldr (\a b -> (toString a) ++ " " ++ b) "" data)
+
+showRegister name { high, low } =
   tr [] [
      th [ scope "row" ] [ text name ]
-   , td [] [ text <| toString <| high ]
-   , td [] [ text <| toString <| low ]
+   , td [] [ span [] [ text <| toString <| high ] ]
+   , td [] [ span [] [ text <| toString <| low ] ]
   ]
 
-showFlag : Flag -> Html msg
-showFlag { name, value } =
+showRegisters accumulator registers stackPtr programCounter =
+  [ showRegister "A" { high = 0, low = accumulator }
+  , showRegister "BC" registers.bc
+  , showRegister "DE" registers.de
+  , showRegister "HL" registers.hl
+  , showRegister "SP" { high = (stackPtr `shiftRight` 8) `and` 0xff, low = stackPtr `and` 0xff }
+  , showRegister "PC" { high = (programCounter `shiftRight` 8) `and` 0xff, low = programCounter `and` 0xff }
+  ]
+
+showFlag : String -> Bool -> Html msg
+showFlag name value =
   tr [] [
      th [ scope "row" ] [ text name ]
    , td [] [ text <| toString <| (if value then 1 else 0) ]
+  ]
+
+showFlags : Flags -> List (Html msg)
+showFlags flags =
+  [ showFlag "Z" flags.z
+  , showFlag "S" flags.s
+  , showFlag "P" flags.p
+  , showFlag "C" flags.c
+  , showFlag "AC" flags.ac
   ]
 
 
@@ -337,10 +506,42 @@ type alias ExternalState =
     , ac: Bool
     }
   , memory: Array Int
+  , ptr: Maybe Int
+  , programState: String
   }
 
-port run : Array Int -> Cmd msg
+type alias CodeLocation =
+  { offset: Int
+  , line: Int
+  , column: Int
+  }
+
+type alias AssembledCode =
+  { data: Int
+  , kind: String
+  , location: { start: CodeLocation, end: CodeLocation }
+  }
+
+type alias AssemblerError =
+  { name: String
+  , msg: String
+  , line: Int
+  , column: Int
+  }
+
+type alias BreakPointAction =
+  { action: String
+  , line: Int
+  }
+
+port load : { offset: Int, code: String } -> Cmd msg
+port run : { assembled: Array Int, state: ExternalState } -> Cmd msg
+port runOne : { state: ExternalState } -> Cmd msg
+port debug : { state: ExternalState, nextLine: Int } -> Cmd msg
+port nextLine : Int -> Cmd msg
 
 port code : (String -> msg) -> Sub msg
-port assembled : (Array Int -> msg) -> Sub msg
+port assembled : (Array AssembledCode -> msg) -> Sub msg
+port error : (AssemblerError -> msg) -> Sub msg
 port state : (ExternalState -> msg) -> Sub msg
+port breakpoints : (BreakPointAction -> msg) -> Sub msg

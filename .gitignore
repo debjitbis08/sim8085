@@ -5,4 +5,4 @@ dist
 src/components
 elm-stuff/
 tmp/
-
+.idea/

@@ -1552,23 +1552,29 @@ State8085* Init8085(void)
 {
 	State8085* state = calloc(1, sizeof(State8085));
 	state->memory = malloc(0x10000);  //16K
+	printf("State Ptr: %p\n", state);
 	return state;
 }
 
-State8085*	ExecuteProgram(uint8_t *lines, int len, uint16_t offset)
-{
-  int done = 0;
-	State8085* state = Init8085();
-	uint8_t *buffer = &state->memory[offset];
+State8085* LoadProgram(State8085* state, uint8_t *lines, int len, uint16_t offset) {
   int i = 0;
-  int cycles = 0;
-
-	printf("State Ptr: %p, SP Ptr: %p\n", state, &state->sp);
-	printf("Offset %u\n", offset);
   while (i < len) {
+			printf("line %d %u\n", i, lines[i]);
       state->memory[offset + i] = lines[i];
       i++;
   }
+	printf("Offset %u\n", offset);
+	printf("Memory at offset %u\n", state->memory[offset]);
+	return state;
+}
+
+State8085*	ExecuteProgram(State8085* state, uint8_t *lines, int len, uint16_t offset)
+{
+  int done = 0;
+	int cycles = 0;
+
+	printf("State Ptr: %p, SP Ptr: %p\n", state, &state->sp);
+	printf("Offset %u\n", offset);
 	state->pc = offset;
 	printf("Memory at offset %u\n", state->memory[offset]);
 	printf("Memory at offset + 1 %u\n", state->memory[offset + 1]);
@@ -1588,25 +1594,3 @@ State8085*	ExecuteProgram(uint8_t *lines, int len, uint16_t offset)
 				state->d, state->e, state->h, state->l, state->sp, state->pc);
 	return state;
 }
-
-
-
-/*
-int main (int argc, char**argv)
-{
-	int done = 0;
-	int vblankcycles = 0;
-	State8085* state = Init8085();
-
-	ReadFileIntoMemoryAt(state, "invaders.h", 0);
-	ReadFileIntoMemoryAt(state, "invaders.g", 0x800);
-	ReadFileIntoMemoryAt(state, "invaders.f", 0x1000);
-	ReadFileIntoMemoryAt(state, "invaders.e", 0x1800);
-
-	while (done == 0)
-	{
-		done = Emulate8085Op(state);
-	}
-	return 0;
-}
-*/

@@ -276,21 +276,21 @@ machineCode = prg:program {
         if (!line.opcode) continue;
 
         if (line.size === 1) {
-            objCode.push(line.opcode);
+            objCode.push({ data: line.opcode, kind: 'code', location: line.location });
         } else if (line.size === 2) {
-            data = line.data;
-            dataVal = (typeof data === "string") ? symbolTable[data] : data;
+            data = line.data.value;
+            dataVal = (typeof line.data.value === "string") ? symbolTable[line.data.value] : line.data.value;
             if (dataVal < 0) {
                 dataVal = twosComplement(dataVal);
             }
-            objCode.push(line.opcode);
-            objCode.push(dataVal);
+            objCode.push({ data: line.opcode, kind: 'code', location: line.location });
+            objCode.push({ data: dataVal, kind: 'data', location: line.data.location });
         } else {
-            data = line.data;
-            dataVal = (typeof data === "string") ? symbolTable[data] : data;
-            objCode.push(line.opcode);
-            objCode.push(dataVal & 0xFF);
-            objCode.push(dataVal >> 8);
+            data = line.data.value;
+            dataVal = (typeof line.data.value === "string") ? symbolTable[line.data.value] : line.data.value;
+            objCode.push({ data: line.opcode, kind: 'code', location: line.location });
+            objCode.push({ data: dataVal & 0xFF, kind: 'data', location: line.data.location });
+            objCode.push({ data: dataVal >> 8, kind: 'data', location: line.data.location });
         }
     }
 
@@ -303,8 +303,8 @@ machineCode = prg:program {
 program = __ first:line rest:(eol l:line {return l})* {return [first].concat(rest);}
 
 line = whitespace* label:labelPart? op:operation? comment:comment? {
-    if (label !== "") {
-        symbolTable[label] = ilc;
+    if (label && label !== "") {
+        symbolTable[label.value] = ilc;
     }
 
     if (op !== null) {
@@ -315,7 +315,9 @@ line = whitespace* label:labelPart? op:operation? comment:comment? {
 }
 
 labelPart = label:label ":" whitespace* {return label;}
-label "label" = first:[a-zA-Z?@] rest:([a-zA-Z0-9]*) {return first + rest.join("");}
+label "label" = first:[a-zA-Z?@] rest:([a-zA-Z0-9]*) {
+	return { value: first + rest.join(""), location: location() };
+}
 
 paramList = whitespace+ first:value rest:(whitespace* ',' whitespace* v:value { return v; })* {
     return [first].concat(rest);
@@ -323,7 +325,7 @@ paramList = whitespace+ first:value rest:(whitespace* ',' whitespace* v:value { 
 
 value = register / label
 
-register = l:[AaBbCcDdEeHhLlMm] !identLetter { return l.toLowerCase(); }
+register "Register Name" = l:[AaBbCcDdEeHhLlMm] !identLetter { return l.toLowerCase(); }
 
 registerPair = l:[BbDdHh] !identLetter { return l.toLowerCase(); }
 
@@ -342,7 +344,7 @@ data8 "byte" = n:numLiteral {
         }
         throw e;
     } else {
-        return n;
+        return { value: n, location: location() };
     }
 }
 
@@ -355,7 +357,7 @@ data16 "word" = n:numLiteral {
         }
         throw e;
     } else {
-        return n;
+        return { value: n, location: location() };
     }
 }
 
@@ -416,7 +418,8 @@ operation = inst:(carryBitInstructions / singleRegInstructions / nopInstruction 
     return {
         opcode: opcode.code,
         data: data,
-        size: opcode.size
+        size: opcode.size,
+        location: location()
     };
 }
 
