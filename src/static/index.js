@@ -7,6 +7,8 @@ var parser = require( '../core/8085-assembler.js' );
 var simulator = require( '../core/8085.js' );
 var stateComm = require('./cpuState.js');
 
+require('./8085-mode.js');
+
 window.simulator = simulator;
 var execute8085Program = simulator.cwrap('ExecuteProgram', 'number', ['number', 'array', 'number', 'number']);
 var load8085Program = simulator.cwrap('LoadProgram', 'number', ['number', 'array', 'number', 'number']);
@@ -23,6 +25,7 @@ function initilizeEditor () {
 
   var editor = CodeMirror.fromTextArea(document.getElementById("coding-area__editor"), {
     lineNumbers: true,
+    mode: "8085",
     gutters: ["CodeMirror-assembler-errors", "breakpoints", "CodeMirror-linenumbers"]
   });
 
@@ -45,7 +48,6 @@ function initilizeEditor () {
   }
 
   editor.on('change', function (cm, change) {
-    clearTimeout(assembling);
     var code = cm.getValue();
     app.ports.code.send(code);
   });
@@ -61,6 +63,7 @@ function initilizeEditor () {
   });
 
   app.ports.load.subscribe(function (input) {
+    clearTimeout(assembling);
     try {
       lineWidget.forEach(function (w) {
         editor.removeLineWidget(w);
@@ -105,6 +108,7 @@ function initilizeEditor () {
     statePtr = execute8085Program(statePtr, assembled, assembled.length, 2048);
     var state = stateComm.getStateFromPtr(simulator, statePtr);
     state.programState = "Idle";
+    highlighedLine && editor.getDoc().removeLineClass(highlighedLine, "wrap", "coding-area__editor_running-marker");
     app.ports.state.send(state);
   });
 

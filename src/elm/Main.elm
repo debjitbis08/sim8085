@@ -285,7 +285,7 @@ view model =
             div [] [
               h3 [] [ text "Registers" ]
             , table [ class "table table-striped" ] [
-                tbody [] (showRegisters model.accumulator model.registers model.stackPtr model.programCounter)
+                tbody [] (showRegisters model.accumulator model.flags model.registers model.stackPtr model.programCounter)
               ]
             ]
           , div [] [
@@ -298,7 +298,7 @@ view model =
                   div [ class "btn-toolbar coding-area__btn-toolbar" ] [
                       div [ class "btn-group" ] [
                           toolbarButton (model.programState /= Idle) "success" Load "Assemble and Load Program" "save"
-                        , toolbarButton (model.programState /= Loaded) "success" Run "Run Program" "fast-forward"
+                        , toolbarButton (model.programState /= Loaded && model.programState /= Paused) "success" Run "Run Program" "fast-forward"
                         , toolbarButton (model.programState /= Loaded && model.programState /= Paused)
                                         "success" RunOne "Run one instruction" "step-forward"
                       ]
@@ -379,12 +379,18 @@ showCode codes =
 showRegister name { high, low } =
   tr [] [
      th [ scope "row" ] [ text name ]
-   , td [] [ span [] [ text <| toString <| high ] ]
-   , td [] [ span [] [ text <| toString <| low ] ]
+   , td [] [ span [] [ text "0x" ] ]
+   , td [] [ span [] [ text <| String.toUpper <| toByte high ] ]
+   , td [] [ span [] [ text <| String.toUpper <| toByte low ] ]
   ]
 
-showRegisters accumulator registers stackPtr programCounter =
-  [ showRegister "A" { high = 0, low = accumulator }
+getFlagByte flags =
+  Array.foldl (\a b -> a + b) 0
+              (Array.indexedMap (\i f -> (2^i) * (if f then 1 else 0))
+                                (Array.fromList [flags.c, True, flags.p, False, flags.ac, False, flags.z, flags.s]))
+
+showRegisters accumulator flags registers stackPtr programCounter =
+  [ showRegister "A/PSW" { high = accumulator, low = getFlagByte flags }
   , showRegister "BC" registers.bc
   , showRegister "DE" registers.de
   , showRegister "HL" registers.hl

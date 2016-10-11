@@ -387,7 +387,62 @@ digit "digit" = [0-9]
 hexit "hex digit" = [0-9a-fA-F]
 bit "bit" = [01]
 
-//expression "expression" =
+expression "expression" = arithmetic
+
+// / shift / logical / compare / byteIsolation
+
+arithmetic "Arithmetic Expression" = addition
+
+addition "Addition"
+  = left:subtraction whitespace* "+" whitespace* right:addition {
+    return { value: left + right, location: location() };
+  }
+  / subtraction
+
+subtraction "Subtraction"
+  = left:multiplication whitespace* "-" whitespace* right:subtraction {
+    return { value: left - right, location: location() };
+  }
+  / multiplication
+
+multiplication "Multiplication"
+  = left:division whitespace* "*" whitespace* right:multiplication {
+    return { value: left * right, location: location() };
+  }
+  / division
+
+division "Division"
+  = left:modulo whitespace* "/" whitespace* right:division {
+    return { value: left / right, location: location() };
+  }
+  / modulo
+
+modulo "Modulo"
+  = left:(numLiteral / label) whitespace* "MOD"i whitespace* right:modulo {
+    return { value: left % right, location: location() };
+  }
+  / numLiteral
+  / label
+  / shift
+  / "(" addition:addition ")" { return addition; }
+
+shift "Shift Expression" = shiftRight
+
+shiftRight "Shift Right"
+  = left:shiftLeft whitespace+ "SHR"i whitespace+ right:shiftRight {
+    return { value: left >> right, location: location() };
+  }
+  / shiftLeft
+
+
+shiftLeft "Shift Left"
+  = left:(numLiteral / label) whitespace+ "SHL"i whitespace+ right:shiftLeft {
+    return { value: left << right, location: location() };
+  }
+  / numLiteral
+  / label
+  / "(" shr:shift ")" { return shr; }
+
 
 comment "comment" = ";" c:[^\n\r\n\u2028\u2029]* {return c.join("");}
 
@@ -639,39 +694,39 @@ op_pop  = ("POP"  / "pop" ) whitespace+ (registerPair / registerPairPSW)
 op_dad  = ("DAD"  / "dad" ) whitespace+ (registerPair / stackPointer)
 op_inx  = ("INX"  / "inx" ) whitespace+ (registerPair / stackPointer)
 op_dcx  = ("DCX"  / "dcx" ) whitespace+ (registerPair / stackPointer)
-op_adi  = ("ADI"  / "adi" ) whitespace+ (data8 / label)
-op_aci  = ("ACI"  / "aci" ) whitespace+ (data8 / label)
-op_sui  = ("SUI"  / "sui" ) whitespace+ (data8 / label)
-op_sbi  = ("SBI"  / "sbi" ) whitespace+ (data8 / label)
-op_ani  = ("ANI"  / "ani" ) whitespace+ (data8 / label)
-op_xri  = ("XRI"  / "xri" ) whitespace+ (data8 / label)
-op_ori  = ("ORI"  / "ori" ) whitespace+ (data8 / label)
-op_cpi  = ("CPI"  / "cpi" ) whitespace+ (data8 / label)
-op_sta  = ("STA"  / "sta" ) whitespace+ (data16 / label)
-op_lda  = ("LDA"  / "lda" ) whitespace+ (data16 / label)
-op_shld = ("SHLD" / "shld") whitespace+ (data16 / label)
-op_lhld = ("LHLD" / "lhld") whitespace+ (data16 / label)
+op_adi  = ("ADI"  / "adi" ) whitespace+ (expression / data8 / label)
+op_aci  = ("ACI"  / "aci" ) whitespace+ (expression / data8 / label)
+op_sui  = ("SUI"  / "sui" ) whitespace+ (expression / data8 / label)
+op_sbi  = ("SBI"  / "sbi" ) whitespace+ (expression / data8 / label)
+op_ani  = ("ANI"  / "ani" ) whitespace+ (expression / data8 / label)
+op_xri  = ("XRI"  / "xri" ) whitespace+ (expression / data8 / label)
+op_ori  = ("ORI"  / "ori" ) whitespace+ (expression / data8 / label)
+op_cpi  = ("CPI"  / "cpi" ) whitespace+ (expression / data8 / label)
+op_sta  = ("STA"  / "sta" ) whitespace+ (expression / data16 / label)
+op_lda  = ("LDA"  / "lda" ) whitespace+ (expression / data16 / label)
+op_shld = ("SHLD" / "shld") whitespace+ (expression / data16 / label)
+op_lhld = ("LHLD" / "lhld") whitespace+ (expression / data16 / label)
 
-op_jmp  = ("JMP"  / "jmp" ) whitespace+ (data16 / label)
-op_jc   = ("JC"   / "jc"  ) whitespace+ (data16 / label)
-op_jnc  = ("JNC"  / "jnc" ) whitespace+ (data16 / label)
-op_jz   = ("JZ"   / "jz"  ) whitespace+ (data16 / label)
-op_jnz  = ("JNZ"  / "jnz" ) whitespace+ (data16 / label)
-op_jm   = ("JM"   / "jm"  ) whitespace+ (data16 / label)
-op_jp   = ("JP"   / "jp"  ) whitespace+ (data16 / label)
-op_jpe  = ("JPE"  / "jpe" ) whitespace+ (data16 / label)
-op_jpo  = ("JPO"  / "jpo" ) whitespace+ (data16 / label)
+op_jmp  = ("JMP"  / "jmp" ) whitespace+ (expression / data16 / label)
+op_jc   = ("JC"   / "jc"  ) whitespace+ (expression / data16 / label)
+op_jnc  = ("JNC"  / "jnc" ) whitespace+ (expression / data16 / label)
+op_jz   = ("JZ"   / "jz"  ) whitespace+ (expression / data16 / label)
+op_jnz  = ("JNZ"  / "jnz" ) whitespace+ (expression / data16 / label)
+op_jm   = ("JM"   / "jm"  ) whitespace+ (expression / data16 / label)
+op_jp   = ("JP"   / "jp"  ) whitespace+ (expression / data16 / label)
+op_jpe  = ("JPE"  / "jpe" ) whitespace+ (expression / data16 / label)
+op_jpo  = ("JPO"  / "jpo" ) whitespace+ (expression / data16 / label)
 
-op_call = ("CALL" / "call") whitespace+ (data16 / label)
-op_cc   = ("CC"   / "cc"  ) whitespace+ (data16 / label)
-op_cnc  = ("CNC"  / "cnc" ) whitespace+ (data16 / label)
-op_cz   = ("CZ"   / "cz"  ) whitespace+ (data16 / label)
-op_cnz  = ("CNZ"  / "cnz" ) whitespace+ (data16 / label)
-op_cm   = ("CM"   / "cm"  ) whitespace+ (data16 / label)
-op_cp   = ("CP"   / "cp"  ) whitespace+ (data16 / label)
-op_cpe  = ("CPE"  / "cpe" ) whitespace+ (data16 / label)
-op_cpo  = ("CPO"  / "cpo" ) whitespace+ (data16 / label)
+op_call = ("CALL" / "call") whitespace+ (expression / data16 / label)
+op_cc   = ("CC"   / "cc"  ) whitespace+ (expression / data16 / label)
+op_cnc  = ("CNC"  / "cnc" ) whitespace+ (expression / data16 / label)
+op_cz   = ("CZ"   / "cz"  ) whitespace+ (expression / data16 / label)
+op_cnz  = ("CNZ"  / "cnz" ) whitespace+ (expression / data16 / label)
+op_cm   = ("CM"   / "cm"  ) whitespace+ (expression / data16 / label)
+op_cp   = ("CP"   / "cp"  ) whitespace+ (expression / data16 / label)
+op_cpe  = ("CPE"  / "cpe" ) whitespace+ (expression / data16 / label)
+op_cpo  = ("CPO"  / "cpo" ) whitespace+ (expression / data16 / label)
 
 op_mov  = ("MOV"  / "mov" ) whitespace+ register whitespace* [,] whitespace* register
-op_lxi  = ("LXI"  / "lxi" ) whitespace+ register whitespace* [,] whitespace* (data16 / label)
-op_mvi  = ("MVI"  / "mvi" ) whitespace+ register whitespace* [,] whitespace* (data8 / label)
+op_lxi  = ("LXI"  / "lxi" ) whitespace+ register whitespace* [,] whitespace* (expression / data16 / label)
+op_mvi  = ("MVI"  / "mvi" ) whitespace+ register whitespace* [,] whitespace* (expression / data8 / label)
