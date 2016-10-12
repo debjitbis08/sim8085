@@ -302,7 +302,7 @@ machineCode = prg:program {
  */
 program = __ first:line rest:(eol l:line {return l})* {return [first].concat(rest);}
 
-line = whitespace* label:labelPart? op:operation? comment:comment? {
+labelOp = label:labelPart? op:operation {
     if (label && label !== "") {
         symbolTable[label.value] = ilc;
     }
@@ -311,7 +311,10 @@ line = whitespace* label:labelPart? op:operation? comment:comment? {
       ilc += op.size;
       return op;
     }
+}
 
+line = whitespace* lop:labelOp? comment:comment? {
+    return lop;
 }
 
 labelPart = label:label ":" whitespace* {return label;}
@@ -452,7 +455,7 @@ eol "line end" = "\n" / "\r\n" / "\r" / "\u2028" / "\u2029"
 
 whitespace "whitespace" = [ \t\v\f\u00A0\uFEFF\u1680\u180E\u2000-\u200A\u202F\u205F\u3000]
 
-operation = inst:(carryBitInstructions / singleRegInstructions / nopInstruction /
+operation "Opcode" = inst:(carryBitInstructions / singleRegInstructions / nopInstruction /
     dataTransferInstructions / regOrMemToAccInstructions / rotateAccInstructions /
     regPairInstructions / immediateInstructions / directAddressingInstructions /
     jumpInstructions / callInstructions / returnInstructions / haltInstruction) whitespace* {
