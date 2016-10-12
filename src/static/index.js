@@ -81,7 +81,8 @@ function initilizeEditor () {
         msg: e.message,
         line: e.location.start.line,
         column: e.location.start.column
-      })
+      });
+      return;
     }
 
     // Allocate memory for simulator
@@ -92,8 +93,10 @@ function initilizeEditor () {
 
     // Get new state and send to UI
     var state = stateComm.getStateFromPtr(simulator, statePtr);
+    app.ports.programState.send("Loaded");
     state.programState = "Loaded";
     app.ports.state.send(state);
+    editor.setOption("readOnly", true);
   });
 
   app.ports.run.subscribe(function (input) {
@@ -107,8 +110,9 @@ function initilizeEditor () {
 
     statePtr = execute8085Program(statePtr, assembled, assembled.length, 2048);
     var state = stateComm.getStateFromPtr(simulator, statePtr);
-    state.programState = "Idle";
+    app.ports.programState.send("Idle");
     highlighedLine && editor.getDoc().removeLineClass(highlighedLine, "wrap", "coding-area__editor_running-marker");
+    state.programState = "Idle";
     app.ports.state.send(state);
   });
 
@@ -119,10 +123,13 @@ function initilizeEditor () {
     var status = simulator._Emulate8085Op(statePtr);
     var state = stateComm.getStateFromPtr(simulator, statePtr);
     if (status == 0) {
+      app.ports.programState.send("Paused");
       state.programState = "Paused";
     } else {
+      app.ports.programState.send("Idle");
       state.programState = "Idle";
       highlighedLine && editor.getDoc().removeLineClass(highlighedLine, "wrap", "coding-area__editor_running-marker");
+      editor.setOption("readOnly", false);
     }
     app.ports.state.send(state);
   });

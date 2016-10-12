@@ -78,13 +78,13 @@ start: nop
 
 hlt"""
 
-type alias RegisterValue =
-  { high: Int, low: Int }
+type alias RegisterField =
+  { high: Int, low: Int, editing: Bool }
 
 type alias Register =
-  { bc: RegisterValue
-  , de: RegisterValue
-  , hl: RegisterValue
+  { bc: RegisterField
+  , de: RegisterField
+  , hl: RegisterField
   }
 
 type alias Flags =
@@ -102,9 +102,9 @@ type alias File =
 
 registers : Register
 registers =
-  { bc = { high = 0, low = 0 }
-  , de = { high = 0, low = 0 }
-  , hl = { high = 0, low = 0 }
+  { bc = { high = 0, low = 0, editing = False }
+  , de = { high = 0, low = 0, editing = False }
+  , hl = { high = 0, low = 0, editing = False }
   }
 
 flags : Flags
@@ -125,15 +125,21 @@ type Msg
   = Run
   | RunOne
   | Load
+  | Stop
   | UpdateCode String
   | UpdateAssembledCode (Array AssembledCode)
   | UpdateAssemblerError AssemblerError
   | UpdateState ExternalState
+  | UpdateMemory (Array Int)
+  | UpdateProgramState String
   | PreviousMemoryPage
   | NextMemoryPage
   | ChangeMemoryStart String
   | ChangeMemoryStartSmall String
   | UpdateBreakpoints BreakPointAction
+  | EditRegister String
+  | SaveRegister String String
+  | StopEditRegister String
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
@@ -154,33 +160,39 @@ update msg model =
       , runOne { state = createExternalStateFromModel model }
       )
     Load -> (model, load { offset = model.loadAddr, code = model.code })
-    UpdateState state ->
-      ({ model | accumulator = state.a
-              , registers = readRegistersFromExternalState state
-              , flags = readFlagsFromExternalState state
-              , stackPtr = state.sp
-              , programCounter = state.pc
-              , statePtr = state.ptr
-              , programState =
-                  case state.programState of
+    UpdateProgramState ps ->
+      ({ model | programState =
+                  case ps of
                     "Loaded" -> Loaded
                     "Idle" -> Idle
                     "Running" -> Idle
                     "Paused" -> Paused
-                    _ -> Idle
-              , memory = state.memory }
-      , if state.programState == "Paused"
+                    _ -> Idle }
+        , Cmd.none)
+    UpdateState state ->
+      ({ model | accumulator = updateOnLoaded state.programState state.a model.accumulator
+               , registers = updateOnLoaded state.programState (readRegistersFromExternalState model.registers state) model.registers
+               , flags = updateOnLoaded state.programState (readFlagsFromExternalState model.flags state) model.flags
+               , stackPtr = updateOnLoaded state.programState state.sp model.stackPtr
+               , programCounter = state.pc
+               , statePtr = state.ptr
+               , memory = state.memory }
+      , if model.programState == Paused
         then nextLine (case findLineAtPC (state.pc) model.assembled model.memory of
                         Nothing -> model.programCounter - model.loadAddr
                         Just l -> l)
         else Cmd.none )
+    UpdateMemory memory -> ({model | memory = memory}, Cmd.none)
     _ -> ( updateHelper msg model, Cmd.none )
 
 updateHelper : Msg -> Model -> Model
 updateHelper msg model =
   case msg of
     UpdateCode code -> { model | code = code }
-    UpdateAssembledCode code -> { model | assembled = code, error = Nothing }
+    UpdateAssembledCode code ->
+      { model | assembled = code
+              , error = Nothing
+              , memory = loadCode model.memory code model.loadAddr }
     PreviousMemoryPage -> { model | memoryStart = if model.memoryStart == 0 then 0 else model.memoryStart - 256 }
     NextMemoryPage -> { model | memoryStart = if model.memoryStart == 65536 - 128 then model.memoryStart else model.memoryStart + 256 }
     ChangeMemoryStart v ->
@@ -198,9 +210,55 @@ updateHelper msg model =
     UpdateAssemblerError e -> { model | error = Just e, assembled = Array.empty }
     UpdateBreakpoints ba ->
       { model | breakpoints = if ba.action == "add"
-                              then  ba.line :: model.breakpoints
+                              then ba.line :: model.breakpoints
                               else List.filter (\b -> b /= ba.line) model.breakpoints }
+    Stop -> { model | programState = Idle }
+    EditRegister name ->
+      { model | registers =
+                  case name of
+                    "bc" -> { registers | bc = setRegisterEdit model.registers.bc True }
+                    "de" -> { registers | de = setRegisterEdit model.registers.de True }
+                    "hl" -> { registers | hl = setRegisterEdit model.registers.hl True }
+                    _ -> model.registers
+      }
+    StopEditRegister name ->
+      { model | registers =
+                  case name of
+                    "bc" -> { registers | bc = setRegisterEdit model.registers.bc False }
+                    "de" -> { registers | de = setRegisterEdit model.registers.de False }
+                    "hl" -> { registers | hl = setRegisterEdit model.registers.hl False }
+                    _ -> model.registers
+      }
+    SaveRegister name value ->
+      { model | registers =
+                  case name of
+                    "bc" -> { registers | bc = saveRegisterEdit model.registers.bc value }
+                    "de" -> { registers | de = saveRegisterEdit model.registers.de value }
+                    "hl" -> { registers | hl = saveRegisterEdit model.registers.hl value }
+                    _ -> model.registers
+      }
     _ -> model
+
+updateOnLoaded programState n o =
+  if programState == "Loaded" then o else n
+
+loadCode memory code loadAddr =
+  let
+    codeLength = Array.length code
+    startOfMemory = Array.toList (Array.slice 0 (loadAddr) memory)
+    opcodes = Array.toList (Array.map (.data) code)
+    restOfMemory = Array.toList (Array.slice (loadAddr + codeLength) 65536 memory)
+  in
+    Array.fromList (List.append (List.append startOfMemory opcodes) restOfMemory)
+
+setRegisterEdit register isEditing =
+  { high = register.high, low = register.low, editing = isEditing }
+
+saveRegisterEdit register value =
+  let
+    v = Result.withDefault 0 (String.toInt value)
+  in
+    { high = (v `shiftRight` 8) `and` 0xff, low = v `and` 0xff, editing = register.editing }
 
 findLineAtPC pc assembled memory =
   let
@@ -213,13 +271,13 @@ findLineAtPC pc assembled memory =
           Nothing -> Nothing
           Just a -> Just a.location.start.line
 
-readRegistersFromExternalState state =
-  { bc = { high = state.b, low = state.c }
-  , de = { high = state.d, low = state.e }
-  , hl = { high = state.h, low = state.l }
+readRegistersFromExternalState registers state =
+  { bc = { high = state.b, low = state.c, editing = registers.bc.editing }
+  , de = { high = state.d, low = state.e, editing = registers.de.editing }
+  , hl = { high = state.h, low = state.l, editing = registers.hl.editing }
   }
 
-readFlagsFromExternalState state =
+readFlagsFromExternalState flags state =
   { s = state.flags.s
   , z = state.flags.z
   , ac = state.flags.ac
@@ -268,6 +326,8 @@ subscriptions model =
     [ code UpdateCode
     , assembled UpdateAssembledCode
     , state UpdateState
+    , memory UpdateMemory
+    , programState UpdateProgramState
     , error UpdateAssemblerError
     , breakpoints UpdateBreakpoints
     ]
@@ -298,6 +358,7 @@ view model =
                   div [ class "btn-toolbar coding-area__btn-toolbar" ] [
                       div [ class "btn-group" ] [
                           toolbarButton (model.programState /= Idle) "success" Load "Assemble and Load Program" "save"
+                        , toolbarButton (model.programState == Idle) "warning" Stop "Stop program and return to editing" "stop"
                         , toolbarButton (model.programState /= Loaded && model.programState /= Paused) "success" Run "Run Program" "fast-forward"
                         , toolbarButton (model.programState /= Loaded && model.programState /= Paused)
                                         "success" RunOne "Run one instruction" "step-forward"
@@ -309,6 +370,7 @@ view model =
                 , div [ class "pull-right" ] [
                       text "Load at "
                     , text "0x0800"
+                    , text <| toString <| Array.get model.loadAddr model.memory
                   ]
               ]
             , ul [ class "nav nav-tabs" ]
@@ -318,7 +380,7 @@ view model =
               ]
           ]
         , div [ class "col-md-4" ] [
-              div [ class "" ] [ showMemory model.memory model.memoryStart model.memoryStartSmall ]
+              div [ class "" ] [ showMemory model model.memory model.memoryStart model.memoryStartSmall ]
           ]
       ]
     , div [ class "row" ] [
@@ -376,12 +438,17 @@ showCode codes =
     (String.toUpper <| toRadix 16 <| (Maybe.withDefault 0 (Array.get 0 code))) ++ "  " ++
       (Array.foldr (\a b -> (toString a) ++ " " ++ b) "" data)
 
-showRegister name { high, low } =
+showRegister name rid { high, low, editing } =
   tr [] [
      th [ scope "row" ] [ text name ]
    , td [] [ span [] [ text "0x" ] ]
-   , td [] [ span [] [ text <| String.toUpper <| toByte high ] ]
-   , td [] [ span [] [ text <| String.toUpper <| toByte low ] ]
+   , td [ onDoubleClick (EditRegister rid), hidden editing ] [
+        span [] [ text <| String.toUpper <| toByte high ]
+      , span [] [ text <| String.toUpper <| toByte low ]
+    ]
+   , td [ onDoubleClick (EditRegister rid), hidden (not editing) ] [
+        input [ onInput (SaveRegister rid), onBlur (StopEditRegister rid), value (toString <| (high `shiftLeft` 8) + low) ] []
+    ]
   ]
 
 getFlagByte flags =
@@ -390,12 +457,12 @@ getFlagByte flags =
                                 (Array.fromList [flags.c, True, flags.p, False, flags.ac, False, flags.z, flags.s]))
 
 showRegisters accumulator flags registers stackPtr programCounter =
-  [ showRegister "A/PSW" { high = accumulator, low = getFlagByte flags }
-  , showRegister "BC" registers.bc
-  , showRegister "DE" registers.de
-  , showRegister "HL" registers.hl
-  , showRegister "SP" { high = (stackPtr `shiftRight` 8) `and` 0xff, low = stackPtr `and` 0xff }
-  , showRegister "PC" { high = (programCounter `shiftRight` 8) `and` 0xff, low = programCounter `and` 0xff }
+  [ showRegister "A/PSW" "a" { high = accumulator, low = getFlagByte flags, editing = False }
+  , showRegister "BC" "bc" registers.bc
+  , showRegister "DE" "de" registers.de
+  , showRegister "HL" "hl" registers.hl
+  , showRegister "SP" "sp" { high = (stackPtr `shiftRight` 8) `and` 0xff, low = stackPtr `and` 0xff, editing = False }
+  , showRegister "PC" "pc" { high = (programCounter `shiftRight` 8) `and` 0xff, low = programCounter `and` 0xff, editing = False }
   ]
 
 showFlag : String -> Bool -> Html msg
@@ -421,12 +488,12 @@ showOpenFileTabs activeFileName { name, code } =
        a [ href "#" ] [ text name ]
     ]
 
-showMemory memory memoryStart memoryStartSmall =
+showMemory model memory memoryStart memoryStartSmall =
   div [ class "memory-view" ] [
       h3 [] [ text "Memory View" ]
     , table [ class "table memory-view__cells" ] [
           thead [] (td [] [] :: (List.map (\c -> td [] [ text <| (String.toUpper (toRadix 16 c)) ]) [0..15]))
-        , tbody [] (Array.toList (showMemoryCells memoryStart (Array.slice memoryStart (memoryStart + 256) memory)))
+        , tbody [] (Array.toList (showMemoryCells model memoryStart (Array.slice memoryStart (memoryStart + 256) memory)))
       ]
     , div [ class "memory-view___paginator row" ] [
           div [ class "col-sm-6" ] [
@@ -456,18 +523,26 @@ chunk k xs =
       then List.take k xs :: chunk k (List.drop k xs)
       else [xs]
 
-showMemoryCell : Int -> Int -> Html Msg
-showMemoryCell addr cell =
-  td [ class (if cell > 0 then "memory-view__cell_highlight" else "memory-view__cell" ) ] [
-     text <| String.toUpper <| toByte <| cell
-  ]
+memoryCellHighlightType model addr cell =
+  if addr >= model.loadAddr && addr < (model.loadAddr + Array.length model.assembled)
+  then "highlight"
+  else ""
 
-showMemoryCellRow : Int -> Int -> List Int -> Html Msg
-showMemoryCellRow start i cells = tr [] ( (th [ scope "row" ] [ text <| String.toUpper <| toThreeBytes ((start//16) + i) ]) :: (List.map (showMemoryCell i) cells))
+showMemoryCell : Model -> Int -> Int -> Int -> Html Msg
+showMemoryCell model start col cell =
+  let
+    addr = start + col
+  in
+    td [ class ("memory-view__cell_" ++ (memoryCellHighlightType model addr cell)), title (toWord addr) ] [
+       text <| String.toUpper <| toByte <| cell
+    ]
 
-showMemoryCells : Int-> Array Int -> Array (Html Msg)
-showMemoryCells start cells =
-  Array.indexedMap (showMemoryCellRow start) (Array.fromList (chunk 16 (Array.toList cells)))
+showMemoryCellRow : Model -> Int -> Int -> List Int -> Html Msg
+showMemoryCellRow model start i cells = tr [] ( (th [ scope "row" ] [ text <| String.toUpper <| toThreeBytes ((start//16) + i) ]) :: (List.indexedMap (showMemoryCell model (start + i * 16)) cells))
+
+showMemoryCells : Model -> Int-> Array Int -> Array (Html Msg)
+showMemoryCells model start cells =
+  Array.indexedMap (showMemoryCellRow model start) (Array.fromList (chunk 16 (Array.toList cells)))
 
 showScalePoint value =
   li [] [ text <| toString <| value ]
@@ -482,6 +557,12 @@ toRadix r n =
       True -> getStr r
       False -> toString n
 
+toWord n =
+  if n < 16
+    then ("000" ++ toRadix 16 n)
+    else if n < 256 then ("00" ++ toRadix 16 n)
+    else if n < 4096 then ("0" ++ toRadix 16 n) else toRadix 16 n
+
 toThreeBytes n =
   if n < 16
     then ("00" ++ toRadix 16 n)
@@ -489,7 +570,7 @@ toThreeBytes n =
 
 toByte n =
   if n < 16
-    then ("0" ++ toRadix 16 n)
+    then ("0" ++ (toRadix 16 n))
     else (toRadix 16 n)
 
 -- Ports
@@ -550,4 +631,6 @@ port code : (String -> msg) -> Sub msg
 port assembled : (Array AssembledCode -> msg) -> Sub msg
 port error : (AssemblerError -> msg) -> Sub msg
 port state : (ExternalState -> msg) -> Sub msg
+port memory : (Array Int -> msg) -> Sub msg
+port programState : (String -> msg) -> Sub msg
 port breakpoints : (BreakPointAction -> msg) -> Sub msg

@@ -28,8 +28,10 @@ function getStateFromPtr (simulator, statePtr) {
         var memoryPtr = statePtr + 24;
         var arr = [];
         var i = 0;
+        var n = 0;
         while (i < 65536) {
-          arr.push(simulator.getValue(memoryPtr + i, 'i8', 0));
+          n = simulator.getValue(memoryPtr + i, 'i8', 0);
+          arr.push(n < 0 ? 256 + n : n);
           i++;
         }
         return arr;

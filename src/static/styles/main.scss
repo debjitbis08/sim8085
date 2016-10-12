@@ -8,11 +8,21 @@ $icon-font-path: '~bootstrap-sass/assets/fonts/bootstrap/';
   padding-top: 80px;
 }
 
+.navbar-brand {
+    padding-top: 0;
+}
+
+.navbar-brand span {
+    padding-top: 18px;
+    display: block;
+    float: left;
+}
+
 .navbar-brand::after {
     content: "α";
     position: absolute;
     top: 10px;
-    left: 90px;
+    left: 145px;
     font-weight: bold;
     font-size: 10px;
     line-height: 7px;

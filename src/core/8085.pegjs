@@ -364,9 +364,15 @@ data16 "word" = n:numLiteral {
     }
 }
 
-numLiteral "numeric literal" = binLiteral / hexLiteral / decLiteral
+numLiteral "numeric literal" = binLiteral / hexLiteral / octalLiteral / decLiteral
 
-decLiteral "decimal literal" = neg:[-]? digits:digit+ {
+decLiteral "decimal literal" = decForm1 / decForm2
+
+decForm1 = neg:[-]? digits:digit+ {
+    return parseInt((!neg ? "":"-") + digits.join(""), 10);
+}
+
+decForm2 = neg:[-]? digits:digit+ "D" {
     return parseInt((!neg ? "":"-") + digits.join(""), 10);
 }
 
@@ -380,14 +386,19 @@ hexForm2 = hexits:hexit+ ("H" / "h") {
     return parseInt(hexits.join(""), 16);
 }
 
+octalLiteral "Octal Literal" = octits:octit+ ("O" / "Q" / "o" / "q") {
+    return parseInt(octits.join(""), 8);
+}
+
 binLiteral "binary literal" =
-'0b' bits:bit+ { return parseInt(bits.join(""), 2); }
+  bits:bit+ "B" { return parseInt(bits.join(""), 2); }
 
 
 identifier "identifier" = ltrs:identLetter+ { return ltrs.join(""); }
 identLetter "letter/underscore" = [a-zA-Z_]
 digit "digit" = [0-9]
 hexit "hex digit" = [0-9a-fA-F]
+octit "octal digit" = [0-7]
 bit "bit" = [01]
 
 expression "expression" = arithmetic
