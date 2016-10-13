@@ -4067,12 +4067,10 @@ function _UnimplementedInstruction($state) {
 }
 function _InvalidInstruction($state) {
  $state = $state|0;
- var $0 = 0, $1 = 0, $10 = 0, $11 = 0, $12 = 0, $13 = 0, $14 = 0, $15 = 0, $16 = 0, $17 = 0, $18 = 0, $19 = 0, $2 = 0, $20 = 0, $21 = 0, $22 = 0, $23 = 0, $24 = 0, $25 = 0, $26 = 0;
- var $27 = 0, $28 = 0, $3 = 0, $4 = 0, $5 = 0, $6 = 0, $7 = 0, $8 = 0, $9 = 0, $vararg_buffer = 0, $vararg_buffer1 = 0, $vararg_buffer3 = 0, $vararg_buffer6 = 0, $vararg_buffer9 = 0, label = 0, sp = 0;
+ var $0 = 0, $1 = 0, $10 = 0, $11 = 0, $12 = 0, $13 = 0, $14 = 0, $15 = 0, $16 = 0, $17 = 0, $18 = 0, $2 = 0, $3 = 0, $4 = 0, $5 = 0, $6 = 0, $7 = 0, $8 = 0, $9 = 0, $vararg_buffer = 0;
+ var $vararg_buffer1 = 0, $vararg_buffer3 = 0, label = 0, sp = 0;
  sp = STACKTOP;
- STACKTOP = STACKTOP + 48|0; if ((STACKTOP|0) >= (STACK_MAX|0)) abort();
- $vararg_buffer9 = sp + 32|0;
- $vararg_buffer6 = sp + 24|0;
+ STACKTOP = STACKTOP + 32|0; if ((STACKTOP|0) >= (STACK_MAX|0)) abort();
  $vararg_buffer3 = sp + 16|0;
  $vararg_buffer1 = sp + 8|0;
  $vararg_buffer = sp;
@@ -4101,20 +4099,6 @@ function _InvalidInstruction($state) {
  $17 = HEAP16[$16>>1]|0;
  $18 = (($17) + -1)<<16>>16;
  HEAP16[$16>>1] = $18;
- $19 = $0;
- $20 = ((($19)) + 10|0);
- $21 = HEAP16[$20>>1]|0;
- $22 = $21&65535;
- HEAP32[$vararg_buffer6>>2] = $22;
- (_printf(2724,$vararg_buffer6)|0);
- $23 = $0;
- $24 = ((($23)) + 16|0);
- $25 = HEAP32[$24>>2]|0;
- $26 = ((($25)) + 2048|0);
- $27 = HEAP8[$26>>0]|0;
- $28 = $27&255;
- HEAP32[$vararg_buffer9>>2] = $28;
- (_printf(2732,$vararg_buffer9)|0);
  _exit(1);
  // unreachable;
 }

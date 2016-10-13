@@ -10,16 +10,22 @@ import Bitwise exposing (..)
 import Char exposing (..)
 import String exposing (..)
 
+import Json.Decode as Json
+
 type ProgramState
   = Idle
   | Loaded
   | Running
   | Paused
 
+type alias Config =
+  { initialCode : Maybe String
+  }
+
 -- APP
-main : Program Never
+main : Program Config
 main =
-  App.program { init = init, view = view, update = update, subscriptions = subscriptions }
+  App.programWithFlags { init = init, view = view, update = update, subscriptions = subscriptions }
 
 -- MODEL
 type alias Model =
@@ -35,6 +41,7 @@ type alias Model =
   , programCounter: Int
   , statePtr: Maybe Int
   , memory: Array Int
+  , editingMemoryCell: Maybe Int
   , memoryStart: Int
   , memoryStartLarge: Int
   , memoryStartSmall: Int
@@ -43,9 +50,9 @@ type alias Model =
   , openFiles: List File
   }
 
-init : ( Model, Cmd Msg )
-init =
-  ( { code = initialCode
+init : Config -> ( Model, Cmd Msg )
+init config =
+  ( { code = Maybe.withDefault initialCode config.initialCode
     , error = Nothing
     , assembled = Array.empty
     , breakpoints = []
@@ -57,6 +64,7 @@ init =
     , programCounter = 0
     , statePtr = Nothing
     , memory = Array.repeat 65536 0
+    , editingMemoryCell = Nothing
     , memoryStart = 0
     , memoryStartLarge = 0
     , memoryStartSmall = 0
@@ -122,10 +130,12 @@ flags =
 -- UPDATE
 
 type Msg
-  = Run
+  = NoOp
+  | Run
   | RunOne
   | Load
   | Stop
+  | Reset
   | UpdateCode String
   | UpdateAssembledCode (Array AssembledCode)
   | UpdateAssemblerError AssemblerError
@@ -140,11 +150,17 @@ type Msg
   | EditRegister String
   | SaveRegister String String
   | StopEditRegister String
+  | RollbackEditRegister String
+  | UpdateFlag String Bool
+  | EditMemoryCell Int
+  | UpdateMemoryCell String
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
   case msg of
-    Run -> (model, run { assembled = (Array.map (.data) model.assembled), state = createExternalStateFromModel model })
+    Run -> (model, run { assembled = (Array.map (.data) model.assembled)
+                       , state = createExternalStateFromModel model
+                       , loadAt = model.loadAddr })
     RunOne ->
       if model.programState == Loaded
       then
@@ -183,11 +199,13 @@ update msg model =
                         Just l -> l)
         else Cmd.none )
     UpdateMemory memory -> ({model | memory = memory}, Cmd.none)
+    Stop -> ({ model | programState = Idle }, editorDisabled False)
     _ -> ( updateHelper msg model, Cmd.none )
 
 updateHelper : Msg -> Model -> Model
 updateHelper msg model =
   case msg of
+    NoOp -> model
     UpdateCode code -> { model | code = code }
     UpdateAssembledCode code ->
       { model | assembled = code
@@ -212,31 +230,51 @@ updateHelper msg model =
       { model | breakpoints = if ba.action == "add"
                               then ba.line :: model.breakpoints
                               else List.filter (\b -> b /= ba.line) model.breakpoints }
-    Stop -> { model | programState = Idle }
     EditRegister name ->
       { model | registers =
-                  case name of
-                    "bc" -> { registers | bc = setRegisterEdit model.registers.bc True }
-                    "de" -> { registers | de = setRegisterEdit model.registers.de True }
-                    "hl" -> { registers | hl = setRegisterEdit model.registers.hl True }
-                    _ -> model.registers
+                { bc = if name == "bc" then setRegisterEdit model.registers.bc True else model.registers.bc
+                , de = if name == "de" then setRegisterEdit model.registers.de True else model.registers.de
+                , hl = if name == "hl" then setRegisterEdit model.registers.hl True else model.registers.hl
+                }
       }
     StopEditRegister name ->
       { model | registers =
-                  case name of
-                    "bc" -> { registers | bc = setRegisterEdit model.registers.bc False }
-                    "de" -> { registers | de = setRegisterEdit model.registers.de False }
-                    "hl" -> { registers | hl = setRegisterEdit model.registers.hl False }
-                    _ -> model.registers
+                { bc = if name == "bc" then setRegisterEdit model.registers.bc False else model.registers.bc
+                , de = if name == "de" then setRegisterEdit model.registers.de False else model.registers.de
+                , hl = if name == "hl" then setRegisterEdit model.registers.hl False else model.registers.hl
+                }
       }
     SaveRegister name value ->
       { model | registers =
-                  case name of
-                    "bc" -> { registers | bc = saveRegisterEdit model.registers.bc value }
-                    "de" -> { registers | de = saveRegisterEdit model.registers.de value }
-                    "hl" -> { registers | hl = saveRegisterEdit model.registers.hl value }
-                    _ -> model.registers
+                { bc = if name == "bc" then saveRegisterEdit model.registers.bc value else model.registers.bc
+                , de = if name == "de" then saveRegisterEdit model.registers.de value else model.registers.de
+                , hl = if name == "hl" then saveRegisterEdit model.registers.hl value else model.registers.hl
+                }
       }
+    RollbackEditRegister name -> model
+    UpdateFlag flag value ->
+      { model | flags =
+                { z = if flag == "Z" then value else model.flags.z
+                , s = if flag == "S" then value else model.flags.s
+                , p = if flag == "P" then value else model.flags.p
+                , c = if flag == "C" then value else model.flags.c
+                , ac = if flag == "AC" then value else model.flags.ac
+                } }
+    Reset ->
+      { model | registers = registers
+              , flags = flags
+              , memory = Array.repeat 65536 0
+              , accumulator = 0
+              , stackPtr = 0
+              , programCounter = 0
+      }
+    EditMemoryCell addr -> { model | editingMemoryCell = Just addr }
+    UpdateMemoryCell value ->
+      { model | memory =
+                  case model.editingMemoryCell of
+                    Nothing -> model.memory
+                    Just addr -> Array.set addr (strToHex value) model.memory
+              , editingMemoryCell = Nothing }
     _ -> model
 
 updateOnLoaded programState n o =
@@ -256,9 +294,21 @@ setRegisterEdit register isEditing =
 
 saveRegisterEdit register value =
   let
-    v = Result.withDefault 0 (String.toInt value)
+    v = strToHex value
   in
     { high = (v `shiftRight` 8) `and` 0xff, low = v `and` 0xff, editing = register.editing }
+
+strToHex s =
+  List.foldl (\a b -> a + b) 0
+              (List.indexedMap (\i f -> (16^i) * (charToHex f))
+                                (List.reverse (String.toList s)))
+
+charToHex c =
+  if Char.isDigit c
+  then (Char.toCode c) - 48
+  else if Char.isLower c
+  then (Char.toCode c) - 97 + 10
+  else (Char.toCode c) - 65 + 10
 
 findLineAtPC pc assembled memory =
   let
@@ -354,8 +404,8 @@ view model =
             ]
         ]
         , div [ class "col-md-5 coding-area" ] [
-              div [ class "coding-area__toolbar"] [
-                  div [ class "btn-toolbar coding-area__btn-toolbar" ] [
+              div [ class "coding-area__toolbar clearfix"] [
+                  div [ class "btn-toolbar coding-area__btn-toolbar pull-left" ] [
                       div [ class "btn-group" ] [
                           toolbarButton (model.programState /= Idle) "success" Load "Assemble and Load Program" "save"
                         , toolbarButton (model.programState == Idle) "warning" Stop "Stop program and return to editing" "stop"
@@ -364,17 +414,17 @@ view model =
                                         "success" RunOne "Run one instruction" "step-forward"
                       ]
                     , div [ class "btn-group" ] [
-                        toolbarButton (model.programState == Idle) "danger" Run "Reset Everything" "refresh"
+                        toolbarButton (model.programState /= Idle) "danger" Reset "Reset Everything" "refresh"
                       ]
                   ]
-                , div [ class "pull-right" ] [
-                      text "Load at "
-                    , text "0x0800"
-                    , text <| toString <| Array.get model.loadAddr model.memory
+                , div [ class "coding-area__load-addr pull-right" ] [
+                      text "Load at 0x"
+                    , text <| toWord <| model.loadAddr
                   ]
               ]
             , ul [ class "nav nav-tabs" ]
-                 (List.append (List.map (showOpenFileTabs model.activeFile) model.openFiles) [tabAddButton])
+                 -- (List.append (List.map (showOpenFileTabs model.activeFile) model.openFiles) [tabAddButton])
+                 (List.map (showOpenFileTabs model.activeFile) model.openFiles)
             , div [ class "coding-area__editor-container" ] [
                   textarea [ id "coding-area__editor", value model.code ] []
               ]
@@ -383,7 +433,7 @@ view model =
               div [ class "" ] [ showMemory model model.memory model.memoryStart model.memoryStartSmall ]
           ]
       ]
-    , div [ class "row" ] [
+    , div [ class "row", hidden (model.programState == Idle) ] [
           div [ class "col-md-7" ] [
               div [ class "panel panel-default" ] [
                   div [ class "panel-heading" ] [ h3 [ class "panel-title" ] [ text "Assembler Output" ] ]
@@ -438,16 +488,39 @@ showCode codes =
     (String.toUpper <| toRadix 16 <| (Maybe.withDefault 0 (Array.get 0 code))) ++ "  " ++
       (Array.foldr (\a b -> (toString a) ++ " " ++ b) "" data)
 
+onChange : (String -> msg) -> Attribute msg
+onChange tagger =
+  on "change" (Json.map tagger targetValue)
+
+onKeyUp : (Int -> msg) -> Attribute msg
+onKeyUp tagger =
+  on "keyup" (Json.map tagger keyCode)
+
 showRegister name rid { high, low, editing } =
-  tr [] [
+  tr [ class "reg-display__row" ] [
      th [ scope "row" ] [ text name ]
-   , td [] [ span [] [ text "0x" ] ]
-   , td [ onDoubleClick (EditRegister rid), hidden editing ] [
-        span [] [ text <| String.toUpper <| toByte high ]
-      , span [] [ text <| String.toUpper <| toByte low ]
+   , td [ hidden editing ] [
+        span [ onDoubleClick (EditRegister rid), title "Double click to edit" ] [
+            span [ style [("padding-right", "3px"), ("color","#AAA")] ] [ text "0x" ]
+          , span [ style [("padding-right", "3px")] ] [ text <| String.toUpper <| toByte high ]
+          , span [] [ text <| String.toUpper <| toByte low ]
+        ]
+      , span [ class "glyphicon glyphicon-edit reg-display__edit-icon"
+             , title "Click to edit"
+             , onClick (EditRegister rid) ] []
     ]
    , td [ onDoubleClick (EditRegister rid), hidden (not editing) ] [
-        input [ onInput (SaveRegister rid), onBlur (StopEditRegister rid), value (toString <| (high `shiftLeft` 8) + low) ] []
+        span [ style [("padding-right", "3px")] ] [ text "0x" ]
+      , input [ class "reg-display__reg-input"
+              , onChange (SaveRegister rid)
+              , onBlur (StopEditRegister rid)
+              -- , onKeyUp (\k ->
+              --            case k of
+              --              10 -> StopEditRegister rid
+              --              11 -> RollbackEditRegister rid)
+              , value (toWord <| (high `shiftLeft` 8) + low)
+              , title "Press tab to save"
+              ] []
     ]
   ]
 
@@ -465,14 +538,16 @@ showRegisters accumulator flags registers stackPtr programCounter =
   , showRegister "PC" "pc" { high = (programCounter `shiftRight` 8) `and` 0xff, low = programCounter `and` 0xff, editing = False }
   ]
 
-showFlag : String -> Bool -> Html msg
+showFlag : String -> Bool -> Html Msg
 showFlag name value =
   tr [] [
      th [ scope "row" ] [ text name ]
-   , td [] [ text <| toString <| (if value then 1 else 0) ]
+   , td [] [
+        input [ type' "checkbox", checked value, onCheck (UpdateFlag name) ] []
+    ]
   ]
 
-showFlags : Flags -> List (Html msg)
+showFlags : Flags -> List (Html Msg)
 showFlags flags =
   [ showFlag "Z" flags.z
   , showFlag "S" flags.s
@@ -533,8 +608,16 @@ showMemoryCell model start col cell =
   let
     addr = start + col
   in
-    td [ class ("memory-view__cell_" ++ (memoryCellHighlightType model addr cell)), title (toWord addr) ] [
-       text <| String.toUpper <| toByte <| cell
+    td [ class ("memory-view__cell_" ++ (memoryCellHighlightType model addr cell)), title (toWord addr)
+       , onDoubleClick (EditMemoryCell addr)
+       ] [
+         span [ hidden (addr == Maybe.withDefault -1 model.editingMemoryCell) ] [ text <| String.toUpper <| toByte <| cell ]
+       , span [ hidden (addr /= Maybe.withDefault -1 model.editingMemoryCell) ] [
+              input [ class "memory-view__cell__input"
+                    , onChange UpdateMemoryCell
+                    , value (toByte <| cell)
+                    ] []
+         ]
     ]
 
 showMemoryCellRow : Model -> Int -> Int -> List Int -> Html Msg
@@ -622,10 +705,11 @@ type alias BreakPointAction =
   }
 
 port load : { offset: Int, code: String } -> Cmd msg
-port run : { assembled: Array Int, state: ExternalState } -> Cmd msg
+port run : { assembled: Array Int, state: ExternalState, loadAt: Int } -> Cmd msg
 port runOne : { state: ExternalState } -> Cmd msg
 port debug : { state: ExternalState, nextLine: Int } -> Cmd msg
 port nextLine : Int -> Cmd msg
+port editorDisabled : Bool -> Cmd msg
 
 port code : (String -> msg) -> Sub msg
 port assembled : (Array AssembledCode -> msg) -> Sub msg

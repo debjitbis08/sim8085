@@ -15,7 +15,9 @@ var load8085Program = simulator.cwrap('LoadProgram', 'number', ['number', 'array
 
 // inject bundled Elm app into div#main
 var Elm = require( '../elm/Main' );
-var app = Elm.Main.embed( document.getElementById( 'main' ) );
+var app = Elm.Main.embed(document.getElementById( 'main' ), {
+  initialCode: localStorage.getItem("code")
+});
 
 
 function initilizeEditor () {
@@ -50,6 +52,7 @@ function initilizeEditor () {
   editor.on('change', function (cm, change) {
     var code = cm.getValue();
     app.ports.code.send(code);
+    localStorage.setItem("code", code);
   });
 
   editor.on('gutterClick', function(cm, n) {
@@ -108,11 +111,12 @@ function initilizeEditor () {
       stateComm.setState(simulator, statePtr, input.state);
     }
 
-    statePtr = execute8085Program(statePtr, assembled, assembled.length, 2048);
+    statePtr = execute8085Program(statePtr, assembled, assembled.length, input.loadAt);
     var state = stateComm.getStateFromPtr(simulator, statePtr);
     app.ports.programState.send("Idle");
     highlighedLine && editor.getDoc().removeLineClass(highlighedLine, "wrap", "coding-area__editor_running-marker");
     state.programState = "Idle";
+    editor.setOption("readOnly", false);
     app.ports.state.send(state);
   });
 
@@ -151,6 +155,10 @@ function initilizeEditor () {
   app.ports.nextLine.subscribe(function (line) {
     highlighedLine && editor.getDoc().removeLineClass(highlighedLine, "wrap", "coding-area__editor_running-marker");
     highlighedLine = editor.getDoc().addLineClass(line - 1, "wrap", "coding-area__editor_running-marker");
+  });
+
+  app.ports.editorDisabled.subscribe(function (state) {
+    editor.setOption("readOnly", state);
   });
 }
 

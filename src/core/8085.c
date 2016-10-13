@@ -358,8 +358,6 @@ void InvalidInstruction(State8085* state)
 	printf("PC: %u\n", state->pc);
 	printf("Memory at PC: %u\n", state->memory[state->pc]);
 	state->pc--;
-	printf("PC: %u\n", state->pc);
-	printf("Memory at PC: %u\n", state->memory[2048]);
 	exit(1);
 }
 

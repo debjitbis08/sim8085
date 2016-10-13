@@ -43,8 +43,12 @@ $icon-font-path: '~bootstrap-sass/assets/fonts/bootstrap/';
   height: 424px;
 }
 
-.coding-area__btn-toolbar {
+.coding-area__toolbar {
   margin-bottom: 20px;
+}
+
+.coding-area__load-addr {
+  padding: 6px 0 5px;
 }
 
 .assembler-error {
@@ -135,6 +139,32 @@ ul.memory-view__range-scale li {
     float: left;
     padding-right: 3px;
     font-size: 0.7em;
+}
+
+.memory-view__cell__input,
+.reg-display__reg-input {
+    display: inline-block;
+    width: 70%;
+    border: none;
+    border-bottom: 1px solid #CCC;
+    padding-left: 3px;
+}
+
+.memory-view__cell__input { width: 100%; }
+
+.reg-display__reg-input:focus {
+    outline: none;
+}
+
+.reg-display__edit-icon {
+  color: #666;
+  margin-left: 8px;
+  cursor: pointer;
+  visibility: hidden;
+}
+
+.reg-display__row:hover .reg-display__edit-icon {
+  visibility: visible;
 }
 
 .footer {
