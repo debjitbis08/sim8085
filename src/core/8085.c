@@ -1,6 +1,4 @@
-/* cc -g -O0 8085emu-first50.c -o 8085emu-first50 */
 #include <stdio.h>
-// #include <string.h>
 #include <stdlib.h>
 #include <stdint.h>
 
@@ -1528,25 +1526,6 @@ int Emulate8085Op(State8085* state)
 	*/
 	return 0;
 }
-
-/*
-void ReadFileIntoMemoryAt(State8085* state, char* filename, uint32_t offset)
-{
-	FILE *f= fopen(filename, "rb");
-	if (f==NULL)
-	{
-		printf("error: Couldn't open %s\n", filename);
-		exit(1);
-	}
-	fseek(f, 0L, SEEK_END);
-	int fsize = ftell(f);
-	fseek(f, 0L, SEEK_SET);
-
-	uint8_t *buffer = &state->memory[offset];
-	fread(buffer, fsize, 1, f);
-	fclose(f);
-}
-*/
 
 State8085* Init8085(void)
 {
