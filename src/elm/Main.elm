@@ -166,7 +166,7 @@ update msg model =
       then
         ({ model | programState = Paused, programCounter = model.loadAddr }
         , debug { state = (let s = createExternalStateFromModel model in { s | pc = model.loadAddr })
-                , nextLine = case findLineAtPC (model.programCounter) model.assembled model.memory of
+                , nextLine = case findLineAtPC model.loadAddr (model.programCounter) model.assembled model.memory of
                               Nothing -> model.programCounter - model.loadAddr
                               Just l -> l }
         )
@@ -194,7 +194,7 @@ update msg model =
                , statePtr = state.ptr
                , memory = state.memory }
       , if model.programState == Paused
-        then nextLine (case findLineAtPC (state.pc) model.assembled model.memory of
+        then nextLine (case findLineAtPC model.loadAddr (state.pc) model.assembled model.memory of
                         Nothing -> model.programCounter - model.loadAddr
                         Just l -> l)
         else Cmd.none )
@@ -310,14 +310,14 @@ charToHex c =
   then (Char.toCode c) - 97 + 10
   else (Char.toCode c) - 65 + 10
 
-findLineAtPC pc assembled memory =
+findLineAtPC loadAddr pc assembled memory =
   let
     opcode = Array.get pc memory
   in
     case opcode of
       Nothing -> Nothing
       Just code ->
-        case Array.get 0 (Array.filter (\c -> c.data == code) assembled) of
+        case Array.get 0 (Array.filter (\c -> c.data == code) (Array.slice (pc - loadAddr) (Array.length assembled) assembled)) of
           Nothing -> Nothing
           Just a -> Just a.location.start.line
 
@@ -704,6 +704,8 @@ type alias BreakPointAction =
   , line: Int
   }
 
+-- type AssemblerOutput = AssembledCode | AssemblerError
+
 port load : { offset: Int, code: String } -> Cmd msg
 port run : { assembled: Array Int, state: ExternalState, loadAt: Int } -> Cmd msg
 port runOne : { state: ExternalState } -> Cmd msg
@@ -712,9 +714,9 @@ port nextLine : Int -> Cmd msg
 port editorDisabled : Bool -> Cmd msg
 
 port code : (String -> msg) -> Sub msg
-port assembled : (Array AssembledCode -> msg) -> Sub msg
+port assembled : (Array AssembledCode -> msg) -> Sub msg -- This should be combined with below port
 port error : (AssemblerError -> msg) -> Sub msg
 port state : (ExternalState -> msg) -> Sub msg
 port memory : (Array Int -> msg) -> Sub msg
-port programState : (String -> msg) -> Sub msg
+port programState : (String -> msg) -> Sub msg -- TODO: This should not be a port
 port breakpoints : (BreakPointAction -> msg) -> Sub msg
