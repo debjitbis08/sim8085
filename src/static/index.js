@@ -10,7 +10,7 @@ var stateComm = require('./cpuState.js');
 require('./8085-mode.js');
 
 window.simulator = simulator;
-var execute8085Program = simulator.cwrap('ExecuteProgram', 'number', ['number', 'array', 'number', 'number']);
+var execute8085Program = simulator.cwrap('ExecuteProgram', 'number', ['number', 'number']);
 var load8085Program = simulator.cwrap('LoadProgram', 'number', ['number', 'array', 'number', 'number']);
 
 // inject bundled Elm app into div#main
@@ -19,43 +19,73 @@ var app = Elm.Main.embed(document.getElementById( 'main' ), {
   initialCode: localStorage.getItem("code")
 });
 
+var RUNNING_LINE_CLASS = "coding-area__editor_running-marker";
+
+var assembling;
+var lineWidget = [];
+var highlighedLine = null;
+
+(function waitForEditorContainer() {
+  var el = document.getElementById("coding-area__editor")
+  if (el) {
+    initilizeEditor();
+  } else {
+    setTimeout(waitForEditorContainer, 100);
+  }
+}());
 
 function initilizeEditor () {
-  var assembling;
-  var lineWidget = [];
-  var highlighedLine = null;
-
   var editor = CodeMirror.fromTextArea(document.getElementById("coding-area__editor"), {
     lineNumbers: true,
     mode: "8085",
     gutters: ["CodeMirror-assembler-errors", "breakpoints", "CodeMirror-linenumbers"]
   });
 
-  function updateErrors(e) {
-    editor.operation(function () {
-      var msg = document.createElement("div");
-      var icon = msg.appendChild(document.createElement("span"));
-      icon.className = "assembler-error-icon glyphicon glyphicon-exclamation-sign";
-      msg.appendChild(document.createTextNode(" " + e.message));
-      msg.className = "assembler-error";
+  editor.on('change', saveCode);
+  editor.on('gutterClick', updateBreakpoints);
 
-      lineWidget.push(editor.addLineWidget(e.location.start.line - 1, msg, {coverGutter: false, noHScroll: true}));
-    });
-  }
+  app.ports.load.subscribe(load.bind(null, editor));
 
-  function makeMarker() {
-    var marker = document.createElement("div");
-    marker.className = 'coding-area__editor__breakpoint-marker';
-    return marker;
-  }
+  app.ports.run.subscribe(runProgram.bind(null, editor));
 
-  editor.on('change', function (cm, change) {
+  app.ports.runOne.subscribe(runSingleInstruction.bind(null, editor));
+
+  app.ports.debug.subscribe(startDebug.bind(null, editor));
+
+  app.ports.nextLine.subscribe(function (line) {
+    removeLineHighlight(editor);
+    addLineHighlight(editor, line);
+  });
+
+  app.ports.editorDisabled.subscribe(editor.setOption.bind(editor, "readOnly"));
+}
+
+function removeLineHighlight(editor) {
+    highlighedLine && editor.getDoc().removeLineClass(highlighedLine, "wrap", RUNNING_LINE_CLASS);
+}
+
+function addLineHighlight(editor, lineNo) {
+    highlighedLine = editor.getDoc().addLineClass(lineNo - 1, "wrap", RUNNING_LINE_CLASS);
+}
+
+function setEditorReadOnlyOption(editor, state) {
+    editor.setOption("readOnly", state);
+}
+
+function makeMarker() {
+  var marker = document.createElement("div");
+  marker.className = 'coding-area__editor__breakpoint-marker';
+  return marker;
+}
+
+function saveCode(cm) {
     var code = cm.getValue();
     app.ports.code.send(code);
     localStorage.setItem("code", code);
-  });
+}
 
-  editor.on('gutterClick', function(cm, n) {
+// Update breakpoints on gutter click
+function updateBreakpoints(cm, n) {
     var info = cm.lineInfo(n);
     if (info.gutterMarkers && 'breakpoints' in info.gutterMarkers) {
       app.ports.breakpoints.send({ action: 'remove', line: info.line });
@@ -63,28 +93,112 @@ function initilizeEditor () {
       app.ports.breakpoints.send({ action: 'add', line: info.line });
     }
     cm.setGutterMarker(n, "breakpoints", info.gutterMarkers ? null : makeMarker());
-  });
+}
 
-  app.ports.load.subscribe(function (input) {
+function runProgram (editor, input) {
+    var inputState = input.state;
+    var statePtr = inputState.ptr;
+    var errorStatus = 0;
+
+    if (input.programState == "Loaded") {
+      stateComm.setState(simulator, statePtr, inputState);
+    }
+
+    try {
+      statePtr = execute8085Program(statePtr, input.loadAt);
+    } catch (e) {
+      errorStatus = e.status;
+    }
+
+    removeLineHighlight(editor);
+    setEditorReadOnlyOption(editor, false);
+
+    if (errorStatus === 0) {
+      var outputState = stateComm.getStateFromPtr(simulator, statePtr);
+      app.ports.runSuccess.send(outputState);
+    } else {
+      app.ports.runError.send(errorStatus);
+    }
+}
+
+function runSingleInstruction(editor, input) {
+  var iState = input.state;
+  var statePtr = iState.ptr;
+  var errorStatus = 0;
+
+  try {
+    var status = simulator._Emulate8085Op(statePtr);
+  } catch (e) {
+    errorStatus = e.status;
+  }
+  var outputState = stateComm.getStateFromPtr(simulator, statePtr);
+
+  if (errorStatus > 0) {
+    app.ports.runOneFinished.send({ status: errorStatus, state: null });
+  } else if (status > 0) {
+    app.ports.runOneFinished.send({ status: status, state: outputState });
+    removeLineHighlight(editor);
+    setEditorReadOnlyOption(editor, false);
+  } else {
+    app.ports.runOneSuccess.send({ status: status, state: outputState });
+  }
+}
+
+function startDebug(editor, input) {
+  var iState = input.state;
+  var statePtr = iState.ptr;
+
+  removeLineHighlight(editor);
+  addLineHighlight(editor, input.nextLine);
+
+  if (input.programState == "Loaded") {
+    // TODO: Should only set PC, not whole state
+    stateComm.setState(simulator, statePtr, input.state);
+  }
+}
+
+function updateErrors(editor, e) {
+  editor.operation(function () {
+    var msg = document.createElement("div");
+    var icon = msg.appendChild(document.createElement("span"));
+    icon.className = "assembler-error-icon glyphicon glyphicon-exclamation-sign";
+    msg.appendChild(document.createTextNode(" " + e.message));
+    msg.className = "assembler-error";
+
+    lineWidget.push(editor.addLineWidget(e.location.start.line - 1, msg, {coverGutter: false, noHScroll: true}));
+  });
+}
+
+function assembleProgram(editor, code) {
     clearTimeout(assembling);
     try {
-      lineWidget.forEach(function (w) {
-        editor.removeLineWidget(w);
-      });
-
       // Try to assemble Program
-      var assembled = parser.parse(input.code);
+      var assembled = parser.parse(code);
       app.ports.assembled.send(assembled);
     } catch (e) {
       assembling = setTimeout(function () {
-        updateErrors(e);
+        updateErrors(editor, e);
       }, 500);
-      app.ports.error.send({
+      app.ports.loadError.send({
         name: e.name,
         msg: e.message,
         line: e.location.start.line,
         column: e.location.start.column
       });
+      return null;
+    }
+
+    return assembled;
+}
+
+function load(editor, input) {
+    lineWidget.forEach(function (w) {
+      editor.removeLineWidget(w);
+    });
+
+    var assembled = assembleProgram(editor, input.code);
+
+    if (!assembled) {
       return;
     }
 
@@ -96,77 +210,7 @@ function initilizeEditor () {
 
     // Get new state and send to UI
     var state = stateComm.getStateFromPtr(simulator, statePtr);
-    app.ports.programState.send("Loaded");
-    state.programState = "Loaded";
-    app.ports.state.send(state);
-    editor.setOption("readOnly", true);
-  });
+    app.ports.loadSuccess.send({ statePtr: statePtr, memory: state.memory });
 
-  app.ports.run.subscribe(function (input) {
-    var assembled = input.assembled;
-    var iState = input.state;
-    var statePtr = iState.ptr;
-
-    if (input.state.programState == "Loaded") {
-      stateComm.setState(simulator, statePtr, input.state);
-    }
-
-    statePtr = execute8085Program(statePtr, assembled, assembled.length, input.loadAt);
-    var state = stateComm.getStateFromPtr(simulator, statePtr);
-    app.ports.programState.send("Idle");
-    highlighedLine && editor.getDoc().removeLineClass(highlighedLine, "wrap", "coding-area__editor_running-marker");
-    state.programState = "Idle";
-    editor.setOption("readOnly", false);
-    app.ports.state.send(state);
-  });
-
-  app.ports.runOne.subscribe(function (input) {
-    var iState = input.state;
-    var statePtr = iState.ptr;
-
-    var status = simulator._Emulate8085Op(statePtr);
-    var state = stateComm.getStateFromPtr(simulator, statePtr);
-    if (status == 0) {
-      app.ports.programState.send("Paused");
-      state.programState = "Paused";
-    } else {
-      app.ports.programState.send("Idle");
-      state.programState = "Idle";
-      highlighedLine && editor.getDoc().removeLineClass(highlighedLine, "wrap", "coding-area__editor_running-marker");
-      editor.setOption("readOnly", false);
-    }
-    app.ports.state.send(state);
-  });
-
-  app.ports.debug.subscribe(function (input) {
-    var iState = input.state;
-    var statePtr = iState.ptr;
-
-    highlighedLine && editor.getDoc().removeLineClass(highlighedLine, "wrap", "coding-area__editor_running-marker");
-    highlighedLine = editor.getDoc().addLineClass(input.nextLine - 1, "wrap", "coding-area__editor_running-marker");
-
-    if (input.state.programState == "Loaded") {
-      // TODO: Should only set PC, not whole state
-      stateComm.setState(simulator, statePtr, input.state);
-    }
-
-  });
-
-  app.ports.nextLine.subscribe(function (line) {
-    highlighedLine && editor.getDoc().removeLineClass(highlighedLine, "wrap", "coding-area__editor_running-marker");
-    highlighedLine = editor.getDoc().addLineClass(line - 1, "wrap", "coding-area__editor_running-marker");
-  });
-
-  app.ports.editorDisabled.subscribe(function (state) {
-    editor.setOption("readOnly", state);
-  });
+    setEditorReadOnlyOption(editor, true);
 }
-
-(function waitForEditorContainer() {
-  var el = document.getElementById("coding-area__editor")
-  if (el) {
-    initilizeEditor();
-  } else {
-    setTimeout(waitForEditorContainer, 100);
-  }
-}());

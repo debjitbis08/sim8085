@@ -1545,7 +1545,7 @@ State8085* LoadProgram(State8085* state, uint8_t *lines, int len, uint16_t offse
 	return state;
 }
 
-State8085*	ExecuteProgram(State8085* state, uint8_t *lines, int len, uint16_t offset)
+State8085*	ExecuteProgram(State8085* state, uint16_t offset)
 {
   int done = 0;
 	int cycles = 0;

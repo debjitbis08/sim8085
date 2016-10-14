@@ -136,12 +136,14 @@ type Msg
   | Load
   | Stop
   | Reset
+  | LoadSucceded { statePtr: Int, memory: Array Int }
+  | LoadFailed AssemblerError
+  | RunSucceded ExternalState
+  | UpdateRunError Int
+  | RunOneSucceded { status: Int, state: ExternalState }
+  | RunOneFinished { status: Int, state: Maybe ExternalState }
   | UpdateCode String
   | UpdateAssembledCode (Array AssembledCode)
-  | UpdateAssemblerError AssemblerError
-  | UpdateState ExternalState
-  | UpdateMemory (Array Int)
-  | UpdateProgramState String
   | PreviousMemoryPage
   | NextMemoryPage
   | ChangeMemoryStart String
@@ -160,6 +162,7 @@ update msg model =
   case msg of
     Run -> (model, run { assembled = (Array.map (.data) model.assembled)
                        , state = createExternalStateFromModel model
+                       , programState = getProgramState model.programState
                        , loadAt = model.loadAddr })
     RunOne ->
       if model.programState == Loaded
@@ -168,7 +171,8 @@ update msg model =
         , debug { state = (let s = createExternalStateFromModel model in { s | pc = model.loadAddr })
                 , nextLine = case findLineAtPC model.loadAddr (model.programCounter) model.assembled model.memory of
                               Nothing -> model.programCounter - model.loadAddr
-                              Just l -> l }
+                              Just l -> l
+                , programState = getProgramState model.programState }
         )
       else
       (
@@ -176,29 +180,19 @@ update msg model =
       , runOne { state = createExternalStateFromModel model }
       )
     Load -> (model, load { offset = model.loadAddr, code = model.code })
-    UpdateProgramState ps ->
-      ({ model | programState =
-                  case ps of
-                    "Loaded" -> Loaded
-                    "Idle" -> Idle
-                    "Running" -> Idle
-                    "Paused" -> Paused
-                    _ -> Idle }
-        , Cmd.none)
-    UpdateState state ->
-      ({ model | accumulator = updateOnLoaded state.programState state.a model.accumulator
-               , registers = updateOnLoaded state.programState (readRegistersFromExternalState model.registers state) model.registers
-               , flags = updateOnLoaded state.programState (readFlagsFromExternalState model.flags state) model.flags
-               , stackPtr = updateOnLoaded state.programState state.sp model.stackPtr
-               , programCounter = state.pc
-               , statePtr = state.ptr
-               , memory = state.memory }
-      , if model.programState == Paused
-        then nextLine (case findLineAtPC model.loadAddr (state.pc) model.assembled model.memory of
-                        Nothing -> model.programCounter - model.loadAddr
+    RunOneSucceded res ->
+      let
+        updatedM = updateModelFromExternalState model res.state
+        cmd = nextLine (case findLineAtPC model.loadAddr (res.state.pc) model.assembled model.memory of
+                        Nothing -> model.programCounter - model.loadAddr -- Bad fallback
                         Just l -> l)
-        else Cmd.none )
-    UpdateMemory memory -> ({model | memory = memory}, Cmd.none)
+      in ({ updatedM | programState = Paused }, cmd)
+    RunOneFinished res ->
+      case res.state of
+        Nothing -> ({ model | programState = Idle }, Cmd.none)
+        Just s ->
+          let updatedM = updateModelFromExternalState model s
+          in ({ updatedM | programState = Idle }, Cmd.none)
     Stop -> ({ model | programState = Idle }, editorDisabled False)
     _ -> ( updateHelper msg model, Cmd.none )
 
@@ -225,7 +219,14 @@ updateHelper msg model =
       in
         { model | memoryStartSmall = n
                 , memoryStart = n + model.memoryStartLarge }
-    UpdateAssemblerError e -> { model | error = Just e, assembled = Array.empty }
+    LoadFailed e -> { model | error = Just e, assembled = Array.empty }
+    LoadSucceded res -> { model | statePtr = Just res.statePtr, memory = res.memory, programState = Loaded }
+    RunSucceded state ->
+      let
+        updatedM = updateModelFromExternalState model state
+      in
+        { updatedM | programState = Idle }
+    UpdateRunError errorState -> model -- TODO: Unimplemented
     UpdateBreakpoints ba ->
       { model | breakpoints = if ba.action == "add"
                               then ba.line :: model.breakpoints
@@ -276,6 +277,16 @@ updateHelper msg model =
                     Just addr -> Array.set addr (strToHex value) model.memory
               , editingMemoryCell = Nothing }
     _ -> model
+
+updateModelFromExternalState model state =
+  { model | accumulator = state.a
+          , registers = readRegistersFromExternalState model.registers state
+          , flags = readFlagsFromExternalState model.flags state
+          , stackPtr = state.sp
+          , programCounter = state.pc
+          , statePtr = state.ptr
+          , memory = state.memory }
+
 
 updateOnLoaded programState n o =
   if programState == "Loaded" then o else n
@@ -354,7 +365,7 @@ createExternalStateFromModel model =
     }
   , memory = model.memory
   , ptr = model.statePtr
-  , programState = getProgramState model.programState
+  -- , programState = getProgramState model.programState
   }
 
 getProgramState programState =
@@ -375,11 +386,13 @@ subscriptions model =
   Sub.batch
     [ code UpdateCode
     , assembled UpdateAssembledCode
-    , state UpdateState
-    , memory UpdateMemory
-    , programState UpdateProgramState
-    , error UpdateAssemblerError
     , breakpoints UpdateBreakpoints
+    , loadSuccess LoadSucceded
+    , loadError LoadFailed
+    , runSuccess RunSucceded
+    , runError UpdateRunError
+    , runOneSuccess RunOneSucceded
+    , runOneFinished RunOneFinished
     ]
 
 
@@ -677,7 +690,6 @@ type alias ExternalState =
     }
   , memory: Array Int
   , ptr: Maybe Int
-  , programState: String
   }
 
 type alias CodeLocation =
@@ -707,16 +719,21 @@ type alias BreakPointAction =
 -- type AssemblerOutput = AssembledCode | AssemblerError
 
 port load : { offset: Int, code: String } -> Cmd msg
-port run : { assembled: Array Int, state: ExternalState, loadAt: Int } -> Cmd msg
+port run : { assembled: Array Int, state: ExternalState, loadAt: Int, programState: String } -> Cmd msg
 port runOne : { state: ExternalState } -> Cmd msg
-port debug : { state: ExternalState, nextLine: Int } -> Cmd msg
+port debug : { state: ExternalState, nextLine: Int, programState: String } -> Cmd msg
 port nextLine : Int -> Cmd msg
 port editorDisabled : Bool -> Cmd msg
 
 port code : (String -> msg) -> Sub msg
 port assembled : (Array AssembledCode -> msg) -> Sub msg -- This should be combined with below port
-port error : (AssemblerError -> msg) -> Sub msg
-port state : (ExternalState -> msg) -> Sub msg
-port memory : (Array Int -> msg) -> Sub msg
-port programState : (String -> msg) -> Sub msg -- TODO: This should not be a port
 port breakpoints : (BreakPointAction -> msg) -> Sub msg
+
+port loadSuccess : ({ statePtr: Int, memory: Array Int } -> msg) -> Sub msg
+port loadError : (AssemblerError -> msg) -> Sub msg
+
+port runSuccess : (ExternalState -> msg) -> Sub msg
+port runError : (Int -> msg) -> Sub msg
+
+port runOneSuccess : ({ status: Int, state: ExternalState } -> msg) -> Sub msg
+port runOneFinished : ({ status: Int, state: Maybe ExternalState } -> msg) -> Sub msg
