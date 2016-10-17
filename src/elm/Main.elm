@@ -39,6 +39,7 @@ type alias Model =
   , registers: Register
   , stackPtr: Int
   , programCounter: Int
+  , editingAccumulator: Bool
   , statePtr: Maybe Int
   , memory: Array Int
   , editingMemoryCell: Maybe Int
@@ -62,6 +63,7 @@ init config =
     , registers = registers
     , stackPtr = 0
     , programCounter = 0
+    , editingAccumulator = False
     , statePtr = Nothing
     , memory = Array.repeat 65536 0
     , editingMemoryCell = Nothing
@@ -136,14 +138,13 @@ type Msg
   | Load
   | Stop
   | Reset
-  | LoadSucceded { statePtr: Int, memory: Array Int }
+  | LoadSucceded { statePtr: Int, memory: Array Int, assembled: Array AssembledCode }
   | LoadFailed AssemblerError
   | RunSucceded ExternalState
   | UpdateRunError Int
   | RunOneSucceded { status: Int, state: ExternalState }
   | RunOneFinished { status: Int, state: Maybe ExternalState }
   | UpdateCode String
-  | UpdateAssembledCode (Array AssembledCode)
   | PreviousMemoryPage
   | NextMemoryPage
   | ChangeMemoryStart String
@@ -160,10 +161,33 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
   case msg of
-    Run -> (model, run { assembled = (Array.map (.data) model.assembled)
-                       , state = createExternalStateFromModel model
-                       , programState = getProgramState model.programState
-                       , loadAt = model.loadAddr })
+    Run ->
+        if List.isEmpty model.breakpoints
+            then (model, run { state = createExternalStateFromModel model
+                             , programState = getProgramState model.programState
+                             , loadAt = model.loadAddr })
+            else
+                let nextBreak = findPCToPause model
+                in
+                    case (Debug.log "Next Break" nextBreak) of
+                        Nothing ->
+                                (model, runTill { state = createExternalStateFromModel model
+                                                , pauseAt = 65535
+                                                , programState = getProgramState model.programState
+                                                , loadAt = model.loadAddr })
+                        Just n ->
+                            if model.programState == Loaded
+                            then
+                                (model, runTill { state = (let s = createExternalStateFromModel model in { s | pc = model.loadAddr })
+                                                , pauseAt = Debug.log "PC:" n
+                                                , programState = getProgramState model.programState
+                                                , loadAt = model.loadAddr })
+                            else
+                                (model, runTill { state = createExternalStateFromModel model
+                                                , pauseAt = Debug.log "PC:" n
+                                                , programState = getProgramState model.programState
+                                                , loadAt = model.loadAddr })
+
     RunOne ->
       if model.programState == Loaded
       then
@@ -201,10 +225,6 @@ updateHelper msg model =
   case msg of
     NoOp -> model
     UpdateCode code -> { model | code = code }
-    UpdateAssembledCode code ->
-      { model | assembled = code
-              , error = Nothing
-              , memory = loadCode model.memory code model.loadAddr }
     PreviousMemoryPage -> { model | memoryStart = if model.memoryStart == 0 then 0 else model.memoryStart - 256 }
     NextMemoryPage -> { model | memoryStart = if model.memoryStart == 65536 - 128 then model.memoryStart else model.memoryStart + 256 }
     ChangeMemoryStart v ->
@@ -220,7 +240,12 @@ updateHelper msg model =
         { model | memoryStartSmall = n
                 , memoryStart = n + model.memoryStartLarge }
     LoadFailed e -> { model | error = Just e, assembled = Array.empty }
-    LoadSucceded res -> { model | statePtr = Just res.statePtr, memory = res.memory, programState = Loaded }
+    LoadSucceded res -> { model | statePtr = Just res.statePtr
+                                , memory = res.memory
+                                , assembled = addBreakpointsToAssembled (Debug.log "breaks" model.breakpoints) res.assembled
+                                , programCounter = model.loadAddr
+                                , error = Nothing
+                                , programState = Loaded }
     RunSucceded state ->
       let
         updatedM = updateModelFromExternalState model state
@@ -228,30 +253,39 @@ updateHelper msg model =
         { updatedM | programState = Idle }
     UpdateRunError errorState -> model -- TODO: Unimplemented
     UpdateBreakpoints ba ->
-      { model | breakpoints = if ba.action == "add"
-                              then ba.line :: model.breakpoints
-                              else List.filter (\b -> b /= ba.line) model.breakpoints }
+      let breakpoints = if ba.action == "add"
+                        then ba.line + 1 :: model.breakpoints
+                        else List.filter (\b -> b /= (ba.line + 1)) model.breakpoints
+      in
+          { model | breakpoints = breakpoints
+                  , assembled = addBreakpointsToAssembled breakpoints model.assembled }
     EditRegister name ->
-      { model | registers =
-                { bc = if name == "bc" then setRegisterEdit model.registers.bc True else model.registers.bc
-                , de = if name == "de" then setRegisterEdit model.registers.de True else model.registers.de
-                , hl = if name == "hl" then setRegisterEdit model.registers.hl True else model.registers.hl
-                }
-      }
+      if name == "a"
+          then { model | editingAccumulator = True }
+          else { model | registers =
+                        { bc = if name == "bc" then setRegisterEdit model.registers.bc True else model.registers.bc
+                        , de = if name == "de" then setRegisterEdit model.registers.de True else model.registers.de
+                        , hl = if name == "hl" then setRegisterEdit model.registers.hl True else model.registers.hl
+                        }
+               }
     StopEditRegister name ->
-      { model | registers =
-                { bc = if name == "bc" then setRegisterEdit model.registers.bc False else model.registers.bc
-                , de = if name == "de" then setRegisterEdit model.registers.de False else model.registers.de
-                , hl = if name == "hl" then setRegisterEdit model.registers.hl False else model.registers.hl
-                }
-      }
+      if name == "a"
+          then { model | editingAccumulator = False }
+          else { model | registers =
+                    { bc = if name == "bc" then setRegisterEdit model.registers.bc False else model.registers.bc
+                    , de = if name == "de" then setRegisterEdit model.registers.de False else model.registers.de
+                    , hl = if name == "hl" then setRegisterEdit model.registers.hl False else model.registers.hl
+                    }
+               }
     SaveRegister name value ->
-      { model | registers =
-                { bc = if name == "bc" then saveRegisterEdit model.registers.bc value else model.registers.bc
-                , de = if name == "de" then saveRegisterEdit model.registers.de value else model.registers.de
-                , hl = if name == "hl" then saveRegisterEdit model.registers.hl value else model.registers.hl
-                }
-      }
+      if name == "a"
+          then { model | accumulator = strToHex value }
+          else { model | registers =
+                        { bc = if name == "bc" then saveRegisterEdit model.registers.bc value else model.registers.bc
+                        , de = if name == "de" then saveRegisterEdit model.registers.de value else model.registers.de
+                        , hl = if name == "hl" then saveRegisterEdit model.registers.hl value else model.registers.hl
+                        }
+               }
     RollbackEditRegister name -> model
     UpdateFlag flag value ->
       { model | flags =
@@ -277,6 +311,23 @@ updateHelper msg model =
                     Just addr -> Array.set addr (strToHex value) model.memory
               , editingMemoryCell = Nothing }
     _ -> model
+
+findPCToPause model =
+    let
+        assembled = Array.toIndexedList model.assembled
+        remaining = (Debug.log "assembled" (List.drop (model.programCounter - model.loadAddr + 1) assembled))
+        nextBreak = List.head (List.filter (\(_, a) -> a.kind == "code" && a.breakHere) remaining)
+    in
+        case nextBreak of
+            Nothing -> Nothing
+            Just (l, _) -> Just (l + model.loadAddr - 1)
+
+addBreakpointsToAssembled breakpoints assembled =
+    Array.map (\a -> if List.member a.location.start.line breakpoints
+                     then { a | breakHere = True }
+                     else a
+              ) assembled
+
 
 updateModelFromExternalState model state =
   { model | accumulator = state.a
@@ -321,6 +372,7 @@ charToHex c =
   then (Char.toCode c) - 97 + 10
   else (Char.toCode c) - 65 + 10
 
+findLineAtPC : Int -> Int -> Array AssembledCode -> Array Int -> Maybe Int
 findLineAtPC loadAddr pc assembled memory =
   let
     opcode = Array.get pc memory
@@ -385,7 +437,6 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
   Sub.batch
     [ code UpdateCode
-    , assembled UpdateAssembledCode
     , breakpoints UpdateBreakpoints
     , loadSuccess LoadSucceded
     , loadError LoadFailed
@@ -408,7 +459,7 @@ view model =
             div [] [
               h3 [] [ text "Registers" ]
             , table [ class "table table-striped" ] [
-                tbody [] (showRegisters model.accumulator model.flags model.registers model.stackPtr model.programCounter)
+                tbody [] (showRegisters model.accumulator model.flags model.registers model.stackPtr model.programCounter model.editingAccumulator)
               ]
             ]
           , div [] [
@@ -509,6 +560,19 @@ onKeyUp : (Int -> msg) -> Attribute msg
 onKeyUp tagger =
   on "keyup" (Json.map tagger keyCode)
 
+showRegisterNonEditable name rid { high, low, editing } =
+    tr [ class "reg-display__row" ] [
+        th [ scope "row" ] [ text name ]
+      , td [] [
+            span [] [
+                span [ style [("padding-right", "3px"), ("color","#AAA")] ] [ text "0x" ]
+              , span [ style [("padding-right", "3px")] ] [ text <| String.toUpper <| toByte high ]
+              , span [] [ text <| String.toUpper <| toByte low ]
+            ]
+      ]
+  ]
+
+
 showRegister name rid { high, low, editing } =
   tr [ class "reg-display__row" ] [
      th [ scope "row" ] [ text name ]
@@ -537,18 +601,43 @@ showRegister name rid { high, low, editing } =
     ]
   ]
 
+showAccumulator name rid { high, low, editing } =
+  tr [ class "reg-display__row" ] [
+     th [ scope "row" ] [ text name ]
+   , td [ hidden editing ] [
+        span [ onDoubleClick (EditRegister rid), title "Double click to edit" ] [
+            span [ style [("padding-right", "3px"), ("color","#AAA")] ] [ text "0x" ]
+          , span [ style [("padding-right", "3px")] ] [ text <| String.toUpper <| toByte high ]
+          , span [] [ text <| String.toUpper <| toByte low ]
+        ]
+      , span [ class "glyphicon glyphicon-edit reg-display__edit-icon"
+             , title "Click to edit"
+             , onClick (EditRegister rid) ] []
+    ]
+   , td [ onDoubleClick (EditRegister rid), hidden (not editing) ] [
+        span [ style [("padding-right", "3px")] ] [ text "0x" ]
+      , input [ class "reg-display__acc-input"
+              , onChange (SaveRegister rid)
+              , onBlur (StopEditRegister rid)
+              , value (toByte <| high)
+              , title "Press tab to save"
+              ] []
+      , span [] [ text <| String.toUpper <| toByte low ]
+    ]
+  ]
+
 getFlagByte flags =
   Array.foldl (\a b -> a + b) 0
               (Array.indexedMap (\i f -> (2^i) * (if f then 1 else 0))
                                 (Array.fromList [flags.c, True, flags.p, False, flags.ac, False, flags.z, flags.s]))
 
-showRegisters accumulator flags registers stackPtr programCounter =
-  [ showRegister "A/PSW" "a" { high = accumulator, low = getFlagByte flags, editing = False }
+showRegisters accumulator flags registers stackPtr programCounter editingAccumulator =
+  [ showAccumulator "A/PSW" "a" { high = accumulator, low = getFlagByte flags, editing = editingAccumulator }
   , showRegister "BC" "bc" registers.bc
   , showRegister "DE" "de" registers.de
   , showRegister "HL" "hl" registers.hl
-  , showRegister "SP" "sp" { high = (stackPtr `shiftRight` 8) `and` 0xff, low = stackPtr `and` 0xff, editing = False }
-  , showRegister "PC" "pc" { high = (programCounter `shiftRight` 8) `and` 0xff, low = programCounter `and` 0xff, editing = False }
+  , showRegisterNonEditable "SP" "sp" { high = (stackPtr `shiftRight` 8) `and` 0xff, low = stackPtr `and` 0xff, editing = False }
+  , showRegisterNonEditable "PC" "pc" { high = (programCounter `shiftRight` 8) `and` 0xff, low = programCounter `and` 0xff, editing = False }
   ]
 
 showFlag : String -> Bool -> Html Msg
@@ -702,6 +791,7 @@ type alias AssembledCode =
   { data: Int
   , kind: String
   , location: { start: CodeLocation, end: CodeLocation }
+  , breakHere: Bool
   }
 
 type alias AssemblerError =
@@ -719,17 +809,17 @@ type alias BreakPointAction =
 -- type AssemblerOutput = AssembledCode | AssemblerError
 
 port load : { offset: Int, code: String } -> Cmd msg
-port run : { assembled: Array Int, state: ExternalState, loadAt: Int, programState: String } -> Cmd msg
+port run : { state: ExternalState, loadAt: Int, programState: String } -> Cmd msg
+port runTill : { state: ExternalState, loadAt: Int, programState: String, pauseAt: Int } -> Cmd msg
 port runOne : { state: ExternalState } -> Cmd msg
 port debug : { state: ExternalState, nextLine: Int, programState: String } -> Cmd msg
 port nextLine : Int -> Cmd msg
 port editorDisabled : Bool -> Cmd msg
 
 port code : (String -> msg) -> Sub msg
-port assembled : (Array AssembledCode -> msg) -> Sub msg -- This should be combined with below port
 port breakpoints : (BreakPointAction -> msg) -> Sub msg
 
-port loadSuccess : ({ statePtr: Int, memory: Array Int } -> msg) -> Sub msg
+port loadSuccess : ({ statePtr: Int, memory: Array Int, assembled: Array AssembledCode } -> msg) -> Sub msg
 port loadError : (AssemblerError -> msg) -> Sub msg
 
 port runSuccess : (ExternalState -> msg) -> Sub msg

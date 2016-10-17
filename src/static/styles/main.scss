@@ -150,6 +150,14 @@ ul.memory-view__range-scale li {
     padding-left: 3px;
 }
 
+.reg-display__acc-input {
+    display: inline-block;
+    width: 30%;
+    border: none;
+    border-bottom: 1px solid #CCC;
+    padding-left: 3px;
+}
+
 .memory-view__cell__input { width: 100%; }
 
 .reg-display__reg-input:focus {

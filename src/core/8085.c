@@ -1545,9 +1545,29 @@ State8085* LoadProgram(State8085* state, uint8_t *lines, int len, uint16_t offse
 	return state;
 }
 
+int ExecuteProgramUntil(State8085* state, uint16_t offset, uint16_t startAt, uint16_t pauseAt)
+{
+    int done = 0;
+    state->pc = startAt;
+	printf("Pause At: %d\n", pauseAt);
+	while (done == 0 && state->pc < pauseAt)
+	{
+		done = Emulate8085Op(state);
+    	printf("PC in C %d", state->pc);
+	}
+	printf("%c", state->cc.z ? 'z' : '.');
+	printf("%c", state->cc.s ? 's' : '.');
+	printf("%c", state->cc.p ? 'p' : '.');
+	printf("%c", state->cc.cy ? 'c' : '.');
+	printf("%c  ", state->cc.ac ? 'a' : '.');
+	printf("A $%02x B $%02x C $%02x D $%02x E $%02x H $%02x L $%02x SP %04x PC %04x\n", state->a, state->b, state->c,
+				state->d, state->e, state->h, state->l, state->sp, state->pc);
+	return done;
+}
+
 State8085*	ExecuteProgram(State8085* state, uint16_t offset)
 {
-  int done = 0;
+    int done = 0;
 	int cycles = 0;
 
 	printf("State Ptr: %p, SP Ptr: %p\n", state, &state->sp);

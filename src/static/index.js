@@ -11,6 +11,7 @@ require('./8085-mode.js');
 
 window.simulator = simulator;
 var execute8085Program = simulator.cwrap('ExecuteProgram', 'number', ['number', 'number']);
+var execute8085ProgramUntil = simulator.cwrap('ExecuteProgramUntil', 'number', ['number', 'number', 'number', 'number']);
 var load8085Program = simulator.cwrap('LoadProgram', 'number', ['number', 'array', 'number', 'number']);
 
 // inject bundled Elm app into div#main
@@ -49,6 +50,8 @@ function initilizeEditor () {
   app.ports.run.subscribe(runProgram.bind(null, editor));
 
   app.ports.runOne.subscribe(runSingleInstruction.bind(null, editor));
+
+  app.ports.runTill.subscribe(runTill.bind(null, editor));
 
   app.ports.debug.subscribe(startDebug.bind(null, editor));
 
@@ -121,6 +124,46 @@ function runProgram (editor, input) {
     }
 }
 
+function runTill (editor, input) {
+    var inputState = input.state;
+    var statePtr = inputState.ptr;
+    var errorStatus = 0;
+
+    if (input.programState == "Loaded") {
+      stateComm.setState(simulator, statePtr, inputState);
+    }
+
+    try {
+      var status = execute8085ProgramUntil(statePtr, input.loadAt, input.state.pc, input.pauseAt);
+    } catch (e) {
+      errorStatus = e.status;
+    }
+
+    var outputState = stateComm.getStateFromPtr(simulator, statePtr);
+    console.log(outputState)
+    // removeLineHighlight(editor);
+    // setEditorReadOnlyOption(editor, false);
+
+    /*
+    if (errorStatus === 0) {
+      var outputState = stateComm.getStateFromPtr(simulator, statePtr);
+      app.ports.runSuccess.send(outputState);
+    } else {
+      app.ports.runError.send(errorStatus);
+    }
+    */
+
+      if (errorStatus > 0) {
+        app.ports.runOneFinished.send({ status: errorStatus, state: null });
+      } else if (status > 0) {
+        app.ports.runOneFinished.send({ status: status, state: outputState });
+        removeLineHighlight(editor);
+        setEditorReadOnlyOption(editor, false);
+      } else {
+        app.ports.runOneSuccess.send({ status: status, state: outputState });
+      }
+}
+
 function runSingleInstruction(editor, input) {
   var iState = input.state;
   var statePtr = iState.ptr;
@@ -174,11 +217,11 @@ function assembleProgram(editor, code) {
     try {
       // Try to assemble Program
       var assembled = parser.parse(code);
-      app.ports.assembled.send(assembled);
     } catch (e) {
       assembling = setTimeout(function () {
         updateErrors(editor, e);
       }, 500);
+
       app.ports.loadError.send({
         name: e.name,
         msg: e.message,
@@ -202,6 +245,8 @@ function load(editor, input) {
       return;
     }
 
+    assembled = assembled.map(function (a) { a.breakHere = false; return a; });
+
     // Allocate memory for simulator
     var statePtr = simulator._Init8085();
 
@@ -210,7 +255,7 @@ function load(editor, input) {
 
     // Get new state and send to UI
     var state = stateComm.getStateFromPtr(simulator, statePtr);
-    app.ports.loadSuccess.send({ statePtr: statePtr, memory: state.memory });
+    app.ports.loadSuccess.send({ statePtr: statePtr, memory: state.memory, assembled: assembled });
 
     setEditorReadOnlyOption(editor, true);
 }
