@@ -138,6 +138,9 @@ type Msg
   | Load
   | Stop
   | Reset
+  | ResetRegisters
+  | ResetFlags
+  | ResetMemory
   | LoadSucceded { statePtr: Int, memory: Array Int, assembled: Array AssembledCode }
   | LoadFailed AssemblerError
   | RunSucceded ExternalState
@@ -303,6 +306,16 @@ updateHelper msg model =
               , stackPtr = 0
               , programCounter = 0
       }
+    ResetRegisters ->
+      { model | registers = registers
+              , accumulator = 0
+              , stackPtr = 0
+              , programCounter = 0
+      }
+    ResetFlags ->
+      { model | flags = flags }
+    ResetMemory ->
+      { model | memory = Array.repeat 65536 0 }
     EditMemoryCell addr -> { model | editingMemoryCell = Just addr }
     UpdateMemoryCell value ->
       { model | memory =
@@ -457,13 +470,25 @@ view model =
       div [ class "row" ] [
         div [ class "col-md-2" ] [
             div [] [
-              h3 [] [ text "Registers" ]
+              div [ class "row" ] [
+                  h3 [ class "col-md-7" ] [ text "Registers" ]
+                , span [ class "col-md-1 glyphicon glyphicon-refresh text-danger"
+                       , style [("margin", "25px 0 10px"), ("cursor", "pointer")]
+                       , onClick ResetRegisters
+                       ] []
+              ]
             , table [ class "table table-striped" ] [
                 tbody [] (showRegisters model.accumulator model.flags model.registers model.stackPtr model.programCounter model.editingAccumulator)
               ]
             ]
           , div [] [
-              h3 [] [ text "Flags" ]
+              div [ class "row" ] [
+                  h3 [ class "col-md-4" ] [ text "Flags" ]
+                , span [ class "col-md-1 glyphicon glyphicon-refresh text-danger"
+                       , style [("margin", "25px 0 10px"), ("cursor", "pointer")]
+                       , onClick ResetFlags
+                       ] []
+              ]
             , table [ class "table table-striped" ] [ tbody [] (showFlags model.flags) ]
             ]
         ]
@@ -501,7 +526,7 @@ view model =
           div [ class "col-md-7" ] [
               div [ class "panel panel-default" ] [
                   div [ class "panel-heading" ] [ h3 [ class "panel-title" ] [ text "Assembler Output" ] ]
-                , div [ class "panel-body" ] [
+                , div [ class "panel-body assembled-code-area" ] [
                       case model.error of
                         Nothing -> (showAssembled model.assembled model.code)
                         Just error -> showAssemblerError error model.code
@@ -536,13 +561,17 @@ zipAssembledSource assembled source =
 showAssembled assembled source =
   let
     ls = zipAssembledSource assembled source
-    showSingleLine l =
-      tr [] [
-          td [] [ text  <| showCode (fst l) ]
-        , td [] [ text (snd l) ]
-      ]
+    showSingleLine n l =
+        let
+            code = showCode (fst l)
+        in
+            tr [] [
+              td [ class "assembled-code-listing__lineno-cell" ] [ text <| toString <| (n + 1) ]
+            , td [ class "assembled-code-listing__opcode-cell" ] [ text  (if code == "0  " then "" else code) ]
+            , td [ class "assembled-code-listing__source-cell" ] [ text (snd l) ]
+            ]
   in
-    table [ class "table" ] [ tbody [] (Array.toList (Array.map showSingleLine ls)) ]
+    table [ class "table assembled-code-listing" ] [ tbody [] (Array.toList (Array.indexedMap showSingleLine ls)) ]
 
 showCode codes =
   let
@@ -667,7 +696,13 @@ showOpenFileTabs activeFileName { name, code } =
 
 showMemory model memory memoryStart memoryStartSmall =
   div [ class "memory-view" ] [
-      h3 [] [ text "Memory View" ]
+      div [ class "row" ] [
+          h3 [ class "col-md-6" ] [ text "Memory View" ]
+        , span [ class "col-md-1 glyphicon glyphicon-refresh text-danger"
+               , style [("margin", "25px 0 10px"), ("cursor", "pointer")]
+               , onClick ResetMemory
+               ] []
+      ]
     , table [ class "table memory-view__cells" ] [
           thead [] (td [] [] :: (List.map (\c -> td [] [ text <| (String.toUpper (toRadix 16 c)) ]) [0..15]))
         , tbody [] (Array.toList (showMemoryCells model memoryStart (Array.slice memoryStart (memoryStart + 256) memory)))

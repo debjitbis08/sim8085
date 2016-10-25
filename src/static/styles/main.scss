@@ -58,6 +58,32 @@ $icon-font-path: '~bootstrap-sass/assets/fonts/bootstrap/';
   padding: 2px 5px 3px;
 }
 
+.assembled-code-area {
+    padding: 0;
+    max-height: 300px;
+    overflow-y: scroll;
+}
+
+.assembled-code-listing {
+    margin-bottom: 0;
+}
+
+.table > tbody > tr > .assembled-code-listing__lineno-cell,
+.table > tbody > tr > .assembled-code-listing__opcode-cell,
+.table > tbody > tr > .assembled-code-listing__source-cell {
+    padding: 0;
+    padding-left: 10px;
+    border: none;
+    height: 20px;
+}
+
+.table > tbody > tr > .assembled-code-listing__lineno-cell {
+    background: #f7f7f7;
+    color: #999;
+    margin-right: 10px;
+    border-right: 1px solid #ddd;
+}
+
 .coding-area__editor__breakpoint-marker {
   width: 10px;
   height: 10px;
