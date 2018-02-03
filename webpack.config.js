@@ -14,6 +14,8 @@ var TARGET_ENV = process.env.npm_lifecycle_event === 'build' ? 'production' : 'd
 // common webpack config
 var commonConfig = {
 
+    target: 'node',
+
     output: {
         path:       path.resolve( __dirname, 'dist/' ),
         filename: '[hash].js',

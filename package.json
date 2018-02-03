@@ -35,6 +35,7 @@
         "webpack-merge": "^0.14.1"
     },
     "scripts": {
+        "postinstall": "elm package install -y",
         "start": "webpack-dev-server --hot --inline --content-base src/",
         "build": "rimraf dist && webpack",
         "watch": "webpack --watch",
