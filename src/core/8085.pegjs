@@ -240,6 +240,7 @@
         "di"        : {code:0xF3,size:1},
         "cp adr"    : {code:0xF4,size:3},
         "push psw"  : {code:0xF5,size:1},
+        "push a"    : {code:0xF5,size:1},
         "ori d8"    : {code:0xF6,size:2},
         "rst 6"     : {code:0xF7,size:1},
         "rm"        : {code:0xF8,size:1},
@@ -329,6 +330,7 @@ paramList = whitespace+ first:value rest:(whitespace* ',' whitespace* v:value { 
 value = register / label
 
 register "Register Name" = l:[AaBbCcDdEeHhLlMm] !identLetter { return l.toLowerCase(); }
+registerA = l:[Aa] !identLetter { return l.toLowerCase(); }
 
 registerPair = l:[BbDdHh] !identLetter { return l.toLowerCase(); }
 
@@ -706,7 +708,7 @@ op_ana  = ("ANA"  / "ana" ) whitespace+ register
 op_xra  = ("XRA"  / "xra" ) whitespace+ register
 op_ora  = ("ORA"  / "ora" ) whitespace+ register
 op_cmp  = ("CMP"  / "cmp" ) whitespace+ register
-op_push = ("PUSH" / "push") whitespace+ (registerPair / registerPairPSW)
+op_push = ("PUSH" / "push") whitespace+ (registerPair / registerPairPSW / registerA)
 op_pop  = ("POP"  / "pop" ) whitespace+ (registerPair / registerPairPSW)
 op_dad  = ("DAD"  / "dad" ) whitespace+ (registerPair / stackPointer)
 op_inx  = ("INX"  / "inx" ) whitespace+ (registerPair / stackPointer)
