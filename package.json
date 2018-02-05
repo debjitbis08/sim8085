@@ -37,7 +37,8 @@
     "scripts": {
         "postinstall": "elm package install -y",
         "start": "webpack-dev-server --hot --inline --content-base src/",
-        "build": "rimraf dist && webpack",
+        "build": "rimraf dist && yarn build-emulator && yarn build-assembler && yarn build && webpack && cp src/core/8085.js.mem dist/",
+        "webpack": "webpack",
         "watch": "webpack --watch",
         "make-dist": "mkdir dist",
         "build-assembler": "pegjs --format commonjs -o src/core/8085-assembler.js src/core/8085.pegjs",
