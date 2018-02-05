@@ -369,32 +369,35 @@ numLiteral "numeric literal" = binLiteral / hexLiteral / octalLiteral / decLiter
 decLiteral "decimal literal" = decForm1 / decForm2
 
 decForm1 = neg:[-]? digits:digit+ {
-    return parseInt((!neg ? "":"-") + digits.join(""), 10);
+    return { value: parseInt((!neg ? "":"-") + digits.join(""), 10), location: location() };
 }
 
 decForm2 = neg:[-]? digits:digit+ "D" {
-    return parseInt((!neg ? "":"-") + digits.join(""), 10);
+    return { value: parseInt((!neg ? "":"-") + digits.join(""), 10), location: location() };
 }
 
 hexLiteral "hex literal" = hexForm1 / hexForm2
 
 hexForm1 = '0x' hexits:hexit+ {
-    return parseInt(hexits.join(""), 16);
+    return { value: parseInt(hexits.join(""), 16), location: location() };
 }
 
 hexForm2 = hexits:hexit+ ("H" / "h") {
-    return parseInt(hexits.join(""), 16);
+    return { value: parseInt(hexits.join(""), 16), location: location() };
 }
 
 octalLiteral "Octal Literal" = octits:octit+ ("O" / "Q" / "o" / "q") {
-    return parseInt(octits.join(""), 8);
+    return { value: parseInt(octits.join(""), 8), location: location() };
 }
 
-binLiteral "binary literal" =
-  bits:bit+ "B" { return parseInt(bits.join(""), 2); }
+binLiteral "binary literal" = bits:bit+ "B" {
+    return { value: parseInt(bits.join(""), 2), location: location() };
+}
 
 
-identifier "identifier" = ltrs:identLetter+ { return ltrs.join(""); }
+identifier "identifier" = ltrs:identLetter+ {
+    return { value: ltrs.join(""), location: location() };
+}
 identLetter "letter/underscore" = [a-zA-Z_]
 digit "digit" = [0-9]
 hexit "hex digit" = [0-9a-fA-F]
