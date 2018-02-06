@@ -280,6 +280,15 @@ machineCode = prg:program {
             objCode.push({ data: line.opcode, kind: 'code', location: line.location });
         } else if (line.size === 2) {
             data = line.data.value;
+            if (typeof line.data.value === "string" && !symbolTable[line.data.value]) {
+                var e = new Error();
+                e.message = "Label " + line.data.value + " is not defined.";
+                e.location = line.location;
+                if (typeof line !== "undefined" && typeof column !== "undefined") {
+                    e.line = line; e.column = column;
+                }
+                throw e;
+            }
             dataVal = (typeof line.data.value === "string") ? symbolTable[line.data.value] : line.data.value;
             if (dataVal < 0) {
                 dataVal = twosComplement(dataVal);
@@ -288,6 +297,15 @@ machineCode = prg:program {
             objCode.push({ data: dataVal, kind: 'data', location: line.data.location });
         } else {
             data = line.data.value;
+            if (typeof line.data.value === "string" && !symbolTable[line.data.value]) {
+                var e = new Error();
+                e.message = "Label " + line.data.value + " is not defined.";
+                e.location = line.location;
+                if (typeof line !== "undefined" && typeof column !== "undefined") {
+                    e.line = line; e.column = column;
+                }
+                throw e;
+            }
             dataVal = (typeof line.data.value === "string") ? symbolTable[line.data.value] : line.data.value;
             objCode.push({ data: line.opcode, kind: 'code', location: line.location });
             objCode.push({ data: dataVal & 0xFF, kind: 'data', location: line.data.location });
