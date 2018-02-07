@@ -489,7 +489,7 @@ eol "line end" = "\n" / "\r\n" / "\r" / "\u2028" / "\u2029"
 
 whitespace "whitespace" = [ \t\v\f\u00A0\uFEFF\u1680\u180E\u2000-\u200A\u202F\u205F\u3000]
 
-operation "Opcode" = inst:(carryBitInstructions / singleRegInstructions / nopInstruction /
+operation = inst:(carryBitInstructions / singleRegInstructions / nopInstruction /
     dataTransferInstructions / regOrMemToAccInstructions / rotateAccInstructions /
     regPairInstructions / immediateInstructions / directAddressingInstructions /
     jumpInstructions / callInstructions / returnInstructions / haltInstruction) whitespace* {
