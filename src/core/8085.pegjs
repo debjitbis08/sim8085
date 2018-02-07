@@ -302,7 +302,10 @@ machineCode = prg:program {
                 }
                 throw e;
             }
-            dataVal = (typeof line.data.value === "string") ? symbolTable[line.data.value] : line.data.value;
+
+            dataVal = (typeof line.data.value === "string") ?
+                line.data.type === "direct" ? symbolTable[line.data.value].addr : symbolTable[line.data.value].value
+                : line.data.value;
             if (dataVal < 0) {
                 dataVal = twosComplement(dataVal);
             }
@@ -319,7 +322,10 @@ machineCode = prg:program {
                 }
                 throw e;
             }
-            dataVal = (typeof line.data.value === "string") ? symbolTable[line.data.value] : line.data.value;
+
+            dataVal = (typeof line.data.value === "string") ?
+                line.data.type === "direct" ? symbolTable[line.data.value].addr : symbolTable[line.data.value].value
+                : line.data.value;
             objCode.push({ data: line.opcode, kind: 'code', location: line.location });
             objCode.push({ data: dataVal & 0xFF, kind: 'data', location: line.data.location });
             objCode.push({ data: dataVal >> 8, kind: 'data', location: line.data.location });
@@ -336,7 +342,7 @@ program = __ first:line rest:(eol l:line {return l})* {return [first].concat(res
 
 labelDir = label:labelPart? dir:directive {
     if (label && label !== "") {
-        symbolTable[label.value] = ilc;
+        symbolTable[label.value] = { addr: ilc, value: op[0] };
     }
     
     if (dir !== null) {
@@ -347,7 +353,11 @@ labelDir = label:labelPart? dir:directive {
 
 labelOp = label:labelPart? op:(operation / directive) {
     if (label && label !== "") {
-        symbolTable[label.value] = ilc;
+        symbolTable[label.value] = {
+            addr: ilc,
+            value: op.opcode ? op.opcode :
+                Array.isArray(op.data) ? op.data[0].value : op.data.value
+        };
     }
 
     if (op !== null) {
@@ -364,6 +374,14 @@ lineDir = whitespace* lop:labelDir? comment:comment? { return lop; }
 labelPart = label:label ":" whitespace* {return label;}
 label "label" = first:[a-zA-Z?@] rest:([a-zA-Z0-9]*) {
 	return { value: first + rest.join(""), location: location() };
+}
+
+labelImmediate "label" = lbl:label {
+    return { value: lbl.value, location: lbl.location, type: "immediate" }
+}
+
+labelDirect "label" = lbl:label {
+    return { value: lbl.value, location: lbl.location, type: "direct" }
 }
 
 paramList = whitespace+ first:value rest:(whitespace* ',' whitespace* v:value { return v; })* {
@@ -522,7 +540,7 @@ eol "line end" = "\n" / "\r\n" / "\r" / "\u2028" / "\u2029"
 
 whitespace "whitespace" = [ \t\v\f\u00A0\uFEFF\u1680\u180E\u2000-\u200A\u202F\u205F\u3000]
 
-directive = dir:(dataDefinition) __ {
+directive = dir:(dataDefinition) {
     return {
         opcode: null,
         data: dir.params,
@@ -650,7 +668,6 @@ regPairInstructions = op:(op_push / op_pop / op_dad / op_inx / op_dcx / op_xchg 
 
 immediateInstructions = op:(op_lxi / op_mvi / op_adi / op_aci / op_sui / op_sbi / op_ani / op_xri / op_ori / op_cpi) {
     var name = op[0].toLowerCase(), params, paramTypes;
-
     if (name === "lxi") {
         params = [op[2],op[6]];
         paramTypes = [op[2],"d16"];
@@ -817,4 +834,4 @@ op_cpo  = ("CPO"  / "cpo" ) whitespace+ (expression / data16 / label)
 
 op_mov  = ("MOV"  / "mov" ) whitespace+ register whitespace* [,] whitespace* register
 op_lxi  = ("LXI"  / "lxi" ) whitespace+ register whitespace* [,] whitespace* (expression / data16 / label)
-op_mvi  = ("MVI"  / "mvi" ) whitespace+ register whitespace* [,] whitespace* (expression / data8 / label)
+op_mvi  = ("MVI"  / "mvi" ) whitespace+ register whitespace* [,] whitespace* (expression / data8 / labelImmediate)
