@@ -208,3 +208,11 @@ ul.memory-view__range-scale li {
   color: #888;
   margin-top: 40px;
 }
+
+#execution-error-alert {
+    position: fixed;
+    z-index: 200;
+    top: 60px;
+    right: 10px;
+    width: 400px;
+}

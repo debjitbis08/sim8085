@@ -35,6 +35,16 @@ var highlighedLine = null;
   }
 }());
 
+function showError () {
+  $("body").append(
+    jQuery("#execution-error-alert-template")
+      .clone()
+      .attr("id", "execution-error-alert")
+      .removeClass("hidden")
+      .show()
+    );
+}
+
 function initilizeEditor () {
   var editor = CodeMirror.fromTextArea(document.getElementById("coding-area__editor"), {
     lineNumbers: true,
@@ -110,6 +120,7 @@ function runProgram (editor, input) {
     try {
       statePtr = execute8085Program(statePtr, input.loadAt);
     } catch (e) {
+      showError();
       errorStatus = e.status;
     }
 

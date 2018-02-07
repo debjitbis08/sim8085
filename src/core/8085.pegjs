@@ -252,6 +252,12 @@
         "rst 7"     : {code:0xFF,size:1}
     };
 
+    var directives = function (value) {
+        return {
+            "db": {}
+        };
+    };
+
     var twosComplement = function (d8) {
         return (0xFF + d8 + 1);
     };
@@ -274,7 +280,14 @@ machineCode = prg:program {
 
         if (line == null) continue;
 
-        if (!line.opcode) continue;
+        if (!line.opcode) {
+        	if (Array.isArray(line.data)) {
+            	objCode = objCode.concat(line.data.map(function (d) {
+                	return { data: d.value, kind: 'data', location: d.location };
+                }));
+            }
+            continue;
+        };
 
         if (line.size === 1) {
             objCode.push({ data: line.opcode, kind: 'code', location: line.location });
@@ -321,7 +334,18 @@ machineCode = prg:program {
  */
 program = __ first:line rest:(eol l:line {return l})* {return [first].concat(rest);}
 
-labelOp = label:labelPart? op:operation {
+labelDir = label:labelPart? dir:directive {
+    if (label && label !== "") {
+        symbolTable[label.value] = ilc;
+    }
+    
+    if (dir !== null) {
+      ilc += dir.size;
+      return dir;
+    }
+}
+
+labelOp = label:labelPart? op:(operation / directive) {
     if (label && label !== "") {
         symbolTable[label.value] = ilc;
     }
@@ -332,9 +356,10 @@ labelOp = label:labelPart? op:operation {
     }
 }
 
-line = whitespace* lop:labelOp? comment:comment? {
-    return lop;
-}
+line = lineOp
+
+lineOp = whitespace* lop:labelOp? comment:comment? { return lop; }
+lineDir = whitespace* lop:labelDir? comment:comment? { return lop; } 
 
 labelPart = label:label ":" whitespace* {return label;}
 label "label" = first:[a-zA-Z?@] rest:([a-zA-Z0-9]*) {
@@ -357,6 +382,14 @@ registerPairD = l:[Dd] !identLetter { return l.toLowerCase(); }
 registerPairH = l:[Hh] !identLetter { return l.toLowerCase(); }
 registerPairPSW = l:("PSW" / "psw") !identLetter { return l.toLowerCase(); }
 stackPointer = l:("SP" / "sp") !identLetter { return l.toLowerCase(); }
+
+data8_list "comma separated byte values" = d:data8 ds:("," __ data8)* {
+  return { value: [d.value].concat(ds.map(function (d_) { return d_[2].value; })), location: location() };
+}
+
+data16_list "comma separated byte values" = d:data16 ds:("," __ data16)* {
+  return { value: [d.value].concat(ds.map(function (d_) { return d_[2].value; })), location: location() };
+}
 
 data8 "byte" = n:numLiteral {
     if (n > 0xFF) {
@@ -488,6 +521,15 @@ __ = (whitespace / eol )*
 eol "line end" = "\n" / "\r\n" / "\r" / "\u2028" / "\u2029"
 
 whitespace "whitespace" = [ \t\v\f\u00A0\uFEFF\u1680\u180E\u2000-\u200A\u202F\u205F\u3000]
+
+directive = dir:(dataDefinition) __ {
+    return {
+        opcode: null,
+        data: dir.params,
+        size: dir.params.length,
+        location: location()
+    };
+}
 
 operation = inst:(carryBitInstructions / singleRegInstructions / nopInstruction /
     dataTransferInstructions / regOrMemToAccInstructions / rotateAccInstructions /
@@ -686,6 +728,15 @@ haltInstruction = op:(op_hlt) {
     };
 }
 
+dataDefinition = dir:(dir_db) {
+    return {
+       name: dir,
+       params: dir[2].value.map(function (v) { return v; })
+    };
+}
+
+
+dir_db  = ("DB"   / "db"  ) whitespace+ data8_list
 
 op_stc  = ("STC"  / "stc" )
 op_cmc  = ("CMC"  / "cmc" )
