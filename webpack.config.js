@@ -14,16 +14,14 @@ var TARGET_ENV = process.env.npm_lifecycle_event === 'build' ? 'production' : 'd
 // common webpack config
 var commonConfig = {
 
-    target: 'node',
-
     output: {
         path:       path.resolve( __dirname, 'dist/' ),
         filename: '[hash].js',
     },
 
     resolve: {
-        modulesDirectories: ['node_modules'],
-        extensions:         ['', '.js', '.elm']
+        modules: ['node_modules'],
+        extensions: ['.js', '.elm']
     },
 
     module: {
@@ -31,21 +29,28 @@ var commonConfig = {
         loaders: [
             {
                 test: /\.(eot|ttf|woff|woff2|svg)$/,
-                loader: 'file-loader'
+                use: 'file-loader?publicPath=../../&name=static/css/[hash].[ext]'
             }
         ]
     },
 
     plugins: [
+        new webpack.LoaderOptionsPlugin({
+            options: {
+                postcss: [autoprefixer()]
+            }
+        }),
         new HtmlWebpackPlugin({
             template: 'src/static/index.html',
             inject:   'body',
             filename: 'index.html'
         })
     ],
-
-    postcss: [ autoprefixer( { browsers: ['last 2 versions'] } ) ],
-
+    
+    externals: {
+        'fs': true,
+        'path': true,
+    }
 };
 
 // additional webpack settings for local env (when invoked by 'npm start')
@@ -69,16 +74,11 @@ if ( TARGET_ENV === 'development' ) {
                 {
                     test:    /\.elm$/,
                     exclude: [/elm-stuff/, /node_modules/],
-                    loader:  'elm-hot!elm-webpack?verbose=true&warn=true'
+                    loader:  'elm-hot-loader!elm-webpack-loader?verbose=true&warn=true'
                 },
                 {
-                    test: /\.(css|scss)$/,
-                    loaders: [
-                        'style-loader',
-                        'css-loader',
-                        'postcss-loader',
-                        'sass-loader'
-                    ]
+                    test: /\.sc?ss$/,
+                    use: ['style-loader', 'css-loader', 'postcss-loader', 'sass-loader']
                 }
             ]
         }
@@ -99,40 +99,38 @@ if ( TARGET_ENV === 'production' ) {
                 {
                     test:    /\.elm$/,
                     exclude: [/elm-stuff/, /node_modules/],
-                    loader:  'elm-webpack'
+                    loader:  'elm-webpack-loader'
                 },
                 {
-                    test: /\.(css|scss)$/,
-                    loader: ExtractTextPlugin.extract( 'style-loader', [
-                        'css-loader',
-                        'postcss-loader',
-                        'sass-loader'
-                    ])
+                    test: /\.sc?ss$/,
+                    use: ExtractTextPlugin.extract({
+                        fallback: 'style-loader',
+                        use: ['css-loader', 'postcss-loader', 'sass-loader']
+                    })
                 }
             ]
         },
 
         plugins: [
-            new CopyWebpackPlugin([
-                {
-                    from: 'src/static/img/',
-                    to:   'static/img/'
-                },
-                {
-                    from: 'src/favicon.ico'
-                }
-            ]),
-
-            new webpack.optimize.OccurenceOrderPlugin(),
+            new ExtractTextPlugin({
+                filename: 'static/css/[name]-[hash].css',
+                allChunks: true,
+            }),
+            new CopyWebpackPlugin([{
+                from: 'src/static/img/',
+                to: 'static/img/'
+            }, {
+                from: 'src/favicon.ico'
+            }]),
 
             // extract CSS into a separate file
-            new ExtractTextPlugin( './[hash].css', { allChunks: true } ),
-
             // minify & mangle JS/CSS
             new webpack.optimize.UglifyJsPlugin({
-                minimize:   true,
-                compressor: { warnings: false }
-                // mangle:  true
+                minimize: true,
+                compressor: {
+                    warnings: false
+                },
+                mangle:  true
             })
         ]
 

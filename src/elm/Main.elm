@@ -2,13 +2,13 @@ port module Main exposing (..)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.App as App
 import Html.Events exposing (..)
 
 import Array exposing (..)
 import Bitwise exposing (..)
 import Char exposing (..)
 import String exposing (..)
+import List
 
 import Json.Decode as Json
 
@@ -23,9 +23,9 @@ type alias Config =
   }
 
 -- APP
-main : Program Config
+main : Program Config Model Msg
 main =
-  App.programWithFlags { init = init, view = view, update = update, subscriptions = subscriptions }
+  Html.programWithFlags { init = init, view = view, update = update, subscriptions = subscriptions }
 
 -- MODEL
 type alias Model =
@@ -371,7 +371,7 @@ saveRegisterEdit register value =
   let
     v = strToHex value
   in
-    { high = (v `shiftRight` 8) `and` 0xff, low = v `and` 0xff, editing = register.editing }
+    { high = (v |> shiftRightBy 8) |> and 0xff, low = v |> and 0xff, editing = register.editing }
 
 strToHex s =
   List.foldl (\a b -> a + b) 0
@@ -537,8 +537,8 @@ view model =
   ]
 
 
-toolbarButton isDisabled type' msg tooltip icon =
-    button [ class ("btn  btn-sm btn-" ++ type'), onClick msg, title tooltip, disabled isDisabled ] [
+toolbarButton isDisabled type_ msg tooltip icon =
+    button [ class ("btn  btn-sm btn-" ++ type_), onClick msg, title tooltip, disabled isDisabled ] [
         span [ class ("glyphicon glyphicon-" ++ icon) ] []
     ]
 
@@ -563,12 +563,12 @@ showAssembled assembled source =
     ls = zipAssembledSource assembled source
     showSingleLine n l =
         let
-            code = showCode (fst l)
+            code = showCode (Tuple.first l)
         in
             tr [] [
               td [ class "assembled-code-listing__lineno-cell" ] [ text <| toString <| (n + 1) ]
             , td [ class "assembled-code-listing__opcode-cell" ] [ text  (if code == "0  " then "" else code) ]
-            , td [ class "assembled-code-listing__source-cell" ] [ text (snd l) ]
+            , td [ class "assembled-code-listing__source-cell" ] [ text (Tuple.second l) ]
             ]
   in
     table [ class "table assembled-code-listing" ] [ tbody [] (Array.toList (Array.indexedMap showSingleLine ls)) ]
@@ -624,7 +624,7 @@ showRegister name rid { high, low, editing } =
               --            case k of
               --              10 -> StopEditRegister rid
               --              11 -> RollbackEditRegister rid)
-              , value (toWord <| (high `shiftLeft` 8) + low)
+              , value (toWord <| (high |> shiftLeftBy 8) + low)
               , title "Press tab to save"
               ] []
     ]
@@ -665,8 +665,8 @@ showRegisters accumulator flags registers stackPtr programCounter editingAccumul
   , showRegister "BC" "bc" registers.bc
   , showRegister "DE" "de" registers.de
   , showRegister "HL" "hl" registers.hl
-  , showRegisterNonEditable "SP" "sp" { high = (stackPtr `shiftRight` 8) `and` 0xff, low = stackPtr `and` 0xff, editing = False }
-  , showRegisterNonEditable "PC" "pc" { high = (programCounter `shiftRight` 8) `and` 0xff, low = programCounter `and` 0xff, editing = False }
+  , showRegisterNonEditable "SP" "sp" { high = (stackPtr |> shiftRightBy 8) |> and 0xff, low = stackPtr |> and 0xff, editing = False }
+  , showRegisterNonEditable "PC" "pc" { high = (programCounter |> shiftRightBy 8) |> and 0xff, low = programCounter |> and 0xff, editing = False }
   ]
 
 showFlag : String -> Bool -> Html Msg
@@ -674,7 +674,7 @@ showFlag name value =
   tr [] [
      th [ scope "row" ] [ text name ]
    , td [] [
-        input [ type' "checkbox", checked value, onCheck (UpdateFlag name) ] []
+        input [ type_ "checkbox", checked value, onCheck (UpdateFlag name) ] []
     ]
   ]
 
@@ -704,16 +704,16 @@ showMemory model memory memoryStart memoryStartSmall =
                ] []
       ]
     , table [ class "table memory-view__cells" ] [
-          thead [] (td [] [] :: (List.map (\c -> td [] [ text <| (String.toUpper (toRadix 16 c)) ]) [0..15]))
+          thead [] (td [] [] :: (List.map (\c -> td [] [ text <| (String.toUpper (toRadix 16 c)) ]) (List.range 0 15)))
         , tbody [] (Array.toList (showMemoryCells model memoryStart (Array.slice memoryStart (memoryStart + 256) memory)))
       ]
     , div [ class "memory-view___paginator row" ] [
           div [ class "col-sm-6" ] [
               span [ style [("font-size", "0.8em")]] [ text "Start Address at: 0x " ]
-            , select [ onInput ChangeMemoryStart ] (List.map (\n -> option [ value <| toString <| n ] [ text (String.toUpper (toRadix 16 n)) ]) (List.map (\n -> n * 4352) [0..15]))
+            , select [ onInput ChangeMemoryStart ] (List.map (\n -> option [ value <| toString <| n ] [ text (String.toUpper (toRadix 16 n)) ]) (List.map (\n -> n * 4352) (List.range 0 15)))
           ]
         , div [ class "col-md-6" ] [
-              input [ type' "range"
+              input [ type_ "range"
                     , Html.Attributes.min "0"
                     , Html.Attributes.max "4096"
                     , step "256"

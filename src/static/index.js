@@ -4,7 +4,7 @@ var $ = jQuery = require( '../../node_modules/jquery/dist/jquery.js' );         
 require( '../../node_modules/bootstrap-sass/assets/javascripts/bootstrap.js' );   // <--- remove if Bootstrap's JS not needed
 
 var parser = require( '../core/8085-assembler.js' );
-var simulator = require( '../core/8085.js' );
+var simulator = require( '../core/8085.js' )({ ENVIRONMENT: "WEB" });
 var stateComm = require('./cpuState.js');
 
 require('./8085-mode.js');

@@ -21,9 +21,16 @@ hosted at https://www.sim8085.com.
 
 1. Download and install emscripten prerequisites using the instructions [here](https://kripken.github.io/emscripten-site/docs/getting_started/downloads.html#platform-notes-installation-instructions-sdk).
 2. Do `yarn install`.
+3. Do `yarn start` to start the development server.
+
+### Building Assembler and Simulator changes
 3. Do `yarn build-assembler` to build the assembler code.
-4. DO `yarn build-emulator` to build the simulator.
-5. Do `yarn build` to build the UI.
-6. Now you can serve the file inside `dist/` folder to view the application. Use a static file
-   server such as, [`http-server`](https://www.npmjs.com/package/http-server).
+4. Do `yarn build-emulator` to build the simulator.
+5. Commit the changed files.
+
+### Production Build
+
+1. Build assembler and simulator code.
+2. Do `yarn build` to build the UI.
+3. Built code should be available in `dist`.
  
