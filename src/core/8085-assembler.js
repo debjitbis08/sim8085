@@ -177,9 +177,13 @@ function peg$parse(input, options) {
                       throw e;
                   }
 
-                  dataVal = (typeof line.data.value === "string") ?
-                      line.data.type === "direct" ? symbolTable[line.data.value].addr - objCode.length : symbolTable[line.data.value].value
-                      : line.data.value;
+                  dataVal = (typeof line.data.value === "string")
+                      ? line.data.type === "direct"
+                      ? symbolTable[line.data.value].addr - objCode.length
+                      : symbolTable[line.data.value].value
+                      : (typeof line.data.value === "number") ? line.data.value
+                      : typeof line.data.value === "object" && line.data.value.value ? line.data.value.value
+                      : 0;
                   if (dataVal < 0) {
                       dataVal = twosComplement(dataVal);
                   }
@@ -197,15 +201,21 @@ function peg$parse(input, options) {
                       throw e;
                   }
 
-                  dataVal = (typeof line.data.value === "string") ?
-                      line.data.type === "direct" ? symbolTable[line.data.value].addr - objCode.length : symbolTable[line.data.value].value
-                      : line.data.value;
+
+                  dataVal = (typeof line.data.value === "string")
+                      ? line.data.type === "direct"
+                      ? symbolTable[line.data.value].addr - objCode.length
+                      : symbolTable[line.data.value].value
+                      : (typeof line.data.value === "number") ? line.data.value
+                      : typeof line.data.value === "object" && line.data.value.value ? line.data.value.value
+                      : 0;
                   objCode.push({ data: line.opcode, kind: 'code', location: line.location });
                   objCode.push({ data: dataVal & 0xFF, kind: 'data', location: line.data.location });
                   objCode.push({ data: dataVal >> 8, kind: 'data', location: line.data.location });
               }
           }
 
+          console.log(objCode);
           return objCode;
       },
       peg$c1 = function(first, l) {return l},
