@@ -304,7 +304,7 @@ machineCode = prg:program {
             }
 
             dataVal = (typeof line.data.value === "string") ?
-                line.data.type === "direct" ? symbolTable[line.data.value].addr : symbolTable[line.data.value].value
+                line.data.type === "direct" ? symbolTable[line.data.value].addr - objCode.length : symbolTable[line.data.value].value
                 : line.data.value;
             if (dataVal < 0) {
                 dataVal = twosComplement(dataVal);
@@ -324,7 +324,7 @@ machineCode = prg:program {
             }
 
             dataVal = (typeof line.data.value === "string") ?
-                line.data.type === "direct" ? symbolTable[line.data.value].addr : symbolTable[line.data.value].value
+                line.data.type === "direct" ? symbolTable[line.data.value].addr - objCode.length : symbolTable[line.data.value].value
                 : line.data.value;
             objCode.push({ data: line.opcode, kind: 'code', location: line.location });
             objCode.push({ data: dataVal & 0xFF, kind: 'data', location: line.data.location });
@@ -355,8 +355,8 @@ labelOp = label:labelPart? op:(operation / directive) {
     if (label && label !== "") {
         symbolTable[label.value] = {
             addr: ilc,
-            value: op.opcode ? op.opcode :
-                Array.isArray(op.data) ? op.data[0].value : op.data.value
+            value: op.opcode != null ? op.opcode :
+                op.data ? Array.isArray(op.data) ? op.data[0].value : op.data.value : null
         };
     }
 
@@ -371,7 +371,9 @@ line = lineOp
 lineOp = whitespace* lop:labelOp? comment:comment? { return lop; }
 lineDir = whitespace* lop:labelDir? comment:comment? { return lop; } 
 
-labelPart = label:label ":" whitespace* {return label;}
+labelPart = label:label ":" whitespace* {
+    return { value: label.value, location: label.location, type: "definition" }
+}
 label "label" = first:[a-zA-Z?@] rest:([a-zA-Z0-9]*) {
 	return { value: first + rest.join(""), location: location() };
 }
@@ -528,7 +530,7 @@ shiftLeft "Shift Left"
     return { value: left << right, location: location() };
   }
   / numLiteral
-  / label
+  / labelImmediate
   / "(" shr:shift ")" { return shr; }
 
 
@@ -799,39 +801,39 @@ op_pop  = ("POP"  / "pop" ) whitespace+ (registerPair / registerPairPSW)
 op_dad  = ("DAD"  / "dad" ) whitespace+ (registerPair / stackPointer)
 op_inx  = ("INX"  / "inx" ) whitespace+ (registerPair / stackPointer)
 op_dcx  = ("DCX"  / "dcx" ) whitespace+ (registerPair / stackPointer)
-op_adi  = ("ADI"  / "adi" ) whitespace+ (expression / data8 / label)
-op_aci  = ("ACI"  / "aci" ) whitespace+ (expression / data8 / label)
-op_sui  = ("SUI"  / "sui" ) whitespace+ (expression / data8 / label)
-op_sbi  = ("SBI"  / "sbi" ) whitespace+ (expression / data8 / label)
-op_ani  = ("ANI"  / "ani" ) whitespace+ (expression / data8 / label)
-op_xri  = ("XRI"  / "xri" ) whitespace+ (expression / data8 / label)
-op_ori  = ("ORI"  / "ori" ) whitespace+ (expression / data8 / label)
-op_cpi  = ("CPI"  / "cpi" ) whitespace+ (expression / data8 / label)
-op_sta  = ("STA"  / "sta" ) whitespace+ (expression / data16 / label)
-op_lda  = ("LDA"  / "lda" ) whitespace+ (expression / data16 / label)
-op_shld = ("SHLD" / "shld") whitespace+ (expression / data16 / label)
-op_lhld = ("LHLD" / "lhld") whitespace+ (expression / data16 / label)
+op_adi  = ("ADI"  / "adi" ) whitespace+ (data8 / labelImmediate / expression)
+op_aci  = ("ACI"  / "aci" ) whitespace+ (data8 / labelImmediate / expression)
+op_sui  = ("SUI"  / "sui" ) whitespace+ (data8 / labelImmediate / expression)
+op_sbi  = ("SBI"  / "sbi" ) whitespace+ (data8 / labelImmediate / expression)
+op_ani  = ("ANI"  / "ani" ) whitespace+ (data8 / labelImmediate / expression)
+op_xri  = ("XRI"  / "xri" ) whitespace+ (data8 / labelImmediate / expression)
+op_ori  = ("ORI"  / "ori" ) whitespace+ (data8 / labelImmediate / expression)
+op_cpi  = ("CPI"  / "cpi" ) whitespace+ (data8 / labelImmediate / expression)
+op_sta  = ("STA"  / "sta" ) whitespace+ (data16 / labelDirect / expression )
+op_lda  = ("LDA"  / "lda" ) whitespace+ (data16 / labelDirect / expression)
+op_shld = ("SHLD" / "shld") whitespace+ (data16 / labelDirect / expression)
+op_lhld = ("LHLD" / "lhld") whitespace+ (data16 / labelDirect / expression)
 
-op_jmp  = ("JMP"  / "jmp" ) whitespace+ (expression / data16 / label)
-op_jc   = ("JC"   / "jc"  ) whitespace+ (expression / data16 / label)
-op_jnc  = ("JNC"  / "jnc" ) whitespace+ (expression / data16 / label)
-op_jz   = ("JZ"   / "jz"  ) whitespace+ (expression / data16 / label)
-op_jnz  = ("JNZ"  / "jnz" ) whitespace+ (expression / data16 / label)
-op_jm   = ("JM"   / "jm"  ) whitespace+ (expression / data16 / label)
-op_jp   = ("JP"   / "jp"  ) whitespace+ (expression / data16 / label)
-op_jpe  = ("JPE"  / "jpe" ) whitespace+ (expression / data16 / label)
-op_jpo  = ("JPO"  / "jpo" ) whitespace+ (expression / data16 / label)
+op_jmp  = ("JMP"  / "jmp" ) whitespace+ (labelDirect / data16 / expression)
+op_jc   = ("JC"   / "jc"  ) whitespace+ (labelDirect / data16 / expression)
+op_jnc  = ("JNC"  / "jnc" ) whitespace+ (labelDirect / data16 / expression)
+op_jz   = ("JZ"   / "jz"  ) whitespace+ (labelDirect / data16 / expression)
+op_jnz  = ("JNZ"  / "jnz" ) whitespace+ (labelDirect / data16 / expression)
+op_jm   = ("JM"   / "jm"  ) whitespace+ (labelDirect / data16 / expression)
+op_jp   = ("JP"   / "jp"  ) whitespace+ (labelDirect / data16 / expression)
+op_jpe  = ("JPE"  / "jpe" ) whitespace+ (labelDirect / data16 / expression)
+op_jpo  = ("JPO"  / "jpo" ) whitespace+ (labelDirect / data16 / expression)
 
-op_call = ("CALL" / "call") whitespace+ (expression / data16 / label)
-op_cc   = ("CC"   / "cc"  ) whitespace+ (expression / data16 / label)
-op_cnc  = ("CNC"  / "cnc" ) whitespace+ (expression / data16 / label)
-op_cz   = ("CZ"   / "cz"  ) whitespace+ (expression / data16 / label)
-op_cnz  = ("CNZ"  / "cnz" ) whitespace+ (expression / data16 / label)
-op_cm   = ("CM"   / "cm"  ) whitespace+ (expression / data16 / label)
-op_cp   = ("CP"   / "cp"  ) whitespace+ (expression / data16 / label)
-op_cpe  = ("CPE"  / "cpe" ) whitespace+ (expression / data16 / label)
-op_cpo  = ("CPO"  / "cpo" ) whitespace+ (expression / data16 / label)
+op_call = ("CALL" / "call") whitespace+ (data16 / labelDirect / expression)
+op_cc   = ("CC"   / "cc"  ) whitespace+ (data16 / labelDirect / expression)
+op_cnc  = ("CNC"  / "cnc" ) whitespace+ (data16 / labelDirect / expression)
+op_cz   = ("CZ"   / "cz"  ) whitespace+ (data16 / labelDirect / expression)
+op_cnz  = ("CNZ"  / "cnz" ) whitespace+ (data16 / labelDirect / expression)
+op_cm   = ("CM"   / "cm"  ) whitespace+ (data16 / labelDirect / expression)
+op_cp   = ("CP"   / "cp"  ) whitespace+ (data16 / labelDirect / expression)
+op_cpe  = ("CPE"  / "cpe" ) whitespace+ (data16 / labelDirect / expression)
+op_cpo  = ("CPO"  / "cpo" ) whitespace+ (data16 / labelDirect / expression)
 
 op_mov  = ("MOV"  / "mov" ) whitespace+ register whitespace* [,] whitespace* register
-op_lxi  = ("LXI"  / "lxi" ) whitespace+ register whitespace* [,] whitespace* (expression / data16 / label)
-op_mvi  = ("MVI"  / "mvi" ) whitespace+ register whitespace* [,] whitespace* (expression / data8 / labelImmediate)
+op_lxi  = ("LXI"  / "lxi" ) whitespace+ register whitespace* [,] whitespace* (data16 / labelImmediate / expression)
+op_mvi  = ("MVI"  / "mvi" ) whitespace+ register whitespace* [,] whitespace* (data8 / labelImmediate / expression)
