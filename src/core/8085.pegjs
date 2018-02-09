@@ -405,13 +405,18 @@ value = register / label
 register "Register Name" = l:[AaBbCcDdEeHhLlMm] !identLetter { return l.toLowerCase(); }
 registerA = l:[Aa] !identLetter { return l.toLowerCase(); }
 
-registerPair = l:[BbDdHh] !identLetter { return l.toLowerCase(); }
+registerPair = registerPairB / registerPairD / registerPairH
 
-registerPairB = l:[Bb] !identLetter { return l.toLowerCase(); }
-registerPairD = l:[Dd] !identLetter { return l.toLowerCase(); }
-registerPairH = l:[Hh] !identLetter { return l.toLowerCase(); }
-registerPairPSW = l:("PSW" / "psw") !identLetter { return l.toLowerCase(); }
-stackPointer = l:("SP" / "sp") !identLetter { return l.toLowerCase(); }
+registerPairB "B and C register pair (written as, B or b)" =
+    l:[Bb] !identLetter { return l.toLowerCase(); }
+registerPairD "D and E register pair (written as, D or d)" =
+    l:[Dd] !identLetter { return l.toLowerCase(); }
+registerPairH "H and L register pair (written as, H or h)" =
+    l:[Hh] !identLetter { return l.toLowerCase(); }
+registerPairPSW "Program status word (Contents of A and status flags, written as PSW or psw)" =
+    l:("PSW" / "psw") !identLetter { return l.toLowerCase(); }
+stackPointer "Stack Pointer (written as, SP or sp)" =
+    l:("SP" / "sp") !identLetter { return l.toLowerCase(); }
 
 data8_list "comma separated byte values" = d:data8 ds:("," __ data8)* {
   return { value: [d.value].concat(ds.map(function (d_) { return d_[2].value; })), location: location() };
@@ -845,5 +850,5 @@ op_cpe  = ("CPE"  / "cpe" ) whitespace+ (data16 / labelDirect / expression)
 op_cpo  = ("CPO"  / "cpo" ) whitespace+ (data16 / labelDirect / expression)
 
 op_mov  = ("MOV"  / "mov" ) whitespace+ register whitespace* [,] whitespace* register
-op_lxi  = ("LXI"  / "lxi" ) whitespace+ register whitespace* [,] whitespace* (data16 / labelImmediate / expression)
+op_lxi  = ("LXI"  / "lxi" ) whitespace+ (registerPair / stackPointer) whitespace* [,] whitespace* (data16 / labelImmediate / expression)
 op_mvi  = ("MVI"  / "mvi" ) whitespace+ register whitespace* [,] whitespace* (data8 / labelImmediate / expression)
