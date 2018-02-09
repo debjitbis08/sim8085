@@ -220,6 +220,18 @@ update msg model =
         Just s ->
           let updatedM = updateModelFromExternalState model s
           in ({ updatedM | programState = Idle }, Cmd.none)
+    UpdateMemoryCell value ->
+      let
+          updatedMemory = 
+            case model.editingMemoryCell of
+              Nothing -> model.memory
+              Just addr -> Array.set addr (strToHex value) model.memory
+          updatedModel = { model | memory = updatedMemory, editingMemoryCell = Nothing }
+      in
+          
+      ( updatedModel
+      , updateState { state = createExternalStateFromModel updatedModel }
+      )
     Stop -> ({ model | programState = Idle }, editorDisabled False)
     _ -> ( updateHelper msg model, Cmd.none )
 
@@ -850,6 +862,7 @@ port runOne : { state: ExternalState } -> Cmd msg
 port debug : { state: ExternalState, nextLine: Int, programState: String } -> Cmd msg
 port nextLine : Int -> Cmd msg
 port editorDisabled : Bool -> Cmd msg
+port updateState : { state: ExternalState } -> Cmd msg
 
 port code : (String -> msg) -> Sub msg
 port breakpoints : (BreakPointAction -> msg) -> Sub msg

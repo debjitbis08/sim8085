@@ -14,6 +14,8 @@ var execute8085Program = simulator.cwrap('ExecuteProgram', 'number', ['number', 
 var execute8085ProgramUntil = simulator.cwrap('ExecuteProgramUntil', 'number', ['number', 'number', 'number', 'number']);
 var load8085Program = simulator.cwrap('LoadProgram', 'number', ['number', 'array', 'number', 'number']);
 
+var statePtr = simulator._Init8085();
+
 // inject bundled Elm app into div#main
 var Elm = require( '../elm/Main' );
 var app = Elm.Main.embed(document.getElementById( 'main' ), {
@@ -71,6 +73,10 @@ function initilizeEditor () {
   });
 
   app.ports.editorDisabled.subscribe(editor.setOption.bind(editor, "readOnly"));
+
+  app.ports.updateState.subscribe(function (o) {
+    stateComm.setState(simulator, statePtr, o.state);
+  });
 }
 
 function removeLineHighlight(editor) {
@@ -249,6 +255,7 @@ function load(editor, input) {
     lineWidget.forEach(function (w) {
       editor.removeLineWidget(w);
     });
+    console.log(stateComm.getStateFromPtr(simulator, statePtr).memory.slice(0, 20));
 
     var assembled = assembleProgram(editor, input.code);
 
@@ -258,8 +265,11 @@ function load(editor, input) {
 
     assembled = assembled.map(function (a) { a.breakHere = false; return a; });
 
+    // var memoryBeforeInit = stateComm.getStateFromPtr(simulator, statePtr)
+
     // Allocate memory for simulator
-    var statePtr = simulator._Init8085();
+    // var statePtr = simulator._Init8085();
+    console.log(stateComm.getStateFromPtr(simulator, statePtr).memory.slice(0, 20));
 
     // Load Program to memory
     statePtr = load8085Program(statePtr, assembled.map(function (c) { return c.data; }), assembled.length, input.offset);
