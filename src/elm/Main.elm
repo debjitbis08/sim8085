@@ -204,7 +204,7 @@ update msg model =
       else
       (
         { model | programState = Running }
-      , runOne { state = createExternalStateFromModel model }
+      , runOne { state = createExternalStateFromModel model, offset = model.loadAddr }
       )
     Load -> (model, load { offset = model.loadAddr, code = model.code })
     RunOneSucceded res ->
@@ -858,7 +858,7 @@ type alias BreakPointAction =
 port load : { offset: Int, code: String } -> Cmd msg
 port run : { state: ExternalState, loadAt: Int, programState: String } -> Cmd msg
 port runTill : { state: ExternalState, loadAt: Int, programState: String, pauseAt: Int } -> Cmd msg
-port runOne : { state: ExternalState } -> Cmd msg
+port runOne : { state: ExternalState, offset: Int } -> Cmd msg
 port debug : { state: ExternalState, nextLine: Int, programState: String } -> Cmd msg
 port nextLine : Int -> Cmd msg
 port editorDisabled : Bool -> Cmd msg

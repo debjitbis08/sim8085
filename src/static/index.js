@@ -187,7 +187,7 @@ function runSingleInstruction(editor, input) {
   var errorStatus = 0;
 
   try {
-    var status = simulator._Emulate8085Op(statePtr);
+    var status = simulator._Emulate8085Op(statePtr, input.offset);
   } catch (e) {
     errorStatus = e.status;
   }

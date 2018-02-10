@@ -305,7 +305,7 @@ machineCode = prg:program {
 
             dataVal = (typeof line.data.value === "string")
                 ? line.data.type === "direct"
-                ? symbolTable[line.data.value].addr - objCode.length
+                ? symbolTable[line.data.value].addr
                 : symbolTable[line.data.value].value
                 : (typeof line.data.value === "number") ? line.data.value
                 : typeof line.data.value === "object" && line.data.value.value ? line.data.value.value
@@ -330,7 +330,7 @@ machineCode = prg:program {
 
             dataVal = (typeof line.data.value === "string")
                 ? line.data.type === "direct"
-                ? symbolTable[line.data.value].addr - objCode.length
+                ? symbolTable[line.data.value].addr
                 : symbolTable[line.data.value].value
                 : (typeof line.data.value === "number") ? line.data.value
                 : typeof line.data.value === "object" && line.data.value.value ? line.data.value.value

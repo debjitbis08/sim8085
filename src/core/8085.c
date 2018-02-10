@@ -971,7 +971,7 @@ void returnToCaller(State8085 *state)
 	state->sp += 2;
 }
 
-int Emulate8085Op(State8085 *state)
+int Emulate8085Op(State8085 *state, uint16_t offset)
 {
 	int cycles = 4;
 	unsigned char *opcode = &state->memory[state->pc];
@@ -1940,12 +1940,12 @@ int Emulate8085Op(State8085 *state)
 	break;
 	case 0xc2: // JNZ Addr
 		if (0 == state->cc.z)
-			state->pc = (state->pc - 1) + ((opcode[2] << 8) | opcode[1]);
+			state->pc = offset + ((opcode[2] << 8) | opcode[1]);
 		else
 			state->pc += 2;
 		break;
 	case 0xc3: // JMP Addr
-		state->pc = (state->pc - 1) + ((opcode[2] << 8) | opcode[1]);
+		state->pc = offset + ((opcode[2] << 8) | opcode[1]);
 		break;
 	case 0xc4: // CNZ Addr
 		if (0 == state->cc.z)
@@ -1989,7 +1989,7 @@ int Emulate8085Op(State8085 *state)
 		break;
 	case 0xca: // JZ Addr
 		if (1 == state->cc.z)
-			state->pc = (state->pc - 1) + ((opcode[2] << 8) | opcode[1]);
+			state->pc = offset + ((opcode[2] << 8) | opcode[1]);
 		else
 			state->pc += 2;
 		break;
@@ -2025,7 +2025,7 @@ int Emulate8085Op(State8085 *state)
 	break;
 	case 0xd2: // JNC Addr
 		if (0 == state->cc.cy)
-			state->pc = (state->pc - 1) + ((opcode[2] << 8) | opcode[1]);
+			state->pc = offset + ((opcode[2] << 8) | opcode[1]);
 		else
 			state->pc += 2;
 		break;
@@ -2062,7 +2062,7 @@ int Emulate8085Op(State8085 *state)
 		break;
 	case 0xda: // JC Addr
 		if (1 == state->cc.cy)
-			state->pc = (state->pc - 1) + ((opcode[2] << 8) | opcode[1]);
+			state->pc = offset + ((opcode[2] << 8) | opcode[1]);
 		else
 			state->pc += 2;
 		break;
@@ -2098,7 +2098,7 @@ int Emulate8085Op(State8085 *state)
 	break;
 	case 0xe2: // JPO Addr
 		if (0 == state->cc.p)
-			state->pc = (state->pc - 1) + ((opcode[2] << 8) | opcode[1]);
+			state->pc = offset + ((opcode[2] << 8) | opcode[1]);
 		else
 			state->pc += 2;
 		break;
@@ -2144,7 +2144,7 @@ int Emulate8085Op(State8085 *state)
 		break;
 	case 0xea: // JPE Addr
 		if (1 == state->cc.p)
-			state->pc = (state->pc - 1) + ((opcode[2] << 8) | opcode[1]);
+			state->pc = offset + ((opcode[2] << 8) | opcode[1]);
 		else
 			state->pc += 2;
 		break;
@@ -2193,7 +2193,7 @@ int Emulate8085Op(State8085 *state)
 	break;
 	case 0xf2: // JP Addr
 		if (0 == state->cc.s)
-			state->pc = (state->pc - 1) + ((opcode[2] << 8) | opcode[1]);
+			state->pc = offset + ((opcode[2] << 8) | opcode[1]);
 		else
 			state->pc += 2;
 		break;
@@ -2235,7 +2235,7 @@ int Emulate8085Op(State8085 *state)
 		break;
 	case 0xfa: // JM Addr
 		if (1 == state->cc.s)
-			state->pc = (state->pc - 1) + ((opcode[2] << 8) | opcode[1]);
+			state->pc = offset + ((opcode[2] << 8) | opcode[1]);
 		else
 			state->pc += 2;
 		break;
@@ -2308,7 +2308,7 @@ int ExecuteProgramUntil(State8085 *state, uint16_t offset, uint16_t startAt, uin
 	printf("Pause At: %d\n", pauseAt);
 	while (done == 0 && state->pc < pauseAt)
 	{
-		done = Emulate8085Op(state);
+		done = Emulate8085Op(state, offset);
 		printf("PC in C %d", state->pc);
 	}
 	printf("%c", state->cc.z ? 'z' : '.');
@@ -2336,7 +2336,7 @@ State8085 *ExecuteProgram(State8085 *state, uint16_t offset)
 	{
 		if (cycles > 100)
 			exit(2);
-		done = Emulate8085Op(state);
+		done = Emulate8085Op(state, offset);
 		cycles++;
 	}
 	printf("%c", state->cc.z ? 'z' : '.');
