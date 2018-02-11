@@ -33,6 +33,9 @@
         <div class="collapse navbar-collapse">
           <ul class="nav navbar-nav navbar-right">
             <li>
+              <a href="#" data-toggle="modal" data-target=".help-modal">Help</a>
+            </li>
+            <li>
               <a href="#" data-toggle="modal" data-target=".about-modal">About</a>
             </li>
             <li>
@@ -42,6 +45,25 @@
         </div>
       </div>
     </nav>
+    <div class="modal fade help-modal" tabindex="-1" role="dialog">
+      <div class="modal-dialog modal-lg" role="document" style="width:670px;">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">×</span>
+            </button>
+            <h4 class="modal-title"> Help </h4>
+          </div>
+          <div class="modal-body">
+            <section>
+              <p>
+                The following tutorial video will help you get started.
+                <iframe src="https://player.vimeo.com/video/255261032" width="640" height="480" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>
+              </p>
+          </div>
+        </div>
+      </div>
+    </div>
     <div class="modal fade about-modal" tabindex="-1" role="dialog">
       <div class="modal-dialog modal-md" role="document">
         <div class="modal-content">
