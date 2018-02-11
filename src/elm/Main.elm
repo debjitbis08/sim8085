@@ -172,7 +172,7 @@ update msg model =
             else
                 let nextBreak = findPCToPause model
                 in
-                    case (Debug.log "Next Break" nextBreak) of
+                    case nextBreak of
                         Nothing ->
                                 (model, runTill { state = createExternalStateFromModel model
                                                 , pauseAt = 65535
@@ -182,12 +182,12 @@ update msg model =
                             if model.programState == Loaded
                             then
                                 (model, runTill { state = (let s = createExternalStateFromModel model in { s | pc = model.loadAddr })
-                                                , pauseAt = Debug.log "PC:" n
+                                                , pauseAt = n
                                                 , programState = getProgramState model.programState
                                                 , loadAt = model.loadAddr })
                             else
                                 (model, runTill { state = createExternalStateFromModel model
-                                                , pauseAt = Debug.log "PC:" n
+                                                , pauseAt = n
                                                 , programState = getProgramState model.programState
                                                 , loadAt = model.loadAddr })
 
@@ -257,7 +257,7 @@ updateHelper msg model =
     LoadFailed e -> { model | error = Just e, assembled = Array.empty }
     LoadSucceded res -> { model | statePtr = Just res.statePtr
                                 , memory = res.memory
-                                , assembled = addBreakpointsToAssembled (Debug.log "breaks" model.breakpoints) res.assembled
+                                , assembled = addBreakpointsToAssembled model.breakpoints res.assembled
                                 , programCounter = model.loadAddr
                                 , error = Nothing
                                 , programState = Loaded }
@@ -340,7 +340,7 @@ updateHelper msg model =
 findPCToPause model =
     let
         assembled = Array.toIndexedList model.assembled
-        remaining = (Debug.log "assembled" (List.drop (model.programCounter - model.loadAddr + 1) assembled))
+        remaining = List.drop (model.programCounter - model.loadAddr + 1) assembled
         nextBreak = List.head (List.filter (\(_, a) -> a.kind == "code" && a.breakHere) remaining)
     in
         case nextBreak of
@@ -508,14 +508,14 @@ view model =
               div [ class "coding-area__toolbar clearfix"] [
                   div [ class "btn-toolbar coding-area__btn-toolbar pull-left" ] [
                       div [ class "btn-group" ] [
-                          toolbarButton (model.programState /= Idle) "success" Load "Assemble and Load Program" "save"
-                        , toolbarButton (model.programState == Idle) "warning" Stop "Stop program and return to editing" "stop"
-                        , toolbarButton (model.programState /= Loaded && model.programState /= Paused) "success" Run "Run Program" "fast-forward"
+                          toolbarButton (model.programState /= Idle) "success" Load "Assemble and Load Program" "save" "btn-load"
+                        , toolbarButton (model.programState == Idle) "warning" Stop "Stop program and return to editing" "stop" "btn-stop"
+                        , toolbarButton (model.programState /= Loaded && model.programState /= Paused) "success" Run "Run Program" "fast-forward" "btn-run"
                         , toolbarButton (model.programState /= Loaded && model.programState /= Paused)
-                                        "success" RunOne "Run one instruction" "step-forward"
+                                        "success" RunOne "Run one instruction" "step-forward" "btn-step"
                       ]
                     , div [ class "btn-group" ] [
-                        toolbarButton (model.programState /= Idle) "danger" Reset "Reset Everything" "refresh"
+                        toolbarButton (model.programState /= Idle) "danger" Reset "Reset Everything" "refresh" "btn-refresh-everything"
                       ]
                   ]
                 , div [ class "coding-area__load-addr pull-right" ] [
@@ -549,8 +549,8 @@ view model =
   ]
 
 
-toolbarButton isDisabled type_ msg tooltip icon =
-    button [ class ("btn  btn-sm btn-" ++ type_), onClick msg, title tooltip, disabled isDisabled ] [
+toolbarButton isDisabled type_ msg tooltip icon automationId =
+    button [ class ("btn  btn-sm btn-" ++ type_), onClick msg, title tooltip, disabled isDisabled, attribute "data-automation-id" automationId ] [
         span [ class ("glyphicon glyphicon-" ++ icon) ] []
     ]
 
@@ -618,7 +618,7 @@ showRegister name rid { high, low, editing } =
   tr [ class "reg-display__row" ] [
      th [ scope "row" ] [ text name ]
    , td [ hidden editing ] [
-        span [ onDoubleClick (EditRegister rid), title "Double click to edit" ] [
+        span [ onDoubleClick (EditRegister rid), title "Double click to edit", attribute "data-automation-id" ("val-reg-" ++ rid) ] [
             span [ style [("padding-right", "3px"), ("color","#AAA")] ] [ text "0x" ]
           , span [ style [("padding-right", "3px")] ] [ text <| String.toUpper <| toByte high ]
           , span [] [ text <| String.toUpper <| toByte low ]
@@ -686,7 +686,7 @@ showFlag name value =
   tr [] [
      th [ scope "row" ] [ text name ]
    , td [] [
-        input [ type_ "checkbox", checked value, onCheck (UpdateFlag name) ] []
+        input [ type_ "checkbox", checked value, onCheck (UpdateFlag name), attribute "data-automation-id" ("val-flg-" ++ name) ] []
     ]
   ]
 

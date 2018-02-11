@@ -157,7 +157,6 @@ function runTill (editor, input) {
     }
 
     var outputState = stateComm.getStateFromPtr(simulator, statePtr);
-    console.log(outputState)
     // removeLineHighlight(editor);
     // setEditorReadOnlyOption(editor, false);
 
@@ -255,7 +254,6 @@ function load(editor, input) {
     lineWidget.forEach(function (w) {
       editor.removeLineWidget(w);
     });
-    console.log(stateComm.getStateFromPtr(simulator, statePtr).memory.slice(0, 20));
 
     var assembled = assembleProgram(editor, input.code);
 
@@ -269,7 +267,6 @@ function load(editor, input) {
 
     // Allocate memory for simulator
     // var statePtr = simulator._Init8085();
-    console.log(stateComm.getStateFromPtr(simulator, statePtr).memory.slice(0, 20));
 
     // Load Program to memory
     statePtr = load8085Program(statePtr, assembled.map(function (c) { return c.data; }), assembled.length, input.offset);

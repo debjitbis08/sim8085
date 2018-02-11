@@ -5,18 +5,28 @@ function getFlagValue(flags, pos) {
   return stringPos < 0 ? false : !!(parseInt(flags[stringPos], 2));
 }
 
+function readUint8(simulator, pointer, def) {
+  var v = simulator.getValue(pointer + 0, 'i8', def);
+  return v < 0 ? 256 + v : v;
+}
+
+function readUint16(simulator, pointer, def) {
+  var v = simulator.getValue(pointer + 0, 'i16', def);
+  return v < 0 ? 65536 + v : v;
+}
+
 function getStateFromPtr (simulator, statePtr) {
     var flags = simulator.getValue(statePtr + 12, 'i8', 0).toString(2);
     var state = {
-      a: simulator.getValue(statePtr + 0, 'i8', 0),
-      b: simulator.getValue(statePtr + 1, 'i8', 0),
-      c: simulator.getValue(statePtr + 2, 'i8', 0),
-      d: simulator.getValue(statePtr + 3, 'i8', 0),
-      e: simulator.getValue(statePtr + 4, 'i8', 0),
-      h: simulator.getValue(statePtr + 5, 'i8', 0),
-      l: simulator.getValue(statePtr + 6, 'i8', 0),
-      sp: simulator.getValue(statePtr + 8, 'i16', 0),
-      pc: simulator.getValue(statePtr + 10, 'i16', 0),
+      a: readUint8(simulator, statePtr + 0, 0),
+      b: readUint8(simulator, statePtr + 1, 0),
+      c: readUint8(simulator, statePtr + 2, 0),
+      d: readUint8(simulator, statePtr + 3, 0),
+      e: readUint8(simulator, statePtr + 4, 0),
+      h: readUint8(simulator, statePtr + 5, 0),
+      l: readUint8(simulator, statePtr + 6, 0),
+      sp: readUint16(simulator, statePtr + 8, 'i16', 0),
+      pc: readUint16(simulator, statePtr + 10, 'i16', 0),
       flags: {
         z: getFlagValue(flags, 0),
         s: getFlagValue(flags, 1),
