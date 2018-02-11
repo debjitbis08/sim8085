@@ -11,6 +11,8 @@
   <link rel="shortcut icon" type="image/x-icon" href="favicon.ico" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.19.0/codemirror.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/hopscotch/0.3.1/css/hopscotch.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.css" />
 </head>
 
 <body>
@@ -58,7 +60,8 @@
             <section>
               <p>
                 The following tutorial video will help you get started.
-                <iframe src="https://player.vimeo.com/video/255261032" width="640" height="480" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>
+                <iframe src="https://player.vimeo.com/video/255261032" width="640" height="480" frameborder="0" webkitallowfullscreen mozallowfullscreen
+                  allowfullscreen></iframe>
               </p>
           </div>
         </div>
@@ -127,12 +130,23 @@
       </button>
       <h4>Program terminated with errors!</h4>
       <p>
-        This is most probably due to some unimplemented intruction in the simulator itself.
-        Please look at the JavaScript console to know more details.
+        This is most probably due to some unimplemented intruction in the simulator itself. Please look at the JavaScript console
+        to know more details.
       </p>
       <p>
-        This software is still in alpha phase. I want to work on this more but working on this is 
-        not my highest priorities right now. If you like to help, please file a <a target="_blank" href="https://github.com/debjitbis08/sim8085/issues">bug</a> or <a target="_blank" href="https://github.com/debjitbis08/sim8085">contribute</a> to fix this bug.
+        This software is still in alpha phase. I want to work on this more but working on this is not my highest priorities right
+        now. If you like to help, please file a
+        <a target="_blank" href="https://github.com/debjitbis08/sim8085/issues">bug</a> or
+        <a target="_blank" href="https://github.com/debjitbis08/sim8085">contribute</a> to fix this bug.
+      </p>
+    </div>
+    <div id="outdated">
+      <h6>Your browser is out-of-date!</h6>
+      <p>Update your browser to view this website correctly.
+        <a id="btnUpdateBrowser" href="http://outdatedbrowser.com/">Update my browser now </a>
+      </p>
+      <p class="last">
+        <a href="#" id="btnCloseUpdateBrowser" title="Close">&times;</a>
       </p>
     </div>
     <div id="main"></div>
@@ -151,7 +165,36 @@
       </p>
     </footer>
   </div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.js"></script>
+  <script>
+    (function () {
+      //event listener: DOM ready
+      function addLoadEvent(func) {
+        var oldonload = window.onload;
+        if (typeof window.onload != 'function') {
+          window.onload = func;
+        } else {
+          window.onload = function () {
+            if (oldonload) {
+              oldonload();
+            }
+            func();
+          }
+        }
+      }
+      //call plugin function after DOM ready
+      addLoadEvent(function () {
+        outdatedBrowser({
+          bgColor: '#f25648',
+          color: '#ffffff',
+          lowerThan: 'transform'
+        })
+      });
+    }());
+  </script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.19.0/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hopscotch/0.3.1/js/hopscotch.min.js"></script>
+
 </body>
 
 </html>
