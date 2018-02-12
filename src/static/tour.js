@@ -1,5 +1,5 @@
 function start () {
-    var isDone = localStorge.getItem("tour-done");
+    var isDone = localStorage.getItem("tour-done");
 
     if (isDone === "1") return;
 
