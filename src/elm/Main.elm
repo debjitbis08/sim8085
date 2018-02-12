@@ -152,6 +152,7 @@ type Msg
   | NextMemoryPage
   | ChangeMemoryStart String
   | ChangeMemoryStartSmall String
+  | JumpToAddress String
   | UpdateBreakpoints BreakPointAction
   | EditRegister String
   | SaveRegister String String
@@ -254,6 +255,18 @@ updateHelper msg model =
       in
         { model | memoryStartSmall = n
                 , memoryStart = n + model.memoryStartLarge }
+    JumpToAddress v ->
+      let
+        n = Result.withDefault model.memoryStart (String.toInt ("0x" ++ v))
+        startN = (n // 256) * 256
+        startLarge = 4352 * (n // 4352)
+        startSmall = n % 4352
+      in
+        if String.length v /= 4 then model
+        else
+          { model | memoryStartLarge = startLarge
+                  , memoryStartSmall = startSmall
+                  , memoryStart = startN }
     LoadFailed e -> { model | error = Just e, assembled = Array.empty }
     LoadSucceded res -> { model | statePtr = Just res.statePtr
                                 , memory = res.memory
@@ -718,6 +731,17 @@ showMemory model memory memoryStart memoryStartSmall =
                , style [("margin", "25px 0 10px"), ("cursor", "pointer")]
                , onClick ResetMemory
                ] []
+        , div [ class "col-md-5 pull-right" ]
+          [ div [ class "input-group memory-view__jump-to-addr", style [ ("padding", "15px 0 0 10px") ] ]
+            [ span [ class "input-group-addon"] [ text "0x" ]
+            , input [ type_ "text"
+                    , class "form-control"
+                    , placeholder "Address in hex"
+                    , pattern "[0-9A-Fa-f]{4}"
+                    , onInput JumpToAddress
+                    ] []
+            ]
+          ]
       ]
     , table [ class "table memory-view__cells" ] [
           thead [] (td [] [] :: (List.map (\c -> td [] [ text <| (String.toUpper (toRadix 16 c)) ]) (List.range 0 15)))
@@ -726,7 +750,7 @@ showMemory model memory memoryStart memoryStartSmall =
     , div [ class "memory-view__paginator row" ] [
           div [ class "col-sm-6 memory-view__start-addr" ] [
               span [ style [("font-size", "0.8em")]] [ text "Start Address at: 0x " ]
-            , select [ onInput ChangeMemoryStart ] (List.map (\n -> option [ value <| toString <| n ] [ text (String.toUpper (toRadix 16 n)) ]) (List.map (\n -> n * 4352) (List.range 0 15)))
+            , select [ onInput ChangeMemoryStart, value (toString model.memoryStartLarge) ] (List.map (\n -> option [ value <| toString <| n ] [ text (String.toUpper (toRadix 16 n)) ]) (List.map (\n -> n * 4352) (List.range 0 15)))
           ]
         , div [ class "col-md-6 memory-view__addr-range" ] [
               input [ type_ "range"

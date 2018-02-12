@@ -86,13 +86,19 @@ function start () {
                 content: "Use this to get more finer control on what range of addresses are visible in the memory area. For more details on how to use this, view the tutorial video available by clicking the Help text in the navigation area at top."
             },
             {
+                target: document.querySelector(".memory-view__jump-to-addr"),
+                placement: "bottom",
+                title: "Jump to address",
+                content: "Enter an address value in hexdecimal and the below grid will change to show the location."
+            },
+            {
                 target: document.querySelector(".nav__help"),
                 placement: "bottom",
                 title: "Help",
                 content: "View a tutorial on how to use the interface.",
                 xOffset: 'center',
                 arrowOffset: 'center'
-            },
+            }
         ]
     };
     hopscotch.startTour(tour);
