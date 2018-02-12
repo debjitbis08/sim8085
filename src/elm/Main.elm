@@ -508,14 +508,14 @@ view model =
               div [ class "coding-area__toolbar clearfix"] [
                   div [ class "btn-toolbar coding-area__btn-toolbar pull-left" ] [
                       div [ class "btn-group" ] [
-                          toolbarButton (model.programState /= Idle) "success" Load "Assemble and Load Program" "save" "btn-load"
-                        , toolbarButton (model.programState == Idle) "warning" Stop "Stop program and return to editing" "stop" "btn-stop"
-                        , toolbarButton (model.programState /= Loaded && model.programState /= Paused) "success" Run "Run Program" "fast-forward" "btn-run"
+                          toolbarButton (model.programState /= Idle) "success" Load "Assemble and Load Program" "compile.png" True "btn-load"
+                        , toolbarButton (model.programState == Idle) "warning" Stop "Stop program and return to editing" "stop" False "btn-stop"
+                        , toolbarButton (model.programState /= Loaded && model.programState /= Paused) "success" Run "Run Program" "fast-forward" False "btn-run"
                         , toolbarButton (model.programState /= Loaded && model.programState /= Paused)
-                                        "success" RunOne "Run one instruction" "step-forward" "btn-step"
+                                        "success" RunOne "Run one instruction" "step-forward" False "btn-step"
                       ]
                     , div [ class "btn-group" ] [
-                        toolbarButton (model.programState /= Idle) "danger" Reset "Reset Everything" "refresh" "btn-refresh-everything"
+                        toolbarButton (model.programState /= Idle) "danger" Reset "Reset Everything" "refresh" False "btn-refresh-everything"
                       ]
                   ]
                 , div [ class "coding-area__load-addr pull-right" ] [
@@ -548,10 +548,14 @@ view model =
       ]
   ]
 
+-- <img src=
 
-toolbarButton isDisabled type_ msg tooltip icon automationId =
+toolbarButton isDisabled type_ msg tooltip icon iconIsImage automationId =
     button [ class ("btn  btn-sm btn-" ++ type_), onClick msg, title tooltip, disabled isDisabled, attribute "data-automation-id" automationId ] [
-        span [ class ("glyphicon glyphicon-" ++ icon) ] []
+        if iconIsImage then
+          img [ src ("static/img/" ++ icon) ] []
+        else
+          span [ class ("glyphicon glyphicon-" ++ icon) ] []
     ]
 
 tabAddButton =
