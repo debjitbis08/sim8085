@@ -489,7 +489,7 @@ view model =
                        , onClick ResetRegisters
                        ] []
               ]
-            , table [ class "table table-striped" ] [
+            , table [ class "table table-striped registers-view" ] [
                 tbody [] (showRegisters model.accumulator model.flags model.registers model.stackPtr model.programCounter model.editingAccumulator)
               ]
             ]
@@ -501,7 +501,7 @@ view model =
                        , onClick ResetFlags
                        ] []
               ]
-            , table [ class "table table-striped" ] [ tbody [] (showFlags model.flags) ]
+            , table [ class "table table-striped flags-view" ] [ tbody [] (showFlags model.flags) ]
             ]
         ]
         , div [ class "col-md-5 coding-area" ] [
@@ -719,12 +719,12 @@ showMemory model memory memoryStart memoryStartSmall =
           thead [] (td [] [] :: (List.map (\c -> td [] [ text <| (String.toUpper (toRadix 16 c)) ]) (List.range 0 15)))
         , tbody [] (Array.toList (showMemoryCells model memoryStart (Array.slice memoryStart (memoryStart + 256) memory)))
       ]
-    , div [ class "memory-view___paginator row" ] [
-          div [ class "col-sm-6" ] [
+    , div [ class "memory-view__paginator row" ] [
+          div [ class "col-sm-6 memory-view__start-addr" ] [
               span [ style [("font-size", "0.8em")]] [ text "Start Address at: 0x " ]
             , select [ onInput ChangeMemoryStart ] (List.map (\n -> option [ value <| toString <| n ] [ text (String.toUpper (toRadix 16 n)) ]) (List.map (\n -> n * 4352) (List.range 0 15)))
           ]
-        , div [ class "col-md-6" ] [
+        , div [ class "col-md-6 memory-view__addr-range" ] [
               input [ type_ "range"
                     , Html.Attributes.min "0"
                     , Html.Attributes.max "4096"

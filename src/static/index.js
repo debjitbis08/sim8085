@@ -6,6 +6,7 @@ require( '../../node_modules/bootstrap-sass/assets/javascripts/bootstrap.js' ); 
 var parser = require( '../core/8085-assembler.js' );
 var simulator = require( '../core/8085.js' )({ ENVIRONMENT: "WEB" });
 var stateComm = require('./cpuState.js');
+var Tour = require("./tour.js");
 
 require('./8085-mode.js');
 
@@ -76,6 +77,16 @@ function initilizeEditor () {
 
   app.ports.updateState.subscribe(function (o) {
     stateComm.setState(simulator, statePtr, o.state);
+  });
+
+  Tour.start();
+
+  var iframe = document.getElementById('nofocusvideo');
+  // $f == Froogaloop
+  var player = $f(iframe);
+
+  $('.help-modal').on('hidden.bs.modal', function () {
+    player.api('pause');
   });
 }
 
