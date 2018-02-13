@@ -522,10 +522,10 @@ view model =
                   div [ class "btn-toolbar coding-area__btn-toolbar pull-left" ] [
                       div [ class "btn-group" ] [
                           toolbarButton (model.programState /= Idle) "success" Load "Assemble and Load Program" "compile.png" True "btn-load"
-                        , toolbarButton (model.programState == Idle) "warning" Stop "Stop program and return to editing" "stop" False "btn-stop"
                         , toolbarButton (model.programState /= Loaded && model.programState /= Paused) "success" Run "Run Program" "fast-forward" False "btn-run"
                         , toolbarButton (model.programState /= Loaded && model.programState /= Paused)
                                         "success" RunOne "Run one instruction" "step-forward" False "btn-step"
+                        , toolbarButton (model.programState == Idle) "warning" Stop "Stop program and return to editing" "stop" False "btn-stop"
                       ]
                     , div [ class "btn-group" ] [
                         toolbarButton (model.programState /= Idle) "danger" Reset "Reset Everything" "refresh" False "btn-refresh-everything"
