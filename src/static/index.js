@@ -38,7 +38,7 @@ var highlighedLine = null;
   }
 }());
 
-function showError () {
+function showError (type) {
   $("body").append(
     jQuery("#execution-error-alert-template")
       .clone()
@@ -46,6 +46,15 @@ function showError () {
       .removeClass("hidden")
       .show()
     );
+
+  var messageContainer = document.querySelector("#execution-error-alert #execution-error-message-content");
+  if (type === "UNKNOWN_INST") {
+    messageContainer.innerHTML = "This is most probably due to some unimplemented intruction in the simulator itself. Currently, the instructions RIM, RST, IN, DI are not supported. Please look at the JavaScript console to know more details."
+  } else if (type === "INFINITE_LOOP") {
+    messageContainer.innerHTML = "Looks like you have an infinite loop in your code. Did you forget the HLT instruction?"
+  } else {
+    messageContainer.innerHTML = "An unknown error occured during execution of your program."
+  }
 }
 
 function initilizeEditor () {
@@ -137,7 +146,9 @@ function runProgram (editor, input) {
     try {
       statePtr = execute8085Program(statePtr, input.loadAt);
     } catch (e) {
-      showError();
+      if (e.status === 1) showError("UNKNOWN_INST");
+      else if (e.status === 2) showError("INFINITE_LOOP");
+      else showError("UNKNOWN");
       errorStatus = e.status;
     }
 

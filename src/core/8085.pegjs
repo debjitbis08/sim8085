@@ -341,7 +341,6 @@ machineCode = prg:program {
         }
     }
 
-    console.log(objCode);
     return objCode;
 }
 

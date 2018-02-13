@@ -215,7 +215,6 @@ function peg$parse(input, options) {
               }
           }
 
-          console.log(objCode);
           return objCode;
       },
       peg$c1 = function(first, l) {return l},
