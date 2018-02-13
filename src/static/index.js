@@ -57,6 +57,21 @@ function showError (type) {
   }
 }
 
+function showInfo (msg) {
+  var tmpl = jQuery("#info-alert-template");
+  var randomId = Math.random().toString(32).substr(2);
+  var id = "info-alert-" + randomId;
+  $("body").append(
+    jQuery(tmpl.html())
+      .attr("id", id)
+      .removeClass("hidden")
+      .show()
+    );
+
+  var messageContainer = document.querySelector("#" + id + " .info-alert__message");
+  messageContainer.innerHTML = msg;
+}
+
 function initilizeEditor () {
   var editor = CodeMirror.fromTextArea(document.getElementById("coding-area__editor"), {
     lineNumbers: true,
@@ -298,4 +313,5 @@ function load(editor, input) {
     app.ports.loadSuccess.send({ statePtr: statePtr, memory: state.memory, assembled: assembled });
 
     setEditorReadOnlyOption(editor, true);
+    showInfo("Your code has been compiled and loaded to memory location 0x0800. Now you need to execute it to see the results.");
 }
