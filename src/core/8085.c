@@ -2334,7 +2334,7 @@ State8085 *ExecuteProgram(State8085 *state, uint16_t offset)
 
 	while (done == 0)
 	{
-		if (cycles > 100)
+		if (cycles > 10000)
 			exit(2);
 		done = Emulate8085Op(state, offset);
 		cycles++;
