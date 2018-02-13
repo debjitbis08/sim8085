@@ -39,15 +39,17 @@ var highlighedLine = null;
 }());
 
 function showError (type) {
+  var randomId = Math.random().toString(32).substr(2);
+  var id = "execution-error-alert-" + randomId;
   $("body").append(
     jQuery("#execution-error-alert-template")
       .clone()
-      .attr("id", "execution-error-alert")
+      .attr("id", id)
       .removeClass("hidden")
       .show()
     );
 
-  var messageContainer = document.querySelector("#execution-error-alert #execution-error-message-content");
+  var messageContainer = document.querySelector("#" + id + " #execution-error-message-content");
   if (type === "UNKNOWN_INST") {
     messageContainer.innerHTML = "This is most probably due to some unimplemented intruction in the simulator itself. Currently, the instructions RIM, RST, IN, DI are not supported. Please look at the JavaScript console to know more details."
   } else if (type === "INFINITE_LOOP") {
@@ -55,6 +57,9 @@ function showError (type) {
   } else {
     messageContainer.innerHTML = "An unknown error occured during execution of your program."
   }
+  setTimeout(function () {
+    $("#" + id).alert("close");
+  }, 8000);
 }
 
 function showInfo (msg) {
@@ -70,6 +75,10 @@ function showInfo (msg) {
 
   var messageContainer = document.querySelector("#" + id + " .info-alert__message");
   messageContainer.innerHTML = msg;
+
+  setTimeout(function () {
+    $("#" + id).alert("close");
+  }, 8000);
 }
 
 function initilizeEditor () {
