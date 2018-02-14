@@ -21,7 +21,7 @@ function start () {
                 arrowOffset: 'center'
             },
             {
-                target: document.querySelector(".coding-area__btn-toolbar .btn-group .btn:nth-child(3)"),
+                target: document.querySelector(".coding-area__btn-toolbar .btn-group .btn:nth-child(2)"),
                 placement: "bottom",
                 title: "Run Button",
                 content: "Use this button to run your compiled and loaded program. This button is only enabled if you have compiled and loaded your code.",
@@ -29,7 +29,7 @@ function start () {
                 arrowOffset: 'center'
             },
             {
-                target: document.querySelector(".coding-area__btn-toolbar .btn-group .btn:nth-child(4)"),
+                target: document.querySelector(".coding-area__btn-toolbar .btn-group .btn:nth-child(3)"),
                 placement: "bottom",
                 title: "Step Button",
                 content: "This button can be used to step through your code one instruction at a time. This button is only enabled if you have compiled and loaded your code.",
@@ -37,7 +37,7 @@ function start () {
                 arrowOffset: 'center'
             },
             {
-                target: document.querySelector(".coding-area__btn-toolbar .btn-group .btn:nth-child(2)"),
+                target: document.querySelector(".coding-area__btn-toolbar .btn-group .btn:nth-child(4)"),
                 placement: "bottom",
                 title: "Stop Execution",
                 content: "This button stops execution and returns to editing mode. This button is only enabled if you have compiled and loaded your code.",
