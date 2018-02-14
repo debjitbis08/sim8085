@@ -365,7 +365,7 @@ opWithLabel = label:labelPart? op:(operation / directive) {
     }
 }
 
-line = opWithLabel / comment / lineError
+line = __ opWithLabel / __ comment / __ lineError
 
 lineError "Error in this line" = lineWithError:.* {
     var content = lineWithError.join("");
