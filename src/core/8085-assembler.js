@@ -1196,7 +1196,10 @@ function peg$parse(input, options) {
 
     s0 = peg$parseopWithLabel();
     if (s0 === peg$FAILED) {
-      s0 = peg$parselineError();
+      s0 = peg$parsecomment();
+      if (s0 === peg$FAILED) {
+        s0 = peg$parselineError();
+      }
     }
 
     return s0;
