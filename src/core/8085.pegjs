@@ -275,6 +275,7 @@ machineCode = prg:program {
         dataVal,
         objCode = [];
 
+
     for (i = 0; i < lines; i += 1) {
         line = prg[i];
 
@@ -347,20 +348,9 @@ machineCode = prg:program {
 /**
  * Create intermediate object code with symbol strings.
  */
-program = __ first:line rest:(eol l:line {return l})* {return [first].concat(rest);}
+program = __ first:line rest:(eol+ l:line {return l})* {return [first].concat(rest);}
 
-labelDir = label:labelPart? dir:directive {
-    if (label && label !== "") {
-        symbolTable[label.value] = { addr: ilc, value: op[0] };
-    }
-    
-    if (dir !== null) {
-      ilc += dir.size;
-      return dir;
-    }
-}
-
-labelOp = label:labelPart? op:(operation / directive) {
+opWithLabel = label:labelPart? op:(operation / directive) {
     if (label && label !== "") {
         symbolTable[label.value] = {
             addr: ilc,
@@ -375,10 +365,13 @@ labelOp = label:labelPart? op:(operation / directive) {
     }
 }
 
-line = lineOp
+line = opWithLabel / lineError
 
-lineOp = whitespace* lop:labelOp? comment:comment? { return lop; }
-lineDir = whitespace* lop:labelDir? comment:comment? { return lop; } 
+lineError "Error in this line" = lineWithError:.* {
+    var content = lineWithError.join("");
+    error("Failed to compile this line.");
+    return false;
+}
 
 labelPart = label:label ":" whitespace* {
     return { value: label.value, location: label.location, type: "definition" }
@@ -848,6 +841,6 @@ op_cp   = ("CP"   / "cp"  ) whitespace+ (data16 / labelDirect / expression)
 op_cpe  = ("CPE"  / "cpe" ) whitespace+ (data16 / labelDirect / expression)
 op_cpo  = ("CPO"  / "cpo" ) whitespace+ (data16 / labelDirect / expression)
 
-op_mov  = ("MOV"  / "mov" ) whitespace+ register whitespace* [,] whitespace* register
+op_mov  "MOV is incomplete" = ("MOV"  / "mov" ) whitespace+ register whitespace* [,] whitespace* register
 op_lxi  = ("LXI"  / "lxi" ) whitespace+ (registerPair / stackPointer) whitespace* [,] whitespace* (data16 / labelImmediate / expression)
 op_mvi  = ("MVI"  / "mvi" ) whitespace+ register whitespace* [,] whitespace* (data8 / labelImmediate / expression)
