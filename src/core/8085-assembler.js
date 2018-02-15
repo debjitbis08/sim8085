@@ -238,6 +238,9 @@ function peg$parse(input, options) {
       peg$c5 = peg$anyExpectation(),
       peg$c6 = function(lineWithError) {
           var content = lineWithError.join("");
+          if (content.replace(/ /g, "") === "") {
+              return true;
+          }
           error("Failed to compile this line.");
           return false;
       },

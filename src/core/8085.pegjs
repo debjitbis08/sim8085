@@ -369,6 +369,9 @@ line = __ opWithLabel / __ comment / __ lineError
 
 lineError "Error in this line" = lineWithError:.* {
     var content = lineWithError.join("");
+    if (content.replace(/ /g, "") === "") {
+        return true;
+    }
     error("Failed to compile this line.");
     return false;
 }
