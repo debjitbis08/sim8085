@@ -275,9 +275,12 @@ machineCode = prg:program {
         dataVal,
         objCode = [];
 
+    console.log("prg", prg);
 
     for (i = 0; i < lines; i += 1) {
         line = prg[i];
+
+        console.log(line);
 
         if (line == null) continue;
 
@@ -320,7 +323,7 @@ machineCode = prg:program {
             data = line.data.value;
             if (typeof line.data.value === "string" && !symbolTable[line.data.value]) {
                 var e = new Error();
-                e.message = "Label " + line.data.value + " is not defined.";
+                e.message = "Label " + line.data.value + " is not defined. Also check the label definition, there may be some issues on that line.";
                 e.location = line.location;
                 if (typeof line !== "undefined" && typeof column !== "undefined") {
                     e.line = line; e.column = column;
@@ -341,6 +344,7 @@ machineCode = prg:program {
             objCode.push({ data: dataVal >> 8, kind: 'data', location: line.data.location });
         }
     }
+    console.log(objCode);
 
     return objCode;
 }
@@ -348,9 +352,9 @@ machineCode = prg:program {
 /**
  * Create intermediate object code with symbol strings.
  */
-program = __ first:line rest:(eol+ l:line {return l})* {return [first].concat(rest);}
+program = __ first:line rest:(eol+ __ l:line {return l})* {return [first].concat(rest);}
 
-opWithLabel = label:labelPart? op:(operation / directive) {
+opWithLabel = label:labelPart? op:(operation / directive) comment? {
     if (label && label !== "") {
         symbolTable[label.value] = {
             addr: ilc,
@@ -365,13 +369,13 @@ opWithLabel = label:labelPart? op:(operation / directive) {
     }
 }
 
-line = __ opWithLabel / __ comment / __ lineError
+line = (op:opWithLabel) / comment / __ / lineError {
+    console.log(op);
+    return op;
+}
 
 lineError "Error in this line" = lineWithError:.* {
     var content = lineWithError.join("");
-    if (content.replace(/ /g, "") === "") {
-        return true;
-    }
     error("Failed to compile this line.");
     return false;
 }
@@ -844,6 +848,6 @@ op_cp   = ("CP"   / "cp"  ) whitespace+ (data16 / labelDirect / expression)
 op_cpe  = ("CPE"  / "cpe" ) whitespace+ (data16 / labelDirect / expression)
 op_cpo  = ("CPO"  / "cpo" ) whitespace+ (data16 / labelDirect / expression)
 
-op_mov  "MOV is incomplete" = ("MOV"  / "mov" ) whitespace+ register whitespace* [,] whitespace* register
+op_mov  = ("MOV"  / "mov" ) whitespace+ register whitespace* [,] whitespace* register
 op_lxi  = ("LXI"  / "lxi" ) whitespace+ (registerPair / stackPointer) whitespace* [,] whitespace* (data16 / labelImmediate / expression)
 op_mvi  = ("MVI"  / "mvi" ) whitespace+ register whitespace* [,] whitespace* (data8 / labelImmediate / expression)
