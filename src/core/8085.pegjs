@@ -275,12 +275,11 @@ machineCode = prg:program {
         dataVal,
         objCode = [];
 
-    console.log("prg", prg);
 
     for (i = 0; i < lines; i += 1) {
         line = prg[i];
 
-        console.log(line);
+        console.log("line", line);
 
         if (line == null) continue;
 
@@ -311,6 +310,8 @@ machineCode = prg:program {
                 ? line.data.type === "direct"
                 ? symbolTable[line.data.value].addr
                 : symbolTable[line.data.value].value
+                : (typeof line.data === "number") ? line.data
+                : Array.isArray(line.data) ? line.data[0]
                 : (typeof line.data.value === "number") ? line.data.value
                 : typeof line.data.value === "object" && line.data.value.value ? line.data.value.value
                 : 0;
@@ -331,11 +332,11 @@ machineCode = prg:program {
                 throw e;
             }
 
-
             dataVal = (typeof line.data.value === "string")
                 ? line.data.type === "direct"
                 ? symbolTable[line.data.value].addr
                 : symbolTable[line.data.value].value
+                : (typeof line.data === "number") ? line.data
                 : (typeof line.data.value === "number") ? line.data.value
                 : typeof line.data.value === "object" && line.data.value.value ? line.data.value.value
                 : 0;
@@ -344,6 +345,7 @@ machineCode = prg:program {
             objCode.push({ data: dataVal >> 8, kind: 'data', location: line.data.location });
         }
     }
+
     console.log(objCode);
 
     return objCode;
@@ -356,10 +358,17 @@ program = __ first:line rest:(eol+ __ l:line {return l})* {return [first].concat
 
 opWithLabel = label:labelPart? op:(operation / directive) comment? {
     if (label && label !== "") {
+        console.log("op", op);
         symbolTable[label.value] = {
             addr: ilc,
             value: op.opcode != null ? op.opcode :
-                op.data ? Array.isArray(op.data) ? op.data[0].value : op.data.value : null
+                op.data ?
+                    Array.isArray(op.data) ?
+                        op.data[0].value ?
+                            op.data[0].value : op.data[0]
+                        : op.data.value ?
+                            op.data.value : op.data
+                    : null
         };
     }
 
@@ -370,7 +379,6 @@ opWithLabel = label:labelPart? op:(operation / directive) comment? {
 }
 
 line = (op:opWithLabel) / comment / __ / lineError {
-    console.log(op);
     return op;
 }
 
@@ -417,6 +425,13 @@ registerPairPSW "Program status word (Contents of A and status flags, written as
 stackPointer "Stack Pointer (written as, SP or sp)" =
     l:("SP" / "sp") !identLetter { return l.toLowerCase(); }
 
+expression_list "comma separated expression" = d:expression ds:("," __ expression)* {
+  console.log("d", d);
+  console.log("ds", ds);
+  console.log("value", [d.value].concat(ds.map(function (d_) { return d_[2].value; })));
+  return { value: [d.value].concat(ds.map(function (d_) { return d_[2].value; })), location: location() };
+}
+
 data8_list "comma separated byte values" = d:data8 ds:("," __ data8)* {
   return { value: [d.value].concat(ds.map(function (d_) { return d_[2].value; })), location: location() };
 }
@@ -434,7 +449,7 @@ data8 "byte" = n:numLiteral {
         }
         throw e;
     } else {
-        return { value: n, location: location() };
+        return { value: n.value, location: n.location };
     }
 }
 
@@ -499,31 +514,46 @@ arithmetic "Arithmetic Expression" = addition
 
 addition "Addition"
   = left:subtraction whitespace* "+" whitespace* right:addition {
-    return { value: left + right, location: location() };
+    console.log("left", left);
+    console.log("right", right);
+    console.log("symbolTable", symbolTable);
+    var l = typeof left.value === "string" ? symbolTable[left.value].value: left.value;
+    var r = typeof right.value === "string" ? symbolTable[right.value].value : right.value;
+    console.log("left", l);
+    console.log("right", r);
+    return { value: l + r, location: location() };
   }
   / subtraction
 
 subtraction "Subtraction"
   = left:multiplication whitespace* "-" whitespace* right:subtraction {
-    return { value: left - right, location: location() };
+    var l = typeof left.value === "string" ? symbolTable[left.value].value: left.value;
+    var r = typeof right.value === "string" ? symbolTable[right.value].value : right.value;
+    return { value: l - r, location: location() };
   }
   / multiplication
 
 multiplication "Multiplication"
   = left:division whitespace* "*" whitespace* right:multiplication {
-    return { value: left * right, location: location() };
+    var l = typeof left.value === "string" ? symbolTable[left.value].value: left.value;
+    var r = typeof right.value === "string" ? symbolTable[right.value].value : right.value;
+    return { value: l * r, location: location() };
   }
   / division
 
 division "Division"
   = left:modulo whitespace* "/" whitespace* right:division {
-    return { value: left / right, location: location() };
+    var l = typeof left.value === "string" ? symbolTable[left.value].value: left.value;
+    var r = typeof right.value === "string" ? symbolTable[right.value].value : right.value;
+    return { value: l / r, location: location() };
   }
   / modulo
 
 modulo "Modulo"
   = left:(numLiteral / label) whitespace* "MOD"i whitespace* right:modulo {
-    return { value: left % right, location: location() };
+    var l = typeof left.value === "string" ? symbolTable[left.value].value: left.value;
+    var r = typeof right.value === "string" ? symbolTable[right.value].value : right.value;
+    return { value: l % r, location: location() };
   }
   / numLiteral
   / label
@@ -534,14 +564,18 @@ shift "Shift Expression" = shiftRight
 
 shiftRight "Shift Right"
   = left:shiftLeft whitespace+ "SHR"i whitespace+ right:shiftRight {
-    return { value: left >> right, location: location() };
+    var l = typeof left.value === "string" ? symbolTable[left.value].value: left.value;
+    var r = typeof right.value === "string" ? symbolTable[right.value].value : right.value;
+    return { value: l >> r, location: location() };
   }
   / shiftLeft
 
 
 shiftLeft "Shift Left"
   = left:(numLiteral / label) whitespace+ "SHL"i whitespace+ right:shiftLeft {
-    return { value: left << right, location: location() };
+    var l = typeof left.value === "string" ? symbolTable[left.value].value: left.value;
+    var r = typeof right.value === "string" ? symbolTable[right.value].value : right.value;
+    return { value: l << r, location: location() };
   }
   / numLiteral
   / labelImmediate
@@ -556,7 +590,8 @@ eol "line end" = "\n" / "\r\n" / "\r" / "\u2028" / "\u2029"
 
 whitespace "whitespace" = [ \t\v\f\u00A0\uFEFF\u1680\u180E\u2000-\u200A\u202F\u205F\u3000]
 
-directive = dir:(dataDefinition) {
+directive = dir:(dataDefinition / defineSymbol) {
+    console.log("directive", dir);
     return {
         opcode: null,
         data: dir.params,
@@ -761,6 +796,14 @@ haltInstruction = op:(op_hlt) {
     };
 }
 
+defineSymbol = dir:(dir_equ) {
+    console.log("defineSymbol", dir);
+    return {
+        name: dir,
+        params: [dir[2].value]
+    }
+}
+
 dataDefinition = dir:(dir_db) {
     return {
        name: dir,
@@ -769,7 +812,8 @@ dataDefinition = dir:(dir_db) {
 }
 
 
-dir_db  = ("DB"   / "db"  ) whitespace+ data8_list
+dir_db  = ("DB"   / "db"  ) whitespace+ (data8_list / expression_list)
+dir_equ = ("EQU"  / "equ" ) whitespace+ (data8 / expression)
 
 op_stc  = ("STC"  / "stc" )
 op_cmc  = ("CMC"  / "cmc" )
