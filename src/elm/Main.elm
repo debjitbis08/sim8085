@@ -542,11 +542,6 @@ view model =
             , div [ class "coding-area__editor-container" ] [
                   textarea [ id "coding-area__editor", value model.code ] []
               ]
-            , div [ style [("text-align", "right"), ("margin-top", "20px")] ] [
-                  a [ href "https://brave.com/sim899", target "_blank"] [
-                    img [ src "static/img/switch_banner_1@2x.png", style [("width", "217px")] ] []
-                  ]
-              ]
           ]
         , div [ class "col-md-4" ] [
               div [ class "" ] [ showMemory model model.memory model.memoryStart model.memoryStartSmall ]
