@@ -9,7 +9,7 @@
   };
 
   CodeMirror.defineMode('8085', function (_config, parserConfig) {
-      var opcodes = /^(call|[crj](c|nc|cz|nz|p|m|pe|po)|ret|rst|in[xr]?|out|lxi|push|pop|stax?|ldax?|xchg|(xt|sp|pc)hl|dad|mov|hlt|mvi|dc[rx]|ad[dci]|su[bi]|sb[bi]|an[di]|[xo]r[ai]|cmp|aci|cpi|rlc|rrc|ral|rar|jmp|cm[ac]|stc|daa|[sl]hld|[rs]im|[ed]i|nop|db|dw|ds)\b/i;
+      var opcodes = /^(call|[crj](c|nc|z|nz|p|m|pe|po)|ret|rst|in[xr]?|out|lxi|push|pop|stax?|ldax?|xchg|(xt|sp|pc)hl|dad|mov|hlt|mvi|dc[rx]|ad[dci]|su[bi]|sb[bi]|an[di]|[xo]r[ai]|cmp|aci|cpi|rlc|rrc|ral|rar|jmp|cm[ac]|stc|daa|[sl]hld|[rs]im|[ed]i|nop|db|dw|ds)\b/i;
       var variables = /^(a|bc?|c|de?|e|hl?|l|psw|sp)\b/i;
       var numbers = /^([\da-f]+h|[0-7]+o|[01]+b|\d+d?)\b/i;
       var label = /^[?@a-z][a-zA-Z0-9]{0,5}:\b/i;
