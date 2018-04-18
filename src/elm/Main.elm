@@ -778,14 +778,15 @@ chunk k xs =
 memoryCellHighlightType model addr cell =
   if addr >= model.loadAddr && addr < (model.loadAddr + Array.length model.assembled)
   then "highlight"
-  else ""
+  else if cell > 0 then "has-data" else ""
 
 showMemoryCell : Model -> Int -> Int -> Int -> Html Msg
 showMemoryCell model start col cell =
   let
     addr = start + col
   in
-    td [ class ("memory-view__cell_" ++ (memoryCellHighlightType model addr cell)), title (toWord addr)
+    td [ class ("memory-view__cell_" ++ (memoryCellHighlightType model addr cell))
+       , title (toWord addr)
        , onDoubleClick (EditMemoryCell addr)
        ] [
          span [ hidden (addr == Maybe.withDefault -1 model.editingMemoryCell) ] [ text <| String.toUpper <| toByte <| cell ]

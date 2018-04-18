@@ -963,18 +963,18 @@ uint8_t subtractByteWithBorrow(State8085 *state, uint8_t lhs, uint8_t rhs, shoul
 	return (uint8_t)res;
 }
 
-void call(State8085 *state, uint16_t addr)
+void call(State8085 *state, uint16_t offset, uint16_t addr)
 {
-	uint16_t pc = state->pc;
+	uint16_t pc = state->pc + 2;
 	state->memory[state->sp - 1] = (pc >> 8) & 0xff;
 	state->memory[state->sp - 2] = (pc & 0xff);
 	state->sp = state->sp - 2;
-	state->pc = addr;
+	state->pc = offset + addr;
 }
 
 void returnToCaller(State8085 *state, uint16_t offset)
 {
-	state->pc = offset + (state->memory[state->sp] | (state->memory[state->sp + 1] << 8));
+	state->pc = (state->memory[state->sp] | (state->memory[state->sp + 1] << 8));
 	state->sp += 2;
 }
 
@@ -984,6 +984,8 @@ int Emulate8085Op(State8085 *state, uint16_t offset)
 	unsigned char *opcode = &state->memory[state->pc];
 	printf("Emulating instruction at %d\n", state->pc);
 	printf("Emulating instruction %d\n", state->memory[state->pc]);
+	if(offset == state->pc)
+		state->sp = 0xFFFF;
 
 	//Disassemble8085Op(state->memory, state->pc);
 
@@ -1860,12 +1862,12 @@ int Emulate8085Op(State8085 *state, uint16_t offset)
 		break;
 	case 0xcc: // CZ Addr
 		if (1 == state->cc.z)
-			call(state, offset + (opcode[2] << 8) | opcode[1]);
+			call(state, offset, (opcode[2] << 8) | opcode[1]);
 		else
 			state->pc += 2;
 		break;
 	case 0xcd: // CALL Addr
-		call(state, offset + (opcode[2] << 8) | opcode[1]);
+		call(state, offset, (opcode[2] << 8) | opcode[1]);
 		break;
 	case 0xce: // ACI d8
 		state->a = addByteWithCarry(state, state->a, opcode[1], UPDATE_CARRY);
@@ -1897,7 +1899,7 @@ int Emulate8085Op(State8085 *state, uint16_t offset)
 		break;
 	case 0xd4: // CNC Addr
 		if (0 == state->cc.cy)
-			call(state, (opcode[2] << 8) | opcode[1]);
+			call(state, offset, (opcode[2] << 8) | opcode[1]);
 		else
 			state->pc += 2;
 		break;
@@ -1933,7 +1935,7 @@ int Emulate8085Op(State8085 *state, uint16_t offset)
 		break; // IN d8
 	case 0xdc: // CC Addr
 		if (1 == state->cc.cy)
-			call(state, (opcode[2] << 8) | opcode[1]);
+			call(state, offset, (opcode[2] << 8) | opcode[1]);
 		else
 			state->pc += 2;
 		break;
@@ -1976,7 +1978,7 @@ int Emulate8085Op(State8085 *state, uint16_t offset)
 	break;
 	case 0xe4: // CPO Addr
 		if (0 == state->cc.p)
-			call(state, (opcode[2] << 8) | opcode[1]);
+			call(state, offset, (opcode[2] << 8) | opcode[1]);
 		else
 			state->pc += 2;
 		break;
@@ -2022,7 +2024,7 @@ int Emulate8085Op(State8085 *state, uint16_t offset)
 	break;
 	case 0xec: // CPE Addr
 		if (1 == state->cc.p)
-			call(state, (opcode[2] << 8) | opcode[1]);
+			call(state, offset, (opcode[2] << 8) | opcode[1]);
 		else
 			state->pc += 2;
 		break;
@@ -2064,7 +2066,7 @@ int Emulate8085Op(State8085 *state, uint16_t offset)
 		break;
 	case 0xf4: // CP Addr
 		if (0 == state->cc.s)
-			call(state, (opcode[2] << 8) | opcode[1]);
+			call(state, offset, (opcode[2] << 8) | opcode[1]);
 		else
 			state->pc += 2;
 		break;
@@ -2107,7 +2109,7 @@ int Emulate8085Op(State8085 *state, uint16_t offset)
 		break; // EI
 	case 0xfc: // CM Addr
 		if (1 == state->cc.s)
-			call(state, (opcode[2] << 8) | opcode[1]);
+			call(state, offset, (opcode[2] << 8) | opcode[1]);
 		else
 			state->pc += 2;
 		break;
@@ -2166,6 +2168,10 @@ State8085 *LoadProgram(State8085 *state, uint8_t *lines, int len, uint16_t offse
 int ExecuteProgramUntil(State8085 *state, uint16_t offset, uint16_t startAt, uint16_t pauseAt)
 {
 	int done = 0;
+	printf("Start At: %d\n", startAt);
+	printf("Offset: %d\n", offset);
+	if(offset == startAt)
+		state->sp = 0xFFFF;
 	state->pc = startAt;
 	printf("Pause At: %d\n", pauseAt);
 	while (done == 0 && state->pc < pauseAt)
@@ -2191,6 +2197,7 @@ State8085 *ExecuteProgram(State8085 *state, uint16_t offset)
 	printf("State Ptr: %p, SP Ptr: %p\n", state, &state->sp);
 	printf("Offset %u\n", offset);
 	state->pc = offset;
+	state->sp = 0xFFFF;
 	printf("Memory at offset %u\n", state->memory[offset]);
 	printf("Memory at offset + 1 %u\n", state->memory[offset + 1]);
 
