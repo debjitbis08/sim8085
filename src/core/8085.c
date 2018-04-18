@@ -887,6 +887,8 @@ int Disassemble8085Op(unsigned char *codebuffer, int pc)
 	return opbytes;
 }
 
+typedef enum { PRESERVE_CARRY, UPDATE_CARRY } should_preserve_carry;
+
 void LogicFlagsA(State8085 *state, uint8_t ac)
 {
 	state->cc.cy = 0; // Verify this
@@ -896,9 +898,10 @@ void LogicFlagsA(State8085 *state, uint8_t ac)
 	state->cc.p = parity(state->a, 8);
 }
 
-void ArithFlagsA(State8085 *state, uint16_t res)
+void ArithFlagsA(State8085 *state, uint16_t res, should_preserve_carry preserveCarry)
 {
-	state->cc.cy = (res > 0xff);
+	if (!preserveCarry)
+		state->cc.cy = (res > 0xff);
 	state->cc.z = ((res & 0xff) == 0);
 	state->cc.s = (0x80 == (res & 0x80));
 	state->cc.p = parity(res & 0xff, 8);
@@ -924,35 +927,39 @@ void InvalidInstruction(State8085 *state)
 	exit(1);
 }
 
-uint8_t addByte(State8085 *state, uint8_t lhs, uint8_t rhs)
+uint8_t addByte(State8085 *state, uint8_t lhs, uint8_t rhs, should_preserve_carry preserveCarry)
 {
 	uint16_t res = lhs + rhs;
-	ArithFlagsA(state, res);
+	ArithFlagsA(state, res, preserveCarry);
+	if((lhs & 0xf) + (rhs & 0xf) > 0xf)
+		state->cc.ac = 1;
 	return (uint8_t)res;
 }
 
-uint8_t addByteWithCarry(State8085 *state, uint8_t lhs, uint8_t rhs)
+uint8_t addByteWithCarry(State8085 *state, uint8_t lhs, uint8_t rhs, should_preserve_carry preserveCarry)
 {
 	if (state->cc.cy)
 		rhs++;
 	uint16_t res = lhs + rhs;
-	ArithFlagsA(state, res);
+	ArithFlagsA(state, res, preserveCarry);
 	return (uint8_t)res;
 }
 
-uint8_t subtractByte(State8085 *state, uint8_t lhs, uint8_t rhs)
+uint8_t subtractByte(State8085 *state, uint8_t lhs, uint8_t rhs, should_preserve_carry preserveCarry)
 {
 	uint16_t res = lhs - rhs;
-	ArithFlagsA(state, res);
+	ArithFlagsA(state, res, preserveCarry);
+	if((lhs & 0xf) + (~rhs & 0xf) + 1 > 0xf)
+		state->cc.ac = 1;
 	return (uint8_t)res;
 }
 
-uint8_t subtractByteWithBorrow(State8085 *state, uint8_t lhs, uint8_t rhs)
+uint8_t subtractByteWithBorrow(State8085 *state, uint8_t lhs, uint8_t rhs, should_preserve_carry preserveCarry)
 {
 	if (state->cc.cy)
 		rhs--;
 	uint16_t res = lhs - rhs;
-	ArithFlagsA(state, res);
+	ArithFlagsA(state, res, preserveCarry);
 	return (uint8_t)res;
 }
 
@@ -965,9 +972,9 @@ void call(State8085 *state, uint16_t addr)
 	state->pc = addr;
 }
 
-void returnToCaller(State8085 *state)
+void returnToCaller(State8085 *state, uint16_t offset)
 {
-	state->pc = state->memory[state->sp] | (state->memory[state->sp + 1] << 8);
+	state->pc = offset + (state->memory[state->sp] | (state->memory[state->sp + 1] << 8));
 	state->sp += 2;
 }
 
@@ -1000,23 +1007,11 @@ int Emulate8085Op(State8085 *state, uint16_t offset)
 			state->b++;
 		break;
 	case 0x04: //INR B
-	{
-		uint8_t res = state->b + 1;
-		state->cc.z = (res == 0);
-		state->cc.s = (0x80 == (res & 0x80));
-		state->cc.p = parity(res, 8);
-		state->b = res;
-	}
-	break;
+		state->b = addByte(state, state->b, 1, PRESERVE_CARRY);
+		break;
 	case 0x05: //DCR B
-	{
-		uint8_t res = state->b - 1;
-		state->cc.z = (res == 0);
-		state->cc.s = (0x80 == (res & 0x80));
-		state->cc.p = parity(res, 8);
-		state->b = res;
-	}
-	break;
+		state->b = subtractByte(state, state->b, 1, PRESERVE_CARRY);
+		break;
 	case 0x06: // MVI B, byte
 		state->b = opcode[1];
 		state->pc++;
@@ -1054,22 +1049,12 @@ int Emulate8085Op(State8085 *state, uint16_t offset)
 		break;
 	case 0x0c: //INR C
 	{
-		uint8_t res = state->c + 1;
-		state->cc.z = (res == 0);
-		state->cc.s = (0x80 == (res & 0x80));
-		state->cc.p = parity(res, 8);
-		state->c = res;
+		state->c = addByte(state, state->c, 1, PRESERVE_CARRY);
 	}
 	break;
 	case 0x0d: //DCR    C
-	{
-		uint8_t res = state->c - 1;
-		state->cc.z = (res == 0);
-		state->cc.s = (0x80 == (res & 0x80));
-		state->cc.p = parity(res, 8);
-		state->c = res;
-	}
-	break;
+		state->c = subtractByte(state, state->c, 1, PRESERVE_CARRY);
+		break;
 	case 0x0e: // MVI C, byte
 		state->c = opcode[1];
 		state->pc++;
@@ -1098,23 +1083,11 @@ int Emulate8085Op(State8085 *state, uint16_t offset)
 			state->d++;
 		break;
 	case 0x14: //INR D
-	{
-		uint8_t res = state->d + 1;
-		state->cc.z = (res == 0);
-		state->cc.s = (0x80 == (res & 0x80));
-		state->cc.p = parity(res, 8);
-		state->d = res;
-	}
-	break;
+		state->d = addByte(state, state->d, 1, PRESERVE_CARRY);
+		break;
 	case 0x15: //DCR D
-	{
-		uint8_t res = state->d - 1;
-		state->cc.z = (res == 0);
-		state->cc.s = (0x80 == (res & 0x80));
-		state->cc.p = parity(res, 8);
-		state->d = res;
-	}
-	break;
+		state->d = subtractByte(state, state->d, 1, PRESERVE_CARRY);
+		break;
 	case 0x16: // MVI D, byte
 		state->d = opcode[1];
 		state->pc++;
@@ -1151,24 +1124,12 @@ int Emulate8085Op(State8085 *state, uint16_t offset)
 			state->d--;
 		break;
 		break;
-	case 0x1c: //INR D
-	{
-		uint8_t res = state->e + 1;
-		state->cc.z = (res == 0);
-		state->cc.s = (0x80 == (res & 0x80));
-		state->cc.p = parity(res, 8);
-		state->e = res;
-	}
-	break;
+	case 0x1c: //INR E
+		state->e = addByte(state, state->e, 1, PRESERVE_CARRY);
+		break;
 	case 0x1d: //DCR E
-	{
-		uint8_t res = state->e - 1;
-		state->cc.z = (res == 0);
-		state->cc.s = (0x80 == (res & 0x80));
-		state->cc.p = parity(res, 8);
-		state->e = res;
-	}
-	break;
+		state->e = subtractByte(state, state->e, 1, PRESERVE_CARRY);
+		break;
 	case 0x1e: //MVI E, byte
 		state->e = opcode[1];
 		state->pc++;
@@ -1202,23 +1163,12 @@ int Emulate8085Op(State8085 *state, uint16_t offset)
 			state->h++;
 		break;
 	case 0x24: //INR H
-	{
-		uint8_t res = state->h + 1;
-		state->cc.z = (res == 0);
-		state->cc.s = (0x80 == (res & 0x80));
-		state->cc.p = parity(res, 8);
-		state->h = res;
-	}
+		state->h = addByte(state, state->h, 1, PRESERVE_CARRY);
+		break;
 	break;
 	case 0x25: //DCR H
-	{
-		uint8_t res = state->h - 1;
-		state->cc.z = (res == 0);
-		state->cc.s = (0x80 == (res & 0x80));
-		state->cc.p = parity(res, 8);
-		state->h = res;
-	}
-	break;
+		state->h = subtractByte(state, state->h, 1, PRESERVE_CARRY);
+		break;
 	case 0x26: //MVI H, byte
 		state->h = opcode[1];
 		state->pc++;
@@ -1230,13 +1180,15 @@ int Emulate8085Op(State8085 *state, uint16_t offset)
 		if (state->cc.ac == 1 || (state->a & 0x0f) > 9)
 			res = state->a + 6;
 
-		ArithFlagsA(state, res);
+		ArithFlagsA(state, res, PRESERVE_CARRY);
+		if ((uint8_t)res > 0xf)
+			state->cc.ac = 1;
 		state->a = (uint8_t)res;
 
 		if (state->cc.cy == 1 || ((state->a >> 4) & 0x0f) > 9)
 			res = state->a + 96;
 
-		ArithFlagsA(state, res);
+		ArithFlagsA(state, res, UPDATE_CARRY);
 		state->a = (uint8_t)res;
 	}
 	break;
@@ -1269,23 +1221,12 @@ int Emulate8085Op(State8085 *state, uint16_t offset)
 			state->h--;
 		break;
 	case 0x2c: //INR L
-	{
-		uint8_t res = state->l + 1;
-		state->cc.z = (res == 0);
-		state->cc.s = (0x80 == (res & 0x80));
-		state->cc.p = parity(res, 8);
-		state->l = res;
-	}
+		state->l = addByte(state, state->l, 1, PRESERVE_CARRY);
+		break;
 	break;
 	case 0x2d: //DCR L
-	{
-		uint8_t res = state->l - 1;
-		state->cc.z = (res == 0);
-		state->cc.s = (0x80 == (res & 0x80));
-		state->cc.p = parity(res, 8);
-		state->l = res;
-	}
-	break;
+		state->l = subtractByte(state, state->l, 1, PRESERVE_CARRY);
+		break;
 	case 0x2e: // MVI L,byte
 		state->l = opcode[1];
 		state->pc++;
@@ -1310,23 +1251,16 @@ int Emulate8085Op(State8085 *state, uint16_t offset)
 		state->sp++;
 		break;
 	case 0x34: // INR M
+		break;
 	{
 		uint16_t offset = (state->h << 8) | state->l;
-		uint8_t res = state->memory[offset] + 1;
-		state->cc.z = (res == 0);
-		state->cc.s = (0x80 == (res & 0x80));
-		state->cc.p = parity(res, 8);
-		state->memory[offset] = res;
+		state->memory[offset] = addByte(state, state->memory[offset], 1, PRESERVE_CARRY);
 	}
 	break;
 	case 0x35: // DCR M
 	{
 		uint16_t offset = (state->h << 8) | state->l;
-		uint8_t res = state->memory[offset] - 1;
-		state->cc.z = (res == 0);
-		state->cc.s = (0x80 == (res & 0x80));
-		state->cc.p = parity(res, 8);
-		state->memory[offset] = res;
+		state->memory[offset] = subtractByte(state, state->memory[offset], 1, PRESERVE_CARRY);
 	}
 	break;
 	case 0x36: // MVI M, byte
@@ -1365,24 +1299,11 @@ int Emulate8085Op(State8085 *state, uint16_t offset)
 		state->sp--;
 		break;
 	case 0x3c: // INR A
-		printf("Executing INR A");
-		{
-			uint8_t res = state->a + 1;
-			state->cc.z = (res == 0);
-			state->cc.s = (0x80 == (res & 0x80));
-			state->cc.p = parity(res, 8);
-			state->a = res;
-		}
+		state->a = addByte(state, state->a, 1, PRESERVE_CARRY);
 		break;
 	case 0x3d: // DCR A
-	{
-		uint8_t res = state->a - 1;
-		state->cc.z = (res == 0);
-		state->cc.s = (0x80 == (res & 0x80));
-		state->cc.p = parity(res, 8);
-		state->a = res;
-	}
-	break;
+		state->a = subtractByte(state, state->a, 1, PRESERVE_CARRY);
+		break;
 	case 0x3e: // MVI A, byte
 		state->a = opcode[1];
 		state->pc++;
@@ -1628,172 +1549,113 @@ int Emulate8085Op(State8085 *state, uint16_t offset)
 		state->a = state->a;
 		break; // MOV A, A
 	case 0x80: // ADD B
-	{
-		uint16_t res = (state->a) + (state->b);
-		ArithFlagsA(state, res);
-		state->a = (uint8_t)res;
-	}
-	break;
+		state->a = addByte(state, state->a, state->d, UPDATE_CARRY);
+		break;
 	case 0x81: // ADD C
-	{
-		uint16_t res = (state->a) + (state->c);
-		ArithFlagsA(state, res);
-		state->a = (uint8_t)res;
-	}
-	break;
+		state->a = addByte(state, state->a, state->c, UPDATE_CARRY);
+		break;
 	case 0x82: // ADD D
-	{
-		uint16_t res = (state->a) + (state->d);
-		ArithFlagsA(state, res);
-		state->a = (uint8_t)res;
-	}
-	break;
+		state->a = addByte(state, state->a, state->d, UPDATE_CARRY);
+		break;
 	case 0x83: // ADD E
-	{
-		uint16_t res = (state->a) + (state->e);
-		ArithFlagsA(state, res);
-		state->a = (uint8_t)res;
-	}
-	break;
+		state->a = addByte(state, state->a, state->e, UPDATE_CARRY);
+		break;
 	case 0x84: // ADD H
-	{
-		uint16_t res = (state->a) + (state->h);
-		ArithFlagsA(state, res);
-		state->a = (uint8_t)res;
-	}
-	break;
+		state->a = addByte(state, state->a, state->h, UPDATE_CARRY);
+		break;
 	case 0x85: // ADD L
-	{
-		uint16_t res = (state->a) + (state->l);
-		ArithFlagsA(state, res);
-		state->a = (uint8_t)res;
-	}
-	break;
+		state->a = addByte(state, state->a, state->l, UPDATE_CARRY);
+		break;
 	case 0x86: // ADD M
 	{
 		uint16_t offset = (state->h << 8) | (state->l);
-		uint16_t res = (state->a) + (state->memory[offset]);
-		ArithFlagsA(state, res);
-		state->a = (uint8_t)res;
+		state->a = addByte(state, state->a, state->memory[offset], UPDATE_CARRY);
 	}
 	break;
 	case 0x87: // ADD A
-	{
-		uint16_t res = (state->a) + (state->a);
-		ArithFlagsA(state, res);
-		state->a = (uint8_t)res;
-	}
-	break;
+		state->a = addByte(state, state->a, state->a, UPDATE_CARRY);
+		break;
 	case 0x88: // ADC B
-	{
-		uint16_t res = (state->a) + (state->b) + (state->cc.cy);
-		ArithFlagsA(state, res);
-		state->a = (uint8_t)res;
-	}
-	break;
+		state->a = addByteWithCarry(state, state->a, state->b, UPDATE_CARRY);
+		break;
 	case 0x89: // ADC C
-	{
-		uint16_t res = (state->a) + (state->c) + (state->cc.cy);
-		ArithFlagsA(state, res);
-		state->a = (uint8_t)res;
-	}
+		state->a = addByteWithCarry(state, state->a, state->c, UPDATE_CARRY);
+		break;
 	break;
 	case 0x8a: // ADC D
-	{
-		uint16_t res = (state->a) + (state->d) + (state->cc.cy);
-		ArithFlagsA(state, res);
-		state->a = (uint8_t)res;
-	}
-	break;
+		state->a = addByteWithCarry(state, state->a, state->d, UPDATE_CARRY);
+		break;
 	case 0x8b: // ADC E
-	{
-		uint16_t res = (state->a) + (state->e) + (state->cc.cy);
-		ArithFlagsA(state, res);
-		state->a = (uint8_t)res;
-	}
-	break;
+		state->a = addByteWithCarry(state, state->a, state->e, UPDATE_CARRY);
+		break;
 	case 0x8c: // ADC H
-	{
-		uint16_t res = (state->a) + (state->h) + (state->cc.cy);
-		ArithFlagsA(state, res);
-		state->a = (uint8_t)res;
-	}
-	break;
+		state->a = addByteWithCarry(state, state->a, state->h, UPDATE_CARRY);
+		break;
 	case 0x8d: // ADC L
-	{
-		uint16_t res = (state->a) + (state->l) + (state->cc.cy);
-		ArithFlagsA(state, res);
-		state->a = (uint8_t)res;
-	}
-	break;
+		state->a = addByteWithCarry(state, state->a, state->l, UPDATE_CARRY);
+		break;
 	case 0x8e: // ADC M
 	{
 		uint16_t offset = (state->h << 8) | (state->l);
-		uint16_t res = (state->a) + (state->memory[offset]) + (state->cc.cy);
-		ArithFlagsA(state, res);
-		state->a = (uint8_t)res;
+		state->a = addByteWithCarry(state, state->a, state->memory[offset], UPDATE_CARRY);
 	}
 	break;
 	case 0x8f: // ADC A
-	{
-		uint16_t res = (state->a) + (state->a) + (state->cc.cy);
-		ArithFlagsA(state, res);
-		state->a = (uint8_t)res;
-	}
-	break;
+		state->a = addByteWithCarry(state, state->a, state->a, UPDATE_CARRY);
+		break;
 	case 0x90: // SUB B
-		state->a = subtractByte(state, state->a, state->b);
+		state->a = subtractByte(state, state->a, state->b, UPDATE_CARRY);
 		break;
 	case 0x91: // SUB C
-		state->a = subtractByte(state, state->a, state->c);
+		state->a = subtractByte(state, state->a, state->c, UPDATE_CARRY);
 		break;
 	case 0x92: // SUB D
-		state->a = subtractByte(state, state->a, state->d);
+		state->a = subtractByte(state, state->a, state->d, UPDATE_CARRY);
 		break;
 	case 0x93: // SUB E
-		state->a = subtractByte(state, state->a, state->e);
+		state->a = subtractByte(state, state->a, state->e, UPDATE_CARRY);
 		break;
 	case 0x94: // SUB H
-		state->a = subtractByte(state, state->a, state->h);
+		state->a = subtractByte(state, state->a, state->h, UPDATE_CARRY);
 		break;
 	case 0x95: // SUB L
-		state->a = subtractByte(state, state->a, state->l);
+		state->a = subtractByte(state, state->a, state->l, UPDATE_CARRY);
 		break;
 	case 0x96: // SUB M
 	{
 		uint16_t offset = (state->h << 8) | (state->l);
-		state->a = subtractByte(state, state->a, state->memory[offset]);
+		state->a = subtractByte(state, state->a, state->memory[offset], UPDATE_CARRY);
 	}
 	break;
 	case 0x97: // SUB A
-		state->a = subtractByte(state, state->a, state->a);
+		state->a = subtractByte(state, state->a, state->a, UPDATE_CARRY);
 		break;
 	case 0x98: // SBB B
-		state->a = subtractByteWithBorrow(state, state->a, state->b);
+		state->a = subtractByteWithBorrow(state, state->a, state->b, UPDATE_CARRY);
 		break;
 	case 0x99: // SBB C
-		state->a = subtractByteWithBorrow(state, state->a, state->c);
+		state->a = subtractByteWithBorrow(state, state->a, state->c, UPDATE_CARRY);
 		break;
 	case 0x9a: // SBB D
-		state->a = subtractByteWithBorrow(state, state->a, state->d);
+		state->a = subtractByteWithBorrow(state, state->a, state->d, UPDATE_CARRY);
 		break;
 	case 0x9b: // SBB E
-		state->a = subtractByteWithBorrow(state, state->a, state->e);
+		state->a = subtractByteWithBorrow(state, state->a, state->e, UPDATE_CARRY);
 		break;
 	case 0x9c: // SBB H
-		state->a = subtractByteWithBorrow(state, state->a, state->h);
+		state->a = subtractByteWithBorrow(state, state->a, state->h, UPDATE_CARRY);
 		break;
 	case 0x9d: // SBB L
-		state->a = subtractByteWithBorrow(state, state->a, state->l);
+		state->a = subtractByteWithBorrow(state, state->a, state->l, UPDATE_CARRY);
 		break;
 	case 0x9e: // SBB M
 	{
 		uint16_t offset = (state->h << 8) | (state->l);
-		state->a = subtractByteWithBorrow(state, state->a, state->memory[offset]);
+		state->a = subtractByteWithBorrow(state, state->a, state->memory[offset], UPDATE_CARRY);
 	}
 	break;
 	case 0x9f: // SBB A
-		state->a = subtractByteWithBorrow(state, state->a, state->a);
+		state->a = subtractByteWithBorrow(state, state->a, state->a, UPDATE_CARRY);
 		break;
 	case 0xa0: // ANA B
 		state->a = state->a & state->b;
@@ -1901,35 +1763,35 @@ int Emulate8085Op(State8085 *state, uint16_t offset)
 		LogicFlagsA(state, 0);
 		break; // ORA A
 	case 0xb8: // CMP B
-		subtractByte(state, state->a, state->b);
+		subtractByte(state, state->a, state->b, UPDATE_CARRY);
 		break;
 	case 0xb9: // CMP C
-		subtractByte(state, state->a, state->c);
+		subtractByte(state, state->a, state->c, UPDATE_CARRY);
 		break;
 	case 0xba: // CMP D
-		subtractByte(state, state->a, state->d);
+		subtractByte(state, state->a, state->d, UPDATE_CARRY);
 		break;
 	case 0xbb: // CMP E
-		subtractByte(state, state->a, state->e);
+		subtractByte(state, state->a, state->e, UPDATE_CARRY);
 		break;
 	case 0xbc: // CMP H
-		subtractByte(state, state->a, state->h);
+		subtractByte(state, state->a, state->h, UPDATE_CARRY);
 		break;
 	case 0xbd: // CMP L
-		subtractByte(state, state->a, state->l);
+		subtractByte(state, state->a, state->l, UPDATE_CARRY);
 		break;
 	case 0xbe: // CMP M
 	{
 		uint16_t offset = (state->h << 8) | (state->l);
-		subtractByte(state, state->a, state->memory[offset]);
+		subtractByte(state, state->a, state->memory[offset], UPDATE_CARRY);
 	}
 	break;
 	case 0xbf: // CMP A
-		subtractByte(state, state->a, state->a);
+		subtractByte(state, state->a, state->a, UPDATE_CARRY);
 		break;
 	case 0xc0: // RNZ
 		if (0 == state->cc.z)
-			returnToCaller(state);
+			returnToCaller(state, offset);
 		break;
 	case 0xc1: // POP B
 	{
@@ -1982,10 +1844,10 @@ int Emulate8085Op(State8085 *state, uint16_t offset)
 		break;
 	case 0xc8: // RZ
 		if (1 == state->cc.z)
-			returnToCaller(state);
+			returnToCaller(state, offset);
 		break;
 	case 0xc9: // RET
-		returnToCaller(state);
+		returnToCaller(state, offset);
 		break;
 	case 0xca: // JZ Addr
 		if (1 == state->cc.z)
@@ -1998,15 +1860,15 @@ int Emulate8085Op(State8085 *state, uint16_t offset)
 		break;
 	case 0xcc: // CZ Addr
 		if (1 == state->cc.z)
-			call(state, (opcode[2] << 8) | opcode[1]);
+			call(state, offset + (opcode[2] << 8) | opcode[1]);
 		else
 			state->pc += 2;
 		break;
 	case 0xcd: // CALL Addr
-		call(state, (opcode[2] << 8) | opcode[1]);
+		call(state, offset + (opcode[2] << 8) | opcode[1]);
 		break;
 	case 0xce: // ACI d8
-		state->a = addByteWithCarry(state, state->a, opcode[1]);
+		state->a = addByteWithCarry(state, state->a, opcode[1], UPDATE_CARRY);
 		state->pc++;
 		break;
 	case 0xcf: // RST 1
@@ -2014,7 +1876,7 @@ int Emulate8085Op(State8085 *state, uint16_t offset)
 		break;
 	case 0xd0: // RNC
 		if (0 == state->cc.cy)
-			returnToCaller(state);
+			returnToCaller(state, offset);
 		break;
 	case 0xd1: // POP D
 	{
@@ -2047,7 +1909,7 @@ int Emulate8085Op(State8085 *state, uint16_t offset)
 	}
 	break;
 	case 0xd6: // SUI d8
-		state->a = subtractByte(state, state->a, opcode[1]);
+		state->a = subtractByte(state, state->a, opcode[1], UPDATE_CARRY);
 		state->pc++;
 		break;
 	case 0xd7: // RST 2
@@ -2055,7 +1917,7 @@ int Emulate8085Op(State8085 *state, uint16_t offset)
 		break;
 	case 0xd8: // RC
 		if (1 == state->cc.cy)
-			returnToCaller(state);
+			returnToCaller(state, offset);
 		break;
 	case 0xd9:
 		InvalidInstruction(state);
@@ -2079,7 +1941,7 @@ int Emulate8085Op(State8085 *state, uint16_t offset)
 		InvalidInstruction(state);
 		break;
 	case 0xde: // SBI d8
-		state->a = subtractByteWithBorrow(state, state->a, opcode[1]);
+		state->a = subtractByteWithBorrow(state, state->a, opcode[1], UPDATE_CARRY);
 		state->pc++;
 		break;
 	case 0xdf: // RST 3
@@ -2087,7 +1949,7 @@ int Emulate8085Op(State8085 *state, uint16_t offset)
 		break;
 	case 0xe0: // RPO
 		if (0 == state->cc.cy)
-			returnToCaller(state);
+			returnToCaller(state, offset);
 		break;
 	case 0xe1: // POP H
 	{
@@ -2137,7 +1999,7 @@ int Emulate8085Op(State8085 *state, uint16_t offset)
 		break;
 	case 0xe8: // RPE
 		if (0 == state->cc.cy)
-			returnToCaller(state);
+			returnToCaller(state, offset);
 		break;
 	case 0xe9: // PCHL
 		state->pc = (state->h << 8) | state->l;
@@ -2177,7 +2039,7 @@ int Emulate8085Op(State8085 *state, uint16_t offset)
 		break;
 	case 0xf0: // RP
 		if (0 == state->cc.s)
-			returnToCaller(state);
+			returnToCaller(state, offset);
 		break;
 	case 0xf1: //POP PSW
 	{
@@ -2228,7 +2090,7 @@ int Emulate8085Op(State8085 *state, uint16_t offset)
 		break;
 	case 0xf8: // RM
 		if (1 == state->cc.s)
-			returnToCaller(state);
+			returnToCaller(state, offset);
 		break;
 	case 0xf9: // SPHL
 		state->sp = (state->h << 8) | state->l;
