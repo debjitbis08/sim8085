@@ -286,7 +286,11 @@ machineCode = prg:program {
         if (line.opcode == null) {
         	if (Array.isArray(line.data)) {
             	objCode = objCode.concat(line.data.map(function (d) {
-                	return { data: d.value, kind: 'data', location: d.location };
+                    return {
+                        data: typeof d.value !== "undefined" ? d.value : d,
+                        kind: 'data',
+                        location: typeof d.location !== "undefined" ? d.location : line.location
+                    };
                 }));
             }
             continue;
