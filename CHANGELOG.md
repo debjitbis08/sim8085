@@ -1,3 +1,12 @@
+<a name="0.1.4"></a>
+## <small>0.1.4 (2018-04-30)</small>
+
+* chore(ci): Add changelog file ([8907ba2](https://github.com/debjitbis08/sim8085/commit/8907ba2))
+* chore(ci): Remove unnecessary entries from log ([5728931](https://github.com/debjitbis08/sim8085/commit/5728931))
+* fix(assembler): Fix issue with assembling DB ([7d46d3e](https://github.com/debjitbis08/sim8085/commit/7d46d3e))
+
+
+
 <a name="0.1.3"></a>
 ## <small>0.1.3 (2018-04-18)</small>
 
