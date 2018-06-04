@@ -53,6 +53,7 @@
         "cypress:open": "cypress open",
         "cypress:run": "cypress run --record false",
         "run-test-server": "http-server dist/ -p 3000",
-        "test": "yarn build && run-p --race run-test-server cypress:run"
+        "test": "yarn build && run-p --race run-test-server cypress:run",
+        "version": "conventional-changelog -p angular -i CHANGELOG.md -s -r 0 && git add CHANGELOG.md"
     }
 }
