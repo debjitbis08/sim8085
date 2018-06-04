@@ -1551,7 +1551,7 @@ int Emulate8085Op(State8085 *state, uint16_t offset)
 		state->a = state->a;
 		break; // MOV A, A
 	case 0x80: // ADD B
-		state->a = addByte(state, state->a, state->d, UPDATE_CARRY);
+		state->a = addByte(state, state->a, state->b, UPDATE_CARRY);
 		break;
 	case 0x81: // ADD C
 		state->a = addByte(state, state->a, state->c, UPDATE_CARRY);
