@@ -1,3 +1,13 @@
+<a name="0.1.6"></a>
+## [0.1.6](https://github.com/debjitbis08/sim8085/compare/v0.1.5...v0.1.6) (2018-06-09)
+
+
+### Bug Fixes
+
+* **assembler:** Fix parsing of numbers ([8e171da](https://github.com/debjitbis08/sim8085/commit/8e171da))
+
+
+
 <a name="0.1.5"></a>
 ## [0.1.5](https://github.com/debjitbis08/sim8085/compare/v0.1.3...v0.1.5) (2018-06-04)
 
