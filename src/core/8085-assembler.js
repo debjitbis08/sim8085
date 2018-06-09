@@ -2260,9 +2260,9 @@ function peg$parse(input, options) {
     var s0, s1;
 
     peg$silentFails++;
-    s0 = peg$parsedecForm1();
+    s0 = peg$parsedecForm2();
     if (s0 === peg$FAILED) {
-      s0 = peg$parsedecForm2();
+      s0 = peg$parsedecForm1();
     }
     peg$silentFails--;
     if (s0 === peg$FAILED) {

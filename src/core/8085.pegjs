@@ -472,7 +472,7 @@ data16 "word" = n:numLiteral {
 
 numLiteral "numeric literal" = binLiteral / hexLiteral / octalLiteral / decLiteral
 
-decLiteral "decimal literal" = decForm1 / decForm2
+decLiteral "decimal literal" = decForm2 / decForm1
 
 decForm1 = neg:[-]? digits:digit+ {
     return { value: parseInt((!neg ? "":"-") + digits.join(""), 10), location: location() };
