@@ -1,3 +1,13 @@
+<a name="0.1.7"></a>
+## [0.1.7](https://github.com/debjitbis08/sim8085/compare/v0.1.6...v0.1.7) (2018-06-10)
+
+
+### Bug Fixes
+
+* **emulator:** Fix setting of carry flag ([3a3ef93](https://github.com/debjitbis08/sim8085/commit/3a3ef93)), closes [#6](https://github.com/debjitbis08/sim8085/issues/6)
+
+
+
 <a name="0.1.6"></a>
 ## [0.1.6](https://github.com/debjitbis08/sim8085/compare/v0.1.5...v0.1.6) (2018-06-09)
 
