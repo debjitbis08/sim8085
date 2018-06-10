@@ -900,7 +900,7 @@ void LogicFlagsA(State8085 *state, uint8_t ac)
 
 void ArithFlagsA(State8085 *state, uint16_t res, should_preserve_carry preserveCarry)
 {
-	if (!preserveCarry)
+	if (preserveCarry == UPDATE_CARRY)
 		state->cc.cy = (res > 0xff);
 	state->cc.z = ((res & 0xff) == 0);
 	state->cc.s = (0x80 == (res & 0x80));
