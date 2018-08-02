@@ -1076,8 +1076,8 @@ int Emulate8085Op(State8085 *state, uint16_t offset)
 		state->d = opcode[2];
 		state->pc += 2;
 		break;
-	case 0x12:
-		state->memory[(state->b << 8) + state->c] = state->a;
+	case 0x12:  // STAX D
+		state->memory[(state->d << 8) + state->e] = state->a;
 		break;
 	case 0x13: //INX    D
 		state->e++;
