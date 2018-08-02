@@ -1,3 +1,13 @@
+<a name="0.1.8"></a>
+## [0.1.8](https://github.com/debjitbis08/sim8085/compare/v0.1.7...v0.1.8) (2018-08-02)
+
+
+### Bug Fixes
+
+* **emulator:** Fix STAX D operation ([a168a77](https://github.com/debjitbis08/sim8085/commit/a168a77)), closes [#7](https://github.com/debjitbis08/sim8085/issues/7)
+
+
+
 <a name="0.1.7"></a>
 ## [0.1.7](https://github.com/debjitbis08/sim8085/compare/v0.1.6...v0.1.7) (2018-06-10)
 
