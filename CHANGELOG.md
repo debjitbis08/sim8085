@@ -1,3 +1,13 @@
+<a name="0.1.9"></a>
+## [0.1.9](https://github.com/debjitbis08/sim8085/compare/v0.1.8...v0.1.9) (2018-08-12)
+
+
+### Bug Fixes
+
+* **emulator:** Fix subtract with borrow logic ([3547e73](https://github.com/debjitbis08/sim8085/commit/3547e73)), closes [#9](https://github.com/debjitbis08/sim8085/issues/9)
+
+
+
 <a name="0.1.8"></a>
 ## [0.1.8](https://github.com/debjitbis08/sim8085/compare/v0.1.7...v0.1.8) (2018-08-02)
 
