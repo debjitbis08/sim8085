@@ -938,9 +938,7 @@ uint8_t addByte(State8085 *state, uint8_t lhs, uint8_t rhs, should_preserve_carr
 
 uint8_t addByteWithCarry(State8085 *state, uint8_t lhs, uint8_t rhs, should_preserve_carry preserveCarry)
 {
-	if (state->cc.cy)
-		rhs++;
-	uint16_t res = lhs + rhs;
+	uint16_t res = lhs + rhs + (state->cc.cy ? 1 : 0);
 	ArithFlagsA(state, res, preserveCarry);
 	return (uint8_t)res;
 }
@@ -956,9 +954,7 @@ uint8_t subtractByte(State8085 *state, uint8_t lhs, uint8_t rhs, should_preserve
 
 uint8_t subtractByteWithBorrow(State8085 *state, uint8_t lhs, uint8_t rhs, should_preserve_carry preserveCarry)
 {
-	if (state->cc.cy)
-		rhs--;
-	uint16_t res = lhs - rhs;
+	uint16_t res = lhs - rhs - (state->cc.cy ? 1 : 0);
 	ArithFlagsA(state, res, preserveCarry);
 	return (uint8_t)res;
 }
