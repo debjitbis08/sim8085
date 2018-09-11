@@ -1,3 +1,13 @@
+<a name="0.1.10"></a>
+## [0.1.10](https://github.com/debjitbis08/sim8085/compare/v0.1.9...v0.1.10) (2018-09-11)
+
+
+### Bug Fixes
+
+* **emulator:** Fix INR M instruction ([c570c42](https://github.com/debjitbis08/sim8085/commit/c570c42)), closes [#10](https://github.com/debjitbis08/sim8085/issues/10)
+
+
+
 <a name="0.1.9"></a>
 ## [0.1.9](https://github.com/debjitbis08/sim8085/compare/v0.1.8...v0.1.9) (2018-08-12)
 
