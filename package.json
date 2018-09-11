@@ -49,7 +49,7 @@
         "watch": "webpack --watch",
         "make-dist": "mkdir dist",
         "build-assembler": "pegjs --format commonjs -o src/core/8085-assembler.js src/core/8085.pegjs",
-        "build-emulator": "node_modules/emscripten/emcc src/core/8085.c -o src/core/8085.js --pre-js src/core/emcc-env.js --post-js src/core/emcc-export.js -O2 --closure 0 --memory-init-file 0 -s EXPORTED_FUNCTIONS=\"['_Init8085','_ExecuteProgram', '_Emulate8085Op', '_LoadProgram', '_ExecuteProgramUntil']\" -s EXTRA_EXPORTED_RUNTIME_METHODS=\"['ccall', 'cwrap', 'getValue', 'setValue']\" -s NO_EXIT_RUNTIME=1 -s NO_FILESYSTEM=1 -s MODULARIZE=1",
+        "build-emulator": "node_modules/emscripten/emcc src/core/8085.c -o src/core/8085.js --pre-js src/core/emcc-env.js --post-js src/core/emcc-export.js -Oz --closure 0 --memory-init-file 0 -s EXPORTED_FUNCTIONS=\"['_Init8085','_ExecuteProgram', '_Emulate8085Op', '_LoadProgram', '_ExecuteProgramUntil']\" -s EXTRA_EXPORTED_RUNTIME_METHODS=\"['ccall', 'cwrap', 'getValue', 'setValue']\" -s NO_EXIT_RUNTIME=1 -s NO_FILESYSTEM=1 -s MODULARIZE=1 -s WASM=0",
         "cypress:open": "cypress open",
         "cypress:run": "cypress run --record false",
         "run-test-server": "http-server dist/ -p 3000",

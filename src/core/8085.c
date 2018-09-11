@@ -1249,7 +1249,6 @@ int Emulate8085Op(State8085 *state, uint16_t offset)
 		state->sp++;
 		break;
 	case 0x34: // INR M
-		break;
 	{
 		uint16_t offset = (state->h << 8) | state->l;
 		state->memory[offset] = addByte(state, state->memory[offset], 1, PRESERVE_CARRY);
