@@ -1,3 +1,13 @@
+<a name="0.1.11"></a>
+## [0.1.11](https://github.com/debjitbis08/sim8085/compare/v0.1.10...v0.1.11) (2019-04-01)
+
+
+### Bug Fixes
+
+* **emulator:** Fix RAR instruction ([66c441e](https://github.com/debjitbis08/sim8085/commit/66c441e)), closes [#12](https://github.com/debjitbis08/sim8085/issues/12)
+
+
+
 <a name="0.1.10"></a>
 ## [0.1.10](https://github.com/debjitbis08/sim8085/compare/v0.1.9...v0.1.10) (2018-09-11)
 
