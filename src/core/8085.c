@@ -1090,7 +1090,7 @@ int Emulate8085Op(State8085 *state, uint16_t offset)
 		state->d = opcode[1];
 		state->pc++;
 		break;
-	case 0x17: //RAL
+	case 0x17: // RAL
 	{
 		uint8_t x = state->a;
 		state->a = state->cc.cy | (x << 1);
@@ -1121,7 +1121,6 @@ int Emulate8085Op(State8085 *state, uint16_t offset)
 		if (state->e == 0xFF)
 			state->d--;
 		break;
-		break;
 	case 0x1c: //INR E
 		state->e = addByte(state, state->e, 1, PRESERVE_CARRY);
 		break;
@@ -1132,10 +1131,10 @@ int Emulate8085Op(State8085 *state, uint16_t offset)
 		state->e = opcode[1];
 		state->pc++;
 		break;
-	case 0x1f:
+	case 0x1f: // RAR
 	{
 		uint8_t x = state->a;
-		state->a = state->cc.cy | (x << 1);
+		state->a = (x >> 1) | (state->cc.cy << 7); /* From a number with higest bit as carry value */
 		state->cc.cy = (1 == (x & 1));
 	}
 	break;
