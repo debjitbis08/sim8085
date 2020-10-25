@@ -6,3 +6,10 @@ src/components
 elm-stuff/
 tmp/
 .idea/
+/target
+**/*.rs.bk
+Cargo.lock
+bin/
+pkg/
+wasm-pack.log
+

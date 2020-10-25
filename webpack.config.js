@@ -1,10 +1,11 @@
-var path              = require( 'path' );
-var webpack           = require( 'webpack' );
-var merge             = require( 'webpack-merge' );
-var HtmlWebpackPlugin = require( 'html-webpack-plugin' );
-var autoprefixer      = require( 'autoprefixer' );
-var ExtractTextPlugin = require( 'extract-text-webpack-plugin' );
-var CopyWebpackPlugin = require( 'copy-webpack-plugin' );
+var path                 = require( 'path' );
+var webpack              = require( 'webpack' );
+var { merge }            = require( 'webpack-merge' );
+var HtmlWebpackPlugin    = require( 'html-webpack-plugin' );
+var autoprefixer         = require( 'autoprefixer' );
+var MiniCssExtractPlugin = require( 'mini-css-extract-plugin' );
+var CopyWebpackPlugin    = require( 'copy-webpack-plugin' ); 
+const CopyPlugin = require('copy-webpack-plugin');
 
 console.log( 'WEBPACK GO!');
 
@@ -16,7 +17,7 @@ var commonConfig = {
 
     output: {
         path:       path.resolve( __dirname, 'dist/' ),
-        filename: '[hash].js',
+        filename: '[contenthash].js',
     },
 
     resolve: {
@@ -26,7 +27,7 @@ var commonConfig = {
 
     module: {
         noParse: /\.elm$/,
-        loaders: [
+        rules: [
             {
                 test: /\.(eot|ttf|woff|woff2|svg)$/,
                 use: 'file-loader?publicPath=../../&name=static/css/[hash].[ext]'
@@ -35,6 +36,15 @@ var commonConfig = {
     },
 
     plugins: [
+        new CopyPlugin([
+            { from: "src/core/8085.wasm" },
+            path.resolve(__dirname, "static")
+        ]),
+
+        new WasmPackPlugin({
+            crateDirectory: __dirname,
+        }),
+
         new webpack.LoaderOptionsPlugin({
             options: {
                 postcss: [autoprefixer()]
@@ -66,19 +76,33 @@ if ( TARGET_ENV === 'development' ) {
 
         devServer: {
             inline:   true,
-            progress: true
+            progress: true,
+            contentBase: "dist"
         },
 
         module: {
-            loaders: [
+            rules: [
                 {
                     test:    /\.elm$/,
                     exclude: [/elm-stuff/, /node_modules/],
-                    loader:  'elm-hot-loader!elm-webpack-loader?verbose=true&warn=true'
+                    use: [
+                        {
+                            loader: "elm-hot-webpack-loader"
+                        },
+                        {
+                            loader:
+                                "elm-webpack-loader"
+                        }
+                    ]
                 },
                 {
                     test: /\.sc?ss$/,
-                    use: ['style-loader', 'css-loader', 'postcss-loader', 'sass-loader']
+                    use: [
+                        { loader: 'style-loader' }, 
+                        { loader: 'css-loader' },
+                        { loader: 'postcss-loader' },
+                        { loader: 'sass-loader' }
+                    ]
                 }
             ]
         }
@@ -112,7 +136,7 @@ if ( TARGET_ENV === 'production' ) {
         },
 
         plugins: [
-            new ExtractTextPlugin({
+            new MiniCssExtractPlugin({
                 filename: 'static/css/[name]-[hash].css',
                 allChunks: true,
             }),

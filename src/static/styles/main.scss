@@ -19,16 +19,16 @@ $icon-font-path: '~bootstrap-sass/assets/fonts/bootstrap/';
 }
 
 .navbar-brand::after {
-    content: "α";
+    content: "β";
     position: absolute;
     top: 10px;
     left: 145px;
     font-weight: bold;
     font-size: 10px;
-    line-height: 7px;
+    line-height: 8px;
     z-index: 2;
     padding: 4px;
-    background: rgb(229, 139, 21);
+    background: rgb(92, 184, 92);
     border-radius: 50px;
     color: white;
 }
