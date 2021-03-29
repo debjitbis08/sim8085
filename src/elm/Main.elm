@@ -47,7 +47,6 @@ type alias Model =
     , stackPtr : Int
     , programCounter : Int
     , editingAccumulator : Bool
-    , statePtr : Maybe Int
     , memory : Array Int
     , editingMemoryCell : Maybe Int
     , memoryStart : Int
@@ -72,7 +71,6 @@ init config =
       , stackPtr = 0
       , programCounter = 0
       , editingAccumulator = False
-      , statePtr = Nothing
       , memory = Array.repeat 65536 0
       , editingMemoryCell = Nothing
       , memoryStart = 0
@@ -159,7 +157,7 @@ type Msg
     | ResetRegisters
     | ResetFlags
     | ResetMemory
-    | LoadSucceded { statePtr : Int, memory : Array Int, assembled : Array AssembledCode }
+    | LoadSucceded { memory : Array Int, assembled : Array AssembledCode }
     | LoadFailed AssemblerError
     | RunSucceded ExternalState
     | UpdateRunError Int
@@ -179,6 +177,7 @@ type Msg
     | UpdateFlag String Bool
     | EditMemoryCell Int
     | UpdateMemoryCell String
+    | UpdateLoadAddr String
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -263,7 +262,7 @@ update msg model =
                 )
 
         Load ->
-            ( model, load { offset = model.loadAddr, code = model.code } )
+            ( model, load { offset = model.loadAddr, code = model.code, loadAddr = model.loadAddr } )
 
         RunOneSucceded res ->
             let
@@ -397,8 +396,7 @@ updateHelper msg model =
 
         LoadSucceded res ->
             { model
-                | statePtr = Just res.statePtr
-                , memory = res.memory
+                | memory = res.memory
                 , assembled = addBreakpointsToAssembled model.breakpoints res.assembled
                 , programCounter = model.loadAddr
                 , error = Nothing
@@ -592,6 +590,11 @@ updateHelper msg model =
                 , editingMemoryCell = Nothing
             }
 
+        UpdateLoadAddr value ->
+            { model
+                | loadAddr = strToHex value
+            }
+
         _ ->
             model
 
@@ -634,7 +637,6 @@ updateModelFromExternalState model state =
         , flags = readFlagsFromExternalState state
         , stackPtr = state.sp
         , programCounter = state.pc
-        , statePtr = state.ptr
         , memory = state.memory
     }
 
@@ -752,7 +754,6 @@ createExternalStateFromModel model =
         , ac = model.flags.ac
         }
     , memory = model.memory
-    , ptr = model.statePtr
 
     -- , programState = getProgramState model.programState
     }
@@ -859,7 +860,13 @@ view model =
                         ]
                     , div [ class "coding-area__load-addr pull-right" ]
                         [ text "Load at 0x"
-                        , text <| toWord <| model.loadAddr
+                        , input
+                            [ class "coding-area__load-addr pull-right"
+                            , onChange UpdateLoadAddr
+                            , value (toWord <| model.loadAddr)
+                            , title "Press tab to save"
+                            ]
+                            []
                         ]
                     ]
                 , ul [ class "nav nav-tabs" ]
@@ -1231,6 +1238,7 @@ showMemoryCells model start cells =
     Array.indexedMap (showMemoryCellRow model start) (Array.fromList (chunk 16 (Array.toList cells)))
 
 
+showScalePoint : Int -> Html msg
 showScalePoint value =
     li [] [ text <| String.fromInt <| value ]
 
@@ -1315,7 +1323,6 @@ type alias ExternalState =
         , ac : Bool
         }
     , memory : Array Int
-    , ptr : Maybe Int
     }
 
 
@@ -1352,7 +1359,7 @@ type alias BreakPointAction =
 -- type AssemblerOutput = AssembledCode | AssemblerError
 
 
-port load : { offset : Int, code : String } -> Cmd msg
+port load : { offset : Int, code : String, loadAddr: Int } -> Cmd msg
 
 
 port run : { state : ExternalState, loadAt : Int, programState : String } -> Cmd msg
@@ -1382,7 +1389,7 @@ port code : (String -> msg) -> Sub msg
 port breakpoints : (BreakPointAction -> msg) -> Sub msg
 
 
-port loadSuccess : ({ statePtr : Int, memory : Array Int, assembled : Array AssembledCode } -> msg) -> Sub msg
+port loadSuccess : ({ memory : Array Int, assembled : Array AssembledCode } -> msg) -> Sub msg
 
 
 port loadError : (AssemblerError -> msg) -> Sub msg

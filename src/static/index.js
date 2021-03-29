@@ -1,29 +1,44 @@
 // pull in desired CSS/SASS files
 require( './styles/main.scss' );
-var $ = jQuery = require( '../../node_modules/jquery/dist/jquery.js' );           // <--- remove if Bootstrap's JS not needed
+var jQuery = require( 'jquery' );           // <--- remove if Bootstrap's JS not needed
+var $ = jQuery;
+window.jQuery = jQuery;
 require( '../../node_modules/bootstrap-sass/assets/javascripts/bootstrap.js' );   // <--- remove if Bootstrap's JS not needed
 
 var parser = require( '../core/8085-assembler.js' );
-var _8085Module = require( '../core/8085.js' );
-console.log(_8085Module);
-var simulator = _8085Module();
-console.log(simulator);
+import * as wasm  from "../../pkg/index_bg.wasm";
+import * as simulator  from "../../pkg/index.js";
+import { Elm } from  '../elm/Main';
+
+// console.log(_8085Module);
+// var simulator = _8085Module();
+// console.log(simulator);
 var stateComm = require('./cpuState.js');
 var Tour = require("./tour.js");
 
 require('./8085-mode.js');
 
-window.simulator = simulator;
-var execute8085Program = simulator.cwrap('ExecuteProgram', 'number', ['number', 'number']);
-var execute8085ProgramUntil = simulator.cwrap('ExecuteProgramUntil', 'number', ['number', 'number', 'number', 'number']);
-var load8085Program = simulator.cwrap('LoadProgram', 'number', ['number', 'array', 'number', 'number']);
+// window.simulator = simulator;
+// var execute8085Program = simulator.cwrap('ExecuteProgram', 'number', ['number', 'number']);
+// var execute8085ProgramUntil = simulator.cwrap('ExecuteProgramUntil', 'number', ['number', 'number', 'number', 'number']);
+// var load8085Program = simulator.cwrap('LoadProgram', 'number', ['number', 'array', 'number', 'number']);
 
-var statePtr = simulator._Init8085();
+
+var state = simulator.init_8085();
+
+//! Memoery needs to be initialized by init. Not sure why?
+var MEMORY = new Uint8Array(
+  wasm.memory.buffer,
+  wasm.get_memory_ptr(),
+  65536
+);
 
 // inject bundled Elm app into div#main
-var Elm = require( '../elm/Main' );
-var app = Elm.Main.embed(document.getElementById( 'main' ), {
-  initialCode: localStorage.getItem("code")
+var app = Elm.Main.init({
+  node: document.getElementById( 'elm-container' ),
+  flags: {
+    initialCode: localStorage.getItem("code") || ""
+  }
 });
 
 var RUNNING_LINE_CLASS = "coding-area__editor_running-marker";
@@ -111,9 +126,9 @@ function initilizeEditor () {
 
   app.ports.editorDisabled.subscribe(editor.setOption.bind(editor, "readOnly"));
 
-  app.ports.updateState.subscribe(function (o) {
-    stateComm.setState(simulator, statePtr, o.state);
-  });
+  // app.ports.updateState.subscribe(function (o) {
+  //   stateComm.setState(simulator, state, o.state);
+  // });
 
   Tour.start();
 
@@ -162,16 +177,32 @@ function updateBreakpoints(cm, n) {
 }
 
 function runProgram (editor, input) {
-    var inputState = input.state;
-    var statePtr = inputState.ptr;
+    var state = input.state;
     var errorStatus = 0;
 
     if (input.programState == "Loaded") {
-      stateComm.setState(simulator, statePtr, inputState);
     }
 
     try {
-      statePtr = execute8085Program(statePtr, input.loadAt);
+      var outputState = simulator.execute_program({
+        a: state.a,
+        b: state.b,
+        c: state.c,
+        d: state.d,
+        e: state.e,
+        h: state.h,
+        l: state.l,
+        sp: state.sp,
+        pc: state.pc,
+        cc: {
+          z: state.flags.z,
+          s: state.flags.s,
+          p: state.flags.p,
+          cy: state.flags.cy,
+          ac: state.flags.ac
+        },
+        int_enable: 1
+      }, input.loadAt);
     } catch (e) {
       if (e.status === 1) showError("UNKNOWN_INST");
       else if (e.status === 2) showError("INFINITE_LOOP");
@@ -183,7 +214,10 @@ function runProgram (editor, input) {
     setEditorReadOnlyOption(editor, false);
 
     if (errorStatus === 0) {
-      var outputState = stateComm.getStateFromPtr(simulator, statePtr);
+      // var outputState = stateComm.getStateFromPtr(simulator, statePtr);
+      outputState.memory = Array.prototype.slice.call(MEMORY);
+      outputState.flags = outputState.cc;
+      console.log(outputState);
       app.ports.runSuccess.send(outputState);
     } else {
       app.ports.runError.send(errorStatus);
@@ -235,7 +269,7 @@ function runSingleInstruction(editor, input) {
   var errorStatus = 0;
 
   try {
-    var status = simulator._Emulate8085Op(statePtr, input.offset);
+    var status = simulator.emulate_8085(statePtr, input.offset);
   } catch (e) {
     errorStatus = e.status;
   }
@@ -277,11 +311,11 @@ function updateErrors(editor, e) {
   });
 }
 
-function assembleProgram(editor, code) {
+function assembleProgram(editor, code, loadAddr) {
     clearTimeout(assembling);
     try {
       // Try to assemble Program
-      var assembled = parser.parse(code);
+      var assembled = parser.parse(code, { loadAddr: loadAddr });
     } catch (e) {
       assembling = setTimeout(function () {
         updateErrors(editor, e);
@@ -299,12 +333,12 @@ function assembleProgram(editor, code) {
     return assembled;
 }
 
-function load(editor, input) {
+function load(editor, input, loadAddr) {
     lineWidget.forEach(function (w) {
       editor.removeLineWidget(w);
     });
 
-    var assembled = assembleProgram(editor, input.code);
+    var assembled = assembleProgram(editor, input.code, loadAddr);
 
     if (!assembled) {
       return;
@@ -312,17 +346,13 @@ function load(editor, input) {
 
     assembled = assembled.map(function (a) { a.breakHere = false; return a; });
 
-    // var memoryBeforeInit = stateComm.getStateFromPtr(simulator, statePtr)
-
-    // Allocate memory for simulator
-    // var statePtr = simulator._Init8085();
-
     // Load Program to memory
-    statePtr = load8085Program(statePtr, assembled.map(function (c) { return c.data; }), assembled.length, input.offset);
+    assembled.forEach(function (c, i) {
+      MEMORY[input.offset + i] = c.data;
+    });
 
     // Get new state and send to UI
-    var state = stateComm.getStateFromPtr(simulator, statePtr);
-    app.ports.loadSuccess.send({ statePtr: statePtr, memory: state.memory, assembled: assembled });
+    app.ports.loadSuccess.send({ memory: Array.prototype.slice.call(MEMORY), assembled: assembled });
 
     setEditorReadOnlyOption(editor, true);
     showInfo("Your code has been compiled and loaded to memory location 0x0800. Now you need to execute it to see the results.");

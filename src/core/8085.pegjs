@@ -1,7 +1,7 @@
 {
     var machineCode = [];
     var symbolTable = {};
-    var ilc = 0;
+    var ilc = options.loadAddr ||  0x0800;
     var mnemonics = {
         "nop"       : {code:0x00,size:1},
         "lxi b,d16" : {code:0x01,size:3},
@@ -363,6 +363,7 @@ program = __ first:line rest:(eol+ __ l:line {return l})* {return [first].concat
 opWithLabel = label:labelPart? op:(operation / directive) comment? {
     if (label && label !== "") {
         console.log("op", op);
+        console.log("ilc", ilc);
         symbolTable[label.value] = {
             addr: ilc,
             value: op.opcode != null ? op.opcode :
@@ -517,52 +518,47 @@ expression "expression" = arithmetic
 arithmetic "Arithmetic Expression" = addition
 
 addition "Addition"
-  = left:subtraction whitespace* "+" whitespace* right:addition {
-    console.log("left", left);
-    console.log("right", right);
-    console.log("symbolTable", symbolTable);
+  = whitespace* left:subtraction whitespace* "+" whitespace* right:addition whitespace* {
     var l = typeof left.value === "string" ? symbolTable[left.value].value: left.value;
     var r = typeof right.value === "string" ? symbolTable[right.value].value : right.value;
-    console.log("left", l);
-    console.log("right", r);
     return { value: l + r, location: location() };
   }
-  / subtraction
+  / val:subtraction { return val; }
 
 subtraction "Subtraction"
-  = left:multiplication whitespace* "-" whitespace* right:subtraction {
+  = whitespace* left:multiplication whitespace* "-" whitespace* right:subtraction whitespace* {
     var l = typeof left.value === "string" ? symbolTable[left.value].value: left.value;
     var r = typeof right.value === "string" ? symbolTable[right.value].value : right.value;
     return { value: l - r, location: location() };
   }
-  / multiplication
+  / val:multiplication { return val; }
 
 multiplication "Multiplication"
-  = left:division whitespace* "*" whitespace* right:multiplication {
+  = whitespace* left:division whitespace* "*" whitespace* right:multiplication whitespace* {
     var l = typeof left.value === "string" ? symbolTable[left.value].value: left.value;
     var r = typeof right.value === "string" ? symbolTable[right.value].value : right.value;
     return { value: l * r, location: location() };
   }
-  / division
+  / val:division { return val; }
 
 division "Division"
-  = left:modulo whitespace* "/" whitespace* right:division {
+  = whitespace* left:modulo whitespace* "/" whitespace* right:division whitespace* {
     var l = typeof left.value === "string" ? symbolTable[left.value].value: left.value;
     var r = typeof right.value === "string" ? symbolTable[right.value].value : right.value;
     return { value: l / r, location: location() };
   }
-  / modulo
+  / val:modulo { return val; }
 
 modulo "Modulo"
-  = left:(numLiteral / label) whitespace* "MOD"i whitespace* right:modulo {
+  = whitespace* left:(numLiteral / label) whitespace* "MOD"i whitespace* right:modulo whitespace* {
     var l = typeof left.value === "string" ? symbolTable[left.value].value: left.value;
     var r = typeof right.value === "string" ? symbolTable[right.value].value : right.value;
     return { value: l % r, location: location() };
   }
-  / numLiteral
-  / label
   / shift
-  / "(" addition:addition ")" { return addition; }
+  / whitespace* "(" whitespace* expression:expression whitespace* ")" whitespace* { return expression; }
+  / whitespace* val:numLiteral whitespace* { return val; }
+  / whitespace* val:label whitespace* { return val; }
 
 shift "Shift Expression" = shiftRight
 
@@ -816,8 +812,8 @@ dataDefinition = dir:(dir_db) {
 }
 
 
-dir_db  = ("DB"   / "db"  ) whitespace+ (data8_list / expression_list)
-dir_equ = ("EQU"  / "equ" ) whitespace+ (data8 / expression)
+dir_db  = ("DB"   / "db"  ) whitespace+ (expression_list / data8_list )
+dir_equ = ("EQU"  / "equ" ) whitespace+ (expression / data8)
 
 op_stc  = ("STC"  / "stc" )
 op_cmc  = ("CMC"  / "cmc" )

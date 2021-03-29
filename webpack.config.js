@@ -1,13 +1,15 @@
-var path                 = require( 'path' );
-var webpack              = require( 'webpack' );
-var { merge }            = require( 'webpack-merge' );
-var HtmlWebpackPlugin    = require( 'html-webpack-plugin' );
-var autoprefixer         = require( 'autoprefixer' );
-var MiniCssExtractPlugin = require( 'mini-css-extract-plugin' );
-var CopyWebpackPlugin    = require( 'copy-webpack-plugin' ); 
+const path = require('path');
+const webpack = require('webpack');
+const { merge } = require('webpack-merge');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const autoprefixer = require('autoprefixer');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
+const WasmPackPlugin = require("@wasm-tool/wasm-pack-plugin");
 
-console.log( 'WEBPACK GO!');
+
+console.log('WEBPACK GO!');
 
 // detemine build env
 var TARGET_ENV = process.env.npm_lifecycle_event === 'build' ? 'production' : 'development';
@@ -15,8 +17,12 @@ var TARGET_ENV = process.env.npm_lifecycle_event === 'build' ? 'production' : 'd
 // common webpack config
 var commonConfig = {
 
+    experiments: {
+        asyncWebAssembly: true
+    },
+
     output: {
-        path:       path.resolve( __dirname, 'dist/' ),
+        path: path.resolve(__dirname, 'dist/'),
         filename: '[contenthash].js',
     },
 
@@ -52,11 +58,11 @@ var commonConfig = {
         }),
         new HtmlWebpackPlugin({
             template: 'src/static/index.html',
-            inject:   'body',
+            inject: 'body',
             filename: 'index.html'
         })
     ],
-    
+
     externals: {
         'fs': true,
         'path': true,
@@ -64,18 +70,19 @@ var commonConfig = {
 };
 
 // additional webpack settings for local env (when invoked by 'npm start')
-if ( TARGET_ENV === 'development' ) {
-    console.log( 'Serving locally...');
+if (TARGET_ENV === 'development') {
+    console.log('Serving locally...');
 
-    module.exports = merge( commonConfig, {
+    module.exports = merge(commonConfig, {
+        mode: TARGET_ENV,
 
         entry: [
             'webpack-dev-server/client?http://localhost:8080',
-            path.join( __dirname, 'src/static/index.js' )
+            path.join(__dirname, 'src/static/index.js')
         ],
 
         devServer: {
-            inline:   true,
+            inline: true,
             progress: true,
             contentBase: "dist"
         },
@@ -83,22 +90,24 @@ if ( TARGET_ENV === 'development' ) {
         module: {
             rules: [
                 {
-                    test:    /\.elm$/,
+                    test: /\.elm$/,
                     exclude: [/elm-stuff/, /node_modules/],
                     use: [
                         {
                             loader: "elm-hot-webpack-loader"
                         },
                         {
-                            loader:
-                                "elm-webpack-loader"
+                            loader: "elm-webpack-loader",
+                            options: {
+                                debug: false
+                            }
                         }
                     ]
                 },
                 {
                     test: /\.sc?ss$/,
                     use: [
-                        { loader: 'style-loader' }, 
+                        { loader: 'style-loader' },
                         { loader: 'css-loader' },
                         { loader: 'postcss-loader' },
                         { loader: 'sass-loader' }
@@ -111,19 +120,19 @@ if ( TARGET_ENV === 'development' ) {
 }
 
 // additional webpack settings for prod env (when invoked via 'npm run build')
-if ( TARGET_ENV === 'production' ) {
-    console.log( 'Building for prod...');
+if (TARGET_ENV === 'production') {
+    console.log('Building for prod...');
 
-    module.exports = merge( commonConfig, {
+    module.exports = merge(commonConfig, {
 
-        entry: path.join( __dirname, 'src/static/index.js' ),
+        entry: path.join(__dirname, 'src/static/index.js'),
 
         module: {
             loaders: [
                 {
-                    test:    /\.elm$/,
+                    test: /\.elm$/,
                     exclude: [/elm-stuff/, /node_modules/],
-                    loader:  'elm-webpack-loader'
+                    loader: 'elm-webpack-loader'
                 },
                 {
                     test: /\.sc?ss$/,
@@ -154,7 +163,7 @@ if ( TARGET_ENV === 'production' ) {
                 compressor: {
                     warnings: false
                 },
-                mangle:  true
+                mangle: true
             })
         ]
 
