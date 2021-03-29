@@ -605,10 +605,14 @@ showAssembled assembled source =
 showCode codes =
   let
     code = Array.map (.data) (Array.filter (\c -> c.kind == "code") codes)
-    data = Array.map (.data) (Array.filter (\c -> c.kind /= "code") codes)
+    addr = Array.map (.data) (Array.filter (\c -> c.kind == "addr") codes)
+    data = Array.map (.data) (Array.filter (\c -> c.kind == "data") codes)
+    absoluteAddrNum = if Array.length addr == 2 then ((shiftLeftBy 8 (Maybe.withDefault 0 <| Array.get 1 addr)) + (shiftLeftBy 8 8)) + (Maybe.withDefault 0 <| Array.get 0 addr) else 0
+    absoluteAddr = Array.fromList [and absoluteAddrNum 0xFF, shiftRightBy 8 absoluteAddrNum]
+    blankIfZero s = if s == "00" then "" else s
   in
-    (String.toUpper <| toRadix 16 <| (Maybe.withDefault 0 (Array.get 0 code))) ++ "  " ++
-      (Array.foldr (\a b -> (toString a) ++ " " ++ b) "" data)
+    (blankIfZero <| String.toUpper <| toByte <| (Maybe.withDefault 0 (Array.get 0 code))) ++ "  " ++
+      (Array.foldr (\a b -> (toByte a) ++ " " ++ b) "" (if Array.length addr == 2 then absoluteAddr else data))
 
 onChange : (String -> msg) -> Attribute msg
 onChange tagger =

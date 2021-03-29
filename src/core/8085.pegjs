@@ -323,7 +323,7 @@ machineCode = prg:program {
                 dataVal = twosComplement(dataVal);
             }
             objCode.push({ data: line.opcode, kind: 'code', location: line.location });
-            objCode.push({ data: dataVal, kind: 'data', location: line.data.location });
+            objCode.push({ data: dataVal, kind: (typeof line.data.value === "string" && line.data.type === "direct") ? 'addr' : 'data', location: line.data.location });
         } else {
             data = line.data.value;
             if (typeof line.data.value === "string" && !symbolTable[line.data.value]) {
@@ -345,8 +345,8 @@ machineCode = prg:program {
                 : typeof line.data.value === "object" && line.data.value.value ? line.data.value.value
                 : 0;
             objCode.push({ data: line.opcode, kind: 'code', location: line.location });
-            objCode.push({ data: dataVal & 0xFF, kind: 'data', location: line.data.location });
-            objCode.push({ data: dataVal >> 8, kind: 'data', location: line.data.location });
+            objCode.push({ data: dataVal & 0xFF, kind: (typeof line.data.value === "string" && line.data.type === "direct") ? 'addr' : 'data', location: line.data.location });
+            objCode.push({ data: dataVal >> 8, kind: (typeof line.data.value === "string" && line.data.type === "direct") ? 'addr' : 'data', location: line.data.location });
         }
     }
 
