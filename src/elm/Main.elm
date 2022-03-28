@@ -10,6 +10,14 @@ import Html.Events exposing (..)
 import Json.Decode as Json
 import List
 import String exposing (..)
+import FontAwesome.Attributes as Icon
+import FontAwesome.Brands as Icon
+import FontAwesome.Icon as Icon exposing (Icon)
+import FontAwesome.Layering as Icon
+import FontAwesome.Solid as Icon
+import FontAwesome.Styles as Icon
+import InfiniteList
+import Hex
 
 
 type ProgramState
@@ -49,6 +57,7 @@ type alias Model =
     , editingAccumulator : Bool
     , memory : Array Int
     , editingMemoryCell : Maybe Int
+    , infiniteList : InfiniteList.Model
     , memoryStart : Int
     , memoryStartLarge : Int
     , memoryStartSmall : Int
@@ -73,6 +82,7 @@ init config =
       , editingAccumulator = False
       , memory = Array.repeat 65536 0
       , editingMemoryCell = Nothing
+      , infiniteList = InfiniteList.init
       , memoryStart = 0
       , memoryStartLarge = 0
       , memoryStartSmall = 0
@@ -178,6 +188,7 @@ type Msg
     | EditMemoryCell Int
     | UpdateMemoryCell String
     | UpdateLoadAddr String
+    | InfiniteListMsg InfiniteList.Model
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -314,6 +325,24 @@ update msg model =
         Stop ->
             ( { model | programState = Idle }, editorDisabled False )
 
+        JumpToAddress v ->
+            let
+                n =
+                    Result.withDefault 0 (Hex.fromString <| Debug.log "hex" v)
+
+                row = Debug.log "row" (n // 16)
+            in
+                ( model
+                , InfiniteList.scrollToNthItem
+                    { postScrollMessage = NoOp
+                    , listHtmlId = "memory-view-infinite-list"
+                    , itemIndex = row
+                    , configValue = memoryListConfig model
+                    , items = arrayChunk 16 model.memory
+                    }
+                )
+
+
         _ ->
             ( updateHelper msg model, Cmd.none )
 
@@ -366,30 +395,6 @@ updateHelper msg model =
                 | memoryStartSmall = n
                 , memoryStart = n + model.memoryStartLarge
             }
-
-        JumpToAddress v ->
-            let
-                n =
-                    Maybe.withDefault model.memoryStart (String.toInt ("0x" ++ v))
-
-                startN =
-                    (n // 256) * 256
-
-                startLarge =
-                    4352 * (n // 4352)
-
-                startSmall =
-                    modBy 4352 n
-            in
-            if String.length v /= 4 then
-                model
-
-            else
-                { model
-                    | memoryStartLarge = startLarge
-                    , memoryStartSmall = startSmall
-                    , memoryStart = startN
-                }
 
         LoadFailed e ->
             { model | error = Just e, assembled = Array.empty }
@@ -594,6 +599,9 @@ updateHelper msg model =
             { model
                 | loadAddr = strToHex value
             }
+
+        InfiniteListMsg infiniteList ->
+            { model | infiniteList = infiniteList }
 
         _ ->
             model
@@ -802,17 +810,17 @@ view : Model -> Html Msg
 view model =
     div [ class "work-area" ]
         [ div [ class "row" ]
-            [ div [ class "col-md-2" ]
+            [ div [ class "col-md-2 cpu-display" ]
                 [ div []
                     [ div [ class "row" ]
                         [ h3 [ class "col-md-7" ] [ text "Registers" ]
                         , span
-                            [ class "col-md-1 glyphicon glyphicon-refresh text-danger"
+                            [ class "col-md-1 text-danger"
                             , style "margin" "25px 0 10px"
                             , style "cursor" "pointer"
                             , onClick ResetRegisters
                             ]
-                            []
+                            [ Icon.viewIcon Icon.trash ]
                         ]
                     , table [ class "table table-striped registers-view" ]
                         [ tbody [] (showRegisters model.accumulator model.flags model.registers model.stackPtr model.programCounter model.editingAccumulator)
@@ -822,62 +830,61 @@ view model =
                     [ div [ class "row" ]
                         [ h3 [ class "col-md-4" ] [ text "Flags" ]
                         , span
-                            [ class "col-md-1 glyphicon glyphicon-refresh text-danger"
+                            [ class "col-md-1 text-danger"
                             , style "margin" "25px 0 10px"
                             , style "cursor" "pointer"
                             , onClick ResetFlags
                             ]
-                            []
-                        , span
-                            [ class "col-md-1 glyphicon glyphicon-refresh text-danger"
-                            , style "margin" "25px 0 10px"
-                            , style "cursor" "pointer"
-                            , onClick ResetFlags
-                            ]
-                            []
+                            [ Icon.viewIcon Icon.trash ]
                         ]
                     , table [ class "table table-striped flags-view" ] [ tbody [] (showFlags model.flags) ]
                     ]
                 ]
-            , div [ class "col-md-5 coding-area" ]
-                [ div [ class "coding-area__toolbar clearfix" ]
-                    [ div [ class "btn-toolbar coding-area__btn-toolbar pull-left" ]
-                        [ div [ class "btn-group" ]
-                            [ toolbarButton (model.programState /= Idle) "success" Load "Assemble and Load Program" "compile.png" True "btn-load"
-                            , toolbarButton (model.programState /= Loaded && model.programState /= Paused) "success" Run "Run Program" "fast-forward" False "btn-run"
+            , div [ class "col coding-area" ]
+                [ div [ class "coding-area__toolbar row" ]
+                    [ div [ class "coding-area__load-addr pull-right col-md-12" ]
+                        [ div [ class "form-group form-inline pull-right" ]
+                            [ label [ class "mx-2" ] [ text "Load at" ]
+                            , span [ class "input-group" ]
+                                [ span [ class "input-group-addon" ] [ text "0x" ]
+                                , input
+                                    [ class "coding-area__load-addr-input form-control"
+                                    , onChange UpdateLoadAddr
+                                    , value (toWord <| model.loadAddr)
+                                    , title "Press tab to update"
+                                    , style "width" "6rem"
+                                    ]
+                                    []
+                                ]
+                            ]
+                        ]
+                    ]
+                , div [ ]
+                    [ div [ class "row" ]
+                        [ div [ class "col-sm-1" ]
+                            [ toolbarButton (model.programState /= Idle) "primary" Load "Assemble and Load Program" Icon.cog "btn-load"
+                            , toolbarButton (model.programState /= Loaded && model.programState /= Paused) "primary" Run "Run Program" Icon.fastForward "btn-run"
                             , toolbarButton (model.programState /= Loaded && model.programState /= Paused)
-                                "success"
+                                "primary"
                                 RunOne
                                 "Run one instruction"
-                                "step-forward"
-                                False
+                                Icon.stepForward
                                 "btn-step"
-                            , toolbarButton (model.programState == Idle) "warning" Stop "Stop program and return to editing" "stop" False "btn-stop"
+                            , toolbarButton (model.programState == Idle) "warning" Stop "Stop program and return to editing" Icon.stop "btn-stop"
+                            , toolbarButton (model.programState /= Idle) "danger" Reset "Reset Everything" Icon.trash "btn-refresh-everything"
                             ]
-                        , div [ class "btn-group" ]
-                            [ toolbarButton (model.programState /= Idle) "danger" Reset "Reset Everything" "refresh" False "btn-refresh-everything"
+                        , div [ class "col" ]
+                            [ div [ class "coding-area__editor-container" ]
+                                [ -- ul [ class "nav nav-tabs" ] (List.map (showOpenFileTabs model.activeFile) model.openFiles)
+                                textarea [ id "coding-area__editor", value model.code ] []
+                                ]
                             ]
                         ]
-                    , div [ class "coding-area__load-addr pull-right" ]
-                        [ text "Load at 0x"
-                        , input
-                            [ class "coding-area__load-addr pull-right"
-                            , onChange UpdateLoadAddr
-                            , value (toWord <| model.loadAddr)
-                            , title "Press tab to save"
-                            ]
-                            []
-                        ]
-                    ]
-                , ul [ class "nav nav-tabs" ]
-                    -- (List.append (List.map (showOpenFileTabs model.activeFile) model.openFiles) [tabAddButton])
-                    (List.map (showOpenFileTabs model.activeFile) model.openFiles)
-                , div [ class "coding-area__editor-container" ]
-                    [ textarea [ id "coding-area__editor", value model.code ] []
                     ]
                 ]
-            , div [ class "col-md-4" ]
-                [ div [ class "" ] [ showMemory model model.memory model.memoryStart model.memoryStartSmall ]
+            , div [ class "col-auto" ]
+                -- [ div [ class "" ] [ showMemory model model.memory model.memoryStart model.memoryStartSmall ]
+                [ showMemory2 model model.memory
                 ]
             ]
         , div [ class "row", hidden (model.programState == Idle) ]
@@ -902,13 +909,16 @@ view model =
 -- <img src=
 
 
-toolbarButton isDisabled type_ msg tooltip icon iconIsImage automationId =
-    button [ class ("btn  btn-sm btn-" ++ type_), onClick msg, title tooltip, disabled isDisabled, attribute "data-automation-id" automationId ]
-        [ if iconIsImage then
-            img [ src ("static/img/" ++ icon) ] []
-
-          else
-            span [ class ("glyphicon glyphicon-" ++ icon) ] []
+toolbarButton isDisabled type_ msg tooltip icon automationId =
+    button
+        [ class ("btn btn-squared btn-outline-" ++ type_)
+        , onClick msg
+        , title tooltip
+        , disabled isDisabled
+        , attribute "data-toggle" "tooltip"
+        , attribute "data-placement" "top"
+        , attribute "data-automation-id" automationId ]
+        [ Icon.viewIcon icon
         ]
 
 
@@ -962,14 +972,14 @@ showAssembled assembled source =
 
 showCode codes =
   let
-    code = Array.map (.data) (Array.filter (\c -> c.kind == "code") codes)
+    opcode = Array.map (.data) (Array.filter (\c -> c.kind == "code") codes)
     addr = Array.map (.data) (Array.filter (\c -> c.kind == "addr") codes)
     data = Array.map (.data) (Array.filter (\c -> c.kind == "data") codes)
     absoluteAddrNum = if Array.length addr == 2 then ((shiftLeftBy 8 (Maybe.withDefault 0 <| Array.get 1 addr)) + (shiftLeftBy 8 8)) + (Maybe.withDefault 0 <| Array.get 0 addr) else 0
     absoluteAddr = Array.fromList [and absoluteAddrNum 0xFF, shiftRightBy 8 absoluteAddrNum]
     blankIfZero s = if s == "00" then "" else s
   in
-    (blankIfZero <| String.toUpper <| toByte <| (Maybe.withDefault 0 (Array.get 0 code))) ++ "  " ++
+    (blankIfZero <| String.toUpper <| toByte <| (Maybe.withDefault 0 (Array.get 0 opcode))) ++ "  " ++
       (Array.foldr (\a b -> (toByte a) ++ " " ++ b) "" (if Array.length addr == 2 then absoluteAddr else data))
 
 onChange : (String -> msg) -> Attribute msg
@@ -1005,11 +1015,11 @@ showRegister name rid { high, low, editing } =
                 , span [] [ text <| String.toUpper <| toByte low ]
                 ]
             , span
-                [ class "glyphicon glyphicon-edit reg-display__edit-icon"
+                [ class "reg-display__edit-icon"
                 , title "Click to edit"
                 , onClick (EditRegister rid)
                 ]
-                []
+                [ Icon.viewIcon Icon.edit ]
             ]
         , td [ onDoubleClick (EditRegister rid), hidden (not editing) ]
             [ span [ style "padding-right" "3px" ] [ text "0x" ]
@@ -1040,11 +1050,11 @@ showAccumulator name rid { high, low, editing } =
                 , span [] [ text <| String.toUpper <| toByte low ]
                 ]
             , span
-                [ class "glyphicon glyphicon-edit reg-display__edit-icon"
+                [ class "reg-display__edit-icon"
                 , title "Click to edit"
                 , onClick (EditRegister rid)
                 ]
-                []
+                [ Icon.viewIcon Icon.edit ]
             ]
         , td [ onDoubleClick (EditRegister rid), hidden (not editing) ]
             [ span [ style "padding-right" "3px" ] [ text "0x" ]
@@ -1094,7 +1104,20 @@ showFlag name value =
     tr []
         [ th [ scope "row" ] [ text name ]
         , td []
-            [ input [ type_ "checkbox", checked value, onCheck (UpdateFlag name), attribute "data-automation-id" ("val-flg-" ++ name) ] []
+            -- [ input [ type_ "checkbox", checked value, onCheck (UpdateFlag name), attribute "data-automation-id" ("val-flg-" ++ name) ] []
+            -- ]
+            [ div [ class "custom-control custom-switch" ]
+                [ input
+                    [ type_ "checkbox"
+                    , checked value
+                    , onCheck (UpdateFlag name)
+                    , attribute "data-automation-id" ("val-flg-" ++ name)
+                    , class "custom-control-input"
+                    , id ("flag-checkbox-" ++ name)
+                    ]
+                    []
+                , label [ class "custom-control-label", attribute "for" ("flag-checkbox-" ++ name) ] [ text "" ]
+                ]
             ]
         ]
 
@@ -1124,54 +1147,71 @@ showOpenFileTabs activeFileName { name } =
         ]
 
 
-showMemory model memory memoryStart memoryStartSmall =
-    div [ class "memory-view" ]
-        [ div [ class "row" ]
-            [ h3 [ class "col-md-6" ] [ text "Memory View" ]
+memoryViewHeader =
+    div [ class "row" ]
+        [ h3 [ class "col-md-5" ]
+            [ text "Memory View "
             , span
-                [ class "col-md-1 glyphicon glyphicon-refresh text-danger"
+                [ class "text-danger small"
                 , style "margin" "25px 0 10px"
                 , style "cursor" "pointer"
                 , onClick ResetMemory
                 ]
-                []
-            , div [ class "col-md-5 pull-right" ]
-                [ div [ class "input-group memory-view__jump-to-addr", style "padding" "15px 0 0 10px" ]
-                    [ span [ class "input-group-addon" ] [ text "0x" ]
-                    , input
-                        [ type_ "text"
-                        , class "form-control"
-                        , placeholder "Address in hex"
-                        , pattern "[0-9A-Fa-f]{4}"
-                        , onInput JumpToAddress
-                        ]
-                        []
-                    ]
-                ]
+                [ Icon.viewIcon Icon.trash ]
             ]
-        , table [ class "table memory-view__cells" ]
-            [ thead [] (td [] [] :: List.map (\c -> td [] [ text <| String.toUpper (toRadix 16 c) ]) (List.range 0 15))
-            , tbody [] (Array.toList (showMemoryCells model memoryStart (Array.slice memoryStart (memoryStart + 256) memory)))
-            ]
-        , div [ class "memory-view__paginator row" ]
-            [ div [ class "col-sm-6 memory-view__start-addr" ]
-                [ span [ style "font-size" "0.8em" ] [ text "Start Address at: 0x " ]
-                , select [ onInput ChangeMemoryStart, value (String.fromInt model.memoryStartLarge) ] (List.map (\n -> option [ value <| String.fromInt <| n ] [ text (String.toUpper (toRadix 16 n)) ]) (List.map (\n -> n * 4352) (List.range 0 15)))
-                ]
-            , div [ class "col-md-6 memory-view__addr-range" ]
-                [ input
-                    [ type_ "range"
-                    , Html.Attributes.min "0"
-                    , Html.Attributes.max "4096"
-                    , step "256"
-                    , onInput ChangeMemoryStartSmall
-                    , value (String.fromInt memoryStartSmall)
+        , div [ class "col-md-7 pull-right" ]
+            [ div [ class "input-group memory-view__jump-to-addr", style "padding" "15px 0 0 10px" ]
+                [ span [ class "input-group-addon" ] [ text "0x" ]
+                , input
+                    [ type_ "text"
+                    , class "form-control"
+                    , placeholder "Jump to Address"
+                    , pattern "[0-9A-Fa-f]{4}"
+                    , onInput JumpToAddress
                     ]
                     []
                 ]
             ]
         ]
+showMemoryCellRow2 : Model -> Int -> Int -> Array Int -> Html Msg
+showMemoryCellRow2 model elIdx listIdx cells =
+    div [ class "memory-view__row" ]
+        (( span [ class "memory-view__row-header" ] [ text <| String.toUpper <| toThreeBytes listIdx ])
+        :: List.indexedMap (showMemoryCell model (listIdx * 16)) (Array.toList cells)
+        )
 
+
+
+memoryListConfig model =
+    InfiniteList.config
+            { itemView = showMemoryCellRow2 model
+            , itemHeight = InfiniteList.withConstantHeight 26
+            , containerHeight = 416
+            }
+            |> InfiniteList.withClass "table memory-view__cells"
+
+showMemory2 model memory =
+    div [ class "memory-view" ]
+        [ memoryViewHeader
+        , div
+            [ class "table memory-view__cells" ]
+            [ div [] (span [ class "memory-view__column-header", style "opacity" "0" ] [ text "000" ] :: List.map (\c -> span [ class "memory-view__column-header" ] [ text <| "0" ++ String.toUpper (toRadix 16 c) ]) (List.range 0 15))
+            , div
+                [ style "width" "100%"
+                , style "height" "416px"
+                , style "overflow-x" "hidden"
+                , style "overflow-y" "auto"
+                , style  "-webkit-overflow-scrolling" "touch"
+                , InfiniteList.onScroll InfiniteListMsg
+                , id "memory-view-infinite-list"
+                ]
+                [ InfiniteList.view (memoryListConfig model) model.infiniteList (arrayChunk 16 memory) ]
+            ]
+        ]
+
+arrayChunk : Int -> Array a -> List (Array a)
+arrayChunk chunkSize arr =
+    List.map (\start -> Array.slice (chunkSize * start) ((start + 1) * chunkSize) arr) <| List.range 0 ((Array.length arr // chunkSize) - 1)
 
 isEven n =
     modBy 2 n == 0
@@ -1211,12 +1251,12 @@ showMemoryCell model start col cell =
         addr =
             start + col
     in
-    td
-        [ class ("memory-view__cell_" ++ memoryCellHighlightType model addr cell)
+    span
+        [ class ("memory-view__cell memory-view__cell_" ++ memoryCellHighlightType model addr cell)
         , title (toWord addr)
         , onDoubleClick (EditMemoryCell addr)
         ]
-        [ span [ hidden (addr == Maybe.withDefault -1 model.editingMemoryCell) ] [ text <| String.toUpper <| toByte <| cell ]
+        [ span [ class "memory-view__cell-text", hidden (addr == Maybe.withDefault -1 model.editingMemoryCell) ] [ text <| String.toUpper <| toByte <| cell ]
         , span [ hidden (addr /= Maybe.withDefault -1 model.editingMemoryCell) ]
             [ input
                 [ class "memory-view__cell__input"

@@ -1,5 +1,4 @@
 use crate::types::RegM;
-use crate::types::RegPair;
 use crate::types::State8085;
 use crate::utils;
 use crate::instructions::arithmetic::{subtract, ShouldPreserveCarry};
@@ -85,22 +84,22 @@ fn update_logical_flags(result: u8, state: &mut State8085) {
     state.cpu.cc.p = utils::parity(result);
 }
 
-fn opAcc(op: &dyn Fn(u8, u8) -> u8, data: u8, state: &mut State8085) -> u8 {
+fn op_acc(op: &dyn Fn(u8, u8) -> u8, data: u8, state: &mut State8085) -> u8 {
     let result = op(state.cpu.a, data);
     update_logical_flags(result, state);
     return result;
 }
 
-fn andAcc(data: u8, state: &mut State8085) -> u8 {
-    return opAcc(&|x, y| x & y, data, state);
+fn and_acc(data: u8, state: &mut State8085) -> u8 {
+    return op_acc(&|x, y| x & y, data, state);
 }
 
-fn orAcc(data: u8, state: &mut State8085) -> u8 {
-    return opAcc(&|x, y| x | y, data, state);
+fn or_acc(data: u8, state: &mut State8085) -> u8 {
+    return op_acc(&|x, y| x | y, data, state);
 }
 
-fn xorAcc(data: u8, state: &mut State8085) -> u8 {
-    return opAcc(&|x, y| x ^ y, data, state);
+fn xor_acc(data: u8, state: &mut State8085) -> u8 {
+    return op_acc(&|x, y| x ^ y, data, state);
 }
 
 /**
@@ -148,7 +147,7 @@ fn xorAcc(data: u8, state: &mut State8085) -> u8 {
  * NOTE: The 8085 logical AND instructions always set the auxiliary flag (AC) ON
  */
 pub fn ana(reg: RegM, state: &mut State8085) {
-    state.cpu.a = andAcc(utils::read_register(reg, state), state);
+    state.cpu.a = and_acc(utils::read_register(reg, state), state);
     state.cpu.cc.ac = true;
 }
 
@@ -181,7 +180,7 @@ pub fn ana(reg: RegM, state: &mut State8085) {
  *                      Flags: Z,S,P,CY,AC
  */
 pub fn ani(data: u8, state: &mut State8085) {
-    state.cpu.a = andAcc(data, state);
+    state.cpu.a = and_acc(data, state);
     state.cpu.cc.ac = true;
     state.cpu.pc += 1;
 }
@@ -229,7 +228,7 @@ pub fn ani(data: u8, state: &mut State8085) {
  *                      Flags: Z,S,P,CY,AC
  */
 pub fn ora(reg: RegM, state: &mut State8085) {
-    state.cpu.a = orAcc(utils::read_register(reg, state), state);
+    state.cpu.a = or_acc(utils::read_register(reg, state), state);
     state.cpu.cc.ac = false;
 }
 
@@ -264,7 +263,7 @@ pub fn ora(reg: RegM, state: &mut State8085) {
  *                      Flags: Z,S,P,CY,AC
  */
 pub fn ori(data: u8, state: &mut State8085) {
-    state.cpu.a = orAcc(data, state);
+    state.cpu.a = or_acc(data, state);
     state.cpu.cc.ac = false;
     state.cpu.pc += 1;
 }
@@ -312,7 +311,7 @@ pub fn ori(data: u8, state: &mut State8085) {
  *                      Flags: Z,S,P,CY,AC
  */
 pub fn xra(reg: RegM, state: &mut State8085) {
-    state.cpu.a = xorAcc(utils::read_register(reg, state), state);
+    state.cpu.a = xor_acc(utils::read_register(reg, state), state);
     state.cpu.cc.ac = false;
 }
 
@@ -346,7 +345,7 @@ pub fn xra(reg: RegM, state: &mut State8085) {
  *                      Flags: Z,S,P,CY,AC
  */
 pub fn xri(data: u8, state: &mut State8085) {
-    state.cpu.a = xorAcc(data, state);
+    state.cpu.a = xor_acc(data, state);
     state.cpu.cc.ac = false;
     state.cpu.pc += 1;
 }

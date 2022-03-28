@@ -1,0 +1,238 @@
+$icon-font-path: "~bootstrap-sass/assets/fonts/bootstrap/";
+@import "~bootstrap-sass/assets/stylesheets/bootstrap/_mixins.scss";
+@import "~bootstrap-sass/assets/stylesheets/_bootstrap.scss";
+
+// can add Boostrap overrides, additional Sass/CSS below...
+
+.fade.show {
+    opacity: 1;
+}
+
+#main {
+    padding-top: 80px;
+    max-width: 1580px;
+    margin: 0 auto;
+}
+
+.navbar {
+    position: fixed;
+    width: 100vw;
+    left: 0;
+    top: 0;
+    border-radius: 0;
+}
+
+.navbar-brand {
+    padding-top: 0;
+}
+
+.navbar-brand span {
+    padding-top: 18px;
+    display: block;
+    float: left;
+}
+
+.cpu-display {
+    max-width: 200px;
+}
+
+.coding-area {
+    margin-top: 20px;
+    max-width: 800px;
+}
+
+.coding-area__editor-container {
+    border: 1px solid #ccc;
+    height: 465px;
+}
+
+.coding-area__editor-container .CodeMirror {
+    height: 464px;
+}
+
+.coding-area__toolbar {
+    // margin-bottom: 20px;
+}
+
+.coding-area__load-addr-input {
+    width: 5rem;
+}
+
+.assembler-error {
+    font-size: 70%;
+    background: #ffa;
+    color: #a00;
+    padding: 2px 5px 3px;
+}
+
+.assembled-code-area {
+    padding: 0;
+    max-height: 300px;
+    overflow-y: scroll;
+}
+
+.assembled-code-listing {
+    margin-bottom: 0;
+}
+
+.table > tbody > tr > .assembled-code-listing__lineno-cell,
+.table > tbody > tr > .assembled-code-listing__opcode-cell,
+.table > tbody > tr > .assembled-code-listing__source-cell {
+    padding: 0;
+    padding-left: 10px;
+    border: none;
+    height: 20px;
+}
+
+.table > tbody > tr > .assembled-code-listing__opcode-cell,
+.table > tbody > tr > .assembled-code-listing__source-cell {
+    font-family: monospace;
+}
+
+.table > tbody > tr > .assembled-code-listing__lineno-cell {
+    background: #f7f7f7;
+    color: #999;
+    margin-right: 10px;
+    border-right: 1px solid #ddd;
+}
+
+.coding-area__editor__breakpoint-marker {
+    width: 10px;
+    height: 10px;
+    border-radius: 10px;
+    background: #822;
+    margin: 3px;
+}
+
+.coding-area__editor_running-marker {
+    background: #bbdbec;
+}
+
+.memory-view {
+    width: 580px;
+
+    & &__row-header,
+    & &__column-header,
+    & &__cell {
+        padding: 10px;
+        position: relative;
+        outline: 0;
+        font-size: 0.8em;
+    }
+}
+
+.memory-view__cells {
+    list-style: none;
+    padding: 0;
+    margin-bottom: 10px;
+    font-family: monospace;
+    overflow: hidden;
+}
+
+.memory-view__cell_highlight {
+    background: #ffe976;
+}
+
+.memory-view__cell_has-data {
+    background: #b9fbaf;
+}
+
+.memory-view__row-header,
+.memory-view__column-header {
+    font-weight: bold;
+}
+
+body:not(.nohover) .memory-view__row:hover {
+    background-color: #ffa !important;
+}
+
+.memory-view__cell:hover::after,
+.memory-view__column-header .memory-view__cell:not(:empty):hover::after,
+.memory-view__cell:focus::after,
+.memory-view__column-header .memory-view__cell:not(:empty):focus::after {
+    content: "";
+    height: 10000px;
+    left: 0;
+    position: absolute;
+    top: -5000px;
+    width: 100%;
+    z-index: 0;
+}
+
+.memory-view__cells .memory-view__cell:hover::after,
+.memory-view__cells .memory-view__cell:hover::after {
+    background-color: #ffa !important;
+}
+
+table.memory-view__cells td:focus::after,
+table.memory-view__cells th:focus::after {
+    background-color: lightblue;
+}
+
+.memory-view__cell-text {
+  position: relative;
+  z-index: 1;
+}
+
+ul.memory-view__range-scale {
+    padding: 0;
+    list-style: none;
+}
+
+ul.memory-view__range-scale li {
+    float: left;
+    padding-right: 3px;
+    font-size: 0.7em;
+}
+
+.memory-view__cell__input,
+.reg-display__reg-input {
+    display: inline-block;
+    width: 70%;
+    border: none;
+    border-bottom: 1px solid #ccc;
+    padding-left: 3px;
+}
+
+.reg-display__acc-input {
+    display: inline-block;
+    width: 30%;
+    border: none;
+    border-bottom: 1px solid #ccc;
+    padding-left: 3px;
+}
+
+.memory-view__cell__input {
+    width: 100%;
+}
+
+.reg-display__reg-input:focus {
+    outline: none;
+}
+
+.reg-display__edit-icon {
+    color: #666;
+    margin-left: 8px;
+    cursor: pointer;
+    visibility: hidden;
+}
+
+.reg-display__row:hover .reg-display__edit-icon {
+    visibility: visible;
+}
+
+.footer {
+    background: #f5f5f5;
+    font-size: 0.8em;
+    padding: 10px 10px 0 10px;
+    color: #888;
+    margin-top: 40px;
+}
+
+.alert {
+    position: fixed;
+    z-index: 200;
+    top: 60px;
+    right: 10px;
+    width: 400px;
+}

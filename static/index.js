@@ -1,14 +1,19 @@
 // pull in desired CSS/SASS files
-require( './styles/main.scss' );
-var jQuery = require( 'jquery' );           // <--- remove if Bootstrap's JS not needed
-var $ = jQuery;
-window.jQuery = jQuery;
-require( '../../node_modules/bootstrap-sass/assets/javascripts/bootstrap.js' );   // <--- remove if Bootstrap's JS not needed
-
-var parser = require( '../core/8085-assembler.js' );
+import "@fortawesome/fontawesome-free/css/all.css";
+import "@fortawesome/fontawesome-free/css/svg-with-js.min.css";
+import 'bootstrap/dist/css/bootstrap.css';
+import './styles/shards.css';
+import './styles/main.scss';
+import jQuery from 'jquery';
+import "popper.js";
+import 'bootstrap';
+import parser from '../core/8085-assembler.js';
 import * as wasm  from "../../pkg/index_bg.wasm";
 import * as simulator  from "../../pkg/index.js";
 import { Elm } from  '../elm/Main';
+
+var $ = jQuery;
+window.jQuery = jQuery;
 
 // console.log(_8085Module);
 // var simulator = _8085Module();
@@ -26,7 +31,7 @@ require('./8085-mode.js');
 
 var state = simulator.init_8085();
 
-//! Memoery needs to be initialized by init. Not sure why?
+//! Memory needs to be initialized after init_8085. Not sure why?
 var MEMORY = new Uint8Array(
   wasm.memory.buffer,
   wasm.get_memory_ptr(),
@@ -130,7 +135,9 @@ function initilizeEditor () {
   //   stateComm.setState(simulator, state, o.state);
   // });
 
-  Tour.start();
+  document.querySelector('#start-tour').addEventListener("click", function () {
+    Tour.start();
+  });
 
   var iframe = document.getElementById('nofocusvideo');
   // $f == Froogaloop
@@ -303,7 +310,7 @@ function updateErrors(editor, e) {
   editor.operation(function () {
     var msg = document.createElement("div");
     var icon = msg.appendChild(document.createElement("span"));
-    icon.className = "assembler-error-icon glyphicon glyphicon-exclamation-sign";
+    icon.className = "assembler-error-icon fa fa-exclamation-sign";
     msg.appendChild(document.createTextNode(" " + e.message));
     msg.className = "assembler-error";
 

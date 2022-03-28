@@ -354,14 +354,14 @@ pub fn sui(data: u8, state: &mut State8085) {
 	state.cpu.pc += 1;
 }
 
-fn subtractWithBorrow(lhs: u8, rhs: u8, should_preserve_carry: ShouldPreserveCarry, state: &mut State8085) -> u8 {
+fn subtract_with_borrow(lhs: u8, rhs: u8, should_preserve_carry: ShouldPreserveCarry, state: &mut State8085) -> u8 {
 	let res = lhs - rhs - (if state.cpu.cc.cy { 1 } else { 0 });
 	update_arithmetic_flags(res.into(), should_preserve_carry, state);
 	return res;
 }
 
 fn _sbb(data: u8, state: &mut State8085) -> u8 {
-	return subtractWithBorrow(state.cpu.a, data, ShouldPreserveCarry::UpdateCarry, state);
+	return subtract_with_borrow(state.cpu.a, data, ShouldPreserveCarry::UpdateCarry, state);
 }
 
 pub fn sbb(reg: RegM, state: &mut State8085) {
@@ -373,15 +373,15 @@ pub fn sbi(data: u8, state: &mut State8085) {
 	state.cpu.pc += 1;
 }
 
-fn _inx(regH: u8, regL: u8) -> (u8, u8) {
-	let l = regL + 1;
-	let h = if l == 0 { regH + 1 } else { regH };
+fn _inx(reg_h: u8, reg_l: u8) -> (u8, u8) {
+	let l = reg_l + 1;
+	let h = if l == 0 { reg_h + 1 } else { reg_h };
 
 	return (h, l);
 }
 
-pub fn inx(regPair: RegPair, state: &mut State8085) {
-	match regPair {
+pub fn inx(reg_pair: RegPair, state: &mut State8085) {
+	match reg_pair {
 		RegPair::B => {
 			let out = _inx(state.cpu.b, state.cpu.c);
 			state.cpu.c = out.1;
@@ -401,15 +401,15 @@ pub fn inx(regPair: RegPair, state: &mut State8085) {
 	}
 }
 
-fn _dcx(regH: u8, regL: u8) -> (u8, u8) {
-	let l = regL - 1;
-	let h = if l == 0xFF { regH - 1 } else { regH };
+fn _dcx(reg_h: u8, reg_l: u8) -> (u8, u8) {
+	let l = reg_l - 1;
+	let h = if l == 0xFF { reg_h - 1 } else { reg_h };
 
 	return (h, l);
 }
 
-pub fn dcx(regPair: RegPair, state: &mut State8085) {
-	match regPair {
+pub fn dcx(reg_pair: RegPair, state: &mut State8085) {
+	match reg_pair {
 		B => {
 			let out = _dcx(state.cpu.b, state.cpu.c);
 			state.cpu.c = out.1;

@@ -77,11 +77,6 @@ $icon-font-path: '~bootstrap-sass/assets/fonts/bootstrap/';
     height: 20px;
 }
 
-.table > tbody > tr > .assembled-code-listing__opcode-cell,
-.table > tbody > tr > .assembled-code-listing__source-cell {
-    font-family: monospace;
-}
-
 .table > tbody > tr > .assembled-code-listing__lineno-cell {
     background: #f7f7f7;
     color: #999;

@@ -1,4 +1,4 @@
-use crate::types::{RegM, RegPair, State8085, Addr};
+use crate::types::{RegPair, State8085, Addr};
 use std::convert::TryInto;
 use crate::utils;
 
@@ -198,12 +198,12 @@ pub fn push_psw(state: &mut State8085) {
     state.cpu.sp = state.cpu.sp - 2;
 }
 
-pub fn pop(regPair: RegPair, state: &mut State8085) {
+pub fn pop(reg_pair: RegPair, state: &mut State8085) {
     let data = (
         utils::read_memory_at(utils::addr_from_word(state.cpu.sp + 1), state),
         utils::read_memory_at(utils::addr_from_word(state.cpu.sp), state)
     );
-    utils::write_register_pair_from_tuple(regPair, data, state);
+    utils::write_register_pair_from_tuple(reg_pair, data, state);
     state.cpu.sp += 2;
 }
 
