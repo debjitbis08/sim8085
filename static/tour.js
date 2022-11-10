@@ -1,8 +1,4 @@
 function start () {
-    var isDone = localStorage.getItem("tour-done");
-
-    if (isDone === "1") return;
-
     var tour = {
         id: "tutorial",
         steps: [
