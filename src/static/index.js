@@ -1,26 +1,38 @@
 // pull in desired CSS/SASS files
-require( './styles/main.scss' );
-var $ = jQuery = require( '../../node_modules/jquery/dist/jquery.js' );           // <--- remove if Bootstrap's JS not needed
-require( '../../node_modules/bootstrap-sass/assets/javascripts/bootstrap.js' );   // <--- remove if Bootstrap's JS not needed
+import( './styles/main.scss' );
+import jQuery from 'jquery' ;           // <--- remove if Bootstrap's JS not needed
+// require( '../../node_modules/bootstrap-sass/assets/javascripts/bootstrap.js' );   // <--- remove if Bootstrap's JS not needed
 
-var parser = require( '../core/8085-assembler.js' );
-var simulator = require( '../core/8085.js' )({ ENVIRONMENT: "WEB" });
-var stateComm = require('./cpuState.js');
-var Tour = require("./tour.js");
+import { parse } from '../core/8085.pegjs';
+import Module from '../core/8085.js';
+import *  as stateComm from './cpuState.js';
+import * as Tour from './tour.js';
 
-require('./8085-mode.js');
+import './8085-mode.js';
 
-window.simulator = simulator;
-var execute8085Program = simulator.cwrap('ExecuteProgram', 'number', ['number', 'number']);
-var execute8085ProgramUntil = simulator.cwrap('ExecuteProgramUntil', 'number', ['number', 'number', 'number', 'number']);
-var load8085Program = simulator.cwrap('LoadProgram', 'number', ['number', 'array', 'number', 'number']);
+const $ = jQuery;
 
-var statePtr = simulator._Init8085();
+let simulator;
+let execute8085Program;
+let execute8085ProgramUntil;
+let load8085Program;
+let statePtr;
+Module().then((sim) => {
+  simulator = sim;
+  window.simulator = simulator;
+  execute8085Program = simulator.cwrap('ExecuteProgram', 'number', ['number', 'number']);
+  execute8085ProgramUntil = simulator.cwrap('ExecuteProgramUntil', 'number', ['number', 'number', 'number', 'number']);
+  load8085Program = simulator.cwrap('LoadProgram', 'number', ['number', 'array', 'number', 'number']);
+  statePtr = simulator._Init8085();
+});
 
 // inject bundled Elm app into div#main
-var Elm = require( '../elm/Main' );
-var app = Elm.Main.embed(document.getElementById( 'main' ), {
-  initialCode: localStorage.getItem("code")
+import { Elm } from  '../Main.elm';
+var app = Elm.Main.init({
+  node: document.getElementById('main'),
+  flags: {
+    initialCode: localStorage.getItem("code")
+  }
 });
 
 var RUNNING_LINE_CLASS = "coding-area__editor_running-marker";
@@ -91,36 +103,36 @@ function initilizeEditor () {
   editor.on('change', saveCode);
   editor.on('gutterClick', updateBreakpoints);
 
-  app.ports.load.subscribe(load.bind(null, editor));
+  // app.ports.load.subscribe(load.bind(null, editor));
 
-  app.ports.run.subscribe(runProgram.bind(null, editor));
+  // app.ports.run.subscribe(runProgram.bind(null, editor));
 
-  app.ports.runOne.subscribe(runSingleInstruction.bind(null, editor));
+  // app.ports.runOne.subscribe(runSingleInstruction.bind(null, editor));
 
-  app.ports.runTill.subscribe(runTill.bind(null, editor));
+  // app.ports.runTill.subscribe(runTill.bind(null, editor));
 
-  app.ports.debug.subscribe(startDebug.bind(null, editor));
+  // app.ports.debug.subscribe(startDebug.bind(null, editor));
 
-  app.ports.nextLine.subscribe(function (line) {
-    removeLineHighlight(editor);
-    addLineHighlight(editor, line);
-  });
+  // app.ports.nextLine.subscribe(function (line) {
+  //   removeLineHighlight(editor);
+  //   addLineHighlight(editor, line);
+  // });
 
-  app.ports.editorDisabled.subscribe(editor.setOption.bind(editor, "readOnly"));
+  // app.ports.editorDisabled.subscribe(editor.setOption.bind(editor, "readOnly"));
 
-  app.ports.updateState.subscribe(function (o) {
-    stateComm.setState(simulator, statePtr, o.state);
-  });
+  // app.ports.updateState.subscribe(function (o) {
+  //   stateComm.setState(simulator, statePtr, o.state);
+  // });
 
-  Tour.start();
+  // Tour.start();
 
-  var iframe = document.getElementById('nofocusvideo');
+  // var iframe = document.getElementById('nofocusvideo');
   // $f == Froogaloop
-  var player = $f(iframe);
+  // var player = $f(iframe);
 
-  $('.help-modal').on('hidden.bs.modal', function () {
-    player.api('pause');
-  });
+  // $('.help-modal').on('hidden.bs.modal', function () {
+  //   player.api('pause');
+  // });
 }
 
 function removeLineHighlight(editor) {
@@ -143,6 +155,7 @@ function makeMarker() {
 
 function saveCode(cm) {
     var code = cm.getValue();
+  console.log(code);
     app.ports.code.send(code);
     localStorage.setItem("code", code);
 }
@@ -278,7 +291,7 @@ function assembleProgram(editor, code) {
     clearTimeout(assembling);
     try {
       // Try to assemble Program
-      var assembled = parser.parse(code);
+      var assembled = parse(code);
     } catch (e) {
       assembling = setTimeout(function () {
         updateErrors(editor, e);

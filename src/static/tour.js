@@ -1,4 +1,4 @@
-function start () {
+export function start () {
     var isDone = localStorage.getItem("tour-done");
 
     if (isDone === "1") return;
@@ -106,5 +106,3 @@ function start () {
         localStorage.setItem('tour-done', 1);
     })
 }
-
-module.exports = { start: start };

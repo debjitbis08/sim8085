@@ -1,11 +1,6 @@
 Sim8085
 =======
 
-   
-> :warning: Major refactor in progress. **All issues and bugs will be handled with the refactoring**.
-
----------------------------------------------------------------------------------------
-
 Sim8085 is a online development environment for Intel 8085 microprocessor. It is
 hosted at https://www.sim8085.com.
 
@@ -38,4 +33,3 @@ hosted at https://www.sim8085.com.
 1. Build assembler and simulator code.
 2. Do `yarn build` to build the UI.
 3. Built code should be available in `dist`.
- 

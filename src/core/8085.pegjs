@@ -395,7 +395,7 @@ lineError "Error in this line" = lineWithError:.* {
 labelPart = label:label ":" whitespace* {
     return { value: label.value, location: label.location, type: "definition" }
 }
-label "label" = first:[a-zA-Z?@] rest:([a-zA-Z0-9]*) {
+label "label" = first:[a-zA-Z?@] rest:([a-zA-Z0-9_]*) {
 	return { value: first + rest.join(""), location: location() };
 }
 

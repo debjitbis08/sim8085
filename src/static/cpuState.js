@@ -15,7 +15,7 @@ function readUint16(simulator, pointer, def) {
   return v < 0 ? 65536 + v : v;
 }
 
-function getStateFromPtr (simulator, statePtr) {
+export function getStateFromPtr (simulator, statePtr) {
     var flags = simulator.getValue(statePtr + 12, 'i8', 0).toString(2);
     var state = {
       a: readUint8(simulator, statePtr + 0, 0),
@@ -58,7 +58,7 @@ function boolToBin (v) {
   return 0;
 }
 
-function setState (simulator, statePtr, state) {
+export function setState (simulator, statePtr, state) {
     simulator.setValue(statePtr + 0, state.a, 'i8', 0);
     simulator.setValue(statePtr + 1, state.b, 'i8', 0);
     simulator.setValue(statePtr + 2, state.c, 'i8', 0);
@@ -85,9 +85,4 @@ function setState (simulator, statePtr, state) {
       simulator.setValue(memoryPtr + i, state.memory[i], 'i8', 0);
       i++;
     }
-}
-
-module.exports = {
-  getStateFromPtr: getStateFromPtr,
-  setState: setState
 }

@@ -6,3 +6,4 @@ src/components
 elm-stuff/
 tmp/
 .idea/
+target/

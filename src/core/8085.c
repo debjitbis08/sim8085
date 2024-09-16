@@ -1174,16 +1174,25 @@ int Emulate8085Op(State8085 *state, uint16_t offset)
 	{
 		uint16_t res = state->a;
 
-		if (state->cc.ac == 1 || (state->a & 0x0f) > 9)
+		uint8_t least_four_bits = state->a & 0x0f;
+
+		if (state->cc.ac == 1 || least_four_bits > 9) {
 			res = state->a + 6;
 
-		ArithFlagsA(state, res, PRESERVE_CARRY);
-		if ((uint8_t)res > 0xf)
-			state->cc.ac = 1;
-		state->a = (uint8_t)res;
+    		if (least_four_bits + 6 > 0xf)
+    			state->cc.ac = 1;
+		}
 
-		if (state->cc.cy == 1 || ((state->a >> 4) & 0x0f) > 9)
-			res = state->a + 96;
+		if (res > 0xff)
+			state->cc.cy = 1;
+
+		res = res & 0xff;
+
+		least_four_bits = state->a & 0x0f;
+		uint8_t most_four_bits = (res >> 4) & 0x0f;
+
+		if (state->cc.cy == 1 || most_four_bits > 9)
+			res = ((most_four_bits + 6) << 4) & least_four_bits;
 
 		ArithFlagsA(state, res, UPDATE_CARRY);
 		state->a = (uint8_t)res;
