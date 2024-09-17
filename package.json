@@ -1,52 +1,22 @@
 {
-    "name": "sim8085",
-    "description": "Development environment for Intel 8085 microprocessor.",
-    "private": true,
-    "type": "module",
-    "version": "0.1.11",
-    "license": "BSD-3-Clause",
-    "author": "Debjit Biswas",
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/debjitbis08/sim8085"
-    },
-    "devDependencies": {
-        "autoprefixer": "^6.7.7",
-        "bootstrap-sass": "^3.4.3",
-        "conventional-changelog-cli": "^1.3.9",
-        "elm": "^0.19.1-6",
-        "elm-format": "^0.8.7",
-        "http-server": "^0.11.1",
-        "husky": "^0.14.3",
-        "jquery": "^3.7.1",
-        "npm-run-all": "^4.1.2",
-        "peggy": "^4.0.3",
-        "pegjs": "~0.10.0",
-        "postcss-loader": "^1.3.3",
-        "rimraf": "^2.5.2",
-        "sass-embedded": "^1.78.0",
-        "validate-commit": "^3.4.0",
-        "vite": "^5.4.5",
-        "vite-plugin-elm": "^3.0.1",
-        "vite-plugin-peggy-loader": "^2.0.1"
-    },
-    "scripts": {
-        "commitmsg": "validate-commit-msg",
-        "postinstall": "elm package install -y",
-        "dev": "vite",
-        "build": "rimraf dist && webpack",
-        "webpack": "webpack",
-        "watch": "webpack --watch",
-        "make-dist": "mkdir dist",
-        "build-assembler": "pegjs --format commonjs -o src/core/8085-assembler.js src/core/8085.pegjs",
-        "build-emulator": "emcc src/core/8085.c -o src/core/8085.js --pre-js src/core/emcc-env.js --post-js src/core/emcc-export.js -Oz --closure 0 -s EXPORTED_FUNCTIONS=\"['_Init8085','_ExecuteProgram', '_Emulate8085Op', '_LoadProgram', '_ExecuteProgramUntil']\" -s EXPORTED_RUNTIME_METHODS=\"['ccall', 'cwrap', 'getValue', 'setValue']\" -s NO_EXIT_RUNTIME=1 -s NO_FILESYSTEM=1 -s MODULARIZE=1 -s WASM=0 -s EXPORT_ES6=1",
-        "cypress:open": "cypress open",
-        "cypress:run": "cypress run --record false",
-        "run-test-server": "http-server dist/ -p 3000",
-        "test": "yarn build && run-p --race run-test-server cypress:run",
-        "version": "conventional-changelog -p angular -i CHANGELOG.md -s -r 0 && git add CHANGELOG.md"
-    },
-    "dependencies": {
-        "bootstrap": "^5.3.3"
-    }
+  "name": "sim8085",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/solid-js": "^4.4.1",
+    "@astrojs/tailwind": "^5.1.0",
+    "@tanstack/solid-virtual": "^3.10.8",
+    "astro": "^4.15.6",
+    "solid-devtools": "^0.30.1",
+    "solid-icons": "^1.1.0",
+    "solid-js": "^1.8.22",
+    "tailwindcss": "^3.4.11"
+  }
 }

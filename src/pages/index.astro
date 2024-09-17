@@ -1,0 +1,14 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Card from '../components/Card.astro';
+import { App } from '../components/App.jsx';
+---
+
+<Layout title="Sim8085 - A 8085 microprocessor simulator">
+	<main class="m-8">
+	   <App client:only="solid-js"/>
+   	</main>
+</Layout>
+
+<style>
+</style>

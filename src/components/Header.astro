@@ -1,0 +1,19 @@
+---
+import GithubIcon from '../icons/github.svg?raw';
+---
+<header class="w-full p-4 bg-gray-100 dark:bg-gray-900 flex justify-between items-center">
+  <div>
+    <span class="text-gray-800 dark:text-gray-200">Sim8085</span>
+    <!-- <img src="/dice-white.svg" alt="Sim8085" class="w-8 h-8 hidden dark:inline">
+    <img src="/dice-black.svg" alt="Diceware" class="w-8 h-8 dark:hidden"> -->
+  </div>
+  <div class="flex items-center space-x-2">
+      <a href="#faqs" class="text-blue-600 dark:text-blue-400">FAQs</a>
+      <div class="pl-2 border-r border-r-gray-500 dark:border-r-gray-600 h-4"></div>
+      <a href="https://github.com/debjitbis08/sim8085" target="_blank" class="flex items-center gap-1 text-blue-600 dark:text-blue-400">
+          <div class="text-black dark:text-white">
+            <Fragment set:html={GithubIcon} />
+          </div>
+      </a>
+  </div>
+</header>
