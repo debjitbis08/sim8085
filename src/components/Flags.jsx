@@ -26,7 +26,7 @@ export function Flags() {
   return (
     <div>
       <div class="flex border-b-2">
-          <h2 class="text-xl grow">Flags</h2>
+          <h2 class="text-xl grow pb-1">Flags</h2>
           <button title="Clear Registers" class="text-red-700" onClick={clearFlags}>
             <AiOutlineClear />
           </button>

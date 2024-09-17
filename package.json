@@ -1,7 +1,15 @@
 {
   "name": "sim8085",
+  "description": "Development environment for Intel 8085 microprocessor.",
   "type": "module",
   "version": "0.0.1",
+  "private": true,
+  "license": "BSD-3-Clause",
+  "author": "Debjit Biswas",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/debjitbis08/sim8085"
+  },
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
@@ -12,8 +20,14 @@
   "dependencies": {
     "@astrojs/solid-js": "^4.4.1",
     "@astrojs/tailwind": "^5.1.0",
+    "@codemirror/commands": "^6.6.2",
+    "@codemirror/state": "^6.4.1",
+    "@codemirror/view": "^6.33.0",
+    "@kobalte/core": "^0.13.6",
+    "@kobalte/tailwindcss": "^0.9.0",
     "@tanstack/solid-virtual": "^3.10.8",
     "astro": "^4.15.6",
+    "codemirror": "^6.0.1",
     "solid-devtools": "^0.30.1",
     "solid-icons": "^1.1.0",
     "solid-js": "^1.8.22",
