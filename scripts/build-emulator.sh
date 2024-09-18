@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set +x
+
 emcc \
     src/core/8085.c \
     -o src/core/8085.js \

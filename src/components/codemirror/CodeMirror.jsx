@@ -4,6 +4,7 @@ import { EditorView, keymap } from "@codemirror/view";
 import { defaultKeymap } from "@codemirror/commands";
 import { basicSetup } from "codemirror";
 import { StoreContext } from "../StoreContext";
+import debounce from 'debounce';
 
 export function CodeMirror(props) {
   const { store, setStore } = useContext(StoreContext);
@@ -14,7 +15,8 @@ export function CodeMirror(props) {
     const onChangeListener = EditorView.updateListener.of((update) => {
       if (update.docChanged) {
         const newDoc = update.state.doc.toString(); // Get the new document content
-        setStore("editorContent", newDoc); // Update the store with new content
+        console.log('Updating Code');
+        setStore("code", newDoc); // Update the store with new content
       }
     });
 

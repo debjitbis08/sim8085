@@ -4,7 +4,7 @@ import { HiOutlineWrench } from 'solid-icons/hi';
 import Module from '../core/8085.js';
 import { StoreContext } from "./StoreContext.js";
 import { parse } from '../core/8085.pegjs';
-import { getStateFromPtr } from "../cpuState.js";
+import { getStateFromPtr, setState } from "../cpuState.js";
 import { produce } from "solid-js/store";
 
 export function Actions() {
@@ -54,8 +54,6 @@ export function Actions() {
       return a;
     });
 
-    console.log(`Load Address: ${store.loadAddress}`);
-
     const statePointer = load8085Program(
       store.statePointer,
       assembled.map((c) => c.data),
@@ -67,12 +65,61 @@ export function Actions() {
 
     setStore(
       produce((draftStore) => {
-        console.log(draftStore.code);
         draftStore.statePointer = statePointer;
         draftStore.memory = state.memory;
         draftStore.assembled = assembled;
       })
     );
+  }
+
+  function runProgram (input) {
+      load();
+
+      var inputState = getCpuState(store);
+      let statePointer = store.statePointer;
+      var errorStatus = 0;
+
+      // TODO Check why Loaded state check is needed
+      setState(simulator, statePointer, inputState);
+
+      try {
+        statePointer = execute8085Program(statePointer, store.loadAddress);
+      } catch (e) {
+        // if (e.status === 1) showError("UNKNOWN_INST");
+        // else if (e.status === 2) showError("INFINITE_LOOP");
+        // else showError("UNKNOWN");
+        // errorStatus = e.status;
+        console.error(e);
+      }
+
+      if (errorStatus === 0) {
+        const outputState = getStateFromPtr(simulator, statePointer);
+        console.log(outputState.a);
+        setStore(
+          produce((draftStore) => {
+            draftStore.accumulator = outputState.a;
+            // registers
+            draftStore.registers.bc.high = outputState.b;
+            draftStore.registers.bc.low = outputState.c;
+            draftStore.registers.de.high = outputState.d;
+            draftStore.registers.de.low = outputState.e;
+            draftStore.registers.hl.high = outputState.h;
+            draftStore.registers.hl.low = outputState.l;
+            // flags
+            draftStore.flags.z = outputState.flags.z;
+            draftStore.flags.s = outputState.flags.s;
+            draftStore.flags.p = outputState.flags.p;
+            draftStore.flags.c = outputState.flags.cy;
+            draftStore.flags.ac = outputState.flags.ac;
+            draftStore.stackPointer = outputState.sp;
+            draftStore.programCounter = outputState.pc;
+            draftStore.statePointer = statePointer;
+            draftStore.memory = outputState.memory;
+          })
+        );
+      } else {
+        app.ports.runError.send(errorStatus);
+      }
   }
 
   return (
@@ -84,9 +131,38 @@ export function Actions() {
       >
         <HiOutlineWrench />
       </button>
-      <button type="button" class="text-green-600 p-1 rounded border border-transparent hover:border-green-600">
+      <button
+        type="button"
+        class="text-green-600 p-1 rounded border border-transparent hover:border-green-600"
+        onClick={runProgram}
+      >
         <VsPlay />
       </button>
     </div>
   )
+}
+
+
+function getCpuState(store) {
+  return {
+    a: store.accumulator,
+    b: store.registers.bc.high,
+    c: store.registers.bc.low,
+     d: store.registers.de.high,
+     e: store.registers.de.low,
+     h: store.registers.hl.high,
+     l: store.registers.hl.low,
+     sp: store.stackPointer,
+     pc: store.programCounter,
+     flags:
+          { z: store.flags.z,
+     s: store.flags.s,
+     p: store.flags.p,
+     cy: store.flags.c,
+     ac: store.flags.ac,
+          },
+     memory: store.memory,
+     ptr: store.statePointer
+
+      }
 }
