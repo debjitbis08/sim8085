@@ -4,7 +4,7 @@ import { AiOutlineClear, AiOutlineSearch } from "solid-icons/ai";
 import { toByteString } from "../utils/NumberFormat";
 import { createVirtualizer } from '@tanstack/solid-virtual';
 
-export function Memory() {
+export function MemoryGrid() {
   const { store, setStore } = useContext(StoreContext);
 
   let parentRef;

@@ -2,7 +2,7 @@ import { Registers } from "./Registers";
 import { createStore } from "solid-js/store";
 import { StoreContext } from "./StoreContext";
 import { Flags } from "./Flags";
-import { Memory } from "./Memory";
+import { MemoryGrid } from "./MemoryGrid";
 import { CodeMirror } from "./codemirror/CodeMirror";
 import { Tabs } from "@kobalte/core/tabs";
 import { HiOutlineCpuChip } from 'solid-icons/hi';
@@ -92,7 +92,7 @@ export function App() {
           <CodeMirror />
         </div>
         <div class="h-32 rounded-lg lg:col-span-2">
-        <Memory />
+        <MemoryGrid />
         </div>
       </div>
     </StoreContext.Provider>
