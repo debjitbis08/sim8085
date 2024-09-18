@@ -1173,27 +1173,35 @@ int Emulate8085Op(State8085 *state, uint16_t offset)
 	case 0x27: // DAA
 	{
 		uint16_t res = state->a;
+		// printf("value of a %d\n", res);
 
 		uint8_t least_four_bits = state->a & 0x0f;
+		// printf("least four bits %d\n", least_four_bits);
 
 		if (state->cc.ac == 1 || least_four_bits > 9) {
+		    // printf("Adding 6 to a\n");
 			res = state->a + 6;
 
     		if (least_four_bits + 6 > 0xf)
     			state->cc.ac = 1;
 		}
 
-		if (res > 0xff)
-			state->cc.cy = 1;
+		if (res > 0xff) {
+		    // printf("Setting carry flag\n");
+    		state->cc.cy = 1;
+		}
 
 		res = res & 0xff;
 
-		least_four_bits = state->a & 0x0f;
+		least_four_bits = res & 0x0f;
 		uint8_t most_four_bits = (res >> 4) & 0x0f;
 
-		if (state->cc.cy == 1 || most_four_bits > 9)
-			res = ((most_four_bits + 6) << 4) & least_four_bits;
+		if (state->cc.cy == 1 || most_four_bits > 9) {
+		    // printf("Adding 6 to high bits %d\n", res);
+    		res = ((most_four_bits + 6) << 4) | least_four_bits;
+		}
 
+		// printf("Final value %d\n", res);
 		ArithFlagsA(state, res, UPDATE_CARRY);
 		state->a = (uint8_t)res;
 	}
