@@ -336,14 +336,17 @@ machineCode = prg:program {
                 throw e;
             }
 
+            var valueFromSymbolTable = symbolTable[line.data.value].value;
+
             dataVal = (typeof line.data.value === "string")
                 ? line.data.type === "direct"
                 ? symbolTable[line.data.value].addr
-                : symbolTable[line.data.value].value
+                : Array.isArray(valueFromSymbolTable) ? valueFromSymbolTable[0] << 8 | valueFromSymbolTable[1] : valueFromSymbolTable
                 : (typeof line.data === "number") ? line.data
                 : (typeof line.data.value === "number") ? line.data.value
                 : typeof line.data.value === "object" && line.data.value.value ? line.data.value.value
                 : 0;
+
             objCode.push({ data: line.opcode, kind: 'code', location: line.location });
             objCode.push({ data: dataVal & 0xFF, kind: (typeof line.data.value === "string" && line.data.type === "direct") ? 'addr' : 'data', location: line.data.location });
             objCode.push({ data: dataVal >> 8, kind: (typeof line.data.value === "string" && line.data.type === "direct") ? 'addr' : 'data', location: line.data.location });
@@ -362,14 +365,14 @@ program = __ first:line rest:(eol+ __ l:line {return l})* {return [first].concat
 
 opWithLabel = label:labelPart? op:(operation / directive) comment? {
     if (label && label !== "") {
-        console.log("op", op);
         symbolTable[label.value] = {
             addr: ilc,
             value: op.opcode != null ? op.opcode :
                 op.data ?
                     Array.isArray(op.data) ?
-                        op.data[0].value ?
-                            op.data[0].value : op.data[0]
+                        op.data.map(function (d) {
+                            return d.value ? d.value : d;
+                        })
                         : op.data.value ?
                             op.data.value : op.data
                     : null
