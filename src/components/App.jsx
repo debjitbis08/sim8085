@@ -28,6 +28,7 @@ export function App() {
 
   const [store, setStore] = createStore({
     code: INITIAL_CODE,
+    assembled: [],
     loadAddress: 0x0800,
     accumulator: 0,
     isEditingAccumulator: false,

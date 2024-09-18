@@ -15,7 +15,8 @@
     "start": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "build-emulator": "./scripts/build-emulator.sh"
   },
   "dependencies": {
     "@astrojs/solid-js": "^4.4.1",
@@ -32,5 +33,9 @@
     "solid-icons": "^1.1.0",
     "solid-js": "^1.8.22",
     "tailwindcss": "^3.4.11"
+  },
+  "devDependencies": {
+    "peggy": "^4.0.3",
+    "vite-plugin-peggy-loader": "^2.0.1"
   }
 }
