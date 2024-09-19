@@ -1,5 +1,5 @@
 import { AiOutlineClear, AiOutlineEdit, AiOutlineSave } from 'solid-icons/ai'
-import { useContext, createSignal } from 'solid-js';
+import { useContext, createSignal, createEffect } from 'solid-js';
 import { StoreContext } from './StoreContext';
 import { produce } from 'solid-js/store';
 
@@ -49,7 +49,7 @@ export function Registers() {
           </button>
       </div>
       <div>
-          <Register name="A/PSW" high={store.accumulator} low={0} canEditLow={false} onSave={updateAccumulator}/>
+          <Register name="A/PSW" high={store.accumulator} low={getPSW(store.flags)} canEditLow={false} onSave={updateAccumulator}/>
           {
             Object.keys(store.registers).map((registerId) => (
               <Register
@@ -69,6 +69,13 @@ function Register(props) {
   const [editing, setEditing] = createSignal(false);
   const [highValue, setHighValue] = createSignal(toByteString(props.high));
   const [lowValue, setLowValue] = createSignal(toByteString(props.low));
+
+  createEffect(() => {
+    if (!editing()) {
+      setHighValue(toByteString(props.high));
+      setLowValue(toByteString(props.low));
+    }
+  });
 
   const startEditing = () => {
     setEditing(true);
@@ -164,4 +171,16 @@ function toRadix(r, n) {
     } else {
         return n.toString().toUpperCase();
     }
+}
+
+function getPSW(flags) {
+  // Convert booleans to 1 (true) or 0 (false)
+  return ((flags.s ? 1 : 0) << 7) |  // Sign flag at bit 7
+         ((flags.z ? 1 : 0) << 6) |  // Zero flag at bit 6
+         (0 << 5) |                  // Bit 5 is always 0
+         ((flags.ac ? 1 : 0) << 4) | // Auxiliary carry flag at bit 4
+         (0 << 3) |                  // Bit 3 is always 0
+         ((flags.p ? 1 : 0) << 2) |  // Parity flag at bit 2
+         (1 << 1) |                  // Bit 1 is always 1
+         (flags.c ? 1 : 0);          // Carry flag at bit 0
 }

@@ -2056,14 +2056,24 @@ int Emulate8085Op(State8085 *state, uint16_t offset)
 		break;
 	case 0xf1: //POP PSW
 	{
-		state->a = state->memory[state->sp + 1];
-		uint8_t psw = state->memory[state->sp];
-		state->cc.z = (0x01 == (psw & 0x01));
-		state->cc.s = (0x02 == (psw & 0x02));
-		state->cc.p = (0x04 == (psw & 0x04));
-		state->cc.cy = (0x05 == (psw & 0x08));
-		state->cc.ac = (0x10 == (psw & 0x10));
-		state->sp += 2;
+        // Step 1: Restore the condition flags from the current stack pointer location
+        uint8_t psw = state->memory[state->sp];
+
+        // Step 2: Extract the condition flags from the PSW byte
+        state->cc.cy = (psw & 0x01);  // Carry flag (bit 0)
+        state->cc.p = (psw & 0x04) >> 2;  // Parity flag (bit 2)
+        state->cc.ac = (psw & 0x10) >> 4;  // Auxiliary carry flag (bit 4)
+        state->cc.z = (psw & 0x40) >> 6;  // Zero flag (bit 6)
+        state->cc.s = (psw & 0x80) >> 7;  // Sign flag (bit 7)
+
+        // Step 3: Increment the stack pointer to the next memory location
+        state->sp++;
+
+        // Step 4: Restore the accumulator from the new stack pointer location
+        state->a = state->memory[state->sp];
+
+        // Step 5: Increment the stack pointer again
+        state->sp++;
 	}
 	break;
 	case 0xf2: // JP Addr
@@ -2083,14 +2093,27 @@ int Emulate8085Op(State8085 *state, uint16_t offset)
 		break;
 	case 0xf5: // PUSH PSW
 	{
-		state->memory[state->sp - 1] = state->a;
-		uint8_t psw = (state->cc.z |
-					   state->cc.s << 1 |
-					   state->cc.p << 2 |
-					   state->cc.cy << 3 |
-					   state->cc.ac << 4);
-		state->memory[state->sp - 2] = psw;
-		state->sp = state->sp - 2;
+        // Step 1: Decrement the stack pointer
+        state->sp--;
+
+        // Step 2: Store the accumulator at the new stack pointer location
+        state->memory[state->sp] = state->a;
+
+        // Step 3: Decrement the stack pointer again
+        state->sp--;
+
+        // Step 4: Construct the PSW byte (format: s z 0 ac 0 p 1 c)
+        uint8_t psw = (state->cc.s << 7) |  // Sign flag (bit 7)
+                      (state->cc.z << 6) |  // Zero flag (bit 6)
+                      (0 << 5) |            // Bit 5 is always 0
+                      (state->cc.ac << 4) | // Auxiliary carry (bit 4)
+                      (0 << 3) |            // Bit 3 is always 0
+                      (state->cc.p << 2) |  // Parity flag (bit 2)
+                      (1 << 1) |            // Bit 1 is always 1
+                      (state->cc.cy);       // Carry flag (bit 0)
+
+        // Step 5: Store the PSW byte at the new stack pointer location
+        state->memory[state->sp] = psw;
 	}
 	break;
 	case 0xf6: // ORI d8
