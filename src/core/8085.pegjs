@@ -920,5 +920,5 @@ op_cpe  = ("CPE"  / "cpe" ) whitespace+ (data16 / labelDirect / expression)
 op_cpo  = ("CPO"  / "cpo" ) whitespace+ (data16 / labelDirect / expression)
 
 op_mov  = ("MOV"  / "mov" ) whitespace+ register whitespace* [,] whitespace* register
-op_lxi  = ("LXI"  / "lxi" ) whitespace+ (registerPair / stackPointer) whitespace* [,] whitespace* (data16 / labelImmediate / expression)
+op_lxi  = ("LXI"  / "lxi" ) whitespace+ (registerPair / stackPointer) whitespace* [,] whitespace* (data16 / labelDirect / expression)
 op_mvi  = ("MVI"  / "mvi" ) whitespace+ register whitespace* [,] whitespace* (data8 / labelImmediate / expression)
