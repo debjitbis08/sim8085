@@ -306,6 +306,7 @@ machineCode = prg:program {
 
         if (line.size === 1) {
             objCode.push({ data: line.opcode, kind: 'code', currentAddress: currentAddress, location: line.location });
+            currentAddress += 1;
         } else if (line.size === 2) {
             data = line.data.value;
             if (typeof line.data.value === "string" && !symbolTable[line.data.value]) {
@@ -613,7 +614,7 @@ directive = dir:(dataDefinition / defineSymbol / orgDirective) {
     return {
         opcode: dir.name[0],
         data: dir.params,
-        size: dir.params.length,
+        size: dir.name[0] === "org" ? 0 : dir.params.length,
         location: location()
     };
 }

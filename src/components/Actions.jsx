@@ -101,8 +101,10 @@ export function Actions() {
       // TODO Check why Loaded state check is needed
       setState(simulator, statePointer, inputState);
 
+      const loadAddress = Math.min(...store.assembled.map(line => line.currentAddress));
+
       try {
-        statePointer = execute8085Program(statePointer, store.loadAddress);
+        statePointer = execute8085Program(statePointer, loadAddress);
       } catch (e) {
         // if (e.status === 1) showError("UNKNOWN_INST");
         // else if (e.status === 2) showError("INFINITE_LOOP");

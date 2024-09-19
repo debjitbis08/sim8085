@@ -1248,8 +1248,8 @@ int Emulate8085Op(State8085 *state, uint16_t offset)
 	case 0x2f: // CMA
 		state->a ^= 0xFF;
 		break;
-	case 0x30:
-		break; // NOP
+	case 0x30:  // NOP
+		break;
 	case 0x31: // LXI SP, word
 		state->sp = (opcode[2] << 8) | opcode[1];
 		state->pc += 2;
@@ -1525,9 +1525,9 @@ int Emulate8085Op(State8085 *state, uint16_t offset)
 		state->memory[offset] = state->l;
 	}
 	break;
-	case 0x76:
+	case 0x76:  // HLT
 		return 1;
-		break; // HLT
+		break;
 	case 0x77: // MOV M, A
 	{
 		uint16_t offset = (state->h << 8) | (state->l);
