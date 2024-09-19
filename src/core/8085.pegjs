@@ -273,6 +273,7 @@ machineCode = prg:program {
         lines = prg.length,
         data,
         dataVal,
+        currentAddress = 0,
         objCode = [];
 
 
@@ -283,21 +284,28 @@ machineCode = prg:program {
 
         if (line == null) continue;
 
-        if (line.opcode == null) {
+        if (line.opcode == null || typeof line.opcode === "string") {
+            if (line.opcode === "org") {
+                currentAddress = Number(line.data);
+                continue;
+            }
         	if (Array.isArray(line.data)) {
             	objCode = objCode.concat(line.data.map(function (d) {
-                    return {
+                    var ret = {
                         data: typeof d.value !== "undefined" ? d.value : d,
-                        kind: 'data',
+                        kind: typeof line.opcode === "string" ? line.opcode : "data",
+                        currentAddress: currentAddress,
                         location: typeof d.location !== "undefined" ? d.location : line.location
                     };
+                    currentAddress += 1;
+                    return ret;
                 }));
             }
             continue;
         };
 
         if (line.size === 1) {
-            objCode.push({ data: line.opcode, kind: 'code', location: line.location });
+            objCode.push({ data: line.opcode, kind: 'code', currentAddress: currentAddress, location: line.location });
         } else if (line.size === 2) {
             data = line.data.value;
             if (typeof line.data.value === "string" && !symbolTable[line.data.value]) {
@@ -322,8 +330,10 @@ machineCode = prg:program {
             if (dataVal < 0) {
                 dataVal = twosComplement(dataVal);
             }
-            objCode.push({ data: line.opcode, kind: 'code', location: line.location });
-            objCode.push({ data: dataVal, kind: (typeof line.data.value === "string" && line.data.type === "direct") ? 'addr' : 'data', location: line.data.location });
+            objCode.push({ data: line.opcode, kind: 'code', currentAddress: currentAddress, location: line.location });
+            currentAddress += 1;
+            objCode.push({ data: dataVal, kind: (typeof line.data.value === "string" && line.data.type === "direct") ? 'addr' : 'data', currentAddress: currentAddress, location: line.data.location });
+            currentAddress += 1;
         } else {
             data = line.data.value;
             if (typeof line.data.value === "string" && !symbolTable[line.data.value]) {
@@ -336,7 +346,7 @@ machineCode = prg:program {
                 throw e;
             }
 
-            var valueFromSymbolTable = symbolTable[line.data.value].value;
+            var valueFromSymbolTable = symbolTable[line.data.value] ? symbolTable[line.data.value].value : null;
 
             dataVal = (typeof line.data.value === "string")
                 ? line.data.type === "direct"
@@ -347,13 +357,14 @@ machineCode = prg:program {
                 : typeof line.data.value === "object" && line.data.value.value ? line.data.value.value
                 : 0;
 
-            objCode.push({ data: line.opcode, kind: 'code', location: line.location });
-            objCode.push({ data: dataVal & 0xFF, kind: (typeof line.data.value === "string" && line.data.type === "direct") ? 'addr' : 'data', location: line.data.location });
-            objCode.push({ data: dataVal >> 8, kind: (typeof line.data.value === "string" && line.data.type === "direct") ? 'addr' : 'data', location: line.data.location });
+            objCode.push({ data: line.opcode, kind: 'code', currentAddress: currentAddress, location: line.location });
+            currentAddress += 1;
+            objCode.push({ data: dataVal & 0xFF, kind: (typeof line.data.value === "string" && line.data.type === "direct") ? 'addr' : 'data', currentAddress: currentAddress, location: line.data.location });
+            currentAddress += 1;
+            objCode.push({ data: dataVal >> 8, kind: (typeof line.data.value === "string" && line.data.type === "direct") ? 'addr' : 'data', currentAddress: currentAddress, location: line.data.location });
+            currentAddress += 1;
         }
     }
-
-    console.log(objCode);
 
     return objCode;
 }
@@ -597,10 +608,10 @@ eol "line end" = "\n" / "\r\n" / "\r" / "\u2028" / "\u2029"
 
 whitespace "whitespace" = [ \t\v\f\u00A0\uFEFF\u1680\u180E\u2000-\u200A\u202F\u205F\u3000]
 
-directive = dir:(dataDefinition / defineSymbol) {
+directive = dir:(dataDefinition / defineSymbol / orgDirective) {
     console.log("directive", dir);
     return {
-        opcode: null,
+        opcode: dir.name[0],
         data: dir.params,
         size: dir.params.length,
         location: location()
@@ -818,9 +829,17 @@ dataDefinition = dir:(dir_db) {
     };
 }
 
+orgDirective = dir:(dir_org) {
+    return {
+        name: dir,
+        params: [dir[2].value]
+    };
+}
+
 
 dir_db  = ("DB"   / "db"  ) whitespace+ (data8_list / expression_list)
 dir_equ = ("EQU"  / "equ" ) whitespace+ (data8 / expression)
+dir_org = ("ORG"  / "org" ) whitespace+ (data8 / expression)
 
 op_stc  = ("STC"  / "stc" )
 op_cmc  = ("CMC"  / "cmc" )

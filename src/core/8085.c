@@ -2162,19 +2162,37 @@ State8085 *Init8085(void)
 	return state;
 }
 
-State8085 *LoadProgram(State8085 *state, uint8_t *lines, int len, uint16_t offset)
+State8085 *LoadProgram(State8085 *state, uint8_t *lines, int numLines, uint16_t offset)
 {
-	int i = 0;
-	while (i < len)
-	{
-		printf("line %d %u\n", i, lines[i]);
-		state->memory[offset + i] = lines[i];
-		i++;
-	}
-	printf("Offset %u\n", offset);
-	printf("Memory at offset %u\n", state->memory[offset]);
-	return state;
+    for (int i = 0; i < numLines; i++) {
+        uint8_t data = lines[i * 4]; // Data value
+        uint8_t lowByte = lines[(i * 4) + 1];        // Low byte of the address
+        uint8_t highByte = lines[(i * 4) + 2];       // High byte of the address
+        uint16_t currentAddress = (highByte << 8) | lowByte;
+        uint8_t kind = lines[(i * 4) + 2]; // Kind (1 for code, 2 for addr, 3 for data)
+
+        printf("Loading %u (kind %u) at address %u\n", data, kind, currentAddress);
+
+        // Load the data into memory at the correct address
+        state->memory[currentAddress] = data;
+    }
+
+    return state;
 }
+
+// State8085 *LoadProgram(State8085 *state, uint8_t *lines, int len, uint16_t offset)
+// {
+// 	int i = 0;
+// 	while (i < len)
+// 	{
+// 		printf("line %d %u\n", i, lines[i]);
+// 		state->memory[offset + i] = lines[i];
+// 		i++;
+// 	}
+// 	printf("Offset %u\n", offset);
+// 	printf("Memory at offset %u\n", state->memory[offset]);
+// 	return state;
+// }
 
 int ExecuteProgramUntil(State8085 *state, uint16_t offset, uint16_t startAt, uint16_t pauseAt)
 {

@@ -44,6 +44,12 @@ export function Actions() {
       return assembled;
   }
 
+  function packAddress(address) {
+    const lowByte = address & 0xFF;       // Extract the low byte
+    const highByte = (address >> 8) & 0xFF; // Extract the high byte
+    return [lowByte, highByte];
+  }
+
   function load() {
     let assembled = assembleProgram(store.code);
 
@@ -54,10 +60,23 @@ export function Actions() {
       return a;
     });
 
+    const flattenedProgram = assembled.flatMap((line) => {
+      const [lowByte, highByte] = packAddress(line.currentAddress);
+
+      return [
+        line.data,
+        lowByte,
+        highByte,
+        line.kind === 'code' ? 1 : line.kind === 'addr' ? 2 : 3
+      ];
+    });
+
+    console.log(flattenedProgram);
+
     const statePointer = load8085Program(
       store.statePointer,
-      assembled.map((c) => c.data),
-      assembled.length,
+      flattenedProgram,
+      flattenedProgram.length / 4,
       store.loadAddress
     );
 
