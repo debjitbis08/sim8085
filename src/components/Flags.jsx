@@ -25,7 +25,7 @@ export function Flags() {
 
   return (
     <div>
-      <div class="flex border-b-2">
+      <div class="flex border-b-2 dark:border-b-gray-600">
           <h2 class="text-xl grow pb-1">Flags</h2>
           <button title="Clear Registers" class="text-red-700" onClick={clearFlags}>
             <AiOutlineClear />
@@ -50,10 +50,10 @@ export function Flags() {
 function Flag(props) {
   const id = `flag-${props.id}`;
   return (
-    <div class="flex items-center gap-1 my-2 p-1 hover:bg-gray-200">
+    <div class="flex items-center gap-1 my-2 p-1 hover:bg-gray-200 hover:dark:bg-gray-600">
       <label htmlFor={id} className="w-full flex cursor-pointer items-center">
         <div class="grow">
-          <strong className="font-medium text-gray-900">{props.name}</strong>
+          <strong className="font-medium">{props.name}</strong>
         </div>
         <div className="flex items-center">
           &#8203;

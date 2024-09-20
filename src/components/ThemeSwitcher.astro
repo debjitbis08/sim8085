@@ -1,0 +1,99 @@
+---
+import SunIcon from '../icons/sun.svg?raw';
+import MoonIcon from '../icons/moon.svg?raw';
+import ComputerDesktopIcon from '../icons/computer-desktop.svg?raw';
+---
+<!-- Dropdown menu for theme selection -->
+<div class="flex justify-center">
+    <div
+        class="relative text-left"
+        x-data="{
+            open: false,
+            toggle() {
+                if (this.open) {
+                    return this.close()
+                }
+
+                this.$refs.button.focus()
+
+                this.open = true
+            },
+            close(focusAfter) {
+                if (! this.open) return
+
+                this.open = false
+
+                focusAfter && focusAfter.focus()
+            }
+        }"
+        x-on:keydown.escape.prevent.stop="close($refs.button)"
+        x-on:focusin.window="! $refs.panel.contains($event.target) && close()"
+        x-id="['dropdown-button']"
+    >
+      <div>
+        <button
+            class="inline-flex justify-center rounded-md px-3 py-2 text-sm font-semibold text-gray-800 dark:text-gray-200 bg-transparent focus:outline-none"
+            x-ref="button"
+            x-on:click="toggle()"
+            :aria-expanded="open"
+            :aria-controls="$id('dropdown-button')"
+            type="button"
+        >
+          <span id="theme-icon">
+              <span x-show="$store.theme.value === 'light'">
+                <Fragment set:html={SunIcon} />
+              </span>
+              <span x-show="$store.theme.value === 'dark'">
+                <Fragment set:html={MoonIcon} />
+              </span>
+              <span x-show="$store.theme.value === 'system'">
+                <Fragment set:html={ComputerDesktopIcon} />
+              </span>
+          </span>
+        </button>
+      </div>
+
+      <div
+          class="absolute right-0 z-10 mt-2 w-36 origin-top-right rounded-md bg-white dark:bg-gray-800 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+          role="menu"
+          aria-orientation="vertical"
+          aria-labelledby="theme-switcher-button"
+          tabindex="-1"
+          x-ref="panel"
+          x-show="open"
+          x-transition.origin.top.left
+          x-on:click.outside="close($refs.button)"
+          :id="$id('dropdown-button')"
+          style="display: none;"
+      >
+          <div role="none">
+              <template x-for="option in [
+                { name: 'Light', theme: 'light', icon: 'sun' },
+                { name: 'Dark', theme: 'dark', icon: 'moon' },
+                { name: 'System', theme: 'system', icon: 'computer-desktop' }
+              ]">
+                <button
+                  class="px-4 py-2 text-sm flex items-center gap-2 bg-transparent hover:bg-gray-100 dark:hover:bg-gray-700 w-full rounded-none"
+                  role="menuitem"
+                  tabindex="-1"
+                  :class="{ 'text-blue-400 dark:text-blue-400': $store.theme.value === option.theme }"
+                  @click="$store.theme.switch(option.theme)"
+                >
+                  <!-- Dynamically inject icon based on theme -->
+                  <template x-if="option.icon === 'sun'">
+                    <Fragment set:html={SunIcon} />
+                  </template>
+                  <template x-if="option.icon === 'moon'">
+                    <Fragment set:html={MoonIcon} />
+                  </template>
+                  <template x-if="option.icon === 'computer-desktop'">
+                    <Fragment set:html={ComputerDesktopIcon} />
+                  </template>
+                  <div x-text="option.name"></div>
+                </button>
+              </template>
+          </div>
+      </div>
+
+    </div>
+</div>

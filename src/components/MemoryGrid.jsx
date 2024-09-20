@@ -67,11 +67,11 @@ export function MemoryGrid() {
       </div>
       <div class="font-mono text-sm">
         <div class="flex items-center gap-6">
-          <span class="invisible">000</span>
+          <span class="invisible">0000</span>
           <div class="flex text-xs items-center gap-4 text-gray-600 py-2">
           {
             hexChars.map((value) => (
-                <span><span class="invisible">0</span>{value}</span>
+                <span><span>+</span>{value}</span>
             ))
           }
           </div>
