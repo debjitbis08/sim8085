@@ -2,6 +2,7 @@ import { AiOutlineClear, AiOutlineEdit, AiOutlineSave } from 'solid-icons/ai'
 import { useContext, createSignal, createEffect } from 'solid-js';
 import { StoreContext } from './StoreContext';
 import { produce } from 'solid-js/store';
+import { toRadix, toByteString } from '../utils/NumberFormat';
 
 export function Registers() {
   const { store, setStore } = useContext(StoreContext);
@@ -150,27 +151,6 @@ function Register(props) {
       </button>
     </div>
   );
-}
-
-function toByteString(n) {
-  if (n < 16) return `0${toRadix(16, n)}`
-  else return toRadix(16, n);
-}
-
-function toRadix(r, n) {
-    function getChr(c) {
-        return c < 10 ? c.toString() : String.fromCharCode(87 + c);
-    }
-
-    function getStr(b) {
-        return n < b ? getChr(n) : toRadix(r, Math.floor(n / b)) + getChr(n % b);
-    }
-
-    if (r >= 2 && r <= 16) {
-        return getStr(r).toUpperCase();
-    } else {
-        return n.toString().toUpperCase();
-    }
 }
 
 function getPSW(flags) {

@@ -11,6 +11,6 @@ export default defineConfig({
     devtools: true,
   }), tailwind(), alpinejs()],
   vite: {
-    plugins: [peggy()]
+    plugins: [peggy()],
   }
 });

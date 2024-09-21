@@ -3,9 +3,9 @@ import { VsPlay } from 'solid-icons/vs';
 import { HiOutlineWrench } from 'solid-icons/hi';
 import Module from '../core/8085.js';
 import { StoreContext } from "./StoreContext.js";
-import { parse } from '../core/8085.pegjs';
 import { getStateFromPtr, setState } from "../cpuState.js";
 import { produce } from "solid-js/store";
+import { initSimulator, loadProgram, runProgram } from "../core/simulator.js";
 
 export function Actions() {
   const { store, setStore } = useContext(StoreContext);
@@ -16,33 +16,11 @@ export function Actions() {
   let execute8085ProgramUntil;
   let load8085Program;
 
-  onMount(() => {
-    Module().then((sim) => {
-      simulator = sim;
-      // window.simulator = simulator;
-      execute8085Program = simulator.cwrap('ExecuteProgram', 'number', ['number', 'number']);
-      execute8085ProgramUntil = simulator.cwrap('ExecuteProgramUntil', 'number', ['number', 'number', 'number', 'number']);
-      load8085Program = simulator.cwrap('LoadProgram', 'number', ['number', 'array', 'number', 'number']);
-
-      const statePointer = simulator._Init8085();
-
-      setStore("statePointer", statePointer);
-
-      setIsReady(true);
-    });
+  onMount(async () => {
+    const statePointer = await initSimulator();
+    setStore("statePointer", statePointer);
+    setIsReady(true);
   });
-
-  function assembleProgram(code) {
-      try {
-        // Try to assemble Program
-        var assembled = parse(code);
-        console.log(assembled);
-      } catch (e) {
-        console.error(e);
-      }
-
-      return assembled;
-  }
 
   function packAddress(address) {
     const lowByte = address & 0xFF;       // Extract the low byte
@@ -51,96 +29,60 @@ export function Actions() {
   }
 
   function load() {
-    let assembled = assembleProgram(store.code);
+    const result = loadProgram(store);
 
-    if (!assembled) return;
-
-    assembled = assembled.map((a) => {
-      a.breakHere = false;
-      return a;
-    });
-
-    const flattenedProgram = assembled.flatMap((line) => {
-      const [lowByte, highByte] = packAddress(line.currentAddress);
-
-      return [
-        line.data,
-        lowByte,
-        highByte,
-        line.kind === 'code' ? 1 : line.kind === 'addr' ? 2 : 3
-      ];
-    });
-
-    console.log(flattenedProgram);
-
-    const statePointer = load8085Program(
-      store.statePointer,
-      flattenedProgram,
-      flattenedProgram.length / 4,
-      store.loadAddress
-    );
-
-    const state = getStateFromPtr(simulator, statePointer);
-
-    setStore(
-      produce((draftStore) => {
-        draftStore.statePointer = statePointer;
-        draftStore.memory = state.memory;
-        draftStore.assembled = assembled;
-      })
-    );
+    if (result) {
+      setStore(
+        produce((draftStore) => {
+          draftStore.statePointer = result.statePointer;
+          draftStore.memory = result.memory;
+          draftStore.assembled = result.assembled;
+        })
+      );
+    }
   }
 
-  function runProgram (input) {
-      load();
+  function run(input) {
+    load();
 
-      var inputState = getCpuState(store);
-      let statePointer = store.statePointer;
-      var errorStatus = 0;
-
-      // TODO Check why Loaded state check is needed
-      setState(simulator, statePointer, inputState);
-
-      const loadAddress = Math.min(...store.assembled.map(line => line.currentAddress));
-
-      try {
-        statePointer = execute8085Program(statePointer, loadAddress);
-      } catch (e) {
-        // if (e.status === 1) showError("UNKNOWN_INST");
-        // else if (e.status === 2) showError("INFINITE_LOOP");
-        // else showError("UNKNOWN");
-        // errorStatus = e.status;
-        console.error(e);
-      }
-
-      if (errorStatus === 0) {
-        const outputState = getStateFromPtr(simulator, statePointer);
-        console.log(outputState.a);
-        setStore(
-          produce((draftStore) => {
-            draftStore.accumulator = outputState.a;
-            // registers
-            draftStore.registers.bc.high = outputState.b;
-            draftStore.registers.bc.low = outputState.c;
-            draftStore.registers.de.high = outputState.d;
-            draftStore.registers.de.low = outputState.e;
-            draftStore.registers.hl.high = outputState.h;
-            draftStore.registers.hl.low = outputState.l;
-            // flags
-            draftStore.flags.z = outputState.flags.z;
-            draftStore.flags.s = outputState.flags.s;
-            draftStore.flags.p = outputState.flags.p;
-            draftStore.flags.c = outputState.flags.cy;
-            draftStore.flags.ac = outputState.flags.ac;
-            draftStore.stackPointer = outputState.sp;
-            draftStore.programCounter = outputState.pc;
-            draftStore.statePointer = statePointer;
-            draftStore.memory = outputState.memory;
-          })
-        );
-      } else {
-        app.ports.runError.send(errorStatus);
-      }
+    let outputState;
+    let errorStatus = 0;
+    try {
+      outputState = runProgram(store);
+    } catch (e) {
+      // if (e.status === 1) showError("UNKNOWN_INST");
+      // else if (e.status === 2) showError("INFINITE_LOOP");
+      // else showError("UNKNOWN");
+      errorStatus = e.status;
+      console.error(e);
+    }
+    if (errorStatus === 0) {
+      setStore(
+        produce((draftStore) => {
+          console.log(outputState);
+          draftStore.accumulator = outputState.accumulator;
+          // registers
+          draftStore.registers.bc.high = outputState.registers.bc.high;
+          draftStore.registers.bc.low = outputState.registers.bc.low;
+          draftStore.registers.de.high = outputState.registers.de.high;
+          draftStore.registers.de.low = outputState.registers.de.low;
+          draftStore.registers.hl.high = outputState.registers.hl.high;
+          draftStore.registers.hl.low = outputState.registers.hl.low;
+          // flags
+          draftStore.flags.z = outputState.flags.z;
+          draftStore.flags.s = outputState.flags.s;
+          draftStore.flags.p = outputState.flags.p;
+          draftStore.flags.c = outputState.flags.cy;
+          draftStore.flags.ac = outputState.flags.ac;
+          draftStore.stackPointer = outputState.stackPointer;
+          draftStore.programCounter = outputState.programCounter;
+          draftStore.statePointer = outputState.statePointer;
+          draftStore.memory = outputState.memory;
+        })
+      );
+    } else {
+      // TODO Set errors in store
+    }
   }
 
   return (
@@ -155,35 +97,10 @@ export function Actions() {
       <button
         type="button"
         class="text-green-600 p-1 rounded border border-transparent hover:border-green-600"
-        onClick={runProgram}
+        onClick={run}
       >
         <VsPlay />
       </button>
     </div>
   )
-}
-
-
-function getCpuState(store) {
-  return {
-    a: store.accumulator,
-    b: store.registers.bc.high,
-    c: store.registers.bc.low,
-     d: store.registers.de.high,
-     e: store.registers.de.low,
-     h: store.registers.hl.high,
-     l: store.registers.hl.low,
-     sp: store.stackPointer,
-     pc: store.programCounter,
-     flags:
-          { z: store.flags.z,
-     s: store.flags.s,
-     p: store.flags.p,
-     cy: store.flags.c,
-     ac: store.flags.ac,
-          },
-     memory: store.memory,
-     ptr: store.statePointer
-
-      }
 }

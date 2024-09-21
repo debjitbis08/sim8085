@@ -12,6 +12,7 @@
   },
   "scripts": {
     "dev": "astro dev",
+    "test:dev": "vitest",
     "start": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
@@ -23,10 +24,12 @@
     "@astrojs/solid-js": "^4.4.1",
     "@astrojs/tailwind": "^5.1.0",
     "@codemirror/commands": "^6.6.2",
+    "@codemirror/language": "^6.10.3",
     "@codemirror/state": "^6.4.1",
     "@codemirror/view": "^6.33.0",
     "@kobalte/core": "^0.13.6",
     "@kobalte/tailwindcss": "^0.9.0",
+    "@lezer/highlight": "^1.2.1",
     "@tanstack/solid-virtual": "^3.10.8",
     "@types/alpinejs": "^3.13.10",
     "alpinejs": "^3.14.1",
@@ -40,6 +43,7 @@
   },
   "devDependencies": {
     "peggy": "^4.0.3",
-    "vite-plugin-peggy-loader": "^2.0.1"
+    "vite-plugin-peggy-loader": "^2.0.1",
+    "vitest": "^2.1.1"
   }
 }

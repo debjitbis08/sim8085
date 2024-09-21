@@ -4,7 +4,9 @@ import { EditorView, keymap } from "@codemirror/view";
 import { defaultKeymap } from "@codemirror/commands";
 import { basicSetup } from "codemirror";
 import { StoreContext } from "../StoreContext";
+import { Syntax8085 } from "./8085";
 import debounce from 'debounce';
+import './codeMirror.css';
 
 export function CodeMirror(props) {
   const { store, setStore } = useContext(StoreContext);
@@ -15,7 +17,6 @@ export function CodeMirror(props) {
     const onChangeListener = EditorView.updateListener.of((update) => {
       if (update.docChanged) {
         const newDoc = update.state.doc.toString(); // Get the new document content
-        console.log('Updating Code');
         setStore("code", newDoc); // Update the store with new content
       }
     });
@@ -23,7 +24,12 @@ export function CodeMirror(props) {
     // Create the initial state for the editor
     const startState = EditorState.create({
       doc: store.code, // Load from store or default content
-      extensions: [basicSetup, keymap.of(defaultKeymap), onChangeListener],
+      extensions: [
+        basicSetup,
+        keymap.of(defaultKeymap),
+        onChangeListener,
+        Syntax8085(),
+      ],
     });
 
     // Create the editor view
