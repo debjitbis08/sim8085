@@ -1,6 +1,6 @@
 import { createSignal, onCleanup, onMount, useContext } from "solid-js";
 import { VsPlay } from 'solid-icons/vs';
-import { HiOutlineWrench } from 'solid-icons/hi';
+import { HiOutlineWrench, HiSolidPlay, HiSolidWrench } from 'solid-icons/hi';
 import Module from '../core/8085.js';
 import { StoreContext } from "./StoreContext.js";
 import { getStateFromPtr, setState } from "../cpuState.js";
@@ -86,20 +86,26 @@ export function Actions() {
   }
 
   return (
-    <div class="flex items-center">
+    <div class="flex items-center border border-gray-300 rounded-sm dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
       <button
         type="button"
-        class="text-green-600 p-1 rounded border border-transparent hover:border-green-600"
+        class="px-2 py-1 border border-transparent hover:bg-gray-100 dark:hover:bg-gray-800"
         onClick={load}
       >
-        <HiOutlineWrench />
+        <div class="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+          <HiSolidWrench />
+          <span class="text-sm font-semibold">Assemble & Load</span>
+        </div>
       </button>
       <button
         type="button"
-        class="text-green-600 p-1 rounded border border-transparent hover:border-green-600"
+        class="px-2 py-1 border border-transparent hover:bg-gray-100 dark:hover:bg-gray-800 border-l border-l-gray-300 dark:border-l-gray-700"
         onClick={run}
       >
-        <VsPlay />
+        <div class="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+          <HiSolidPlay />
+          <span class="text-sm font-semibold">Run</span>
+        </div>
       </button>
     </div>
   )

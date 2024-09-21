@@ -50,7 +50,7 @@ export function MemoryGrid() {
               type="text"
               id="GoToAddress"
               placeholder="Jump to Address"
-              class="w-full rounded-md p-2 shadow-sm sm:text-sm pl-10"
+              class="w-full rounded-md p-2 shadow-sm sm:text-sm pl-10 dark:bg-transparent"
               onKeyDown={handleKey}
             />
 
@@ -145,7 +145,7 @@ function MemoryCell(props) {
         />
       ) : (
         <span
-          class={`font-mono cursor-pointer text-xs ${props.value ? 'bg-green-200' : ''}`}
+          class={`font-mono cursor-pointer text-xs ${props.value ? 'text-orange-600 dark:bg-transparent dark:border-b-green-300 dark:text-yellow-400' : ''}`}
           onDblClick={() => setEditing(true)}
         >{toByteString(props.value)}</span>
       )

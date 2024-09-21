@@ -1,0 +1,17 @@
+.cm-editor {
+    height: 100%;
+}
+
+.cm-line.cm-activeLine {
+    @apply bg-blue-50;
+    @apply dark:bg-gray-800;
+}
+
+.cm-editor .cm-gutters {
+    @apply dark:text-gray-200;
+    @apply dark:bg-gray-600;
+}
+
+.cm-editor .cm-activeLineGutter {
+    @apply dark:bg-gray-500;
+}

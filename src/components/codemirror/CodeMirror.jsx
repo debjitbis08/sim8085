@@ -6,7 +6,7 @@ import { basicSetup } from "codemirror";
 import { StoreContext } from "../StoreContext";
 import { Syntax8085 } from "./8085";
 import debounce from 'debounce';
-import './codeMirror.css';
+import './CodeMirror.css';
 
 export function CodeMirror(props) {
   const { store, setStore } = useContext(StoreContext);
