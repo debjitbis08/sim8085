@@ -19,7 +19,6 @@ export function MemoryGrid() {
   const hexChars = Array(16).fill(0).map((_, i) => i.toString(16).toUpperCase());
 
   const updateMemoryCell = (location, value) => {
-    console.log(`Updating memory cell ${location}, with value ${value}`);
     setStore(
       "memory",
       location,
@@ -120,6 +119,9 @@ function MemoryCell(props) {
     if (e.key === 'Enter' || e.type === 'blur') {
       saveValue();
     }
+    if (e.key === 'Escape') {
+      setEditing(false);
+    }
   };
 
   const saveValue = () => {
@@ -135,7 +137,7 @@ function MemoryCell(props) {
       {
       editing() ? (
         <input
-          class="font-mono text-xs w-5 border-b border-b-gray-800"
+          class="font-mono text-xs w-5 border-b border-b-gray-800 dark:bg-transparent"
           value={value()}
           onInput={handleInputChange(setValue)}
           onKeyDown={handleKeyOrBlur}
@@ -145,24 +147,11 @@ function MemoryCell(props) {
         />
       ) : (
         <span
-          class={`font-mono cursor-pointer text-xs ${props.value ? 'text-orange-600 dark:bg-transparent dark:border-b-green-300 dark:text-yellow-400' : ''}`}
+          class={`font-mono cursor-pointer text-xs ${props.value ? 'text-orange-600 dark:bg-transparent dark:border-b-green-300 dark:text-yellow-400' : 'dark:text-gray-600'}`}
           onDblClick={() => setEditing(true)}
-        >{toByteString(props.value)}</span>
+        >{props.value === 0 ? '--' : toByteString(props.value)}</span>
       )
       }
     </span>
   )
 }
-
-function groupMemory(memory) {
-  const groupedMemory = [];
-
-  for (let i = 0; i < memory.length; i += 16) {
-    // Group the next 16 elements
-    groupedMemory.push([i, memory.slice(i, i + 16)]);
-  }
-
-  return groupedMemory;
-}
-
-// const key = (i / 16).toString(16).padStart(3, '0').toUpperCase();

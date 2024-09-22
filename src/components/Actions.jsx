@@ -1,11 +1,13 @@
 import { createSignal, onCleanup, onMount, useContext } from "solid-js";
-import { VsPlay } from 'solid-icons/vs';
+import { VsClearAll, VsPlay } from 'solid-icons/vs';
 import { HiOutlineWrench, HiSolidPlay, HiSolidWrench } from 'solid-icons/hi';
 import Module from '../core/8085.js';
 import { StoreContext } from "./StoreContext.js";
 import { getStateFromPtr, setState } from "../cpuState.js";
 import { produce } from "solid-js/store";
 import { initSimulator, loadProgram, runProgram } from "../core/simulator.js";
+import { AiOutlineClear } from "solid-icons/ai";
+import { Tooltip } from "@kobalte/core/tooltip";
 
 export function Actions() {
   const { store, setStore } = useContext(StoreContext);
@@ -86,27 +88,67 @@ export function Actions() {
   }
 
   return (
-    <div class="flex items-center border border-gray-300 rounded-sm dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+    <div class="flex items-center border border-gray-300 border-t-0 rounded-sm dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+      <Tooltip>
+        <Tooltip.Trigger class="tooltip__trigger">
       <button
         type="button"
         class="px-2 py-1 border border-transparent hover:bg-gray-100 dark:hover:bg-gray-800"
         onClick={load}
       >
         <div class="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-          <HiSolidWrench />
-          <span class="text-sm font-semibold">Assemble & Load</span>
+          <HiSolidWrench class="text-yellow-400 dark:text-yellow-600" />
+          <span class="text-sm font-semibold hidden">Assemble & Load</span>
         </div>
       </button>
+      </Tooltip.Trigger>
+      <Tooltip.Portal>
+        <Tooltip.Content class="tooltip__content">
+          <Tooltip.Arrow />
+          <p>Assemble & Load (Ctrl + F2)</p>
+        </Tooltip.Content>
+      </Tooltip.Portal>
+    </Tooltip>
+      <Tooltip>
+        <Tooltip.Trigger class="tooltip__trigger">
       <button
         type="button"
         class="px-2 py-1 border border-transparent hover:bg-gray-100 dark:hover:bg-gray-800 border-l border-l-gray-300 dark:border-l-gray-700"
         onClick={run}
       >
         <div class="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-          <HiSolidPlay />
-          <span class="text-sm font-semibold">Run</span>
+          <HiSolidPlay class="text-green-400 dark:text-green-600" />
+          <span class="text-sm font-semibold hidden">Run</span>
         </div>
       </button>
+      </Tooltip.Trigger>
+      <Tooltip.Portal>
+        <Tooltip.Content class="tooltip__content">
+          <Tooltip.Arrow />
+          <p>Run (Ctrl + F5)</p>
+        </Tooltip.Content>
+      </Tooltip.Portal>
+    </Tooltip>
+      <Tooltip>
+        <Tooltip.Trigger class="tooltip__trigger">
+          <button
+            type="button"
+            class="px-2 py-1 border border-transparent hover:bg-gray-100 dark:hover:bg-gray-800 border-l border-l-gray-300 dark:border-l-gray-700"
+            onClick={run}
+          >
+            <div class="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+              <AiOutlineClear class="text-red-400 dark:text-red-600"/>
+              <span class="text-sm font-semibold hidden">Run</span>
+            </div>
+        </button>
+        </Tooltip.Trigger>
+        <Tooltip.Portal>
+          <Tooltip.Content class="tooltip__content">
+            <Tooltip.Arrow />
+            <p>Clear All Data</p>
+          </Tooltip.Content>
+        </Tooltip.Portal>
+      </Tooltip>
     </div>
   )
 }
