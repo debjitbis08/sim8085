@@ -44,5 +44,5 @@ export function CodeMirror(props) {
     });
   });
 
-  return <div ref={editorRef} class="editor-container border border-gray-300 dark:border-gray-600 border-l-0 border-b-0" style={{ height: "calc(100vh - 7rem - 1px)"}}></div>;
+  return <div ref={editorRef} class="editor-container border border-gray-300 dark:border-gray-600 border-l-0 border-b-0" style={{ height: "calc(100vh - 8rem - 1px)"}}></div>;
 }

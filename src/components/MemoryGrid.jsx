@@ -39,11 +39,11 @@ export function MemoryGrid() {
   return (
     <div>
       <div class="flex pb-2">
-          <h2 class="text-xl grow pb-2">Memory View</h2>
+          <h2 class="text-xl grow pb-2"></h2>
           <div class="relative mr-2 border-b border-b-gray-300">
             <label for="GoToAddress" class="sr-only">Jump To Address</label>
             <span
-              class="pointer-events-none absolute inset-y-0 start-0 grid w-10 place-content-center text-gray-500 font-mono sm:text-sm"
+              class="pointer-events-none absolute inset-y-0 start-0 grid w-10 place-content-center text-gray-500 dark:text-gray-400 font-mono sm:text-sm"
             >0x</span>
             <input
               type="text"
@@ -67,7 +67,7 @@ export function MemoryGrid() {
       <div class="font-mono text-sm">
         <div class="flex items-center gap-6">
           <span class="invisible">0000</span>
-          <div class="flex text-xs items-center gap-4 text-gray-600 py-2">
+          <div class="flex text-xs items-center gap-4 text-gray-600 dark:text-gray-400 py-2">
           {
             hexChars.map((value) => (
                 <span><span>+</span>{value}</span>
@@ -75,15 +75,15 @@ export function MemoryGrid() {
           }
           </div>
         </div>
-        <div class="h-[50vh] overflow-y-auto" ref={parentRef}>
-          <div style={{ height: `${rowVirtualizer.getTotalSize()}px`, position: 'relative' }}>
+          <div class="h-[50vh] overflow-x-hidden overflow-y-auto flex" style={{ width: "calc(100% + 20px)" }}ref={parentRef}>
+            <div style={{ height: `${rowVirtualizer.getTotalSize()}px`, position: 'relative', width: "calc(100% + 20px)", "flex-shrink": 0 }}>
             {
               rowVirtualizer.getVirtualItems().map((virtualRow) => {
                 const location = virtualRow.index * 16;
                 const startAddress = (location).toString(16).padStart(4, '0').toUpperCase();
                 return (
                   <div class="flex items-center gap-6"  style={{ position: 'absolute', height: `${virtualRow.size}px`, transform: `translateY(${virtualRow.start}px)` }}>
-                    <span class="font-bold text-gray-600">{startAddress}</span>
+                    <span class="font-bold text-gray-600 dark:text-gray-400">{startAddress}</span>
                     <div class="flex items-center gap-4 border-t border-t-gray-300 py-2">
                       {
                         Array.from({ length: 16 }).map((_, i) => (

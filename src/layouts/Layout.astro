@@ -1,5 +1,6 @@
 ---
 import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
 interface Props {
 	title: string;
 }
@@ -34,9 +35,12 @@ const { title } = Astro.props;
           }());
         </script>
 	</head>
-	<body class="bg-white dark:bg-gray-900 text-black dark:text-white min-h-screen">
+	<body class="bg-white dark:bg-gray-900 text-black dark:text-gray-300 min-h-screen">
         <Header />
-        <slot />
+        <div style='height: calc(100vh - 6rem)'>
+            <slot />
+        </div>
+        <Footer />
 	</body>
 </html>
 <style is:global>

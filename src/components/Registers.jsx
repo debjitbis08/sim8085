@@ -146,7 +146,7 @@ function Register(props) {
             {toByteString(props.low)}
           </span>
       )}
-        <button type="button" onClick={() => editing() ? saveValue() : startEditing () }>
+      <button type="button" onClick={() => editing() ? saveValue() : startEditing () }>
         {editing() ? <AiOutlineSave /> : <AiOutlineEdit /> }
       </button>
     </div>

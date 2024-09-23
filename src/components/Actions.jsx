@@ -88,7 +88,7 @@ export function Actions() {
   }
 
   return (
-    <div class="flex items-center border border-gray-300 border-t-0 rounded-sm dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+    <div class="flex items-center border border-gray-300 border-t-0 border-b-0 rounded-sm dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
       <Tooltip>
         <Tooltip.Trigger class="tooltip__trigger">
       <button
@@ -111,24 +111,24 @@ export function Actions() {
     </Tooltip>
       <Tooltip>
         <Tooltip.Trigger class="tooltip__trigger">
-      <button
-        type="button"
-        class="px-2 py-1 border border-transparent hover:bg-gray-100 dark:hover:bg-gray-800 border-l border-l-gray-300 dark:border-l-gray-700"
-        onClick={run}
-      >
-        <div class="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-          <HiSolidPlay class="text-green-400 dark:text-green-600" />
-          <span class="text-sm font-semibold hidden">Run</span>
-        </div>
-      </button>
-      </Tooltip.Trigger>
-      <Tooltip.Portal>
-        <Tooltip.Content class="tooltip__content">
-          <Tooltip.Arrow />
-          <p>Run (Ctrl + F5)</p>
-        </Tooltip.Content>
-      </Tooltip.Portal>
-    </Tooltip>
+        <button
+          type="button"
+          class="px-2 py-1 border border-transparent hover:bg-gray-100 dark:hover:bg-gray-800 border-l border-l-gray-300 dark:border-l-gray-700"
+          onClick={run}
+        >
+          <div class="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+            <HiSolidPlay class="text-green-400 dark:text-green-600" />
+            <span class="text-sm font-semibold hidden">Run</span>
+          </div>
+        </button>
+        </Tooltip.Trigger>
+        <Tooltip.Portal>
+          <Tooltip.Content class="tooltip__content">
+            <Tooltip.Arrow />
+            <p>Run (Ctrl + F5)</p>
+          </Tooltip.Content>
+        </Tooltip.Portal>
+      </Tooltip>
       <Tooltip>
         <Tooltip.Trigger class="tooltip__trigger">
           <button

@@ -11,6 +11,7 @@ import MemoryList from "./MemoryList";
 import { RightPanel } from "./RightPanel";
 import './styles.css';
 import './tooltip-styles.css';
+import { createEffect } from "solid-js";
 
 const INITIAL_CODE =
 `
@@ -54,18 +55,22 @@ export function App() {
     openFiles: [ "main.asm" ]
   });
 
+  createEffect(() => {
+    document.getElementById("app-loader")?.classList.add("hidden");
+  });
+
   return (
     <StoreContext.Provider value={{ store, setStore }}>
-     	<div class="flex items-start">
+     	<div class="flex items-start" style={{ height: "calc(100vh - 6rem)" }}>
         <div class="rounded-lg w-[25vw]">
           <RightPanel />
         </div>
-        <div class="grow max-w-[800px]">
+        <div class="grow max-w-[800px] border-l border-l-gray-300">
           <div class="flex">
             <div class="grow">
               <div class="flex items-center">
-                <div class="flex items-center gap-1 py-1 px-2 border border-gray-600 border-t-0 rounded-sm">
-                  <span class="text-[0.4rem] dark:text-red-600 pt-1">ASM</span>
+                <div class="flex items-center gap-1 py-1 px-2 border-r border-r-gray-300 dark:border-gray-600 border-t-0 border-b-0 rounded-sm">
+                  <span class="text-[0.4rem] text-red-700 dark:text-red-600 pt-1">ASM</span>
                   <span>main.asm</span>
                 </div>
               </div>

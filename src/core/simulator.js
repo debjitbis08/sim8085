@@ -24,7 +24,6 @@ export async function initSimulator() {
 // Assemble program using provided code
 export function assembleProgram(code) {
   try {
-    // Assume `parse` is a function to assemble the code (from 8085.pegjs)
     return parse(code);
   } catch (e) {
     console.error('Failed to assemble program:', e);

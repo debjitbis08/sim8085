@@ -122,7 +122,7 @@ const syntaxHighlighter = syntaxHighlighting(
     { tag: tokenTable.opcode, class: "text-green-700 dark:text-green-400" },
     { tag: tokenTable.directive, class: "text-blue-700 dark:text-blue-400" },
     { tag: tokenTable.label, class: "text-yellow-700 dark:text-yellow-400" },
-    { tag: tokenTable.comment, class: "text-gray-500 dark:text-gray-500" },
+    { tag: tokenTable.comment, class: "text-gray-500 dark:text-gray-500 italic" },
     { tag: tokenTable.register, class: "text-red-700 dark:text-red-400" },
     { tag: tokenTable.number, class: "text-orange-700 dark:text-orange-400" },
     { tag: tokenTable.operator, class: "text-pink-700 dark:text-pink-400" },

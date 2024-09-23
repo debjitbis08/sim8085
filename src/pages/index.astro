@@ -5,8 +5,11 @@ import { App } from '../components/App.jsx';
 ---
 
 <Layout title="Sim8085 - A 8085 microprocessor simulator">
-	<main class="border-t dark:border-t-gray-600">
-	   <App client:only="solid-js"/>
+	<main class="border-t bg-gray-100 dark:bg-gray-900 dark:border-t-gray-600 h-full relative">
+        <div id="app-loader" class="flex items-center justify-center w-full h-full absolute -z-10">
+            Loading...
+        </div>
+        <App client:only="solid-js" />
    	</main>
 </Layout>
 

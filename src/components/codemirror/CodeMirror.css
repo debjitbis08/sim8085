@@ -15,3 +15,16 @@
 .cm-editor .cm-activeLineGutter {
     @apply dark:bg-gray-500;
 }
+
+.cm-editor .cm-cursor {
+    @apply border-l-gray-600;
+    @apply dark:border-l-gray-300;
+}
+
+.cm-editor .cm-content {
+    font-size: 0.85rem;
+}
+
+.cm-editor .cm-selectionLayer .cm-selectionBackground {
+    @apply dark:bg-gray-800;
+}

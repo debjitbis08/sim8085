@@ -1,10 +1,14 @@
-import { createMemo, createSignal, useContext } from 'solid-js';
+import { createEffect, createMemo, createSignal, useContext } from 'solid-js';
 import { StoreContext } from './StoreContext';
-import { AiOutlineClear, AiOutlineExpand, AiOutlineExpandAlt, AiOutlineFullscreen, AiOutlinePlus } from 'solid-icons/ai';
+import { AiOutlineClear, AiOutlineExpand, AiOutlineExpandAlt, AiOutlineFullscreen, AiOutlinePlus, AiOutlineEdit, AiOutlineSave, AiFillEye } from 'solid-icons/ai';
 import { Tooltip } from "@kobalte/core/tooltip";
+import { Dialog } from "@kobalte/core/dialog";
 import { toByteString } from '../utils/NumberFormat';
+import { MemoryGrid } from './MemoryGrid';
+import { TextTooltip } from './TextTooltip';
+import { VsEmptyWindow } from 'solid-icons/vs';
 
-export default function MemoryList({ memory, threshold = 4 }) {
+export default function MemoryList({ threshold = 4 }) {
   const { store, setStore } = useContext(StoreContext);
   const [customRanges, setCustomRanges] = createSignal([]);
   const [inputRange, setInputRange] = createSignal({ start: '', end: '' });
@@ -12,7 +16,6 @@ export default function MemoryList({ memory, threshold = 4 }) {
   const [isAddingCustom, setIsAddingCustom] = createSignal(false);
 
   const updateMemoryCell = (location, value) => {
-    console.log(`Updating memory location ${location} with ${value}.`);
     setStore(
       "memory",
       location,
@@ -56,7 +59,6 @@ export default function MemoryList({ memory, threshold = 4 }) {
   const addCustomRange = () => {
     const start = parseInt(inputRange().start, 16);
     const end = parseInt(inputRange().end, 16);
-    console.log(start, end);
     if (!isNaN(start) && !isNaN(end) && start <= end) {
       setCustomRanges([...customRanges(), { start, end }]);
       setIsAddingCustom(false);
@@ -73,16 +75,67 @@ export default function MemoryList({ memory, threshold = 4 }) {
     });
   };
 
+  const dataRanges = () => {
+    const memoryRanges = findDataRanges(store.memory);
+    const customRangesList = customRanges();
+
+    // Function to check if a memory range is within any custom range
+    const isWithinCustomRange = (range, customRangeList) => {
+      return customRangeList.some(customRange => {
+        return (
+          range.start >= customRange.start && range.end <= customRange.end
+        );
+      });
+    };
+
+    // Filter out memory ranges that are within custom ranges
+    const combinedRanges = memoryRanges.filter(range => {
+      return !isWithinCustomRange(range, customRangesList);
+    });
+
+    console.log(combinedRanges);
+
+    // Finally, return the combined memory ranges and the custom ranges
+    return combinedRanges.concat(customRangesList);
+  };
+
+  createEffect(() => {
+    const ranges = dataRanges();
+    if (ranges.length > 0 && (currentRange().start === null || currentRange().end === null)) {
+      setCurrentRange(ranges[0]);
+    }
+  });
+
   return (
-    <div>
+    <div class="h-full flex flex-col">
       <div class="flex border-b-2 dark:border-b-gray-600">
         <h2 class="text-xl grow pb-1">Memory</h2>
         <div class="flex gap-2">
           <Tooltip>
             <Tooltip.Trigger class="tooltip__trigger">
-              <button onClick={() => { }}>
-                <AiOutlineFullscreen class="font-bold" />
-              </button>
+              <Dialog>
+                <Dialog.Trigger class="dialog__trigger">
+                  <AiOutlineFullscreen class="font-bold" />
+                </Dialog.Trigger>
+                <Dialog.Portal>
+                  <Dialog.Overlay class="dialog__overlay fixed z-50 inset-0 backdrop-blur-sm" />
+                  <div class="dialog__positioner fixed z-50 inset-0 flex items-center justify-center">
+                    <Dialog.Content class="dialog__content p-4 bg-gray-100 dark:bg-gray-800 min-w-[600px] border border-gray-400 dark:border-gray-600 rounded">
+                      <div class="dialog__header flex items-center">
+                        <Dialog.Title class="dialog__title grow">Full Memory View</Dialog.Title>
+                        <Dialog.CloseButton class="dialog__close-button">
+                          <AiOutlinePlus class="transition-transform rotate-45" />
+                        </Dialog.CloseButton>
+                      </div>
+                      <Dialog.Description class="dialog__description mt-4">
+                        <div class="flex items-center px-2">
+                          <MemoryGrid />
+                        </div>
+                      </Dialog.Description>
+                    </Dialog.Content>
+                  </div>
+                </Dialog.Portal>
+              </Dialog>
             </Tooltip.Trigger>
             <Tooltip.Portal>
               <Tooltip.Content class="tooltip__content">
@@ -107,12 +160,12 @@ export default function MemoryList({ memory, threshold = 4 }) {
         </div>
       </div>
       <div class="flex justify-between items-center gap-1 mb-4 mt-2">
-        <div class="grow max-w-100">
-          <div class="flex items-center gap-2 font-mono text-xs">
-            {(findDataRanges(store.memory).concat(customRanges())).map((range, index) => (
+        <div class="w-full">
+          <div class="flex flex-wrap items-center gap-2 font-mono text-xs">
+            {dataRanges().map((range, index) => (
               <button
                 key={index}
-                class={`py-1 px-2 rounded-sm border border-gray-300 dark:border-gray-700 text-gray-600 dark:text-gray-400 ${currentRange().start === range.start && currentRange().end === range.end ? 'bg-gray-100 dark:bg-gray-700' : ''} hover:bg-gray-100 dark:hover:bg-gray-700`}
+                class={`py-1 px-2 rounded-sm border border-gray-300 dark:border-gray-700 text-gray-600 dark:text-gray-400 ${currentRange().start === range.start && currentRange().end === range.end ? 'bg-gray-200 dark:bg-gray-700' : ''} hover:bg-gray-300 dark:hover:bg-gray-700`}
                 onClick={() => setCurrentRange({
                   start: range.start,
                   end: range.end
@@ -132,36 +185,47 @@ export default function MemoryList({ memory, threshold = 4 }) {
             ))}
           </div>
         </div>
-        <button onClick={() => setIsAddingCustom(isAddingCustom => !isAddingCustom)}>
-          <AiOutlinePlus class={`transition-transform ${isAddingCustom() ? 'rotate-45' : 'rotate-0'}`} />
-        </button>
+        <TextTooltip message="Watch a memory range">
+          <button onClick={() => setIsAddingCustom(isAddingCustom => !isAddingCustom)}>
+            <AiOutlinePlus class={`transition-transform ${isAddingCustom() ? 'rotate-45' : 'rotate-0'}`} />
+          </button>
+        </TextTooltip>
       </div>
-        <div class={`flex items-center ${isAddingCustom() ? '' : 'hidden'}`}>
-        <input
-          type="text"
-          class="w-20 p-1 border border-gray-300 mr-2"
-          placeholder="Start"
-          value={inputRange().start}
-          onInput={(e) => setInputRange({ ...inputRange(), start: e.target.value })}
-        />
-        <input
-          type="text"
-          class="w-20 p-1 border border-gray-300 mr-2"
-          placeholder="End"
-          value={inputRange().end}
-          onInput={(e) => setInputRange({ ...inputRange(), end: e.target.value })}
-        />
-        <button
-          class="p-1 bg-green-500 text-white rounded"
-          onClick={addCustomRange}
-        >
-          Add Range
-        </button>
+      <div class={`flex items-center gap-2 ${isAddingCustom() ? '' : 'hidden'}`}>
+        <div class="flex items-center gap-1 border-b border-b-gray-300">
+          <span class="text-gray-400 dark:text-gray-500">0x</span>
+          <input
+            type="text"
+            class="w-20 p-1 bg-transparent outline-none"
+            placeholder="Start"
+            value={inputRange().start}
+            onInput={(e) => setInputRange({ ...inputRange(), start: e.target.value })}
+          />
+        </div>
+        <div class="flex items-center gap-1 border-b border-b-gray-300">
+          <span class="text-gray-400 dark:text-gray-500">0x</span>
+          <input
+            type="text"
+            class="w-20 p-1 bg-transparent outline-none"
+            placeholder="End"
+            value={inputRange().end}
+            onInput={(e) => setInputRange({ ...inputRange(), end: e.target.value })}
+          />
+        </div>
+        <div class="grow">
+          <button
+            class="flex items-center justify-center gap-2 w-full p-1 rounded border border-gray-400 hover:bg-gray-500 dark:border-gray-600 hover:dark:bg-gray-900"
+            onClick={addCustomRange}
+          >
+            <AiFillEye />
+            <span>Watch Range</span>
+          </button>
+        </div>
       </div>
 
-      { currentRange().start != null && currentRange().end != null ? (
-        <div class="memory-list mt-4">
-          <div>
+      {currentRange().start != null && currentRange().end != null ? (
+        <div class="memory-list mt-4 grow min-h-0">
+          <div class="h-full flex flex-col">
             <h3 class="font-bold mb-2">
               <div class="text-sm text-gray-400 dark:text-gray-400">
                 <span>Displaying Memory Locations from </span>
@@ -170,10 +234,16 @@ export default function MemoryList({ memory, threshold = 4 }) {
                 <span>0x{currentRange().end.toString(16).padStart(4, '0').toUpperCase()}</span>
               </div>
             </h3>
+            <div class="h-full overflow-y-auto grow min-h-0 pr-2">
               {renderMemoryInRange(currentRange().start, currentRange().end)}
+            </div>
           </div>
         </div>
-      ) : null}
+      ) : (
+        <p class="text-gray-400 dark:text-gray-500 text-center mt-4">
+          No locations have any data yet. You may add a memory range to watch using the add button above.
+        </p>
+      )}
     </div>
   );
 }
@@ -206,14 +276,16 @@ function MemoryLocationRow(props) {
     setEditing(false);
   };
 
+  const startEditing = () => setEditing(true);
+
   return (
     <div key={props.value} class="flex justify-between items-center py-1 px-1 hover:bg-gray-400 dark:hover:bg-gray-600">
       <span class="font-mono">0x{props.location.toString(16).padStart(4, '0').toUpperCase()}</span>
-      <span>
+      <span class="flex items-center gap-2">
         {
         editing() ? (
           <input
-            class="font-mono text-xs w-5 border-b border-b-gray-800 dark:bg-transparent"
+            class="font-mono w-5 border-b border-b-gray-800 dark:border-b-gray-400 dark:bg-transparent"
             value={value()}
             onInput={handleInputChange(setValue)}
             onKeyDown={handleKeyOrBlur}
@@ -223,11 +295,24 @@ function MemoryLocationRow(props) {
           />
         ) : (
           <span
-            class={`font-mono cursor-pointer text-xs ${props.value ? 'text-orange-600 dark:bg-transparent dark:border-b-green-300 dark:text-yellow-400' : 'dark:text-gray-600'}`}
+            class={`font-mono cursor-pointer ${props.value ? 'text-orange-600 dark:bg-transparent dark:border-b-green-300 dark:text-yellow-400' : 'dark:text-gray-600'}`}
             onDblClick={() => setEditing(true)}
           >{props.value === 0 ? '--' : toByteString(props.value)}</span>
         )
         }
+        <Tooltip>
+          <Tooltip.Trigger class="tooltip__trigger">
+            <button type="button" onClick={() => editing() ? saveValue() : startEditing() }>
+              {editing() ? <AiOutlineSave /> : <AiOutlineEdit /> }
+            </button>
+          </Tooltip.Trigger>
+          <Tooltip.Portal>
+            <Tooltip.Content class="tooltip__content">
+              <Tooltip.Arrow />
+              <p>{editing() ? "Save Memory Value" : "Edit Memory Value"}</p>
+            </Tooltip.Content>
+          </Tooltip.Portal>
+        </Tooltip>
       </span>
     </div>
   );
