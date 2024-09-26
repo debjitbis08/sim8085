@@ -1,12 +1,13 @@
 import { createEffect, createMemo, createSignal, useContext } from 'solid-js';
 import { StoreContext } from './StoreContext';
-import { AiOutlineClear, AiOutlineExpand, AiOutlineExpandAlt, AiOutlineFullscreen, AiOutlinePlus, AiOutlineEdit, AiOutlineSave, AiFillEye } from 'solid-icons/ai';
+import { AiOutlineClear, AiOutlineExpand, AiOutlineExpandAlt, AiOutlineFullscreen, AiOutlinePlus, AiOutlineEdit, AiOutlineSave, AiFillEye, AiFillEdit } from 'solid-icons/ai';
 import { Tooltip } from "@kobalte/core/tooltip";
 import { Dialog } from "@kobalte/core/dialog";
 import { toByteString } from '../utils/NumberFormat';
 import { MemoryGrid } from './MemoryGrid';
 import { TextTooltip } from './TextTooltip';
 import { VsEmptyWindow } from 'solid-icons/vs';
+import { HiSolidTrash } from 'solid-icons/hi';
 
 export default function MemoryList({ threshold = 4 }) {
   const { store, setStore } = useContext(StoreContext);
@@ -39,7 +40,7 @@ export default function MemoryList({ threshold = 4 }) {
         if (start !== null) {
           zeroCount++;
           if (zeroCount >= threshold) {
-            ranges.push({ start, end: index - zeroCount });
+            ranges.push({ start, end: index - zeroCount, isCustom: false });
             start = null;
             zeroCount = 0;
           }
@@ -60,9 +61,16 @@ export default function MemoryList({ threshold = 4 }) {
     const start = parseInt(inputRange().start, 16);
     const end = parseInt(inputRange().end, 16);
     if (!isNaN(start) && !isNaN(end) && start <= end) {
-      setCustomRanges([...customRanges(), { start, end }]);
+      setCustomRanges([...customRanges(), { start, end, isCustom: true }]);
       setIsAddingCustom(false);
     }
+  };
+
+  const deleteCustomRange = (range) => {
+    if (!range.isCustom) return;
+
+    const updatedCustomRanges = customRanges().filter(customRange => customRange.start !== range.start || customRange.end !== range.end);
+    setCustomRanges(updatedCustomRanges);
   };
 
   // Function to render memory within a range
@@ -99,10 +107,17 @@ export default function MemoryList({ threshold = 4 }) {
     return combinedRanges.concat(customRangesList);
   };
 
+  const isCurrentRangeValid = (currentRange, allRanges) => {
+    return (currentRange.start !== null && currentRange.end !== null)
+      && allRanges.some(range => currentRange.start === range.start && currentRange.end === range.end);
+  };
+
   createEffect(() => {
     const ranges = dataRanges();
-    if (ranges.length > 0 && (currentRange().start === null || currentRange().end === null)) {
+    if (ranges.length > 0 && !isCurrentRangeValid(currentRange(), ranges)) {
       setCurrentRange(ranges[0]);
+    } else if (ranges.length === 0) {
+      setCurrentRange({ start: null, end: null });
     }
   });
 
@@ -163,25 +178,37 @@ export default function MemoryList({ threshold = 4 }) {
         <div class="w-full">
           <div class="flex flex-wrap items-center gap-2 font-mono text-xs">
             {dataRanges().map((range, index) => (
-              <button
-                key={index}
-                class={`py-1 px-2 rounded-sm border border-gray-300 dark:border-gray-700 text-gray-600 dark:text-gray-400 ${currentRange().start === range.start && currentRange().end === range.end ? 'bg-gray-200 dark:bg-gray-700' : ''} hover:bg-gray-300 dark:hover:bg-gray-700`}
-                onClick={() => setCurrentRange({
-                  start: range.start,
-                  end: range.end
-                })}
-              >
-                <div class="flex items-center gap-1">
-                  <span>0x{range.start.toString(16).toUpperCase()}</span>
-                  { range.end !== range.start ? (
-                    <>
-                      <span> - </span>
-                      <span>0x{range.end.toString(16).toUpperCase()}</span>
-                    </>
-                  ) : null
-                  }
-                </div>
-              </button>
+              <div class="flex items-center gap-1 border border-gray-300 dark:border-gray-700" key={index}>
+                <button
+                  class={`py-1 px-2 rounded-sm border-r border-r-border-gray-300 dark:border-gray-700 text-gray-600 dark:text-gray-400 ${currentRange().start === range.start && currentRange().end === range.end ? 'bg-gray-200 dark:bg-gray-700' : ''} hover:bg-gray-300 dark:hover:bg-gray-700`}
+                  onClick={() => setCurrentRange({
+                    start: range.start,
+                    end: range.end
+                  })}
+                >
+                  <div class="flex items-center gap-1">
+                    <span>0x{range.start.toString(16).toUpperCase()}</span>
+                    { range.end !== range.start ? (
+                      <>
+                        <span> - </span>
+                        <span>0x{range.end.toString(16).toUpperCase()}</span>
+                      </>
+                    ) : null
+                    }
+                  </div>
+                </button>
+                { range.isCustom ? (
+                  <>
+                    <button>
+                      <AiFillEdit />
+                    </button>
+                    <button class="pr-1" onClick={() => deleteCustomRange(range)}>
+                      <HiSolidTrash />
+                    </button>
+                  </>
+                ) : null
+                }
+              </div>
             ))}
           </div>
         </div>
@@ -191,28 +218,30 @@ export default function MemoryList({ threshold = 4 }) {
           </button>
         </TextTooltip>
       </div>
-      <div class={`flex items-center gap-2 ${isAddingCustom() ? '' : 'hidden'}`}>
-        <div class="flex items-center gap-1 border-b border-b-gray-300">
-          <span class="text-gray-400 dark:text-gray-500">0x</span>
-          <input
-            type="text"
-            class="w-20 p-1 bg-transparent outline-none"
-            placeholder="Start"
-            value={inputRange().start}
-            onInput={(e) => setInputRange({ ...inputRange(), start: e.target.value })}
-          />
+      <div class={`w-full ${isAddingCustom() ? '' : 'hidden'}`}>
+        <div class="flex items-center justify-between gap-3">
+          <div class="flex items-center gap-1 border-b border-b-gray-300 min-w-0">
+            <span class="text-gray-400 dark:text-gray-500">0x</span>
+            <input
+              type="text"
+              class="p-1 bg-transparent outline-none"
+              placeholder="Start"
+              value={inputRange().start}
+              onInput={(e) => setInputRange({ ...inputRange(), start: e.target.value })}
+            />
+          </div>
+          <div class="flex items-center gap-1 border-b border-b-gray-300 min-w-0">
+            <span class="text-gray-400 dark:text-gray-500">0x</span>
+            <input
+              type="text"
+              class="p-1 bg-transparent outline-none"
+              placeholder="End"
+              value={inputRange().end}
+              onInput={(e) => setInputRange({ ...inputRange(), end: e.target.value })}
+            />
+          </div>
         </div>
-        <div class="flex items-center gap-1 border-b border-b-gray-300">
-          <span class="text-gray-400 dark:text-gray-500">0x</span>
-          <input
-            type="text"
-            class="w-20 p-1 bg-transparent outline-none"
-            placeholder="End"
-            value={inputRange().end}
-            onInput={(e) => setInputRange({ ...inputRange(), end: e.target.value })}
-          />
-        </div>
-        <div class="grow">
+        <div class="mt-2">
           <button
             class="flex items-center justify-center gap-2 w-full p-1 rounded border border-gray-400 hover:bg-gray-500 dark:border-gray-600 hover:dark:bg-gray-900"
             onClick={addCustomRange}
