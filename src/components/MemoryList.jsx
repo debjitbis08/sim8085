@@ -14,6 +14,7 @@ export default function MemoryList({ threshold = 4 }) {
   const [customRanges, setCustomRanges] = createSignal([]);
   const [inputRange, setInputRange] = createSignal({ start: '', end: '' });
   const [currentRange, setCurrentRange] = createSignal({ start: null, end: null });
+  const [editingCustom, setEditingCustom] = createSignal({ start: null, end: null });
   const [isAddingCustom, setIsAddingCustom] = createSignal(false);
 
   const updateMemoryCell = (location, value) => {
@@ -73,6 +74,23 @@ export default function MemoryList({ threshold = 4 }) {
     setCustomRanges(updatedCustomRanges);
   };
 
+  const editCustomRange = (range) => {
+    if (!range.isCustom) return;
+
+    setInputRange({ start: range.start.toString(16), end: range.end.toString(16) });
+    setEditingCustom(range);
+  };
+
+  const addOrEditCustomRange = () => {
+    if (isAddingCustom()) addCustomRange();
+    else if (editingCustom().start !== null && editingCustom().end !== null) {
+      deleteCustomRange({ ...editingCustom(), isCustom: true });
+      addCustomRange();
+      setCurrentRange({ ...editingCustom(), isCustom: true });
+      setEditingCustom({ start: null, end: null });
+    }
+  };
+
   // Function to render memory within a range
   const renderMemoryInRange = (start, end) => {
     return store.memory.slice(start, end + 1).map((value, index) => {
@@ -83,7 +101,7 @@ export default function MemoryList({ threshold = 4 }) {
     });
   };
 
-  const dataRanges = () => {
+  const dataRanges = createMemo(() => {
     const memoryRanges = findDataRanges(store.memory);
     const customRangesList = customRanges();
 
@@ -101,11 +119,9 @@ export default function MemoryList({ threshold = 4 }) {
       return !isWithinCustomRange(range, customRangesList);
     });
 
-    console.log(combinedRanges);
-
     // Finally, return the combined memory ranges and the custom ranges
     return combinedRanges.concat(customRangesList);
-  };
+  });
 
   const isCurrentRangeValid = (currentRange, allRanges) => {
     return (currentRange.start !== null && currentRange.end !== null)
@@ -199,7 +215,7 @@ export default function MemoryList({ threshold = 4 }) {
                 </button>
                 { range.isCustom ? (
                   <>
-                    <button>
+                    <button onClick={() => editCustomRange(range)}>
                       <AiFillEdit />
                     </button>
                     <button class="pr-1" onClick={() => deleteCustomRange(range)}>
@@ -214,11 +230,11 @@ export default function MemoryList({ threshold = 4 }) {
         </div>
         <TextTooltip message="Watch a memory range">
           <button onClick={() => setIsAddingCustom(isAddingCustom => !isAddingCustom)}>
-            <AiOutlinePlus class={`transition-transform ${isAddingCustom() ? 'rotate-45' : 'rotate-0'}`} />
+            <AiOutlinePlus class={`transition-transform ${isAddingCustom() || editingCustom().start !== null ? 'rotate-45' : 'rotate-0'}`} />
           </button>
         </TextTooltip>
       </div>
-      <div class={`w-full ${isAddingCustom() ? '' : 'hidden'}`}>
+      <div class={`w-full ${isAddingCustom() || editingCustom().start !== null ? '' : 'hidden'}`}>
         <div class="flex items-center justify-between gap-3">
           <div class="flex items-center gap-1 border-b border-b-gray-300 min-w-0">
             <span class="text-gray-400 dark:text-gray-500">0x</span>
@@ -244,7 +260,7 @@ export default function MemoryList({ threshold = 4 }) {
         <div class="mt-2">
           <button
             class="flex items-center justify-center gap-2 w-full p-1 rounded border border-gray-400 hover:bg-gray-500 dark:border-gray-600 hover:dark:bg-gray-900"
-            onClick={addCustomRange}
+            onClick={addOrEditCustomRange}
           >
             <AiFillEye />
             <span>Watch Range</span>
