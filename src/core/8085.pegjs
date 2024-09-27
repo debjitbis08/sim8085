@@ -485,7 +485,7 @@ data16 "word" = n:numLiteral {
     }
 }
 
-numLiteral "numeric literal" = binLiteral / hexLiteral / octalLiteral / decLiteral
+numLiteral "numeric literal" =  hexLiteral / binLiteral / octalLiteral / decLiteral
 
 decLiteral "decimal literal" = decForm2 / decForm1
 
