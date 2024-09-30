@@ -1,5 +1,5 @@
 import Module from './8085.js';
-import { getStateFromPtr, setState } from '../cpuState.js';
+import { getStateFromPtr, setPCValue, setState } from '../cpuState.js';
 import { parse } from '../core/8085.pegjs';
 
 let simulator = null;
@@ -97,6 +97,42 @@ export function runProgram(store) {
         hl: { high: outputState.h, low: outputState.l },
       },
       flags: {
+        z: outputState.flags.z || false,
+        s: outputState.flags.s || false,
+        p: outputState.flags.p || false,
+        c: outputState.flags.cy || false,
+        ac: outputState.flags.ac || false,
+      },
+      stackPointer: outputState.sp,
+      programCounter: outputState.pc,
+      memory: outputState.memory,
+      statePointer: newStatePointer,
+    };
+  } catch (e) {
+    console.error('Execution failed:', e);
+    throw new Error('Execution failed');
+  }
+}
+
+export function runSingleInstruction(store) {
+  var inputState = getCpuState(store);
+
+  const loadAddress = Math.min(...store.assembled.map((line) => line.currentAddress));
+
+  try {
+    const status = simulator._Emulate8085Op(inputState.ptr, loadAddress);
+    const outputState = getStateFromPtr(simulator, inputState.ptr);
+
+    console.log('status', status);
+
+    return [status, {
+      accumulator: outputState.a,
+      registers: {
+        bc: { high: outputState.b, low: outputState.c },
+        de: { high: outputState.d, low: outputState.e },
+        hl: { high: outputState.h, low: outputState.l },
+      },
+      flags: {
         z: outputState.flags.z,
         s: outputState.flags.s,
         p: outputState.flags.p,
@@ -106,8 +142,8 @@ export function runProgram(store) {
       stackPointer: outputState.sp,
       programCounter: outputState.pc,
       memory: outputState.memory,
-      statePointer: newStatePointer,
-    };
+      statePointer: inputState.ptr,
+    }];
   } catch (e) {
     console.error('Execution failed:', e);
     throw new Error('Execution failed');
@@ -136,4 +172,8 @@ export function getCpuState(store) {
     memory: store.memory,
     ptr: store.statePointer,
   };
+}
+
+export function setPC(store, value) {
+  setPCValue(simulator, store.statePointer, value);
 }

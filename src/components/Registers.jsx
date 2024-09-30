@@ -3,10 +3,9 @@ import { useContext, createSignal, createEffect } from 'solid-js';
 import { StoreContext } from './StoreContext';
 import { produce } from 'solid-js/store';
 import { toRadix, toByteString } from '../utils/NumberFormat';
+import { store, setStore } from '../store/store';
 
 export function Registers() {
-  const { store, setStore } = useContext(StoreContext);
-
   const updateRegisterValue = (registerId, high, low) => {
     setStore(
       "registers",

@@ -18,3 +18,5 @@
     transform: scale(0.96);
   }
 }
+
+@keyframes blink { 50% { background-color: transparent ; }  }

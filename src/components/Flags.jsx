@@ -2,9 +2,9 @@ import { useContext } from "solid-js";
 import { StoreContext } from "./StoreContext";
 import { AiOutlineClear } from "solid-icons/ai";
 import { produce } from "solid-js/store";
+import { store, setStore } from "../store/store";
 
 export function Flags() {
-  const { store, setStore } = useContext(StoreContext);
 
   const updateFlag = (flagId, isChecked) => {
     setStore(

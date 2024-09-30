@@ -30,34 +30,6 @@ hlt
 
 export function App() {
 
-  const [store, setStore] = createStore({
-    code: INITIAL_CODE,
-    assembled: [],
-    loadAddress: 0x0800,
-    accumulator: 0,
-    isEditingAccumulator: false,
-    registers: {
-      bc: { high: 0, low: 0, isEditing: false },
-      de: { high: 0, low: 0, isEditing: false },
-      hl: { high: 0, low: 0, isEditing: false },
-    },
-    stackPointer: 0,
-    programCounter: 0,
-    statePointer: null,
-    flags: {
-      s: false,
-      z: false,
-      ac: false,
-      p: false,
-      c: false
-    },
-    memory: Array(65536).fill(0),
-    openFiles: [ "main.asm" ]
-  });
-
-  createEffect(() => {
-    document.getElementById("app-loader")?.classList.add("hidden");
-  });
 
   return (
     <StoreContext.Provider value={{ store, setStore }}>
@@ -80,10 +52,14 @@ export function App() {
           <CodeMirror />
         </div>
         <div class="grow flex items-center" style={{ height: "calc(100vh - 5rem)" }}>
-          <div class="mx-auto">
-            <span class="dark:text-gray-600">
-              Interactive Terminal Coming Soon!
-            </span>
+          <div class="mx-auto flex flex-col justify-center items-center gap-4">
+            <div class="text-gray-400 dark:text-gray-600 flex items-center gap-2">
+              <span class="dark:text-gray-400 font-bold">$&gt;</span>
+              <div class="bg-gray-600 dark:bg-gray-400 w-2 h-4" style={{ animation: 'blink 1200ms', "animation-iteration-count": 10 }}></div>
+            </div>
+            <div class="bg-gray-200 dark:bg-gray-800 p-2 rounded-sm">
+              Coming Soon!
+            </div>
           </div>
         </div>
       </div>

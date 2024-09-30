@@ -3,10 +3,9 @@ import { StoreContext } from "./StoreContext";
 import { AiOutlineClear, AiOutlineSearch } from "solid-icons/ai";
 import { toByteString } from "../utils/NumberFormat";
 import { createVirtualizer } from '@tanstack/solid-virtual';
+import { store, setStore } from '../store/store.js';
 
 export function MemoryGrid() {
-  const { store, setStore } = useContext(StoreContext);
-
   let parentRef;
 
   const rowVirtualizer = createVirtualizer({
@@ -36,6 +35,11 @@ export function MemoryGrid() {
     }
   };
 
+  const resetAllLocations = () => {
+    setStore("memory", (memory) => memory.map(() => 0));
+    setStore("programState", (programState) => programState === 'Loaded' ? 'Idle' : programState);
+  };
+
   return (
     <div>
       <div class="flex pb-2">
@@ -60,7 +64,7 @@ export function MemoryGrid() {
               <AiOutlineSearch />
             </button>
           </div>
-          <button title="Clear All Memory Locations" class="text-red-700">
+          <button title="Clear All Memory Locations" class="text-red-700" onClick={resetAllLocations}>
             <AiOutlineClear />
           </button>
       </div>

@@ -8,9 +8,9 @@ import { MemoryGrid } from './MemoryGrid';
 import { TextTooltip } from './TextTooltip';
 import { VsEmptyWindow } from 'solid-icons/vs';
 import { HiSolidTrash } from 'solid-icons/hi';
+import { store, setStore } from '../store/store.js';
 
 export default function MemoryList({ threshold = 4 }) {
-  const { store, setStore } = useContext(StoreContext);
   const [customRanges, setCustomRanges] = createSignal([]);
   const [inputRange, setInputRange] = createSignal({ start: '', end: '' });
   const [currentRange, setCurrentRange] = createSignal({ start: null, end: null });
@@ -137,6 +137,11 @@ export default function MemoryList({ threshold = 4 }) {
     }
   });
 
+  const resetAllLocations = () => {
+    setStore("memory", (memory) => memory.map(() => 0));
+    setStore("programState", (programState) => programState === 'Loaded' ? 'Idle' : programState);
+  };
+
   return (
     <div class="h-full flex flex-col">
       <div class="flex border-b-2 dark:border-b-gray-600">
@@ -177,7 +182,7 @@ export default function MemoryList({ threshold = 4 }) {
           </Tooltip>
           <Tooltip>
             <Tooltip.Trigger class="tooltip__trigger">
-              <button class="text-red-700" onClick={() => { }}>
+              <button class="text-red-700" onClick={resetAllLocations}>
                 <AiOutlineClear />
               </button>
             </Tooltip.Trigger>

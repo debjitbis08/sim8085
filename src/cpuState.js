@@ -84,3 +84,7 @@ export function setState (simulator, statePtr, state) {
       i++;
     }
 }
+
+export function setPCValue(simulator, statePtr, pcValue) {
+  simulator.setValue(statePtr + 10, pcValue, 'i16', 0);
+}

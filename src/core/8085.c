@@ -978,8 +978,8 @@ int Emulate8085Op(State8085 *state, uint16_t offset)
 {
 	int cycles = 4;
 	unsigned char *opcode = &state->memory[state->pc];
-	printf("Emulating instruction at %d\n", state->pc);
-	printf("Emulating instruction %d\n", state->memory[state->pc]);
+	printf("Emulating instruction at $%02x\n", state->pc);
+	printf("Emulating instruction $%02x\n", state->memory[state->pc]);
 	if(offset == state->pc)
 		state->sp = 0xFFFF;
 
