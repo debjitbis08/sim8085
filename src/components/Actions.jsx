@@ -148,6 +148,42 @@ export function Actions() {
     }
   }
 
+  const clearFlags = () => {
+    setStore(
+      "flags",
+      produce((flags) => {
+        Object.keys(flags).forEach((flagId) => flags[flagId] = false);
+      })
+    );
+  };
+
+  const clearRegisters = () => {
+    setStore(
+      "accumulator",
+      0
+    );
+    setStore(
+      "registers",
+      produce((registers) => {
+        for(const register of Object.values(registers)) {
+          register.high = 0;
+          register.low = 0;
+        }
+      })
+    );
+  };
+
+  const resetAllLocations = () => {
+    setStore("memory", (memory) => memory.map(() => 0));
+    setStore("programState", (programState) => programState === 'Loaded' ? 'Idle' : programState);
+  };
+
+  const clearAllData = () => {
+    clearFlags();
+    clearRegisters();
+    resetAllLocations();
+  };
+
   return (
     <div class="flex items-center border border-gray-300 border-t-0 border-b-0 rounded-sm dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
       <Tooltip>
@@ -218,7 +254,7 @@ export function Actions() {
           <button
             type="button"
             class="px-2 py-1 border border-transparent hover:bg-gray-100 dark:hover:bg-gray-800 border-l border-l-gray-300 dark:border-l-gray-700"
-            onClick={() => { }}
+            onClick={clearAllData}
           >
             <div class="flex items-center gap-2 text-gray-600 dark:text-gray-400">
               <AiOutlineClear class="text-red-400 dark:text-red-600"/>
