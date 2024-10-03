@@ -26,8 +26,8 @@ export function assembleProgram(code) {
   try {
     return parse(code);
   } catch (e) {
-    console.error('Failed to assemble program:', e);
-    throw new Error('Assembly failed');
+    console.log('Failed to assemble program:', e);
+    throw e;
   }
 }
 

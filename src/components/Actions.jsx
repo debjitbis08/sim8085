@@ -23,7 +23,21 @@ export function Actions() {
   });
 
   function load() {
-    const result = loadProgram(store);
+    let result = null;
+
+    setStore("errors", []);
+
+    try {
+      result = loadProgram(store);
+    } catch (e) {
+      setStore("errors", [{
+        name: e.name,
+        msg: e.message,
+        line: e.location.start.line,
+        column: e.location.start.column
+      }]);
+      return;
+    }
 
     console.log("assembled");
     console.log(result.assembled);

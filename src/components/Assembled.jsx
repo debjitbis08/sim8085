@@ -13,7 +13,7 @@ export function Assembled() {
         <h2 class="text-xl pb-4">Assembled Output</h2>
       </div>
       <div
-        class={`${store.programState === 'Idle' ? 'hidden' : ''} max-w-full overflow-x-auto text-sm`}
+        class={`${store.programState === 'Idle' || store.errors.length ? 'hidden' : ''} max-w-full overflow-x-auto text-sm`}
         style={{ height: 'calc(100% - 2.75rem)' }}
       >
         {lines().map((line, i) => {
@@ -24,6 +24,18 @@ export function Assembled() {
               <span class="col-span-1 border-r border-r-gray-200 dark:border-r-gray-800">{ code === '0 ' ? '' : code }</span>
               <pre class="col-span-5 pl-1">{ line[1] }</pre>
             </div>
+          );
+        })}
+      </div>
+      <div
+        class={`${store.programState === 'Idle' && !store.errors.length ? 'hidden' : ''} max-w-full overflow-x-auto text-sm`}
+        style={{ height: 'calc(100% - 2.75rem)' }}
+      >
+        {store.errors.map((e) => {
+          return (
+            <p>
+              Line {e.line}, Column {e.column}: {e.msg}
+            </p>
           );
         })}
       </div>

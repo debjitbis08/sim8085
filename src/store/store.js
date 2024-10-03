@@ -44,5 +44,6 @@ export const [store, setStore] = createStore({
   },
   memory: Array(65536).fill(0),
   breakpoints: [],
+  errors: [],
   openFiles: [ "main.asm" ]
 });
