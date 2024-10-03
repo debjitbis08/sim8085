@@ -56,6 +56,7 @@ export function Registers() {
                 name={registerId.toUpperCase()}
                 high={store.registers[registerId].high}
                 low={store.registers[registerId].low}
+                canEditLow={true}
                 onSave={(high, low) => updateRegisterValue(registerId, high, low)}
               />
             ))
@@ -128,9 +129,9 @@ function Register(props) {
           {toByteString(props.high)}
         </span>
       )}
-      { editing() && (props.canEditLow !== undefined && props.canEditLow !== false) ? (
+      { editing() && props.canEditLow ? (
         <input
-          class="font-mono w-5 border-b border-b-gray-800"
+          class="font-mono w-5 border-b border-b-gray-800 dark:bg-transparent"
           value={lowValue()}
           onInput={handleInputChange(setLowValue)}
           onKeyDown={handleKeyOrBlur}
