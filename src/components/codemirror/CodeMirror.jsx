@@ -115,12 +115,13 @@ export function CodeMirror(props) {
       if (update.docChanged) {
         const newDoc = update.state.doc.toString(); // Get the new document content
         setStore("code", newDoc); // Update the store with new content
+        localStorage.setItem("main.asm", newDoc);
       }
     });
 
     // Create the initial state for the editor
     const startState = EditorState.create({
-      doc: store.code, // Load from store or default content
+      doc: localStorage.getItem("main.asm") || store.code, // Load from store or default content
       extensions: [
         breakpointGutter,
         lineHighlightField,
