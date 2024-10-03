@@ -5,6 +5,9 @@ import { RightPanel } from '../components/RightPanel.jsx';
 import { Actions } from '../components/Actions.jsx';
 import { CodeMirror } from '../components/codemirror/CodeMirror';
 import { Assembled } from '../components/Assembled';
+import { Toast } from "@kobalte/core/toast";
+import { Portal } from 'solid-js/web';
+import '../components/styles.css';
 ---
 
 <Layout title="Sim8085 - A 8085 microprocessor simulator">
@@ -13,7 +16,7 @@ import { Assembled } from '../components/Assembled';
             <div class="rounded-lg w-[25vw]">
                 <RightPanel client:idle />
             </div>
-            <div class="grow max-w-[800px] border-l border-l-gray-300">
+            <div class="grow max-w-[800px] lg:min-w-[500px] border-l border-l-gray-300">
                 <div class="flex">
                     <div class="grow">
                     <div class="flex items-center">

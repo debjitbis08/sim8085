@@ -119,9 +119,11 @@ export function CodeMirror(props) {
       }
     });
 
+    const storedFile = localStorage.getItem("main.asm");
+
     // Create the initial state for the editor
     const startState = EditorState.create({
-      doc: localStorage.getItem("main.asm") || store.code, // Load from store or default content
+      doc: storedFile || store.code, // Load from store or default content
       extensions: [
         breakpointGutter,
         lineHighlightField,
@@ -132,6 +134,10 @@ export function CodeMirror(props) {
         readOnly.of(EditorState.readOnly.of(false))
       ],
     });
+
+    if (storedFile) {
+      setStore("code", storedFile);
+    }
 
     // Create the editor view
     view = new EditorView({

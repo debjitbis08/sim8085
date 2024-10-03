@@ -12,6 +12,7 @@ import { FiFastForward } from "solid-icons/fi";
 import { BsFastForwardFill } from "solid-icons/bs";
 import { store, setStore } from '../store/store.js';
 import { TextTooltip } from "./TextTooltip.jsx";
+import { Toast, toaster } from "@kobalte/core/toast";
 
 export function Actions() {
   const [ isReady, setIsReady ] = createSignal(false);
@@ -89,6 +90,7 @@ export function Actions() {
     try {
       setStore('programState', 'Running');
       outputState = runProgram(store);
+      toaster.show(props => <Toast toastId={props.toastId} class="toast"><p>Program ran successfully. Please check the left panel for updated state.</p></Toast>);
     } catch (e) {
       if (e.status === 1) alert("UNKNOWN_INST_ERROR");
       else if (e.status === 2) alert("INFINITE_LOOP_ERROR");
@@ -188,6 +190,7 @@ export function Actions() {
     clearFlags();
     clearRegisters();
     resetAllLocations();
+    toaster.show(props => <Toast toastId={props.toastId} class="toast"><p>Register, Flags &amp; all Memory locations have been cleared</p></Toast>);
   };
 
   return (
@@ -238,6 +241,11 @@ export function Actions() {
               <span class="text-sm font-semibold hidden">Clear All Data</span>
             </div>
         </button>
+      <Portal client:only="solid-js" >
+          <Toast.Region>
+             	<Toast.List class="toast__list" />
+          </Toast.Region>
+      </Portal>
     </div>
   )
 }
