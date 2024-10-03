@@ -10,7 +10,6 @@ import { Actions } from "./Actions";
 import MemoryList from "./MemoryList";
 import { RightPanel } from "./RightPanel";
 import './styles.css';
-import './tooltip-styles.css';
 import { createEffect } from "solid-js";
 
 const INITIAL_CODE =

@@ -71,7 +71,6 @@ export function loadProgram(store) {
 
   return {
     statePointer: newStatePointer,
-    memory: state.memory,
     assembled,
   };
 }
@@ -176,4 +175,9 @@ export function getCpuState(store) {
 
 export function setPC(store, value) {
   setPCValue(simulator, store.statePointer, value);
+}
+
+export function setMemoryLocation(store, location, value) {
+  const memoryPointer = store.statePointer + 24;
+  simulator.setValue(memoryPointer + location, value, 'i8', 0);
 }

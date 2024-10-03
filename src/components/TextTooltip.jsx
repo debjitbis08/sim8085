@@ -1,4 +1,5 @@
 import { Tooltip } from "@kobalte/core/tooltip";
+import styles from "./TextToolip.module.css"
 
 export function TextTooltip(props) {
   return (
@@ -7,7 +8,7 @@ export function TextTooltip(props) {
         {props.children}
       </Tooltip.Trigger>
       <Tooltip.Portal>
-        <Tooltip.Content class="tooltip__content">
+        <Tooltip.Content class={styles.tooltipContent}>
           <Tooltip.Arrow />
           <p>{props.message}</p>
         </Tooltip.Content>

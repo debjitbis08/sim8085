@@ -1,5 +1,5 @@
 import { createSignal, onCleanup, onMount, useContext } from "solid-js";
-import { VsClearAll, VsPlay } from 'solid-icons/vs';
+import { VsClearAll, VsDebug, VsDebugStart, VsDebugStepInto, VsDebugStepOver, VsPlay } from 'solid-icons/vs';
 import { HiOutlineWrench, HiSolidArrowRight, HiSolidPlay, HiSolidWrench } from 'solid-icons/hi';
 import Module from '../core/8085.js';
 import { StoreContext } from "./StoreContext.js";
@@ -11,26 +11,16 @@ import { Tooltip } from "@kobalte/core/tooltip";
 import { FiFastForward } from "solid-icons/fi";
 import { BsFastForwardFill } from "solid-icons/bs";
 import { store, setStore } from '../store/store.js';
+import { TextTooltip } from "./TextTooltip.jsx";
 
 export function Actions() {
   const [ isReady, setIsReady ] = createSignal(false);
-
-  let simulator;
-  let execute8085Program;
-  let execute8085ProgramUntil;
-  let load8085Program;
 
   onMount(async () => {
     const statePointer = await initSimulator();
     setStore("statePointer", statePointer);
     setIsReady(true);
   });
-
-  function packAddress(address) {
-    const lowByte = address & 0xFF;       // Extract the low byte
-    const highByte = (address >> 8) & 0xFF; // Extract the high byte
-    return [lowByte, highByte];
-  }
 
   function load() {
     const result = loadProgram(store);
@@ -42,10 +32,12 @@ export function Actions() {
       setStore(
         produce((draftStore) => {
           draftStore.statePointer = result.statePointer;
-          draftStore.memory = result.memory;
           draftStore.assembled = result.assembled;
           draftStore.programState = 'Loaded';
           draftStore.programCounter = store.assembled.length ? store.assembled[0].currentAddress : 0;
+          for (const line of result.assembled) {
+            draftStore.memory[line.currentAddress] = line.data;
+          }
         })
       );
     }
@@ -186,89 +178,52 @@ export function Actions() {
 
   return (
     <div class="flex items-center border border-gray-300 border-t-0 border-b-0 rounded-sm dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
-      <Tooltip>
-        <Tooltip.Trigger class="tooltip__trigger">
       <button
         type="button"
         class="px-2 py-1 border border-transparent hover:bg-gray-100 dark:hover:bg-gray-800"
         onClick={load}
+        title="Assemble & Load"
       >
         <div class="flex items-center gap-2 text-gray-600 dark:text-gray-400">
           <HiSolidWrench class="text-yellow-400 dark:text-yellow-600" />
           <span class="text-sm font-semibold hidden">Assemble &amp; Load</span>
         </div>
       </button>
-      </Tooltip.Trigger>
-      <Tooltip.Portal>
-        <Tooltip.Content class="tooltip__content">
-          <Tooltip.Arrow />
-          <p>Assemble &amp; Load</p>
-        </Tooltip.Content>
-      </Tooltip.Portal>
-    </Tooltip>
-      <Tooltip>
-        <Tooltip.Trigger class="tooltip__trigger">
-        <button
-          type="button"
-          class="px-2 py-1 border border-transparent hover:bg-gray-100 dark:hover:bg-gray-800 border-l border-l-gray-300 dark:border-l-gray-700"
-          onClick={runOne}
-          disabled={store.programState !== 'Loaded' && store.programState !== 'Paused'}
-        >
-          <div class="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-            <HiSolidPlay class={`${store.programState === 'Loaded' || store.programState === 'Paused' ? 'text-green-400 dark:text-green-600' : 'text-gray-400 dark:text-gray-600'}`} />
-            <span class="text-sm font-semibold hidden">Run One Instruction</span>
-          </div>
-        </button>
-        </Tooltip.Trigger>
-        <Tooltip.Portal>
-          <Tooltip.Content class="tooltip__content">
-            <Tooltip.Arrow />
-            <p>{store.programState === 'Loaded' || store.programState === 'Paused' ? 'Run' : 'Assemble program before running'}</p>
-          </Tooltip.Content>
-        </Tooltip.Portal>
-      </Tooltip>
-      <Tooltip>
-        <Tooltip.Trigger class="tooltip__trigger">
+      <button
+        type="button"
+        class="px-2 py-1 border border-transparent hover:bg-gray-100 dark:hover:bg-gray-800 border-l border-l-gray-300 dark:border-l-gray-700"
+        onClick={runOne}
+        disabled={store.programState !== 'Loaded' && store.programState !== 'Paused'}
+        title={store.programState === 'Loaded' ? 'Step Through' : store.programState === 'Paused' ? 'Execute One Instruction' : 'Assemble program before starting debug'}
+      >
+        <div class="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+          <VsDebug class={`${store.programState === 'Loaded' ? 'text-green-400 dark:text-green-600' : store.programState === 'Paused' ? 'hidden' : 'text-gray-400 dark:text-gray-600'}`} />
+          <VsDebugStepOver class={`${store.programState === 'Paused' ? 'text-green-400 dark:text-green-600' : 'hidden'}`} />
+          <span class="text-sm font-semibold hidden">Run One Instruction</span>
+        </div>
+      </button>
         <button
           type="button"
           class="px-2 py-1 border border-transparent hover:bg-gray-100 dark:hover:bg-gray-800 border-l border-l-gray-300 dark:border-l-gray-700"
           onClick={loadAndRun}
+          title="Load & Run"
         >
           <div class="flex items-center gap-1 text-gray-600 dark:text-gray-400">
-            <HiSolidWrench class="text-yellow-400 dark:text-yellow-600" />
-            <HiSolidArrowRight class="text-gray-500 dark:text-gray-500" />
-            <BsFastForwardFill class="text-green-400 dark:text-green-600" />
+            <HiSolidPlay class="text-green-400 dark:text-green-600" />
             <span class="text-sm font-semibold hidden">Load &amp; Run</span>
           </div>
         </button>
-        </Tooltip.Trigger>
-        <Tooltip.Portal>
-          <Tooltip.Content class="tooltip__content">
-            <Tooltip.Arrow />
-            <p>Assemble, Load &amp; Run</p>
-          </Tooltip.Content>
-        </Tooltip.Portal>
-      </Tooltip>
-      <Tooltip>
-        <Tooltip.Trigger class="tooltip__trigger">
           <button
             type="button"
             class="px-2 py-1 border border-transparent hover:bg-gray-100 dark:hover:bg-gray-800 border-l border-l-gray-300 dark:border-l-gray-700"
             onClick={clearAllData}
+            title="Clear All Data"
           >
             <div class="flex items-center gap-2 text-gray-600 dark:text-gray-400">
               <AiOutlineClear class="text-red-400 dark:text-red-600"/>
               <span class="text-sm font-semibold hidden">Clear All Data</span>
             </div>
         </button>
-        </Tooltip.Trigger>
-        <Tooltip.Portal>
-          <Tooltip.Content class="tooltip__content">
-            <Tooltip.Arrow />
-            <p>Clear All Data</p>
-          </Tooltip.Content>
-        </Tooltip.Portal>
-      </Tooltip>
     </div>
   )
 }
