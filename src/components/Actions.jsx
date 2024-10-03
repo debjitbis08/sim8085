@@ -90,9 +90,9 @@ export function Actions() {
       setStore('programState', 'Running');
       outputState = runProgram(store);
     } catch (e) {
-      // if (e.status === 1) showError("UNKNOWN_INST");
-      // else if (e.status === 2) showError("INFINITE_LOOP");
-      // else showError("UNKNOWN");
+      if (e.status === 1) alert("UNKNOWN_INST_ERROR");
+      else if (e.status === 2) alert("INFINITE_LOOP_ERROR");
+      else alert("UNKNOWN_RUNTIME_ERROR");
       errorStatus = e.status;
       console.error(e);
     } finally {

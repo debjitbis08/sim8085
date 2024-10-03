@@ -109,7 +109,7 @@ export function runProgram(store) {
     };
   } catch (e) {
     console.error('Execution failed:', e);
-    throw new Error('Execution failed');
+    throw e;
   }
 }
 
