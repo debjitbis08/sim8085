@@ -1,6 +1,7 @@
 import { createEffect, createSignal } from 'solid-js';
 import { store } from '../store/store.js';
 import { toByteString } from '../utils/NumberFormat.js';
+import { HiSolidWrench } from 'solid-icons/hi';
 
 export function Assembled() {
   let [lines, setLines] = createSignal([]);
@@ -28,7 +29,7 @@ export function Assembled() {
         })}
       </div>
       <div
-        class={`${store.programState === 'Idle' && !store.errors.length ? 'hidden' : ''} max-w-full overflow-x-auto text-sm`}
+        class={`${store.programState === 'Idle' && store.errors.length === 0 ? 'hidden' : ''} max-w-full overflow-x-auto text-sm`}
         style={{ height: 'calc(100% - 2.75rem)' }}
       >
         {store.errors.map((e) => {
@@ -38,6 +39,14 @@ export function Assembled() {
             </p>
           );
         })}
+      </div>
+      <div
+        class={`${store.programState === 'Idle' && store.errors.length !== 0 ? 'hidden' : ''} max-w-full overflow-x-auto text-sm`}
+        style={{ height: 'calc(100% - 2.75rem)' }}
+      >
+        <p class="text-gray-500">
+          To view the assembled listing Load <HiSolidWrench class="inline text-yellow-400 dark:text-yellow-600" /> the program but don't run it.
+        </p>
       </div>
     </div>
   );
