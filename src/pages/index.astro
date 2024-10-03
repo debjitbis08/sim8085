@@ -4,6 +4,7 @@ import { App } from '../components/App.jsx';
 import { RightPanel } from '../components/RightPanel.jsx';
 import { Actions } from '../components/Actions.jsx';
 import { CodeMirror } from '../components/codemirror/CodeMirror';
+import { Assembled } from '../components/Assembled';
 ---
 
 <Layout title="Sim8085 - A 8085 microprocessor simulator">
@@ -26,7 +27,9 @@ import { CodeMirror } from '../components/codemirror/CodeMirror';
                 </div>
                 <CodeMirror client:load />
             </div>
-            <div class="grow flex items-center" style={{ height: "calc(100vh - 5rem)" }}>
+            <div class="grow flex items-start" style={{ height: "calc(100vh - 5rem)" }}>
+                <Assembled client:idle />
+                <!--
                 <div class="mx-auto flex flex-col justify-center items-center gap-4">
                     <div class="text-gray-400 dark:text-gray-600 flex items-center gap-2">
                     <span class="dark:text-gray-400 font-bold">$&gt;</span>
@@ -36,6 +39,7 @@ import { CodeMirror } from '../components/codemirror/CodeMirror';
                         Coming Soon!
                     </div>
                 </div>
+                -->
             </div>
         </div>
    	</main>

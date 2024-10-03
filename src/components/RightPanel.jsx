@@ -22,10 +22,10 @@ export function RightPanel() {
             {/*<span>Memory</span>*/}
         </button>
         <div class="grow"></div>
-        <button type="button">
+        <button type="button" class="hidden">
           <AiOutlineQuestionCircle class="text-xl"/>
         </button>
-        <button type="button">
+        <button type="button" class="hidden">
           <BsKeyboard class="text-xl"/>
         </button>
         <div class="pb-1"></div>

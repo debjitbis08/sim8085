@@ -349,7 +349,7 @@ function MemoryLocationRow(props) {
           <span
             class={`font-mono cursor-pointer ${props.value ? 'text-orange-600 dark:bg-transparent dark:border-b-green-300 dark:text-yellow-400' : 'dark:text-gray-600'}`}
             onDblClick={() => setEditing(true)}
-          >{props.value === 0 ? '--' : toByteString(props.value)}</span>
+          >{toByteString(props.value)}</span>
         )
         }
         <Tooltip>
