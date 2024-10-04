@@ -37,6 +37,7 @@ export function Actions() {
         line: e.location.start.line,
         column: e.location.start.column
       }]);
+      setStore("assembled", []);
       return;
     }
 
@@ -48,6 +49,7 @@ export function Actions() {
         produce((draftStore) => {
           draftStore.statePointer = result.statePointer;
           draftStore.assembled = result.assembled;
+          draftStore.errors = [];
           draftStore.programState = 'Loaded';
           draftStore.programCounter = store.assembled.length ? store.assembled[0].currentAddress : 0;
           for (const line of result.assembled) {
