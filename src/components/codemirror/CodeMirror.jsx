@@ -1,7 +1,7 @@
 import { createEffect, createSignal, onCleanup, onMount, useContext } from "solid-js";
 import { EditorState, StateField, StateEffect, RangeSet, Compartment } from "@codemirror/state";
 import { EditorView, GutterMarker, Decoration, keymap, gutter } from "@codemirror/view";
-import { defaultKeymap } from "@codemirror/commands";
+import { defaultKeymap, indentWithTab } from "@codemirror/commands";
 import { basicSetup } from "codemirror";
 import { StoreContext } from "../StoreContext";
 import { Syntax8085 } from "./8085";
@@ -129,7 +129,7 @@ export function CodeMirror(props) {
         breakpointGutter,
         lineHighlightField,
         basicSetup,
-        keymap.of(defaultKeymap),
+        keymap.of([defaultKeymap, indentWithTab]),
         onChangeListener,
         Syntax8085(),
         readOnly.of(EditorState.readOnly.of(false))
