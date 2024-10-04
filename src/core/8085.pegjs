@@ -621,7 +621,7 @@ directive = dir:(dataDefinition / defineSymbol / orgDirective) {
 
 operation = inst:(carryBitInstructions / singleRegInstructions / nopInstruction /
     dataTransferInstructions / regOrMemToAccInstructions / rotateAccInstructions /
-    regPairInstructions / immediateInstructions / directAddressingInstructions /
+    regPairInstructions / immediateInstructions / ioInstructions / directAddressingInstructions /
     jumpInstructions / callInstructions / returnInstructions / haltInstruction) whitespace* {
 
     var paramTypes = inst.paramTypes,
@@ -756,6 +756,15 @@ immediateInstructions = op:(op_lxi / op_mvi / op_adi / op_aci / op_sui / op_sbi 
     };
 }
 
+ioInstructions = op:(op_in / op_out) {
+    var name = op[0].toLowerCase(), params, paramTypes;
+    return {
+        name: name,
+        params: [op[2]],
+        paramTypes: ["d8"]
+    };
+}
+
 directAddressingInstructions = op:(op_sta / op_lda / op_shld / op_lhld) {
     return {
         name: op[0],
@@ -868,7 +877,6 @@ op_ei   = ("EI"   / "ei"  )
 op_di   = ("DI"   / "di"  )
 op_nop  = ("NOP"  / "nop" )
 
-
 op_inr  = ("INR"  / "inr" ) whitespace+ register
 op_dcr  = ("DCR"  / "dcr" ) whitespace+ register
 op_stax = ("STAX" / "stax") whitespace+ (registerPairB / registerPairD)
@@ -894,6 +902,8 @@ op_ani  = ("ANI"  / "ani" ) whitespace+ (data8 / labelImmediate / expression)
 op_xri  = ("XRI"  / "xri" ) whitespace+ (data8 / labelImmediate / expression)
 op_ori  = ("ORI"  / "ori" ) whitespace+ (data8 / labelImmediate / expression)
 op_cpi  = ("CPI"  / "cpi" ) whitespace+ (data8 / labelImmediate / expression)
+op_in   = ("IN"   / "in"  ) whitespace+ (data8 / labelImmediate / expression)
+op_out  = ("OUT"  / "out" ) whitespace+ (data8 / labelImmediate / expression)
 op_sta  = ("STA"  / "sta" ) whitespace+ (data16 / labelDirect / expression )
 op_lda  = ("LDA"  / "lda" ) whitespace+ (data16 / labelDirect / expression)
 op_shld = ("SHLD" / "shld") whitespace+ (data16 / labelDirect / expression)

@@ -61,7 +61,6 @@ export function Actions() {
   function updateState(outputState) {
     setStore(
       produce((draftStore) => {
-        console.log(outputState);
         draftStore.accumulator = outputState.accumulator;
         // registers
         draftStore.registers.bc.high = outputState.registers.bc.high;
@@ -80,6 +79,7 @@ export function Actions() {
         draftStore.programCounter = outputState.programCounter;
         draftStore.statePointer = outputState.statePointer;
         draftStore.memory = outputState.memory;
+        draftStore.io = outputState.io;
       })
     );
   }

@@ -80,11 +80,12 @@ export function runProgram(store) {
   var inputState = getCpuState(store);
 
   // TODO Check why Loaded state check is needed
-  setState(simulator, statePointer, inputState);
+  setState(simulator, store.statePointer, inputState);
 
   const loadAddress = Math.min(...store.assembled.map((line) => line.currentAddress));
 
   try {
+    console.log(getStateFromPtr(simulator, store.statePointer).memory[0]);
     const newStatePointer = execute8085Program(store.statePointer, loadAddress);
     const outputState = getStateFromPtr(simulator, newStatePointer);
 
@@ -105,6 +106,7 @@ export function runProgram(store) {
       stackPointer: outputState.sp,
       programCounter: outputState.pc,
       memory: outputState.memory,
+      io: outputState.io,
       statePointer: newStatePointer,
     };
   } catch (e) {
@@ -141,6 +143,7 @@ export function runSingleInstruction(store) {
       stackPointer: outputState.sp,
       programCounter: outputState.pc,
       memory: outputState.memory,
+      io: outputState.io,
       statePointer: inputState.ptr,
     }];
   } catch (e) {
@@ -169,6 +172,7 @@ export function getCpuState(store) {
       ac: store.flags.ac,
     },
     memory: store.memory,
+    io: store.io,
     ptr: store.statePointer,
   };
 }
@@ -180,4 +184,9 @@ export function setPC(store, value) {
 export function setMemoryLocation(store, location, value) {
   const memoryPointer = store.statePointer + 24;
   simulator.setValue(memoryPointer + location, value, 'i8', 0);
+}
+
+export function setIOPort(store, location, value) {
+  const ioPointer = store.statePointer + 24 + 65536;
+  simulator.setValue(ioPointer + location, value, 'i8', 0);
 }

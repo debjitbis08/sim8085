@@ -28,6 +28,7 @@ typedef struct State8085
 	struct Flags cc;
 	uint8_t int_enable;
 	uint8_t *memory;
+	uint8_t *io;
 } State8085;
 
 int parity(int x, int size)
@@ -1904,10 +1905,10 @@ int Emulate8085Op(State8085 *state, uint16_t offset)
 		else
 			state->pc += 2;
 		break;
-	case 0xd3:
-		//Don't know what to do here (yet)
-		state->pc++;
-		break;
+	case 0xd3: // OUT d8
+        state->io[opcode[1]] = state->a;
+        state->pc += 1;
+        break;
 	case 0xd4: // CNC Addr
 		if (0 == state->cc.cy)
 			call(state, offset, (opcode[2] << 8) | opcode[1]);
@@ -1941,9 +1942,10 @@ int Emulate8085Op(State8085 *state, uint16_t offset)
 		else
 			state->pc += 2;
 		break;
-	case 0xdb:
-		UnimplementedInstruction(state);
-		break; // IN d8
+	case 0xdb: // IN d8
+        state->a = state->io[opcode[1]];
+        state->pc++;
+        break;
 	case 0xdc: // CC Addr
 		if (1 == state->cc.cy)
 			call(state, offset, (opcode[2] << 8) | opcode[1]);
@@ -2180,8 +2182,11 @@ int Emulate8085Op(State8085 *state, uint16_t offset)
 State8085 *Init8085(void)
 {
 	State8085 *state = calloc(1, sizeof(State8085));
-	state->memory = malloc(0x10000); //16K
+	state->memory = malloc(0x10000); // 64K
+	state->io = malloc(0x100);
 	printf("State Ptr: %p\n", state);
+	printf("Memory Ptr: %p\n", state->memory);
+	printf("IO Ptr: %p\n", state->io);
 	return state;
 }
 
@@ -2255,7 +2260,7 @@ State8085 *ExecuteProgram(State8085 *state, uint16_t offset)
 
 	while (done == 0)
 	{
-		if (cycles > 10000)
+		if (cycles > 10)
 			exit(2);
 		done = Emulate8085Op(state, offset);
 		cycles++;

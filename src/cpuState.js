@@ -33,12 +33,25 @@ export function getStateFromPtr (simulator, statePtr) {
         ac: getFlagValue(flags, 4)
       },
       memory: (function () {
-        var memoryPtr = statePtr + 24;
+        var memoryPtr = statePtr + 32;
         var arr = [];
         var i = 0;
         var n = 0;
         while (i < 65536) {
           n = simulator.getValue(memoryPtr + i, 'i8', 0);
+          arr.push(n < 0 ? 256 + n : n);
+          i++;
+        }
+        return arr;
+      })(),
+      io: (function () {
+        const ioPointer = statePtr + 65576;
+        console.log(`ioPointer: ${ioPointer}`);
+        const arr = [];
+        let i = 0;
+        let n = 0;
+        while (i < 256) {
+          n = simulator.getValue(ioPointer + i, 'i8', 0);
           arr.push(n < 0 ? 256 + n : n);
           i++;
         }
@@ -77,10 +90,18 @@ export function setState (simulator, statePtr, state) {
     simulator.setValue(statePtr + 12, flag, 'i8', 0);
 
     // Memory
-    var memoryPtr = statePtr + 24;
+    var memoryPtr = statePtr + 32;
     var i = 0;
     while (i < 65536) {
       simulator.setValue(memoryPtr + i, state.memory[i], 'i8', 0);
+      i++;
+    }
+
+    // IO
+    const ioPointer = statePtr + 65576;
+    i = 0;
+    while (i < 256) {
+      simulator.setValue(ioPointer + i, state.io[i], 'i8', 0);
       i++;
     }
 }

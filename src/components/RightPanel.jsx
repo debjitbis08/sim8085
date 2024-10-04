@@ -1,4 +1,4 @@
-import { BsKeyboard, BsMemory } from "solid-icons/bs";
+import { BsKeyboard, BsMemory, BsSlash, BsSlashLg } from "solid-icons/bs";
 import { HiOutlineCpuChip } from "solid-icons/hi";
 import MemoryList from "./MemoryList";
 import { Registers } from "./Registers";
@@ -6,6 +6,7 @@ import { Flags } from "./Flags";
 import { createSignal } from "solid-js";
 import { FiCpu } from 'solid-icons/fi'
 import { AiOutlineQuestionCircle } from "solid-icons/ai";
+import { IOPorts } from "./IOPorts";
 
 export function RightPanel() {
   const [activeTab, setActiveTab] = createSignal('cpu');
@@ -20,6 +21,13 @@ export function RightPanel() {
         <button type="button" onClick={() => setActiveTab('memory')} class={`${activeTab() === 'memory' ? 'text-blue-600 dark:text-blue-400' : ''} flex flex-col items-center`}>
           <BsMemory class="text-2xl" />
             {/*<span>Memory</span>*/}
+        </button>
+        <button type="button" onClick={() => setActiveTab('io')} class={`${activeTab() === 'io' ? 'text-blue-600 dark:text-blue-400' : ''} flex flex-col items-center`}>
+          <p class="text-md font-bold flex gap-[-1]">
+            <span>I/O</span>
+            {/* <BsSlash class="text-2xl"/> */}
+            {/* <span>O</span> */}
+          </p>
         </button>
         <div class="grow"></div>
         <button type="button" class="hidden">
@@ -41,6 +49,9 @@ export function RightPanel() {
         </div>
         <div class={`w-full ${activeTab() === 'memory' ? '' : 'hidden'}`}>
           <MemoryList />
+        </div>
+        <div class={`w-full ${activeTab() === 'io' ? '' : 'hidden'}`}>
+          <IOPorts />
         </div>
         <div class="grow"></div>
       </div>
