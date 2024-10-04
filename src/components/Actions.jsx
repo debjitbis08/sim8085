@@ -195,52 +195,35 @@ export function Actions() {
 
   return (
     <div class="flex items-center border border-gray-300 border-t-0 border-b-0 rounded-sm dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
-      <button
-        type="button"
-        class="px-2 py-1 border border-transparent hover:bg-gray-100 dark:hover:bg-gray-800"
+      <ActionButton
+        icon={<HiSolidWrench class="text-yellow-400 dark:text-yellow-600" />}
         onClick={load}
+        disabled={false}
         title="Assemble & Load"
-      >
-        <div class="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-          <HiSolidWrench class="text-yellow-400 dark:text-yellow-600" />
-          <span class="text-sm font-semibold hidden">Assemble &amp; Load</span>
-        </div>
-      </button>
-      <button
-        type="button"
-        class="px-2 py-1 border border-transparent hover:bg-gray-100 dark:hover:bg-gray-800 border-l border-l-gray-300 dark:border-l-gray-700"
+      />
+      <ActionButton
+        icon={(
+          <>
+            <VsDebug class={`${store.programState === 'Loaded' ? 'text-green-400 dark:text-green-600' : store.programState === 'Paused' ? 'hidden' : 'text-gray-400 dark:text-gray-600'}`} />
+            <VsDebugStepOver class={`${store.programState === 'Paused' ? 'text-green-400 dark:text-green-600' : 'hidden'}`} />
+          </>
+        )}
         onClick={runOne}
         disabled={store.programState !== 'Loaded' && store.programState !== 'Paused'}
         title={store.programState === 'Loaded' ? 'Step Through' : store.programState === 'Paused' ? 'Execute One Instruction' : 'Assemble program before starting debug'}
-      >
-        <div class="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-          <VsDebug class={`${store.programState === 'Loaded' ? 'text-green-400 dark:text-green-600' : store.programState === 'Paused' ? 'hidden' : 'text-gray-400 dark:text-gray-600'}`} />
-          <VsDebugStepOver class={`${store.programState === 'Paused' ? 'text-green-400 dark:text-green-600' : 'hidden'}`} />
-          <span class="text-sm font-semibold hidden">Run One Instruction</span>
-        </div>
-      </button>
-        <button
-          type="button"
-          class="px-2 py-1 border border-transparent hover:bg-gray-100 dark:hover:bg-gray-800 border-l border-l-gray-300 dark:border-l-gray-700"
-          onClick={loadAndRun}
-          title="Load & Run"
-        >
-          <div class="flex items-center gap-1 text-gray-600 dark:text-gray-400">
-            <HiSolidPlay class="text-green-400 dark:text-green-600" />
-            <span class="text-sm font-semibold hidden">Load &amp; Run</span>
-          </div>
-        </button>
-          <button
-            type="button"
-            class="px-2 py-1 border border-transparent hover:bg-gray-100 dark:hover:bg-gray-800 border-l border-l-gray-300 dark:border-l-gray-700"
-            onClick={clearAllData}
-            title="Clear All Data"
-          >
-            <div class="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-              <AiOutlineClear class="text-red-400 dark:text-red-600"/>
-              <span class="text-sm font-semibold hidden">Clear All Data</span>
-            </div>
-        </button>
+      />
+      <ActionButton
+        icon={<HiSolidPlay class="text-green-400 dark:text-green-600" />}
+        title="Load &amp; Run"
+        onClick={loadAndRun}
+        disabled={false}
+      />
+      <ActionButton
+        icon={<AiOutlineClear class="text-red-400 dark:text-red-600"/>}
+        title="Clear All Data"
+        onClick={clearAllData}
+        disabled={false}
+      />
       <Portal client:only="solid-js" >
           <Toast.Region>
              	<Toast.List class="toast__list" />
@@ -249,3 +232,28 @@ export function Actions() {
     </div>
   )
 }
+
+function ActionButton(props) {
+  return (
+    <Tooltip>
+      <Tooltip.Trigger class="tooltip__trigger">
+        <button
+          type="button"
+          class="px-2 py-1 border border-transparent hover:bg-gray-100 dark:hover:bg-gray-800 border-l border-l-gray-300 dark:border-l-gray-700"
+          onClick={props.onClick}
+          disabled={props.disabled}
+        >
+          <div class="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+            {props.icon}
+          </div>
+        </button>
+      </Tooltip.Trigger>
+      <Tooltip.Portal>
+        <Tooltip.Content class="tooltip__content">
+          <Tooltip.Arrow />
+          <p>{props.title}</p>
+        </Tooltip.Content>
+      </Tooltip.Portal>
+    </Tooltip>
+  );
+};

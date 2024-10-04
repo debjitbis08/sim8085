@@ -29,7 +29,7 @@ export function Assembled() {
         })}
       </div>
       <div
-        class={`${store.programState === 'Idle' && store.errors.length === 0 ? 'hidden' : ''} max-w-full overflow-x-auto text-sm`}
+        class={`${store.programState === 'Idle' && store.errors.length !== 0 ? '' : 'hidden'} max-w-full overflow-x-auto text-sm`}
         style={{ height: 'calc(100% - 2.75rem)' }}
       >
         {store.errors.map((e) => {
@@ -41,7 +41,7 @@ export function Assembled() {
         })}
       </div>
       <div
-        class={`${store.programState === 'Idle' && store.errors.length !== 0 ? 'hidden' : ''} max-w-full overflow-x-auto text-sm`}
+        class={`${store.programState === 'Idle' && store.errors.length === 0 ? '' : 'hidden'} max-w-full overflow-x-auto text-sm`}
         style={{ height: 'calc(100% - 2.75rem)' }}
       >
         <p class="text-gray-500">

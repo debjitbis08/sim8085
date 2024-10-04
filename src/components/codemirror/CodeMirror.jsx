@@ -189,11 +189,11 @@ export function CodeMirror(props) {
   return (
     <div class="relative">
       <div ref={editorRef} class="editor-container border border-gray-300 dark:border-gray-600 border-l-0 border-b-0" style={{ height: "calc(100vh - 8rem - 1px)"}}></div>
-      <span class={`${store.programState === 'Idle' ? 'hidden' : ''} absolute text-xs px-2 py-1 top-2 right-2 rounded-sm dark:bg-gray-600 flex items-center gap-1 opacity-80`}>
+      <span class={`${store.programState === 'Idle' ? 'hidden' : ''} absolute text-xs text-gray-100 px-3 py-2 top-2 right-2 rounded-sm bg-red-500 dark:bg-red-700 flex items-center gap-1 opacity-80`}>
         <span>Editor is Read Only</span>
         <Tooltip>
           <Tooltip.Trigger class="tooltip__trigger">
-            <span class="cursor-help"><FiHelpCircle /></span>
+            <span class="cursor-help text-lg"><FiHelpCircle /></span>
           </Tooltip.Trigger>
           <Tooltip.Portal>
             <Tooltip.Content class="tooltip__content">

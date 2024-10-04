@@ -126,3 +126,23 @@
     transform: translateX(calc(100% + var(--viewport-padding)));
   }
 }
+
+.tooltip__content {
+  @apply border;
+  @apply rounded-sm;
+  @apply border-gray-400;
+  @apply dark:border-gray-600;
+  @apply p-2;
+  @apply bg-gray-400;
+  @apply dark:bg-gray-800;
+  @apply dark:text-gray-200;
+  @apply text-sm;
+  @apply z-50;
+  max-width: min(calc(100vw - 16px), 380px);
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  animation: contentHide 150ms ease-in forwards;
+}
+
+.tooltip__content[data-expanded] {
+  animation: contentShow 150ms ease-out;
+}
