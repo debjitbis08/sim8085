@@ -14,7 +14,7 @@ export function Assembled() {
         <h2 class="text-xl pb-4">Assembled Output</h2>
       </div>
       <div
-        class={`${store.programState === 'Idle' || store.errors.length ? 'hidden' : ''} max-w-full overflow-x-auto text-sm`}
+        class={`${store.assembled.length ? '' : 'hidden'} max-w-full overflow-x-auto text-sm`}
         style={{ height: 'calc(100% - 2.75rem)' }}
       >
         {lines().map((line, i) => {
@@ -29,7 +29,7 @@ export function Assembled() {
         })}
       </div>
       <div
-        class={`${store.programState === 'Idle' && store.errors.length !== 0 ? '' : 'hidden'} max-w-full overflow-x-auto text-sm`}
+        class={`${store.errors.length ? '' : 'hidden'} max-w-full overflow-x-auto text-sm`}
         style={{ height: 'calc(100% - 2.75rem)' }}
       >
         {store.errors.map((e) => {
@@ -41,7 +41,7 @@ export function Assembled() {
         })}
       </div>
       <div
-        class={`${store.programState === 'Idle' && store.errors.length === 0 ? '' : 'hidden'} max-w-full overflow-x-auto text-sm`}
+        class={`${store.assembled.length || store.errors.length ? 'hidden' : ''} max-w-full overflow-x-auto text-sm`}
         style={{ height: 'calc(100% - 2.75rem)' }}
       >
         <p class="text-gray-500">

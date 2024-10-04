@@ -1,4 +1,4 @@
-import { createEffect, onCleanup, onMount, useContext } from "solid-js";
+import { createEffect, createSignal, onCleanup, onMount, useContext } from "solid-js";
 import { EditorState, StateField, StateEffect, RangeSet, Compartment } from "@codemirror/state";
 import { EditorView, GutterMarker, Decoration, keymap, gutter } from "@codemirror/view";
 import { defaultKeymap } from "@codemirror/commands";
@@ -13,6 +13,7 @@ import { store, setStore } from '../../store/store';
 
 export function CodeMirror(props) {
   let editorRef; // Reference to the DOM element where CodeMirror will be mounted
+  const [isEditorLoading, setIsEditorLoading] = createSignal(true);
 
   const updateBreakpoint = (line) => {
     const action = store.breakpoints.find(l => l === line) != null ? 'remove' : 'add';
@@ -144,6 +145,7 @@ export function CodeMirror(props) {
       state: startState,
       parent: editorRef, // Mount the editor inside the editorRef div
     });
+    setIsEditorLoading(false);
 
     // Cleanup when the component is destroyed
     onCleanup(() => {
@@ -188,7 +190,11 @@ export function CodeMirror(props) {
 
   return (
     <div class="relative">
-      <div ref={editorRef} class="editor-container border border-gray-300 dark:border-gray-600 border-l-0 border-b-0" style={{ height: "calc(100vh - 8rem - 1px)"}}></div>
+      <div ref={editorRef} class="editor-container border border-gray-300 dark:border-gray-600 border-l-0 border-b-0" style={{ height: "calc(100vh - 8rem - 1px)"}}>
+        <div class={`${isEditorLoading() ? '' : 'hidden'} p-4 text-center`}>
+          Editor is loading...
+        </div>
+      </div>
       <span class={`${store.programState === 'Idle' ? 'hidden' : ''} absolute text-xs text-gray-100 px-3 py-2 top-2 right-2 rounded-sm bg-red-500 dark:bg-red-700 flex items-center gap-1 opacity-80`}>
         <span>Editor is Read Only</span>
         <Tooltip>
@@ -198,7 +204,7 @@ export function CodeMirror(props) {
           <Tooltip.Portal>
             <Tooltip.Content class="tooltip__content">
               <Tooltip.Arrow />
-              <p>Editing is not allowed while program is loaded into memory to avoid mismatch between code and loaded program. You may clear the memory to edit again.</p>
+              <p>Editing is not allowed while program is loaded into memory to avoid mismatch between code and loaded program. You may clear all data to edit again.</p>
             </Tooltip.Content>
           </Tooltip.Portal>
         </Tooltip>

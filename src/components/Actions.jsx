@@ -1,15 +1,15 @@
 import { createSignal, onCleanup, onMount, useContext } from "solid-js";
-import { VsClearAll, VsDebug, VsDebugStart, VsDebugStepInto, VsDebugStepOver, VsPlay } from 'solid-icons/vs';
-import { HiOutlineWrench, HiSolidArrowRight, HiSolidPlay, HiSolidWrench } from 'solid-icons/hi';
+import { VsClearAll, VsDebug, VsDebugLineByLine, VsDebugStart, VsDebugStepInto, VsDebugStepOver, VsDebugStop, VsPlay } from 'solid-icons/vs';
+import { HiOutlineWrench, HiSolidArrowRight, HiSolidPlay, HiSolidStop, HiSolidWrench } from 'solid-icons/hi';
 import Module from '../core/8085.js';
 import { StoreContext } from "./StoreContext.js";
 import { getStateFromPtr, setState } from "../cpuState.js";
 import { produce } from "solid-js/store";
 import { initSimulator, loadProgram, runProgram, runSingleInstruction, setPC } from "../core/simulator.js";
-import { AiFillFastForward, AiOutlineClear } from "solid-icons/ai";
+import { AiFillFastForward, AiFillStop, AiOutlineClear } from "solid-icons/ai";
 import { Tooltip } from "@kobalte/core/tooltip";
 import { FiFastForward } from "solid-icons/fi";
-import { BsFastForwardFill } from "solid-icons/bs";
+import { BsFastForwardFill, BsStop } from "solid-icons/bs";
 import { store, setStore } from '../store/store.js';
 import { TextTooltip } from "./TextTooltip.jsx";
 import { Toast, toaster } from "@kobalte/core/toast";
@@ -116,6 +116,11 @@ export function Actions() {
     let outputState;
     let errorStatus = 0;
     let status = null;
+
+    if (store.programState === 'Idle') {
+      load();
+    }
+
     try {
       if (store.programState === 'Loaded') {
         console.log("===== Starting Debug =====");
@@ -186,10 +191,17 @@ export function Actions() {
     setStore("programState", (programState) => programState === 'Loaded' ? 'Idle' : programState);
   };
 
-  const clearAllData = () => {
+  const clearAllDataOrStop = () => {
+    if (store.programState === 'Paused') {
+      setStore("programState", "Loaded");
+      toaster.show(props => <Toast toastId={props.toastId} class="toast"><p>Stopped debugging.</p></Toast>);
+      return;
+    }
+
     clearFlags();
     clearRegisters();
     resetAllLocations();
+    setStore("assembled", []);
     toaster.show(props => <Toast toastId={props.toastId} class="toast"><p>Register, Flags &amp; all Memory locations have been cleared</p></Toast>);
   };
 
@@ -202,26 +214,30 @@ export function Actions() {
         title="Assemble & Load"
       />
       <ActionButton
-        icon={(
-          <>
-            <VsDebug class={`${store.programState === 'Loaded' ? 'text-green-400 dark:text-green-600' : store.programState === 'Paused' ? 'hidden' : 'text-gray-400 dark:text-gray-600'}`} />
-            <VsDebugStepOver class={`${store.programState === 'Paused' ? 'text-green-400 dark:text-green-600' : 'hidden'}`} />
-          </>
-        )}
-        onClick={runOne}
-        disabled={store.programState !== 'Loaded' && store.programState !== 'Paused'}
-        title={store.programState === 'Loaded' ? 'Step Through' : store.programState === 'Paused' ? 'Execute One Instruction' : 'Assemble program before starting debug'}
-      />
-      <ActionButton
         icon={<HiSolidPlay class="text-green-400 dark:text-green-600" />}
         title="Load &amp; Run"
         onClick={loadAndRun}
         disabled={false}
       />
       <ActionButton
-        icon={<AiOutlineClear class="text-red-400 dark:text-red-600"/>}
+        icon={(
+          <>
+            <VsDebug class={store.programState === 'Loaded' || store.programState === 'Idle' ? 'text-green-400 dark:text-green-600' : 'hidden'} />
+            <VsDebugStepOver class={`${store.programState === 'Paused' || store.programState === 'Running' ? 'text-green-400 dark:text-green-600' : 'hidden'}`} />
+          </>
+        )}
+        onClick={runOne}
+        disabled={false}
+        title={store.programState === 'Loaded' ? 'Step Through' : store.programState === 'Paused' ? 'Execute One Instruction' : 'Load & Debug'}
+      />
+      <ActionButton
+        icon={store.programState === 'Paused' ? (
+          <HiSolidStop  class="text-red-400 dark:text-red-600"/>
+        ) : (
+          <AiOutlineClear class="text-red-400 dark:text-red-600"/>
+        )}
         title="Clear All Data"
-        onClick={clearAllData}
+        onClick={clearAllDataOrStop}
         disabled={false}
       />
       <Portal client:only="solid-js" >

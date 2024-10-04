@@ -10,6 +10,7 @@
          aria-modal="true"
          tabindex="0"
          x-show="open"
+         style="display: none"
          @click="open = false; $refs.faq_modal_button.focus()"
          @click.away="open = false; $refs.faq_modal_button.focus()"
          class="fixed z-[9999] top-0 left-0 w-full h-screen flex justify-center items-center backdrop-blur-sm"
