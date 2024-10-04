@@ -1,4 +1,4 @@
-import { createEffect, createMemo, createSignal, useContext } from 'solid-js';
+import { createEffect, createMemo, createSignal, onMount, useContext } from 'solid-js';
 import { StoreContext } from './StoreContext';
 import { AiOutlineClear, AiOutlineExpand, AiOutlineExpandAlt, AiOutlineFullscreen, AiOutlinePlus, AiOutlineEdit, AiOutlineSave, AiFillEye, AiFillEdit } from 'solid-icons/ai';
 import { Tooltip } from "@kobalte/core/tooltip";
@@ -17,6 +17,10 @@ export default function MemoryList({ threshold = 4 }) {
   const [currentRange, setCurrentRange] = createSignal({ start: null, end: null });
   const [editingCustom, setEditingCustom] = createSignal({ start: null, end: null });
   const [isAddingCustom, setIsAddingCustom] = createSignal(false);
+  const [tabPressed, setTabPressed] = createSignal({
+    group: null,
+    location: null
+  });
 
   const updateMemoryCell = (location, value) => {
     setStore(
@@ -93,12 +97,27 @@ export default function MemoryList({ threshold = 4 }) {
     }
   };
 
+  const handleOnTab = ({ group, location }) => {
+    console.log('handle on tab');
+    setTabPressed({
+      group,
+      location
+    });
+  };
+
   // Function to render memory within a range
   const renderMemoryInRange = (start, end) => {
     return store.memory.slice(start, end + 1).map((value, index) => {
       const address = start + index;
       return (
-        <MemoryLocationRow location={address} value={value} onSave={updateMemoryCell} />
+        <MemoryLocationRow
+          location={address}
+          value={value}
+          onSave={updateMemoryCell}
+          onTab={handleOnTab}
+          tabPressed={tabPressed()}
+          group={`${start}-${end}`}
+        />
       );
     });
   };
@@ -303,21 +322,16 @@ export default function MemoryList({ threshold = 4 }) {
 function MemoryLocationRow(props) {
   const [editing, setEditing] = createSignal(false);
   const [value, setValue] = createSignal(toByteString(props.value));
+  let inputRef;
+  let containerRef;
 
-  const handleInputChange = (setter) => (e) => {
-    const newValue = e.target.value.toUpperCase();
-    if (/^[0-9A-F]{0,2}$/.test(newValue)) {
-      setter(newValue);
-    }
-  };
-
-  const handleKeyOrBlur = (e) => {
-    if (e.key === 'Enter' || e.type === 'blur') {
-      saveValue();
-    }
-    if (e.key === 'Escape') {
-      setEditing(false);
-    }
+  const startEditing = () => {
+    setEditing(true);
+    setTimeout(() => {
+      if (inputRef) {
+        inputRef.focus();
+      }
+    });
   };
 
   const saveValue = () => {
@@ -328,10 +342,43 @@ function MemoryLocationRow(props) {
     setEditing(false);
   };
 
-  const startEditing = () => setEditing(true);
+  createEffect(() => {
+    if (props.tabPressed.group === props.group && props.tabPressed.location === props.location) {
+      startEditing();
+    }
+  });
+
+  const handleInputChange = (setter) => (e) => {
+    const newValue = e.target.value.toUpperCase();
+    if (/^[0-9A-F]{0,2}$/.test(newValue)) {
+      setter(newValue);
+    }
+  };
+
+  const handleKeyOrBlur = (e) => {
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      props.onTab({
+        group: props.group,
+        location: props.location + (e.shiftKey ? -1 : 1)
+      });
+      saveValue();
+      return;
+    }
+    if (e.key === 'Enter' || e.type === 'blur') {
+      saveValue();
+    }
+    if (e.key === 'Escape') {
+      setEditing(false);
+    }
+  };
 
   return (
-    <div key={props.value} class="flex justify-between items-center py-1 px-1 hover:bg-gray-400 dark:hover:bg-gray-600">
+    <div
+      key={props.value}
+      class="flex justify-between items-center py-1 px-1 hover:bg-gray-400 dark:hover:bg-gray-600"
+      ref={containerRef}
+    >
       <span class="font-mono">0x{props.location.toString(16).padStart(4, '0').toUpperCase()}</span>
       <span class="flex items-center gap-2">
         {
@@ -343,28 +390,23 @@ function MemoryLocationRow(props) {
             onKeyDown={handleKeyOrBlur}
             onFocus={(e) => e.target.select()}
             maxlength="2"
-            autofocus
+            autofocus={true}
+            ref={inputRef}
           />
         ) : (
           <span
             class={`font-mono cursor-pointer ${props.value ? 'text-orange-600 dark:bg-transparent dark:border-b-green-300 dark:text-yellow-400' : 'dark:text-gray-600'}`}
-            onDblClick={() => setEditing(true)}
+            onDblClick={startEditing}
           >{toByteString(props.value)}</span>
         )
         }
-        <Tooltip>
-          <Tooltip.Trigger class="tooltip__trigger">
-            <button type="button" onClick={() => editing() ? saveValue() : startEditing() }>
-              {editing() ? <AiOutlineSave /> : <AiOutlineEdit /> }
-            </button>
-          </Tooltip.Trigger>
-          <Tooltip.Portal>
-            <Tooltip.Content class="tooltip__content">
-              <Tooltip.Arrow />
-              <p>{editing() ? "Save Memory Value" : "Edit Memory Value"}</p>
-            </Tooltip.Content>
-          </Tooltip.Portal>
-        </Tooltip>
+        <button
+          type="button"
+          onClick={() => editing() ? saveValue() : startEditing() }
+          title={editing() ? "Save Memory Value" : "Edit Memory Value"}
+        >
+          {editing() ? <AiOutlineSave /> : <AiOutlineEdit /> }
+        </button>
       </span>
     </div>
   );
