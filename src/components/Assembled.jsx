@@ -45,7 +45,7 @@ export function Assembled() {
         style={{ height: 'calc(100% - 2.75rem)' }}
       >
         <p class="text-gray-500">
-          To view the assembled listing Load <HiSolidWrench class="inline text-yellow-400 dark:text-yellow-600" /> the program but don't run it.
+          Load or Run the program to view the assembled output.
         </p>
       </div>
     </div>

@@ -6,6 +6,8 @@ export function toByteString(n) {
 }
 
 export function toRadix(r, n) {
+    if (n == null) return '';
+
     function getChr(c) {
         return c < 10 ? c.toString() : String.fromCharCode(87 + c);
     }

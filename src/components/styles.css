@@ -24,7 +24,7 @@
 .toast__list {
   --viewport-padding: 16px;
   position: fixed;
-  bottom: 0;
+  top: 0;
   right: 0;
   display: flex;
   flex-direction: column;

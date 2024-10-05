@@ -155,7 +155,7 @@ export function Actions() {
           updateState(outputState);
           setStore('programState', 'Paused');
         }
-    }
+      }
     } catch (e) {
       // if (e.status === 1) showError("UNKNOWN_INST");
       // else if (e.status === 2) showError("INFINITE_LOOP");

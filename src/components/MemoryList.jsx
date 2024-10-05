@@ -254,11 +254,19 @@ export default function MemoryList({ threshold = 4 }) {
             ))}
           </div>
         </div>
-        <TextTooltip message="Watch a memory range">
-          <button onClick={() => setIsAddingCustom(isAddingCustom => !isAddingCustom)}>
-            <AiOutlinePlus class={`transition-transform ${isAddingCustom() || editingCustom().start !== null ? 'rotate-45' : 'rotate-0'}`} />
-          </button>
-        </TextTooltip>
+        <Tooltip>
+          <Tooltip.Trigger class="tooltip__trigger">
+            <button onClick={() => setIsAddingCustom(isAddingCustom => !isAddingCustom)}>
+              <AiOutlinePlus class={`transition-transform ${isAddingCustom() || editingCustom().start !== null ? 'rotate-45' : 'rotate-0'}`} />
+            </button>
+          </Tooltip.Trigger>
+          <Tooltip.Portal>
+            <Tooltip.Content class="tooltip__content">
+              <Tooltip.Arrow />
+              <p>Watch a memory range</p>
+            </Tooltip.Content>
+          </Tooltip.Portal>
+        </Tooltip>
       </div>
       <div class={`w-full ${isAddingCustom() || editingCustom().start !== null ? '' : 'hidden'}`}>
         <div class="flex items-center justify-between gap-3">

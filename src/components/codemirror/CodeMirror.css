@@ -5,6 +5,7 @@
 .cm-line.cm-activeLine {
     @apply bg-blue-200;
     @apply dark:bg-gray-800;
+    @apply bg-opacity-50;
 }
 
 .cm-editor .cm-gutters {
@@ -23,6 +24,11 @@
 
 .cm-editor .cm-content {
     font-size: 0.85rem;
+}
+
+.cm-editor > .cm-scroller > .cm-selectionLayer .cm-selectionBackground {
+    @apply bg-blue-200;
+    @apply dark:bg-blue-900;
 }
 
 .cm-editor.cm-focused > .cm-scroller > .cm-selectionLayer .cm-selectionBackground {
