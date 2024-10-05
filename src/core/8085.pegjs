@@ -407,7 +407,11 @@ lineError "Error in this line" = lineWithError:.* {
     return false;
 }
 
-labelPart = label:label ":" whitespace* {
+label_opcode_whitespace = [ \t\r\n]
+
+label_opcode_separator = label_opcode_whitespace* comment? label_opcode_whitespace*
+
+labelPart = label:label ":" label_opcode_separator {
     return { value: label.value, location: label.location, type: "definition" }
 }
 label "label" = first:[a-zA-Z?@] rest:([a-zA-Z0-9_]*) {
