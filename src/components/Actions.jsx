@@ -111,7 +111,9 @@ export function Actions() {
 
   function loadAndRun() {
     load();
-    run()
+    if (store.errors.length === 0) {
+      run()
+    }
   }
 
   function runOne() {
