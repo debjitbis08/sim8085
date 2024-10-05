@@ -67,24 +67,6 @@ hlt
                     </pre>
                 <p>
             </details>
-            <details class="py-4">
-                <summary class="cursor-pointer">
-                    Why do I get "Label XXXX is not defined" error?
-                </summary>
-                <p class="pt-2">
-                    One of the common causes of this error is not writing any operation
-                    on the same line as a label. You need to write the instruction after
-                    the label and the colon.
-
-                    This is correct:
-                    <pre class="bg-gray-200 dark:bg-gray-900 p-2"><code>START: MVI M, 0FFH</code></pre>
-                <p>
-                <p class="pt-2">
-                    But the below code will NOT ASSEMBLE
-                    <pre class="bg-gray-200 dark:bg-gray-900 p-2"><code>START:
-MVI M, 0FFH</code></pre>
-                </p>
-            </details>
           </div>
         </div>
     </div>
