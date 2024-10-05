@@ -39,66 +39,31 @@
 }
 
 .toast {
-  @apply bg-gray-400;
-  @apply dark:bg-gray-800;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  border: 1px solid hsl(240 5% 84%);
-  border-radius: 6px;
-  padding: 12px;
   box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
 }
 
 .toast[data-opened] {
   animation: slideIn 150ms cubic-bezier(0.16, 1, 0.3, 1);
 }
+
 .toast[data-closed] {
   animation: hide 100ms ease-in;
 }
+
 .toast[data-swipe="move"] {
   transform: translateX(var(--kb-toast-swipe-move-x));
 }
+
 .toast[data-swipe="cancel"] {
   transform: translateX(0);
   transition: transform 200ms ease-out;
 }
+
 .toast[data-swipe="end"] {
   animation: swipeOut 100ms ease-out;
 }
-.toast__content {
-  display: flex;
-  align-items: flex-start;
-  width: 100%;
-}
-.toast__close-button {
-  flex-shrink: 0;
-  height: 16px;
-  width: 16px;
-  margin-left: auto;
-  color: hsl(240 5% 34%);
-}
-.toast__title {
-  font-size: 16px;
-  font-weight: 500;
-  color: hsl(240 6% 10%);
-}
-.toast__description {
-  font-size: 14px;
-  color: hsl(240 5% 26%);
-}
-.toast__progress-track {
-  height: 8px;
-  width: 100%;
-  background-color: hsl(240 6% 90%);
-  border-radius: 3px;
-}
+
 .toast__progress-fill {
-  background-color: hsl(200 98% 39%);
-  border-radius: 3px;
-  height: 100%;
   width: var(--kb-toast-progress-fill-width);
   transition: width 250ms linear;
 }

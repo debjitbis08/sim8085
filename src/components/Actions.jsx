@@ -5,14 +5,15 @@ import Module from '../core/8085.js';
 import { StoreContext } from "./StoreContext.js";
 import { getStateFromPtr, setState } from "../cpuState.js";
 import { produce } from "solid-js/store";
-import { initSimulator, loadProgram, runProgram, runSingleInstruction, setPC } from "../core/simulator.js";
+import { initSimulator, loadProgram, runProgram, runSingleInstruction, setPC, startDebug } from "../core/simulator.js";
 import { AiFillFastForward, AiFillStop, AiOutlineClear } from "solid-icons/ai";
 import { Tooltip } from "@kobalte/core/tooltip";
 import { FiFastForward } from "solid-icons/fi";
 import { BsFastForwardFill, BsStop } from "solid-icons/bs";
 import { store, setStore } from '../store/store.js';
-import { TextTooltip } from "./TextTooltip.jsx";
 import { Toast, toaster } from "@kobalte/core/toast";
+import { trackEvent } from "../analytics/events.js";
+import { showToaster } from "./toaster.jsx";
 
 export function Actions() {
   const [ isReady, setIsReady ] = createSignal(false);
@@ -38,11 +39,15 @@ export function Actions() {
         column: e.location.start.column
       }]);
       setStore("assembled", []);
+      trackEvent("assemble failed", {
+        code: store.code,
+        name: e.name,
+        msg: e.message,
+        line: e.location.start.line,
+        column: e.location.start.column
+      });
       return;
     }
-
-    console.log("assembled");
-    console.log(result.assembled);
 
     if (result) {
       setStore(
@@ -92,12 +97,16 @@ export function Actions() {
     try {
       setStore('programState', 'Running');
       outputState = runProgram(store);
-      toaster.show(props => <Toast toastId={props.toastId} class="toast"><p>Program ran successfully. Please check the left panel for updated state.</p></Toast>);
+      showToaster("success", "Program ran successfully", "Please check the left panel for updated state.");
     } catch (e) {
-      if (e.status === 1) alert("UNKNOWN_INST_ERROR");
-      else if (e.status === 2) alert("INFINITE_LOOP_ERROR");
-      else alert("UNKNOWN_RUNTIME_ERROR");
+      if (e.status === 1) showToaster("error", "Program existed with error", "Unknown instruction encountered in the program.");
+      else if (e.status === 2) showToaster("error", "Program existed with error", "Infinite loop detected. Did you forget to add HLT.");
+      else showToaster("error", "Program existed with error", "We could not identify the error.");
       errorStatus = e.status;
+      trackEvent("run failed", {
+        code: store.code,
+        status: e.status === 1 ? 'UNKNONWN_INSTRUCTION_ERROR' : (e.status === 2 ? 'INFINITE_LOOP' : 'UNKNOWN_RUNTIME_ERROR')
+      });
       console.error(e);
     } finally {
       setStore('programState', 'Idle');
@@ -135,8 +144,8 @@ export function Actions() {
             draftStore.programCounter = pc;
           })
         );
-        // TODO Set PC in simulator
         setPC(store, pc);
+        startDebug(store);
       } else {
         setStore('programState', 'Running');
         [status, outputState] = runSingleInstruction(store);
@@ -144,10 +153,13 @@ export function Actions() {
 
         if (errorStatus > 0) {
           setStore('programState', 'Loaded');
-          if (e.status === 1) alert("UNKNOWN_INST");
-          else if (e.status === 2) alert("INFINITE_LOOP");
-          else alert("UNKNOWN");
-          // TODO Show error
+          if (errorStatus === 1) showToaster("error", "Program existed with error", "Unknown instruction encountered in the program.");
+          else if (errorStatus === 2) showToaster("error", "Program existed with error", "Infinite loop detected. Did you forget to add HLT.");
+          else showToaster("error", "Program existed with error",  "We could not identify the error.");
+          trackEvent("run failed", {
+            code: store.code,
+            status: e.status === 1 ? 'UNKNONWN_INSTRUCTION_ERROR' : (e.status === 2 ? 'INFINITE_LOOP' : 'UNKNOWN_RUNTIME_ERROR')
+          });
         } else if (status > 0) {
           updateState(outputState);
           setStore('programState', 'Idle');
@@ -157,9 +169,6 @@ export function Actions() {
         }
       }
     } catch (e) {
-      // if (e.status === 1) showError("UNKNOWN_INST");
-      // else if (e.status === 2) showError("INFINITE_LOOP");
-      // else showError("UNKNOWN");
       errorStatus = e.status;
       console.error(e);
     }
@@ -198,7 +207,7 @@ export function Actions() {
   const clearAllDataOrStop = () => {
     if (store.programState === 'Paused') {
       setStore("programState", "Loaded");
-      toaster.show(props => <Toast toastId={props.toastId} class="toast"><p>Stopped debugging.</p></Toast>);
+      showToaster("info", "Stopped Debugging", "You may clear data to start editing again.");
       return;
     }
 
@@ -206,7 +215,7 @@ export function Actions() {
     clearRegisters();
     resetAllLocations();
     setStore("assembled", []);
-    toaster.show(props => <Toast toastId={props.toastId} class="toast"><p>Register, Flags &amp; all Memory locations have been cleared</p></Toast>);
+    showToaster("info", "Cleared all data", "Registers, Flags & all Memory locations have been cleared.");
   };
 
   return (
