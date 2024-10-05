@@ -80,7 +80,9 @@ export function runProgram(store) {
   var inputState = getCpuState(store);
 
   // TODO Check why Loaded state check is needed
-  setState(simulator, store.statePointer, inputState);
+  if (store.programState === 'Loaded') {
+    setState(simulator, store.statePointer, inputState);
+  }
 
   const loadAddress = Math.min(...store.assembled.map((line) => line.currentAddress));
 
@@ -177,16 +179,24 @@ export function getCpuState(store) {
   };
 }
 
+export function startDebug(store) {
+  var inputState = getCpuState(store);
+
+  if (store.programState === 'Loaded') {
+    setState(simulator, store.statePointer, inputState);
+  }
+}
+
 export function setPC(store, value) {
   setPCValue(simulator, store.statePointer, value);
 }
 
 export function setMemoryLocation(store, location, value) {
-  const memoryPointer = store.statePointer + 24;
+  const memoryPointer = store.statePointer + 32;
   simulator.setValue(memoryPointer + location, value, 'i8', 0);
 }
 
 export function setIOPort(store, location, value) {
-  const ioPointer = store.statePointer + 24 + 65536;
+  const ioPointer = store.statePointer + 65576;
   simulator.setValue(ioPointer + location, value, 'i8', 0);
 }
