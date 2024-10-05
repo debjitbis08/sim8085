@@ -116,6 +116,9 @@ export function CodeMirror(props) {
       if (update.docChanged) {
         const newDoc = update.state.doc.toString(); // Get the new document content
         setStore("code", newDoc); // Update the store with new content
+        if (store.assembled.length) {
+          setStore("assembled", []);
+        }
         localStorage.setItem("main.asm", newDoc);
       }
     });
