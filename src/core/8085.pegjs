@@ -373,7 +373,9 @@ machineCode = prg:program {
 /**
  * Create intermediate object code with symbol strings.
  */
-program = __ first:line rest:(eol+ __ l:line {return l})* {return [first].concat(rest);}
+program = __ first:line rest:(eol+ __ l:(!. / l:line { return l; }) {return l})* {
+    return [first].concat(rest);
+}
 
 opWithLabel = label:labelPart? op:(operation / directive) comment? {
     if (label && label !== "") {
@@ -397,7 +399,7 @@ opWithLabel = label:labelPart? op:(operation / directive) comment? {
     }
 }
 
-line = (op:opWithLabel) / comment / __ / lineError {
+line = (op:opWithLabel) / (comment:comment) / __ / lineError {
     return op;
 }
 
@@ -913,26 +915,64 @@ op_lda  = ("LDA"  / "lda" ) whitespace+ (data16 / labelDirect / expression)
 op_shld = ("SHLD" / "shld") whitespace+ (data16 / labelDirect / expression)
 op_lhld = ("LHLD" / "lhld") whitespace+ (data16 / labelDirect / expression)
 
-op_jmp  = ("JMP"  / "jmp" ) whitespace+ (labelDirect / data16 / expression)
-op_jc   = ("JC"   / "jc"  ) whitespace+ (labelDirect / data16 / expression)
-op_jnc  = ("JNC"  / "jnc" ) whitespace+ (labelDirect / data16 / expression)
-op_jz   = ("JZ"   / "jz"  ) whitespace+ (labelDirect / data16 / expression)
-op_jnz  = ("JNZ"  / "jnz" ) whitespace+ (labelDirect / data16 / expression)
-op_jm   = ("JM"   / "jm"  ) whitespace+ (labelDirect / data16 / expression)
-op_jp   = ("JP"   / "jp"  ) whitespace+ (labelDirect / data16 / expression)
-op_jpe  = ("JPE"  / "jpe" ) whitespace+ (labelDirect / data16 / expression)
-op_jpo  = ("JPO"  / "jpo" ) whitespace+ (labelDirect / data16 / expression)
+op_jmp  = inst:("JMP"  / "jmp" ) operand:jump_operand { return [inst].concat(operand); }
+op_jc   = inst:("JC"   / "jc"  ) operand:jump_operand { return [inst].concat(operand); }
+op_jnc  = inst:("JNC"  / "jnc" ) operand:jump_operand { return [inst].concat(operand); }
+op_jz   = inst:("JZ"   / "jz"  ) operand:jump_operand { return [inst].concat(operand); }
+op_jnz  = inst:("JNZ"  / "jnz" ) operand:jump_operand { return [inst].concat(operand); }
+op_jm   = inst:("JM"   / "jm"  ) operand:jump_operand { return [inst].concat(operand); }
+op_jp   = inst:("JP"   / "jp"  ) operand:jump_operand { return [inst].concat(operand); }
+op_jpe  = inst:("JPE"  / "jpe" ) operand:jump_operand { return [inst].concat(operand); }
+op_jpo  = inst:("JPO"  / "jpo" ) operand:jump_operand { return [inst].concat(operand); }
 
-op_call = ("CALL" / "call") whitespace+ (data16 / labelDirect / expression)
-op_cc   = ("CC"   / "cc"  ) whitespace+ (data16 / labelDirect / expression)
-op_cnc  = ("CNC"  / "cnc" ) whitespace+ (data16 / labelDirect / expression)
-op_cz   = ("CZ"   / "cz"  ) whitespace+ (data16 / labelDirect / expression)
-op_cnz  = ("CNZ"  / "cnz" ) whitespace+ (data16 / labelDirect / expression)
-op_cm   = ("CM"   / "cm"  ) whitespace+ (data16 / labelDirect / expression)
-op_cp   = ("CP"   / "cp"  ) whitespace+ (data16 / labelDirect / expression)
-op_cpe  = ("CPE"  / "cpe" ) whitespace+ (data16 / labelDirect / expression)
-op_cpo  = ("CPO"  / "cpo" ) whitespace+ (data16 / labelDirect / expression)
+jump_operand = w:whitespace+ operand:(labelDirect / data16 / expression) / jump_operand_error {
+    return [w, operand]
+}
 
-op_mov  = ("MOV"  / "mov" ) whitespace+ register whitespace* [,] whitespace* register
+jump_operand_error = .* {
+    error("Invalid operand for jump instruction. Expected a 2 byte address, label or an expression.");
+}
+
+op_call = inst:("CALL" / "call") operands:call_operand { return [inst].concat(operands); }
+op_cc   = inst:("CC"   / "cc"  ) operands:call_operand { return [inst].concat(operands); }
+op_cnc  = inst:("CNC"  / "cnc" ) operands:call_operand { return [inst].concat(operands); }
+op_cz   = inst:("CZ"   / "cz"  ) operands:call_operand { return [inst].concat(operands); }
+op_cnz  = inst:("CNZ"  / "cnz" ) operands:call_operand { return [inst].concat(operands); }
+op_cm   = inst:("CM"   / "cm"  ) operands:call_operand { return [inst].concat(operands); }
+op_cp   = inst:("CP"   / "cp"  ) operands:call_operand { return [inst].concat(operands); }
+op_cpe  = inst:("CPE"  / "cpe" ) operands:call_operand { return [inst].concat(operands); }
+op_cpo  = inst:("CPO"  / "cpo" ) operands:call_operand { return [inst].concat(operands); }
+
+call_operand = w:whitespace+ operand:(data16 / labelDirect / expression) / call_operand_error {
+    return [w, operand];
+}
+
+call_operand_error = .* {
+    error("Invalid operand. Expected a 2 byte address, label or an expression.");
+}
+
+op_mov = inst:("MOV" / "mov") w1:whitespace+ operands:movOperands {
+    return [inst, w1].concat(operands);
+}
+
+movOperands = dest:register w1:whitespace* ',' w2:whitespace* src:register / movOperandsError {
+    return [dest, w1, ',', w2, src];
+}
+
+movOperandsError = .* {
+    error("Invalid operands for MOV instruction. Expected syntax: MOV register, register.");
+}
+
 op_lxi  = ("LXI"  / "lxi" ) whitespace+ (registerPair / stackPointer) whitespace* [,] whitespace* (data16 / labelDirect / expression)
-op_mvi  = ("MVI"  / "mvi" ) whitespace+ register whitespace* [,] whitespace* (data8 / labelImmediate / expression)
+
+op_mvi  = inst:("MVI"  / "mvi" ) operands:mvi_operands {
+    return [inst].concat(operands);
+}
+
+mvi_operands = w1:whitespace+ dest:register w2:whitespace* c:[,] w3:whitespace* data:(data8 / labelImmediate / expression) / mvi_operand_error {
+    return [w1, dest, w2, c, w3, data];
+}
+
+mvi_operand_error = .* {
+    error("Invalid operands for MVI. Expected byte, a label or an expression.");
+}
