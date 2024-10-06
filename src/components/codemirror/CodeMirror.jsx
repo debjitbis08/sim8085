@@ -104,7 +104,7 @@ export function CodeMirror(props) {
   });
 
   const lineHighlightMark = Decoration.line({
-    attributes: {style: 'background-color: #d2ffff'},
+    attributes: { class: 'cm-debug-line-highlight' },
   });
 
   const readOnly = new Compartment;
