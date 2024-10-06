@@ -1,5 +1,5 @@
 import Module from './8085.js';
-import { getStateFromPtr, setPCValue, setState } from '../cpuState.js';
+import { getStateFromPtr, setPCValue, setState } from './cpuState.js';
 import { parse } from '../core/8085.pegjs';
 
 let simulator = null;
@@ -199,4 +199,12 @@ export function setMemoryLocation(store, location, value) {
 export function setIOPort(store, location, value) {
   const ioPointer = store.statePointer + 65576;
   simulator.setValue(ioPointer + location, value, 'i8', 0);
+}
+
+export function getFullState(store) {
+  return getStateFromPtr(simulator, store.statePointer);
+}
+
+export function setFullState(store) {
+  setState(simulator, store.statePointer, getCpuState(store));
 }

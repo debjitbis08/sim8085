@@ -46,7 +46,7 @@ export function getStateFromPtr (simulator, statePtr) {
       })(),
       io: (function () {
         const ioPointer = statePtr + 65576;
-        console.log(`ioPointer: ${ioPointer}`);
+        // console.log(`ioPointer: ${ioPointer}`);
         const arr = [];
         let i = 0;
         let n = 0;

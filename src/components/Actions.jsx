@@ -3,7 +3,6 @@ import { VsClearAll, VsDebug, VsDebugLineByLine, VsDebugStart, VsDebugStepInto, 
 import { HiOutlineWrench, HiSolidArrowRight, HiSolidPlay, HiSolidStop, HiSolidWrench } from 'solid-icons/hi';
 import Module from '../core/8085.js';
 import { StoreContext } from "./StoreContext.js";
-import { getStateFromPtr, setState } from "../cpuState.js";
 import { produce } from "solid-js/store";
 import { initSimulator, loadProgram, runProgram, runSingleInstruction, setPC, startDebug } from "../core/simulator.js";
 import { AiFillFastForward, AiFillStop, AiOutlineClear } from "solid-icons/ai";
