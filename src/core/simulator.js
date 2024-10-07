@@ -18,6 +18,13 @@ export async function initSimulator() {
   // Initialize the state pointer
   statePointer = simulator._Init8085();
 
+  // Added because on first run, the address 0x16c4 was set with
+  // value 0x28, which I have no idea why.
+  setAllMemoryLocations({
+    statePointer,
+    memory: Array(65536).fill(0)
+  });
+
   return statePointer; // Return the initial state pointer
 }
 
