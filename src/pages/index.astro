@@ -11,30 +11,43 @@ import '../components/styles.css';
 ---
 
 <Layout title="Sim8085 - A 8085 microprocessor simulator">
-	<main class="border-t bg-gray-100 dark:bg-gray-900 dark:border-t-gray-600 h-full relative">
-    	<div class="flex items-start" style={{ height: "calc(100vh - 6rem)" }}>
-            <div class="rounded-lg w-[25vw] min-w-13">
+    <main class="border-t bg-gray-100 dark:bg-gray-900 dark:border-t-gray-600 h-full relative">
+        <!-- Message for small screens -->
+        <div class="hidden md:flex items-start" style="height: calc(100vh - 6rem);">
+            <!-- Left Panel with fixed width -->
+            <div class="rounded-lg w-[25vw] min-w-[320px] flex-shrink-0">
                 <RightPanel client:idle />
             </div>
-            <div class="grow max-w-[800px] lg:min-w-[500px] border-l border-l-gray-300">
+
+            <!-- Middle Panel that can grow, but with a min and max width to remain stable -->
+            <div class="grow flex-shrink-0 max-w-[800px] min-w-[500px] border-l border-l-gray-300">
                 <div class="flex">
                     <div class="grow">
-                    <div class="flex items-center">
-                        <div class="flex items-center gap-1 py-1 px-2 border-r border-r-gray-300 dark:border-gray-600 border-t-0 border-b-0 rounded-sm">
-                        <span class="text-[0.4rem] text-red-700 dark:text-red-600 pt-1">ASM</span>
-                        <span>main.asm</span>
+                        <div class="flex items-center">
+                            <div class="flex items-center gap-1 py-1 px-2 border-r border-r-gray-300 dark:border-gray-600 border-t-0 border-b-0 rounded-sm">
+                                <span class="text-[0.4rem] text-red-700 dark:text-red-600 pt-1">ASM</span>
+                                <span>main.asm</span>
+                            </div>
                         </div>
-                    </div>
                     </div>
                     <Actions client:idle />
                 </div>
                 <CodeMirror client:load />
             </div>
-            <div class="grow flex items-start" style={{ height: "calc(100vh - 5rem)" }}>
+
+            <!-- Right Panel with fixed width -->
+            <div class="w-[35vw] min-w-[320px] flex-shrink-0 flex items-start" style="height: calc(100vh - 5rem);">
                 <Assembled client:idle />
             </div>
         </div>
-   	</main>
+
+        <!-- Mobile warning message -->
+        <div class="flex md:hidden justify-center items-start bg-gray-100 dark:bg-gray-900" style="height: calc(100vh - 6rem);">
+            <p class="text-center dark:text-red-800 text-lg font-semibold mt-10 px-4">
+                Sim8085 is not supported on mobile devices. Please use a larger screen for the best experience.
+            </p>
+        </div>
+    </main>
 </Layout>
 
 <style>
