@@ -4,7 +4,7 @@ import { HiOutlineWrench, HiSolidArrowRight, HiSolidPlay, HiSolidStop, HiSolidWr
 import Module from '../core/8085.js';
 import { StoreContext } from "./StoreContext.js";
 import { produce } from "solid-js/store";
-import { initSimulator, loadProgram, runProgram, runSingleInstruction, setPC, startDebug } from "../core/simulator.js";
+import { initSimulator, loadProgram, runProgram, runSingleInstruction, setAllMemoryLocations, setPC, startDebug } from "../core/simulator.js";
 import { AiFillFastForward, AiFillStop, AiOutlineClear } from "solid-icons/ai";
 import { Tooltip } from "@kobalte/core/tooltip";
 import { FiFastForward } from "solid-icons/fi";
@@ -200,6 +200,7 @@ export function Actions() {
 
   const resetAllLocations = () => {
     setStore("memory", (memory) => memory.map(() => 0));
+    setAllMemoryLocations(store);
     setStore("programState", (programState) => programState === 'Loaded' ? 'Idle' : programState);
   };
 

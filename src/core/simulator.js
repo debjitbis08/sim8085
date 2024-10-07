@@ -196,6 +196,15 @@ export function setMemoryLocation(store, location, value) {
   simulator.setValue(memoryPointer + location, value, 'i8', 0);
 }
 
+export function setAllMemoryLocations(store) {
+  const memoryPtr = store.statePointer + 32;
+  let i = 0;
+  while (i < 65536) {
+    simulator.setValue(memoryPtr + i, store.memory[i], 'i8', 0);
+    i++;
+  }
+}
+
 export function setIOPort(store, location, value) {
   const ioPointer = store.statePointer + 65576;
   simulator.setValue(ioPointer + location, value, 'i8', 0);

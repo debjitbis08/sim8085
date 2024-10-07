@@ -9,7 +9,7 @@ import { TextTooltip } from './TextTooltip';
 import { VsEmptyWindow } from 'solid-icons/vs';
 import { HiSolidTrash } from 'solid-icons/hi';
 import { store, setStore } from '../store/store.js';
-import { setMemoryLocation } from '../core/simulator.js';
+import { setAllMemoryLocations, setMemoryLocation } from '../core/simulator.js';
 
 export default function MemoryList({ threshold = 4 }) {
   const [customRanges, setCustomRanges] = createSignal([]);
@@ -160,6 +160,7 @@ export default function MemoryList({ threshold = 4 }) {
 
   const resetAllLocations = () => {
     setStore("memory", (memory) => memory.map(() => 0));
+    setAllMemoryLocations(store);
     setStore("programState", (programState) => programState === 'Loaded' ? 'Idle' : programState);
   };
 
