@@ -616,11 +616,11 @@ eol "line end" = "\n" / "\r\n" / "\r" / "\u2028" / "\u2029"
 whitespace "whitespace" = [ \t\v\f\u00A0\uFEFF\u1680\u180E\u2000-\u200A\u202F\u205F\u3000]
 
 directive = dir:(dataDefinition / defineSymbol / orgDirective) {
-    console.log("directive", dir);
+    var opcode = dir.name[0].toLowerCase();
     return {
-        opcode: dir.name[0],
+        opcode: opcode,
         data: dir.params,
-        size: dir.name[0] === "org" ? 0 : dir.params.length,
+        size: opcode === "org" ? 0 : dir.params.length,
         location: location()
     };
 }
