@@ -25,7 +25,13 @@ export function showToaster(type, title, message) {
             {message}
           </Toast.Description>
           <Toast.ProgressTrack class="h-1 w-full rounded-md bg-gray-100 dark:bg-gray-100">
-            <Toast.ProgressFill class={`toast__progress-fill rounded-md h-full bg-${color}-400 dark:bg-${color}-600`} />
+            <Toast.ProgressFill
+              class={`toast__progress-fill rounded-md h-full ${
+                type === 'info' ? 'bg-blue-400 dark:bg-blue-600' :
+                type === 'success' ? 'bg-green-400 dark:bg-green-600' :
+                type === 'error' ? 'bg-red-400 dark:bg-red-600' : 'bg-blue-400 dark:bg-blue-600'
+              }`}
+            />
           </Toast.ProgressTrack>
         </div>
       </Toast>
