@@ -465,29 +465,60 @@ data16_list "comma separated byte values" = d:data16 ds:("," __ data16)* {
   return { value: [d.value].concat(ds.map(function (d_) { return d_[2].value; })), location: location() };
 }
 
-data8 "byte" = n:numLiteral {
-    if (n > 0xFF) {
-        var e = new Error();
-        e.message = "8-bit data expected.";
-        if (typeof line !== "undefined" && typeof column !== "undefined") {
-            e.line = line; e.column = column;
+data8 "byte" = n:(numLiteral / stringLiteral) {
+    if (typeof n.value === 'number') {
+        if (n.value > 0xFF) {
+            var e = new Error();
+            e.message = "8-bit data expected.";
+            if (typeof line !== "undefined" && typeof column !== "undefined") {
+                e.line = line; e.column = column;
+            }
+            throw e;
+        } else {
+            return { value: n.value, location: n.location };
         }
-        throw e;
-    } else {
-        return { value: n.value, location: n.location };
+    } else if (Array.isArray(n.value)) {
+        // Handle string literal where n.value is an array of ASCII values
+        if (n.value.length !== 1 || n.value[0] > 0xFF) {
+            var e = new Error();
+            e.message = "8-bit data expected for string.";
+            if (typeof line !== "undefined" && typeof column !== "undefined") {
+                e.line = line; e.column = column;
+            }
+            throw e;
+        } else {
+            return { value: n.value[0], location: n.location }; // Return the ASCII value of the single character
+        }
     }
 }
 
-data16 "word" = n:numLiteral {
-    if (n > 0xFFFF) {
-        var e = new Error();
-        e.message = "16-bit data expected.";
-        if (typeof line !== "undefined" && typeof column !== "undefined") {
-            e.line = line; e.column = column;
+data16 "word" = n:(numLiteral / stringLiteral) {
+    if (typeof n.value === 'number') {
+        if (n.value > 0xFFFF) {
+            var e = new Error();
+            e.message = "16-bit data expected.";
+            if (typeof line !== "undefined" && typeof column !== "undefined") {
+                e.line = line; e.column = column;
+            }
+            throw e;
+        } else {
+            return { value: n.value, location: n.location };
         }
-        throw e;
-    } else {
-        return { value: n, location: location() };
+    } else if (Array.isArray(n.value)) {
+        // Handle string literal where n.value is an array of ASCII values
+        if (n.value.length !== 2) {
+            var e = new Error();
+            e.message = "16-bit data expected for string.";
+            if (typeof line !== "undefined" && typeof column !== "undefined") {
+                e.line = line; e.column = column;
+            }
+            throw e;
+        } else {
+            // Combine the two ASCII values to form a 16-bit word
+            const highByte = n.value[0] << 8;
+            const lowByte = n.value[1];
+            return { value: highByte | lowByte, location: n.location };
+        }
     }
 }
 
@@ -519,6 +550,22 @@ octalLiteral "Octal Literal" = octits:octit+ ("O" / "Q" / "o" / "q") {
 
 binLiteral "binary literal" = bits:bit+ "B" {
     return { value: parseInt(bits.join(""), 2), location: location() };
+}
+
+stringLiteral "string literal" = "'" chars:char* "'" {
+    return { value: chars, location: location() };
+}
+
+char =
+    escapedChar / // Handle escaped characters
+    asciiChar // Match any printable ASCII character except single quote
+
+asciiChar = [\x20-\x26\x28-\x7E] {
+    return text().charCodeAt(0); // Return the ASCII value of the matched character
+}
+
+escapedChar = "\\" ch:[\\'"] {
+    return ch.charCodeAt(0); // Return the ASCII value of the escaped character
 }
 
 
