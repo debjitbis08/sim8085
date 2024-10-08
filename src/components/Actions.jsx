@@ -4,7 +4,7 @@ import { HiOutlineWrench, HiSolidArrowRight, HiSolidPlay, HiSolidStop, HiSolidWr
 import Module from '../core/8085.js';
 import { StoreContext } from "./StoreContext.js";
 import { produce } from "solid-js/store";
-import { initSimulator, loadProgram, runProgram, runSingleInstruction, setAllMemoryLocations, setPC, startDebug } from "../core/simulator.js";
+import { initSimulator, loadProgram, runProgram, runSingleInstruction, setAllMemoryLocations, setPC, startDebug, unloadProgram } from "../core/simulator.js";
 import { AiFillFastForward, AiFillStop, AiOutlineClear } from "solid-icons/ai";
 import { Tooltip } from "@kobalte/core/tooltip";
 import { FiFastForward } from "solid-icons/fi";
@@ -13,6 +13,7 @@ import { store, setStore } from '../store/store.js';
 import { Toast, toaster } from "@kobalte/core/toast";
 import { trackEvent } from "../analytics/events.js";
 import { showToaster } from "./toaster.jsx";
+import { FaSolidEject } from "solid-icons/fa";
 
 export function Actions() {
   const [ isReady, setIsReady ] = createSignal(false);
@@ -31,21 +32,30 @@ export function Actions() {
     try {
       result = loadProgram(store);
     } catch (e) {
-      setStore("errors", [{
-        name: e.name,
-        msg: e.message,
-        line: e.location.start.line,
-        column: e.location.start.column
-      }]);
-      setStore("assembled", []);
-      trackEvent("assemble failed", {
-        code: store.code,
-        name: e.name,
-        msg: e.message,
-        line: e.location.start.line,
-        column: e.location.start.column
-      });
-      return;
+      if (e.name && e.message && e.location) {
+        setStore("errors", [{
+          name: e.name,
+          msg: e.message,
+          line: e.location.start.line,
+          column: e.location.start.column
+        }]);
+        setStore("assembled", []);
+        trackEvent("assemble failed", {
+          code: store.code,
+          name: e.name,
+          msg: e.message,
+          line: e.location.start.line,
+          column: e.location.start.column
+        });
+        return;
+      } else {
+        setStore("assembled", []);
+        trackEvent("assemble exception", {
+          code: store.code,
+        });
+        showToaster("error", "Assmeble Failed", "Assemble failed with unknown errors. Please check the syntax of your program.");
+        return;
+      }
     }
 
     if (result) {
@@ -62,6 +72,26 @@ export function Actions() {
         })
       );
     }
+  }
+
+  function unload() {
+    if (store.programState === 'Idle') return;
+
+    unloadProgram(store);
+
+    setStore(
+      produce((draftStore) => {
+        draftStore.programState = 'Idle';
+        for (const line of store.assembled) {
+          draftStore.memory[line.currentAddress] = 0;
+        }
+      })
+    );
+  }
+
+  function loadOrUnload() {
+    if (store.programState === 'Idle') load();
+    else unload();
   }
 
   function updateState(outputState) {
@@ -135,7 +165,6 @@ export function Actions() {
 
     try {
       if (store.programState === 'Loaded') {
-        console.log("===== Starting Debug =====");
         const pc = store.assembled.length ? store.assembled[0].currentAddress : 0;
         setStore(
           produce(draftStore => {
@@ -221,10 +250,16 @@ export function Actions() {
   return (
     <div class="flex items-center border border-gray-300 border-t-0 border-b-0 rounded-sm dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
       <ActionButton
-        icon={<HiSolidWrench class="text-yellow-400 dark:text-yellow-600" />}
-        onClick={load}
+        icon={
+          store.programState === 'Idle' ? (
+            <HiSolidWrench class="text-yellow-400 dark:text-yellow-600" />
+          ) : (
+            <FaSolidEject class="text-yellow-400 dark:text-yellow-600" />
+          )
+        }
+        onClick={loadOrUnload}
         disabled={false}
-        title="Assemble & Load"
+        title={store.programState === 'Idle' ? "Assemble & Load" : "Unload program from memory"}
       />
       <ActionButton
         icon={<HiSolidPlay class="text-green-400 dark:text-green-600" />}

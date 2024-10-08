@@ -5,6 +5,7 @@ import { parse } from '../core/8085.pegjs';
 let simulator = null;
 let execute8085Program = null;
 let load8085Program = null;
+let unload8085Program = null;
 let execute8085ProgramUntil = null;
 let statePointer = null;
 
@@ -14,6 +15,7 @@ export async function initSimulator() {
   execute8085Program = simulator.cwrap('ExecuteProgram', 'number', ['number', 'number']);
   execute8085ProgramUntil = simulator.cwrap('ExecuteProgramUntil', 'number', ['number', 'number', 'number', 'number']);
   load8085Program = simulator.cwrap('LoadProgram', 'number', ['number', 'array', 'number', 'number']);
+  unload8085Program = simulator.cwrap('UnloadProgram', 'number', ['number', 'array', 'number', 'number']);
 
   // Initialize the state pointer
   statePointer = simulator._Init8085();
@@ -80,6 +82,30 @@ export function loadProgram(store) {
     statePointer: newStatePointer,
     assembled,
   };
+}
+
+export function unloadProgram(store) {
+  const assembled = store.assembled;
+
+  if (!assembled) return;
+
+  const flattenedProgram = assembled.flatMap((line) => {
+    const [lowByte, highByte] = packAddress(line.currentAddress);
+    return [
+      line.data,
+      lowByte,
+      highByte,
+      line.kind === 'code' ? 1 : line.kind === 'addr' ? 2 : 3,
+    ];
+  });
+
+  // Load the program into the simulator memory
+  const newStatePointer = unload8085Program(
+    store.statePointer,
+    flattenedProgram,
+    flattenedProgram.length / 4,
+    store.loadAddress
+  );
 }
 
 // Run the program on the simulator

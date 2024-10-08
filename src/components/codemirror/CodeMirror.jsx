@@ -207,7 +207,7 @@ export function CodeMirror(props) {
           <Tooltip.Portal>
             <Tooltip.Content class="tooltip__content">
               <Tooltip.Arrow />
-              <p>Editing is not allowed while program is loaded into memory to avoid mismatch between code and loaded program. You may clear all data to edit again.</p>
+              <p>Editing is not allowed while program is loaded into memory to avoid mismatch between code and loaded program. Unload the program from memory to edit again.</p>
             </Tooltip.Content>
           </Tooltip.Portal>
         </Tooltip>

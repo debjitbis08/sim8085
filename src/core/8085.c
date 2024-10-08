@@ -2199,10 +2199,25 @@ State8085 *LoadProgram(State8085 *state, uint8_t *lines, int numLines, uint16_t 
         uint16_t currentAddress = (highByte << 8) | lowByte;
         uint8_t kind = lines[(i * 4) + 2]; // Kind (1 for code, 2 for addr, 3 for data)
 
-        printf("Loading %u (kind %u) at address %u\n", data, kind, currentAddress);
+        // printf("Loading %u (kind %u) at address %u\n", data, kind, currentAddress);
 
         // Load the data into memory at the correct address
         state->memory[currentAddress] = data;
+    }
+
+    return state;
+}
+
+State8085 *UnloadProgram(State8085 *state, uint8_t *lines, int numLines, uint16_t offset)
+{
+    for (int i = 0; i < numLines; i++) {
+        // Extract the address from the lines array
+        uint8_t lowByte = lines[(i * 4) + 1];        // Low byte of the address
+        uint8_t highByte = lines[(i * 4) + 2];       // High byte of the address
+        uint16_t currentAddress = (highByte << 8) | lowByte;
+
+        // Set the memory at the current address to 0
+        state->memory[currentAddress] = 0;
     }
 
     return state;
