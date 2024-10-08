@@ -682,6 +682,10 @@ operation = inst:(carryBitInstructions / singleRegInstructions / nopInstruction 
         paramTypesStr = paramTypes.join(","),
         opcode = mnemonics[inst.name.toLowerCase() + (paramTypesStr === "" ? "" : " ") + paramTypesStr];
 
+    if (opcode == null) {
+        error("Invalid instruction. Please check if you have used the correct operands for the instruction.");
+    }
+
     if (typeof paramTypes[0] !== "undefined" &&
         (paramTypes[0] === "adr" || paramTypes[0] === "d16" || paramTypes[0] === "d8")) {
         data = inst.params[0];
@@ -1002,9 +1006,12 @@ op_mov = inst:("MOV" / "mov") w1:whitespace+ operands:movOperands {
     return [inst, w1].concat(operands);
 }
 
-movOperands = dest:register w1:whitespace* ',' w2:whitespace* src:register / movOperandsError {
+movOperands = dest:register w1:whitespace* ',' w2:whitespace* src:register {
+    if (dest === src && dest.toLowerCase() === "m") {
+        error("Invalid operands for MOV instruction. Both the operands cannot be the memory locations.");
+    }
     return [dest, w1, ',', w2, src];
-}
+} / movOperandsError
 
 movOperandsError = .* {
     error("Invalid operands for MOV instruction. Expected syntax: MOV register, register.");
