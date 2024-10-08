@@ -662,7 +662,7 @@ eol "line end" = "\n" / "\r\n" / "\r" / "\u2028" / "\u2029"
 
 whitespace "whitespace" = [ \t\v\f\u00A0\uFEFF\u1680\u180E\u2000-\u200A\u202F\u205F\u3000]
 
-directive = dir:(dataDefinition / defineSymbol / orgDirective) {
+directive = dir:(dataDefinition / defineSymbol / orgDirective) whitespace* {
     var opcode = dir.name[0].toLowerCase();
     return {
         opcode: opcode,
@@ -902,7 +902,7 @@ orgDirective = dir:(dir_org) {
 
 dir_db  = ("DB"   / "db"  ) whitespace+ (data8_list / expression_list)
 dir_equ = ("EQU"  / "equ" ) whitespace+ (data8 / expression)
-dir_org = ("ORG"  / "org" ) whitespace+ (data8 / expression)
+dir_org = ("ORG"  / "org" ) whitespace+ (data16 / expression)
 
 op_stc  = ("STC"  / "stc" )
 op_cmc  = ("CMC"  / "cmc" )
