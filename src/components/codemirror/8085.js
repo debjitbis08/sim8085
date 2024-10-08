@@ -89,7 +89,7 @@ const language = StreamLanguage.define({
           return "label";
         } else return "identifier";
       }
-      if (context = CONTEXT.OPERAND && label.test(w))  {
+      if (context == CONTEXT.OPERAND && label.test(w))  {
         return "label";
       }
     } else if (stream.eat(';')) {
