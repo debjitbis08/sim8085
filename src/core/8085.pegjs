@@ -319,15 +319,33 @@ machineCode = prg:program {
                 throw e;
             }
 
-            dataVal = (typeof line.data.value === "string")
-                ? line.data.type === "direct"
-                ? symbolTable[line.data.value].addr
-                : symbolTable[line.data.value].value
-                : (typeof line.data === "number") ? line.data
-                : Array.isArray(line.data) ? line.data[0]
-                : (typeof line.data.value === "number") ? line.data.value
-                : typeof line.data.value === "object" && line.data.value.value ? line.data.value.value
-                : 0;
+            if (typeof line.data.value === "string") {
+                // Handle string case, fetch value from symbolTable
+                const symbolEntry = symbolTable[line.data.value];
+
+                if (line.data.type === "direct") {
+                    dataVal = symbolEntry.addr;
+                } else {
+                    dataVal = symbolEntry.value;
+                }
+            } else if (typeof line.data === "number") {
+                // Handle number data directly
+                dataVal = line.data;
+            } else if (typeof line.data.value === "function") {
+                dataVal = line.data.value();
+            } else if (Array.isArray(line.data)) {
+                // Handle array case, use the first element
+                dataVal = line.data[0];
+            } else if (typeof line.data.value === "number") {
+                // Handle case where line.data.value is a number
+                dataVal = line.data.value;
+            } else if (typeof line.data.value === "object" && line.data.value.value) {
+                // Handle object with a nested value
+                dataVal = line.data.value.value;
+            } else {
+                // Default to 0 if no conditions are met
+                dataVal = 0;
+            }
 
             if (dataVal < 0) {
                 dataVal = twosComplement(dataVal);
@@ -601,13 +619,8 @@ arithmeticImmediate "Arithmetic Expression" = additionImmediate
 additionImmediate "Addition"
   = left:subtractionImmediate whitespace* "+" whitespace* right:additionImmediate {
     return { value: function () {
-        console.log("left", left);
-        console.log("right", right);
-        console.log("symbolTable", symbolTable);
         var l = typeof left.value === "string" ? symbolTable[left.value].value: left.value;
         var r = typeof right.value === "string" ? symbolTable[right.value].value : right.value;
-        console.log("left", l);
-        console.log("right", r);
         return l + r;
     }, location: location() };
   }
@@ -644,6 +657,7 @@ moduloImmediate "Modulo"
     return { value: l % r, location: location() };
   }
   / numLiteral
+  / stringLiteral
   / labelDirect
   / shiftImmediate
   / "(" addition:additionImmediate ")" { return addition; }
@@ -1122,15 +1136,15 @@ movOperandsError = .* {
     error("Invalid operands for MOV instruction. Expected syntax: MOV register, register.");
 }
 
-op_lxi  = ("LXI"  / "lxi" ) whitespace+ (registerPair / stackPointer) whitespace* [,] whitespace* (data16 / labelDirect / expressionDirect)
+op_lxi  = ("LXI"  / "lxi" ) whitespace+ (registerPair / stackPointer) whitespace* [,] whitespace* (expressionDirect  / data16 / labelDirect)
 
 op_mvi  = inst:("MVI"  / "mvi" ) operands:mvi_operands {
     return [inst].concat(operands);
 }
 
-mvi_operands = w1:whitespace+ dest:register w2:whitespace* c:[,] w3:whitespace* data:(data8 / labelImmediate / expressionImmediate) / mvi_operand_error {
+mvi_operands = w1:whitespace+ dest:register w2:whitespace* c:[,] w3:whitespace* data:(expressionImmediate / data8 / labelImmediate) {
     return [w1, dest, w2, c, w3, data];
-}
+} / mvi_operand_error
 
 mvi_operand_error = .* {
     error("Invalid operands for MVI. Expected byte, a label or an expression.");
