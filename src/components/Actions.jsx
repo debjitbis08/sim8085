@@ -24,6 +24,18 @@ export function Actions() {
     setIsReady(true);
   });
 
+  function beforeRun() {
+    if (store.settings.beforeRun.clearRegisters) {
+      clearRegisters();
+    }
+    if (store.settings.beforeRun.clearFlags) {
+      clearFlags();
+    }
+    if (store.settings.beforeRun.clearAllMemoryLocations) {
+      resetAllLocations()
+    }
+  }
+
   function load() {
     let result = null;
 
@@ -126,7 +138,9 @@ export function Actions() {
     try {
       setStore('programState', 'Running');
       outputState = runProgram(store);
-      showToaster("success", "Program ran successfully", "Please check the left panel for updated state.");
+      if (store.settings.alert.afterSuccessfulRun) {
+        showToaster("success", "Program ran successfully", "Please check the left panel for updated state.");
+      }
     } catch (e) {
       if (e.status === 1) showToaster("error", "Program existed with error", "Unknown instruction encountered in the program.");
       else if (e.status === 2) showToaster("error", "Program existed with error", "Infinite loop detected. Did you forget to add HLT.");
@@ -148,6 +162,7 @@ export function Actions() {
   }
 
   function loadAndRun() {
+    beforeRun();
     load();
     if (store.errors.length === 0) {
       run()
@@ -160,6 +175,7 @@ export function Actions() {
     let status = null;
 
     if (store.programState === 'Idle') {
+      beforeRun();
       load();
     }
 
@@ -238,7 +254,9 @@ export function Actions() {
   const clearAllDataOrStop = () => {
     if (store.programState === 'Paused') {
       setStore("programState", "Loaded");
-      showToaster("info", "Stopped Debugging", "You may clear data to start editing again.");
+      if (store.settings.alert.afterDebugStop) {
+        showToaster("info", "Stopped Debugging", "You may clear data to start editing again.");
+      }
       return;
     }
 
@@ -246,7 +264,9 @@ export function Actions() {
     clearRegisters();
     resetAllLocations();
     setStore("assembled", []);
-    showToaster("info", "Cleared all data", "Registers, Flags & all Memory locations have been cleared.");
+    if (store.settings.alert.afterClearAll) {
+      showToaster("info", "Cleared all data", "Registers, Flags & all Memory locations have been cleared.");
+    }
   };
 
   return (

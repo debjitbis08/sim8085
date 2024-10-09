@@ -92,6 +92,83 @@
   }
 }
 
+.dialog__overlay {
+    @apply fixed;
+    @apply inset-0;
+    @apply z-50;
+    @apply bg-gray-600;
+    @apply bg-opacity-20;
+    @apply backdrop-blur-sm;
+    animation: overlayHide 250ms ease 100ms forwards;
+}
+
+.dialog__overlay[data-expanded] {
+    animation: overlayShow 250ms ease;
+}
+
+.dialog__positioner {
+    @apply fixed;
+    @apply inset-0;
+    @apply z-50;
+    @apply flex;
+    @apply items-center;
+    @apply justify-center;
+}
+
+.dialog__content {
+    @apply z-50;
+    @apply min-w-[500px];
+    @apply bg-gray-100;
+    @apply dark:bg-gray-800;
+    border: 1px solid hsl(240 5% 84%);
+    border-radius: 6px;
+    padding: 16px;
+    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    animation: contentHide 300ms ease-in forwards;
+}
+
+.dialog__content[data-expanded] {
+  animation: contentShow 300ms ease-out;
+}
+
+.dialog__header {
+    @apply flex;
+    @apply items-baseline;
+    @apply justify-between;
+    @apply mb-4;
+}
+
+.dialog__close-button {
+  height: 16px;
+  width: 16px;
+}
+
+.dialog__title {
+    @apply text-lg;
+    @apply font-semibold;
+    @apply text-gray-600;
+}
+
+.dialog__description {
+}
+
+@keyframes overlayShow {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes overlayHide {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
 .tooltip__content {
   @apply border;
   @apply rounded-sm;
@@ -115,6 +192,51 @@
 .cm-debug-line-highlight {
     @apply bg-blue-400;
     @apply dark:bg-blue-600
+}
+
+.switch {
+  display: inline-flex;
+  align-items: center;
+}
+.switch__control {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  width: 44px;
+  border: 1px solid hsl(240 5% 84%);
+  border-radius: 12px;
+  padding: 0 2px;
+  @apply bg-gray-400;
+  @apply dark:bg-gray-600;
+  transition: 250ms background-color;
+  @apply cursor-pointer;
+}
+.switch__input:focus-visible + .switch__control {
+  outline: 2px solid hsl(200 98% 39%);
+  outline-offset: 2px;
+}
+.switch__control[data-checked] {
+  border-color: hsl(200 98% 39%);
+  @apply border;
+  @apply border-green-400;
+  @apply dark:border-green-600;
+  @apply bg-green-400;
+  @apply dark:bg-green-600;
+}
+.switch__thumb {
+  height: 20px;
+  width: 20px;
+  border-radius: 10px;
+  background-color: white;
+  transition: 250ms transform;
+}
+.switch__thumb[data-checked] {
+  transform: translateX(calc(100% - 1px));
+}
+.switch__label {
+  margin-right: 6px;
+  font-size: 14px;
+  user-select: none;
 }
 
 .carbon-demo {

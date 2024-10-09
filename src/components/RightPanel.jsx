@@ -7,6 +7,8 @@ import { createSignal } from "solid-js";
 import { FiCpu } from 'solid-icons/fi'
 import { AiOutlineQuestionCircle } from "solid-icons/ai";
 import { IOPorts } from "./IOPorts";
+import { VsSettings, VsSettingsGear } from "solid-icons/vs";
+import { Settings } from "./Settings";
 
 export function RightPanel() {
   const [activeTab, setActiveTab] = createSignal('cpu');
@@ -30,6 +32,7 @@ export function RightPanel() {
           </p>
         </button>
         <div class="grow"></div>
+        <Settings />
         <button type="button" class="hidden">
           <AiOutlineQuestionCircle class="text-xl"/>
         </button>

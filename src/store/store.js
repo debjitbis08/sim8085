@@ -46,5 +46,20 @@ export const [store, setStore] = createStore({
   io: Array(256).fill(0),
   breakpoints: [],
   errors: [],
-  openFiles: [ "main.asm" ]
+  openFiles: [ "main.asm" ],
+  settings: {
+    beforeRun: {
+      clearFlags: true,
+      clearRegisters: true,
+      clearAllMemoryLocations: false
+    },
+    alert: {
+      afterSuccessfulRun: true,
+      afterClearAll: true,
+      afterDebugStop: true
+    },
+    editor: {
+      fontSize: 16
+    }
+  }
 });
