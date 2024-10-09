@@ -6,7 +6,7 @@ import { Dialog } from "@kobalte/core/dialog";
 import { toByteString } from '../utils/NumberFormat';
 import { MemoryGrid } from './MemoryGrid';
 import { TextTooltip } from './TextTooltip';
-import { VsEmptyWindow } from 'solid-icons/vs';
+import { VsEmptyWindow, VsInfo } from 'solid-icons/vs';
 import { HiSolidTrash } from 'solid-icons/hi';
 import { store, setStore } from '../store/store.js';
 import { setAllMemoryLocations, setMemoryLocation } from '../core/simulator.js';
@@ -69,6 +69,7 @@ export default function MemoryList({ threshold = 4 }) {
     const end = parseInt(inputRange().end, 16);
     if (!isNaN(start) && !isNaN(end) && start <= end) {
       setCustomRanges([...customRanges(), { start, end, isCustom: true }]);
+      setCurrentRange({ start, end, isCustom: true });
       setIsAddingCustom(false);
     }
   };
@@ -98,7 +99,6 @@ export default function MemoryList({ threshold = 4 }) {
   };
 
   const handleOnTab = ({ group, location }) => {
-    console.log('handle on tab');
     setTabPressed({
       group,
       location
@@ -314,7 +314,11 @@ export default function MemoryList({ threshold = 4 }) {
                 <span>0x{currentRange().end.toString(16).padStart(4, '0').toUpperCase()}</span>
               </div>
             </h3>
-            <div class="h-full overflow-y-auto grow min-h-0 pr-2">
+            <p class="text-gray-500 flex items-center gap-2 my-2">
+              <VsInfo class="text-blue-400"/>
+              <span class="text-xs">Double click to edit then press Enter to save the value or Tab to edit the next location.</span>
+            </p>
+            <div class="h-full overflow-y-auto grow min-h-0 pr-2 mt-2">
               {renderMemoryInRange(currentRange().start, currentRange().end)}
             </div>
           </div>
