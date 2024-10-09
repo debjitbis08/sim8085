@@ -905,8 +905,8 @@ orgDirective = dir:(dir_org) {
 
 
 dir_db  = ("DB"   / "db"  ) whitespace+ (data8_list / expression_list)
-dir_equ = ("EQU"  / "equ" ) whitespace+ (data8 / expression)
-dir_org = ("ORG"  / "org" ) whitespace+ (data16 / expression)
+dir_equ = ("EQU"  / "equ" ) whitespace+ (expression / data8)
+dir_org = ("ORG"  / "org" ) whitespace+ (expression / data16)
 
 op_stc  = ("STC"  / "stc" )
 op_cmc  = ("CMC"  / "cmc" )
@@ -951,20 +951,20 @@ op_pop  = ("POP"  / "pop" ) whitespace+ (registerPair / registerPairPSW)
 op_dad  = ("DAD"  / "dad" ) whitespace+ (registerPair / stackPointer)
 op_inx  = ("INX"  / "inx" ) whitespace+ (registerPair / stackPointer)
 op_dcx  = ("DCX"  / "dcx" ) whitespace+ (registerPair / stackPointer)
-op_adi  = ("ADI"  / "adi" ) whitespace+ (data8 / labelImmediate / expression)
-op_aci  = ("ACI"  / "aci" ) whitespace+ (data8 / labelImmediate / expression)
-op_sui  = ("SUI"  / "sui" ) whitespace+ (data8 / labelImmediate / expression)
-op_sbi  = ("SBI"  / "sbi" ) whitespace+ (data8 / labelImmediate / expression)
-op_ani  = ("ANI"  / "ani" ) whitespace+ (data8 / labelImmediate / expression)
-op_xri  = ("XRI"  / "xri" ) whitespace+ (data8 / labelImmediate / expression)
-op_ori  = ("ORI"  / "ori" ) whitespace+ (data8 / labelImmediate / expression)
-op_cpi  = ("CPI"  / "cpi" ) whitespace+ (data8 / labelImmediate / expression)
-op_in   = ("IN"   / "in"  ) whitespace+ (data8 / labelImmediate / expression)
-op_out  = ("OUT"  / "out" ) whitespace+ (data8 / labelImmediate / expression)
-op_sta  = ("STA"  / "sta" ) whitespace+ (data16 / labelDirect / expression )
-op_lda  = ("LDA"  / "lda" ) whitespace+ (data16 / labelDirect / expression)
-op_shld = ("SHLD" / "shld") whitespace+ (data16 / labelDirect / expression)
-op_lhld = ("LHLD" / "lhld") whitespace+ (data16 / labelDirect / expression)
+op_adi  = ("ADI"  / "adi" ) whitespace+ (expression / data8 / labelImmediate)
+op_aci  = ("ACI"  / "aci" ) whitespace+ (expression / data8 / labelImmediate)
+op_sui  = ("SUI"  / "sui" ) whitespace+ (expression / data8 / labelImmediate)
+op_sbi  = ("SBI"  / "sbi" ) whitespace+ (expression / data8 / labelImmediate)
+op_ani  = ("ANI"  / "ani" ) whitespace+ (expression / data8 / labelImmediate)
+op_xri  = ("XRI"  / "xri" ) whitespace+ (expression / data8 / labelImmediate)
+op_ori  = ("ORI"  / "ori" ) whitespace+ (expression / data8 / labelImmediate)
+op_cpi  = ("CPI"  / "cpi" ) whitespace+ (expression / data8 / labelImmediate)
+op_in   = ("IN"   / "in"  ) whitespace+ (expression / data8 / labelImmediate)
+op_out  = ("OUT"  / "out" ) whitespace+ (expression / data8 / labelImmediate)
+op_sta  = ("STA"  / "sta" ) whitespace+ (expression / data16 / labelDirect)
+op_lda  = ("LDA"  / "lda" ) whitespace+ (expression / data16 / labelDirect)
+op_shld = ("SHLD" / "shld") whitespace+ (expression / data16 / labelDirect)
+op_lhld = ("LHLD" / "lhld") whitespace+ (expression / data16 / labelDirect)
 
 op_jmp  = inst:("JMP"  / "jmp" ) operand:jump_operand { return [inst].concat(operand); }
 op_jc   = inst:("JC"   / "jc"  ) operand:jump_operand { return [inst].concat(operand); }
@@ -976,7 +976,7 @@ op_jp   = inst:("JP"   / "jp"  ) operand:jump_operand { return [inst].concat(ope
 op_jpe  = inst:("JPE"  / "jpe" ) operand:jump_operand { return [inst].concat(operand); }
 op_jpo  = inst:("JPO"  / "jpo" ) operand:jump_operand { return [inst].concat(operand); }
 
-jump_operand = w:whitespace+ operand:(labelDirect / data16 / expression) / jump_operand_error {
+jump_operand = w:whitespace+ operand:(expression / labelDirect / data16) / jump_operand_error {
     return [w, operand]
 }
 
@@ -994,7 +994,7 @@ op_cp   = inst:("CP"   / "cp"  ) operands:call_operand { return [inst].concat(op
 op_cpe  = inst:("CPE"  / "cpe" ) operands:call_operand { return [inst].concat(operands); }
 op_cpo  = inst:("CPO"  / "cpo" ) operands:call_operand { return [inst].concat(operands); }
 
-call_operand = w:whitespace+ operand:(data16 / labelDirect / expression) / call_operand_error {
+call_operand = w:whitespace+ operand:(expression / data16 / labelDirect) / call_operand_error {
     return [w, operand];
 }
 
@@ -1017,13 +1017,13 @@ movOperandsError = .* {
     error("Invalid operands for MOV instruction. Expected syntax: MOV register, register.");
 }
 
-op_lxi  = ("LXI"  / "lxi" ) whitespace+ (registerPair / stackPointer) whitespace* [,] whitespace* (data16 / labelDirect / expression)
+op_lxi  = ("LXI"  / "lxi" ) whitespace+ (registerPair / stackPointer) whitespace* [,] whitespace* (expression / data16 / labelDirect)
 
 op_mvi  = inst:("MVI"  / "mvi" ) operands:mvi_operands {
     return [inst].concat(operands);
 }
 
-mvi_operands = w1:whitespace+ dest:register w2:whitespace* c:[,] w3:whitespace* data:(data8 / labelImmediate / expression) / mvi_operand_error {
+mvi_operands = w1:whitespace+ dest:register w2:whitespace* c:[,] w3:whitespace* data:(expression / data8 / labelImmediate) / mvi_operand_error {
     return [w1, dest, w2, c, w3, data];
 }
 
