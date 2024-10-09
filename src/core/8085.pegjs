@@ -364,6 +364,8 @@ machineCode = prg:program {
                 dataVal = line.data;
             } else if (typeof line.data.value === "number") {
                 dataVal = line.data.value;
+            } else if (typeof line.data.value === "function") {
+                dataVal = line.data.value();
             } else if (typeof line.data.value === "object" && line.data.value.value) {
                 dataVal = line.data.value.value;
             } else {
@@ -394,15 +396,14 @@ opWithLabel = label:labelPart? op:(operation / directive) comment? {
         console.log("label", label, op, ilc);
         symbolTable[label.value] = {
             addr: ilc,
-            value: op.opcode != null ? op.opcode :
-                op.data ?
+            value: op.data ?
                     Array.isArray(op.data) ?
                         op.data.map(function (d) {
                             return d.value ? d.value : d;
                         })
                         : op.data.value ?
                             op.data.value : op.data
-                    : null
+                    : ilc
         };
     }
 
@@ -438,7 +439,6 @@ labelImmediate "label" = lbl:label {
 }
 
 labelDirect "label" = lbl:label {
-    console.log("label direct");
     return { value: lbl.value, location: lbl.location, type: "direct" }
 }
 
@@ -464,7 +464,7 @@ registerPairPSW "Program status word (Contents of A and status flags, written as
 stackPointer "Stack Pointer (written as, SP or sp)" =
     l:("SP" / "sp") !identLetter { return l.toLowerCase(); }
 
-expression_list "comma separated expression" = d:expression ds:("," __ expression)* {
+expression_list "comma separated expression" = d:expressionImmediate ds:("," __ expressionImmediate)* {
   console.log("d", d);
   console.log("ds", ds);
   console.log("value", [d.value].concat(ds.map(function (d_) { return d_[2].value; })));
@@ -592,81 +592,171 @@ hexit "hex digit" = [0-9a-fA-F]
 octit "octal digit" = [0-7]
 bit "bit" = [01]
 
-expression "expression" = arithmetic
+expressionImmediate "expression" = arithmeticImmediate
 
 // / shift / logical / compare / byteIsolation
 
-arithmetic "Arithmetic Expression" = addition
+arithmeticImmediate "Arithmetic Expression" = additionImmediate
 
-addition "Addition"
-  = left:subtraction whitespace* "+" whitespace* right:addition {
-    console.log("left", left);
-    console.log("right", right);
-    console.log("symbolTable", symbolTable);
-    var l = typeof left.value === "string" ? symbolTable[left.value].value: left.value;
-    var r = typeof right.value === "string" ? symbolTable[right.value].value : right.value;
-    console.log("left", l);
-    console.log("right", r);
-    return { value: l + r, location: location() };
+additionImmediate "Addition"
+  = left:subtractionImmediate whitespace* "+" whitespace* right:additionImmediate {
+    return { value: function () {
+        console.log("left", left);
+        console.log("right", right);
+        console.log("symbolTable", symbolTable);
+        var l = typeof left.value === "string" ? symbolTable[left.value].value: left.value;
+        var r = typeof right.value === "string" ? symbolTable[right.value].value : right.value;
+        console.log("left", l);
+        console.log("right", r);
+        return l + r;
+    }, location: location() };
   }
-  / subtraction
+  / subtractionImmediate
 
-subtraction "Subtraction"
-  = left:multiplication whitespace* "-" whitespace* right:subtraction {
+subtractionImmediate "Subtraction"
+  = left:multiplicationImmediate whitespace* "-" whitespace* right:subtractionImmediate {
     var l = typeof left.value === "string" ? symbolTable[left.value].value: left.value;
     var r = typeof right.value === "string" ? symbolTable[right.value].value : right.value;
     return { value: l - r, location: location() };
   }
-  / multiplication
+  / multiplicationImmediate
 
-multiplication "Multiplication"
-  = left:division whitespace* "*" whitespace* right:multiplication {
+multiplicationImmediate "Multiplication"
+  = left:divisionImmediate whitespace* "*" whitespace* right:multiplicationImmediate {
     var l = typeof left.value === "string" ? symbolTable[left.value].value: left.value;
     var r = typeof right.value === "string" ? symbolTable[right.value].value : right.value;
     return { value: l * r, location: location() };
   }
-  / division
+  / divisionImmediate
 
-division "Division"
-  = left:modulo whitespace* "/" whitespace* right:division {
+divisionImmediate "Division"
+  = left:moduloImmediate whitespace* "/" whitespace* right:divisionImmediate {
     var l = typeof left.value === "string" ? symbolTable[left.value].value: left.value;
     var r = typeof right.value === "string" ? symbolTable[right.value].value : right.value;
     return { value: l / r, location: location() };
   }
-  / modulo
+  / moduloImmediate
 
-modulo "Modulo"
-  = left:(numLiteral / label) whitespace* "MOD"i whitespace* right:modulo {
+moduloImmediate "Modulo"
+  = left:(numLiteral / labelImmediate) whitespace* "MOD"i whitespace* right:moduloImmediate {
     var l = typeof left.value === "string" ? symbolTable[left.value].value: left.value;
     var r = typeof right.value === "string" ? symbolTable[right.value].value : right.value;
     return { value: l % r, location: location() };
   }
   / numLiteral
-  / label
-  / shift
-  / "(" addition:addition ")" { return addition; }
+  / labelDirect
+  / shiftImmediate
+  / "(" addition:additionImmediate ")" { return addition; }
 
-shift "Shift Expression" = shiftRight
+shiftImmediate "Shift Expression" = shiftRightImmediate
 
-shiftRight "Shift Right"
-  = left:shiftLeft whitespace+ "SHR"i whitespace+ right:shiftRight {
+shiftRightImmediate "Shift Right"
+  = left:shiftLeftImmediate whitespace+ "SHR"i whitespace+ right:shiftRightImmediate {
     var l = typeof left.value === "string" ? symbolTable[left.value].value: left.value;
     var r = typeof right.value === "string" ? symbolTable[right.value].value : right.value;
     return { value: l >> r, location: location() };
   }
-  / shiftLeft
+  / shiftLeftImmediate
 
 
-shiftLeft "Shift Left"
-  = left:(numLiteral / label) whitespace+ "SHL"i whitespace+ right:shiftLeft {
+shiftLeftImmediate "Shift Left"
+  = left:(numLiteral / labelImmediate) whitespace+ "SHL"i whitespace+ right:shiftLeftImmediate {
     var l = typeof left.value === "string" ? symbolTable[left.value].value: left.value;
     var r = typeof right.value === "string" ? symbolTable[right.value].value : right.value;
     return { value: l << r, location: location() };
   }
   / numLiteral
   / labelImmediate
-  / "(" shr:shift ")" { return shr; }
+  / "(" shr:shiftImmediate ")" { return shr; }
 
+expressionDirect "expression" = arithmeticDirect
+
+// / shift / logical / compare / byteIsolation
+
+arithmeticDirect "Arithmetic Expression" = additionDirect
+
+additionDirect "Addition"
+  = left:subtractionDirect whitespace* "+" whitespace* right:additionDirect {
+    return { value: function () {
+        console.log("left", left);
+        console.log("right", right);
+        console.log("symbolTable", symbolTable);
+        var l = typeof left.value === "string" ? symbolTable[left.value].addr: left.value;
+        var r = typeof right.value === "string" ? symbolTable[right.value].addr : right.value;
+        console.log("left", l);
+        console.log("right", r);
+        return l + r;
+    }, location: location() };
+  }
+  / subtractionDirect
+
+subtractionDirect "Subtraction"
+  = left:multiplicationDirect whitespace* "-" whitespace* right:subtractionDirect {
+    return { value: function () {
+        var l = typeof left.value === "string" ? symbolTable[left.value].addr: left.value;
+        var r = typeof right.value === "string" ? symbolTable[right.value].addr : right.value;
+        return l - r;
+    }, location: location() };
+  }
+  / multiplicationDirect
+
+multiplicationDirect "Multiplication"
+  = left:divisionDirect whitespace* "*" whitespace* right:multiplicationDirect {
+    return { value: function() {
+        var l = typeof left.value === "string" ? symbolTable[left.value].addr: left.value;
+        var r = typeof right.value === "string" ? symbolTable[right.value].addr : right.value;
+        return l * r;
+    }, location: location() };
+  }
+  / divisionDirect
+
+divisionDirect "Division"
+  = left:moduloDirect whitespace* "/" whitespace* right:divisionDirect {
+    return { value: function () {
+        var l = typeof left.value === "string" ? symbolTable[left.value].addr: left.value;
+        var r = typeof right.value === "string" ? symbolTable[right.value].addr : right.value;
+        return l / r;
+    }, location: location() };
+  }
+  / moduloDirect
+
+moduloDirect "Modulo"
+  = left:(numLiteral / labelDirect) whitespace* "MOD"i whitespace* right:moduloDirect {
+    return { value: function () {
+        var l = typeof left.value === "string" ? symbolTable[left.value].addr: left.value;
+        var r = typeof right.value === "string" ? symbolTable[right.value].addr : right.value;
+        return l % r;
+    }, location: location() };
+  }
+  / labelDirect
+  / numLiteral
+  / shiftDirect
+  / "(" addition:additionDirect ")" { return addition; }
+
+shiftDirect "Shift Expression" = shiftRightDirect
+
+shiftRightDirect "Shift Right"
+  = left:shiftLeftDirect whitespace+ "SHR"i whitespace+ right:shiftRightDirect {
+    return { value: function () {
+        var l = typeof left.value === "string" ? symbolTable[left.value].addr: left.value;
+        var r = typeof right.value === "string" ? symbolTable[right.value].addr : right.value;
+        return l >> r;
+    }, location: location() };
+  }
+  / shiftLeftDirect
+
+
+shiftLeftDirect "Shift Left"
+  = left:(numLiteral / labelDirect) whitespace+ "SHL"i whitespace+ right:shiftLeftDirect {
+    return { value: function () {
+        var l = typeof left.value === "string" ? symbolTable[left.value].addr: left.value;
+        var r = typeof right.value === "string" ? symbolTable[right.value].addr : right.value;
+        return l << r;
+    }, location: location() };
+  }
+  / numLiteral
+  / labelDirect
+  / "(" shr:shiftDirect ")" { return shr; }
 
 comment "comment" = ";" c:[^\n\r\n\u2028\u2029]* {return c.join("");}
 
@@ -920,8 +1010,8 @@ orgDirective = dir:(dir_org) {
 
 
 dir_db  = ("DB"   / "db"  ) whitespace+ (data8_list / expression_list)
-dir_equ = ("EQU"  / "equ" ) whitespace+ (expression / data8)
-dir_org = ("ORG"  / "org" ) whitespace+ (expression / data16)
+dir_equ = ("EQU"  / "equ" ) whitespace+ (expressionImmediate / data8)
+dir_org = ("ORG"  / "org" ) whitespace+ (expressionImmediate / data16)
 
 op_stc  = ("STC"  / "stc" )
 op_cmc  = ("CMC"  / "cmc" )
@@ -966,16 +1056,16 @@ op_pop  = ("POP"  / "pop" ) whitespace+ (registerPair / registerPairPSW)
 op_dad  = ("DAD"  / "dad" ) whitespace+ (registerPair / stackPointer)
 op_inx  = ("INX"  / "inx" ) whitespace+ (registerPair / stackPointer)
 op_dcx  = ("DCX"  / "dcx" ) whitespace+ (registerPair / stackPointer)
-op_adi  = ("ADI"  / "adi" ) whitespace+ (data8 / labelImmediate / expression)
-op_aci  = ("ACI"  / "aci" ) whitespace+ (data8 / labelImmediate / expression)
-op_sui  = ("SUI"  / "sui" ) whitespace+ (data8 / labelImmediate / expression)
-op_sbi  = ("SBI"  / "sbi" ) whitespace+ (data8 / labelImmediate / expression)
-op_ani  = ("ANI"  / "ani" ) whitespace+ (data8 / labelImmediate / expression)
-op_xri  = ("XRI"  / "xri" ) whitespace+ (data8 / labelImmediate / expression)
-op_ori  = ("ORI"  / "ori" ) whitespace+ (data8 / labelImmediate / expression)
-op_cpi  = ("CPI"  / "cpi" ) whitespace+ (data8 / labelImmediate / expression)
-op_in   = ("IN"   / "in"  ) whitespace+ (data8 / labelImmediate / expression)
-op_out  = ("OUT"  / "out" ) whitespace+ (data8 / labelImmediate / expression)
+op_adi  = ("ADI"  / "adi" ) whitespace+ (data8 / labelImmediate / expressionImmediate)
+op_aci  = ("ACI"  / "aci" ) whitespace+ (data8 / labelImmediate / expressionImmediate)
+op_sui  = ("SUI"  / "sui" ) whitespace+ (data8 / labelImmediate / expressionImmediate)
+op_sbi  = ("SBI"  / "sbi" ) whitespace+ (data8 / labelImmediate / expressionImmediate)
+op_ani  = ("ANI"  / "ani" ) whitespace+ (data8 / labelImmediate / expressionImmediate)
+op_xri  = ("XRI"  / "xri" ) whitespace+ (data8 / labelImmediate / expressionImmediate)
+op_ori  = ("ORI"  / "ori" ) whitespace+ (data8 / labelImmediate / expressionImmediate)
+op_cpi  = ("CPI"  / "cpi" ) whitespace+ (data8 / labelImmediate / expressionImmediate)
+op_in   = ("IN"   / "in"  ) whitespace+ (data8 / labelImmediate / expressionImmediate)
+op_out  = ("OUT"  / "out" ) whitespace+ (data8 / labelImmediate / expressionImmediate)
 op_sta  = ("STA"  / "sta" ) whitespace+ (data16 / labelDirect)
 op_lda  = ("LDA"  / "lda" ) whitespace+ (data16 / labelDirect)
 op_shld = ("SHLD" / "shld") whitespace+ (data16 / labelDirect)
@@ -991,7 +1081,7 @@ op_jp   = inst:("JP"   / "jp"  ) operand:jump_operand { return [inst].concat(ope
 op_jpe  = inst:("JPE"  / "jpe" ) operand:jump_operand { return [inst].concat(operand); }
 op_jpo  = inst:("JPO"  / "jpo" ) operand:jump_operand { return [inst].concat(operand); }
 
-jump_operand = w:whitespace+ operand:(labelDirect / data16 / expression) / jump_operand_error {
+jump_operand = w:whitespace+ operand:(expressionDirect / labelDirect / data16) / jump_operand_error {
     return [w, operand]
 }
 
@@ -1009,7 +1099,7 @@ op_cp   = inst:("CP"   / "cp"  ) operands:call_operand { return [inst].concat(op
 op_cpe  = inst:("CPE"  / "cpe" ) operands:call_operand { return [inst].concat(operands); }
 op_cpo  = inst:("CPO"  / "cpo" ) operands:call_operand { return [inst].concat(operands); }
 
-call_operand = w:whitespace+ operand:(data16 / labelDirect / expression) / call_operand_error {
+call_operand = w:whitespace+ operand:(expressionDirect / data16 / labelDirect) / call_operand_error {
     return [w, operand];
 }
 
@@ -1032,13 +1122,13 @@ movOperandsError = .* {
     error("Invalid operands for MOV instruction. Expected syntax: MOV register, register.");
 }
 
-op_lxi  = ("LXI"  / "lxi" ) whitespace+ (registerPair / stackPointer) whitespace* [,] whitespace* (data16 / labelDirect / expression)
+op_lxi  = ("LXI"  / "lxi" ) whitespace+ (registerPair / stackPointer) whitespace* [,] whitespace* (data16 / labelDirect / expressionDirect)
 
 op_mvi  = inst:("MVI"  / "mvi" ) operands:mvi_operands {
     return [inst].concat(operands);
 }
 
-mvi_operands = w1:whitespace+ dest:register w2:whitespace* c:[,] w3:whitespace* data:(data8 / labelImmediate / expression) / mvi_operand_error {
+mvi_operands = w1:whitespace+ dest:register w2:whitespace* c:[,] w3:whitespace* data:(data8 / labelImmediate / expressionImmediate) / mvi_operand_error {
     return [w1, dest, w2, c, w3, data];
 }
 
