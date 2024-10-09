@@ -911,6 +911,7 @@ dataDefinition = dir:(dir_db) {
 }
 
 orgDirective = dir:(dir_org) {
+    ilc = dir[2].value;
     return {
         name: dir,
         params: [dir[2].value]
