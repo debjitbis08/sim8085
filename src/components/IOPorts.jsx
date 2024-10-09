@@ -97,7 +97,7 @@ function IOPortRow(props) {
           <Tooltip.Portal>
             <Tooltip.Content class="tooltip__content">
               <Tooltip.Arrow />
-              <p>{editing() ? "Save Memory Value" : "Edit Memory Value"}</p>
+              <p>{editing() ? "Save IO Value" : "Edit IO Value"}</p>
             </Tooltip.Content>
           </Tooltip.Portal>
         </Tooltip>
