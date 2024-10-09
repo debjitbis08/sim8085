@@ -4,7 +4,7 @@ import { HiOutlineWrench, HiSolidArrowRight, HiSolidPlay, HiSolidStop, HiSolidWr
 import Module from '../core/8085.js';
 import { StoreContext } from "./StoreContext.js";
 import { produce } from "solid-js/store";
-import { initSimulator, loadProgram, runProgram, runSingleInstruction, setAllMemoryLocations, setPC, startDebug, unloadProgram } from "../core/simulator.js";
+import { initSimulator, loadProgram, runProgram, runSingleInstruction, setAllMemoryLocations, setFlags, setPC, setRegisters, startDebug, unloadProgram } from "../core/simulator.js";
 import { AiFillFastForward, AiFillStop, AiOutlineClear } from "solid-icons/ai";
 import { Tooltip } from "@kobalte/core/tooltip";
 import { FiFastForward } from "solid-icons/fi";
@@ -209,6 +209,7 @@ export function Actions() {
         Object.keys(flags).forEach((flagId) => flags[flagId] = false);
       })
     );
+    setFlags(store);
   };
 
   const clearRegisters = () => {
@@ -225,6 +226,7 @@ export function Actions() {
         }
       })
     );
+    setRegisters(store);
   };
 
   const resetAllLocations = () => {

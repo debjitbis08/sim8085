@@ -109,3 +109,26 @@ export function setState (simulator, statePtr, state) {
 export function setPCValue(simulator, statePtr, pcValue) {
   simulator.setValue(statePtr + 10, pcValue, 'i16', 0);
 }
+
+export function setRegisterState (simulator, statePtr, state) {
+    simulator.setValue(statePtr + 0, state.a, 'i8', 0);
+    simulator.setValue(statePtr + 1, state.b, 'i8', 0);
+    simulator.setValue(statePtr + 2, state.c, 'i8', 0);
+    simulator.setValue(statePtr + 3, state.d, 'i8', 0);
+    simulator.setValue(statePtr + 4, state.e, 'i8', 0);
+    simulator.setValue(statePtr + 5, state.h, 'i8', 0);
+    simulator.setValue(statePtr + 6, state.l, 'i8', 0);
+    simulator.setValue(statePtr + 8, state.sp, 'i16', 0);
+    simulator.setValue(statePtr + 10, state.pc, 'i16', 0);
+}
+
+export function setFlagState (simulator, statePtr, state) {
+    var flag = parseInt([
+      state.flags.z,
+      state.flags.s,
+      state.flags.p,
+      state.flags.cy,
+      state.flags.ac,
+    ].reverse().map(Number).map(String).join(''), 2);
+    simulator.setValue(statePtr + 12, flag, 'i8', 0);
+}

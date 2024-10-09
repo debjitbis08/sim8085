@@ -1,5 +1,5 @@
 import Module from './8085.js';
-import { getStateFromPtr, setPCValue, setState } from './cpuState.js';
+import { getStateFromPtr, setFlagState, setPCValue, setRegisterState, setState } from './cpuState.js';
 import { parse } from '../core/8085.pegjs';
 
 let simulator = null;
@@ -249,4 +249,12 @@ export function getFullState(store) {
 
 export function setFullState(store) {
   setState(simulator, store.statePointer, getCpuState(store));
+}
+
+export function setRegisters(store) {
+  setRegisterState(simulator, store.statePointer, getCpuState(store));
+}
+
+export function setFlags(store) {
+  setFlagState(simulator, store.statePointer, getCpuState(store));
 }

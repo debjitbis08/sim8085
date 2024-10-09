@@ -3,6 +3,7 @@ import { StoreContext } from "./StoreContext";
 import { AiOutlineClear } from "solid-icons/ai";
 import { produce } from "solid-js/store";
 import { store, setStore } from "../store/store";
+import { setFlags, setFullState } from "../core/simulator";
 
 export function Flags() {
 
@@ -12,6 +13,7 @@ export function Flags() {
       flagId,
       isChecked
     );
+    setFlags(store);
   };
 
   const clearFlags = () => {
@@ -21,6 +23,7 @@ export function Flags() {
         Object.keys(flags).forEach((flagId) => flags[flagId] = false);
       })
     );
+    setFlags(store);
   };
 
   return (

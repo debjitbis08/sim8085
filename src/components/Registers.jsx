@@ -4,6 +4,7 @@ import { StoreContext } from './StoreContext';
 import { produce } from 'solid-js/store';
 import { toRadix, toByteString } from '../utils/NumberFormat';
 import { store, setStore } from '../store/store';
+import { setRegisters } from '../core/simulator';
 
 export function Registers() {
   const updateRegisterValue = (registerId, high, low) => {
@@ -15,6 +16,7 @@ export function Registers() {
         register.low = low;
       })
     );
+    setRegisters(store);
   };
 
   const updateAccumulator = (value) => {
@@ -22,6 +24,7 @@ export function Registers() {
       "accumulator",
       value
     );
+    setRegisters(store);
   };
 
   const clearRegisters = () => {
@@ -38,6 +41,7 @@ export function Registers() {
         }
       })
     );
+    setRegisters(store);
   };
 
   return (
