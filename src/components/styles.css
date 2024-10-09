@@ -116,3 +116,26 @@
     @apply bg-blue-400;
     @apply dark:bg-blue-600
 }
+
+.carbon-demo {
+    background-color: #fff;
+    border-radius: .2em;
+    display: grid;
+    grid-template-columns: 130px 1fr;
+    justify-content: center;
+    margin: 0 auto;
+    max-width: 360px;
+    overflow: hidden;
+    position: relative;
+}
+
+.carbon-img {
+    height: auto;
+    width: 130px;
+}
+
+.carbon-desc {
+    font-size: .875rem;
+    line-height: 1.35;
+    padding: .75rem;
+}

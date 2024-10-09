@@ -13,40 +13,50 @@ export function Assembled() {
       <div>
         <h2 class="text-xl pb-4">Assembled Output</h2>
       </div>
-      <div
-        class={`${store.assembled.length ? '' : 'hidden'} max-w-full overflow-x-auto text-sm`}
-        style={{ height: 'calc(100% - 2.75rem)' }}
-      >
-        {lines().map((line, i) => {
-          const code = showCode(line[0]);
-          return (
-            <div class="grid grid-cols-8 gap-1 hover:bg-gray-200 dark:hover:bg-gray-700 px-1 py-0.5 border-b border-b-gray-200 dark:border-b-gray-800">
-              <span class="col-span-1">{i + 1}</span>
-              <span class="col-span-1 border-r border-r-gray-200 dark:border-r-gray-800">{ code === '0 ' ? '' : code }</span>
-              <pre class="col-span-5 pl-1">{ line[1] }</pre>
-            </div>
-          );
-        })}
-      </div>
-      <div
-        class={`${store.errors.length ? '' : 'hidden'} max-w-full overflow-x-auto text-sm`}
-        style={{ height: 'calc(100% - 2.75rem)' }}
-      >
-        {store.errors.map((e) => {
-          return (
-            <p>
-              Line {e.line}, Column {e.column}: {e.msg}
+      <div class="flex flex-col" style={{ height: "calc(100vh - 10rem)" }}>
+        <div style={{ height: 'calc(100% - 2.75rem - 120px)' }}>
+          <div
+            class={`${store.assembled.length ? '' : 'hidden'} w-full overflow-x-auto text-sm`}
+              style={{ height: 'calc(100% - 2.75rem)' }}
+          >
+            {lines().map((line, i) => {
+              const code = showCode(line[0]);
+              return (
+                <div class="grid grid-cols-8 gap-1 hover:bg-gray-200 dark:hover:bg-gray-700 px-1 py-0.5 border-b border-b-gray-200 dark:border-b-gray-800">
+                  <span class="col-span-1">{i + 1}</span>
+                  <span class="col-span-1 border-r border-r-gray-200 dark:border-r-gray-800">{ code === '0 ' ? '' : code }</span>
+                  <pre class="col-span-5 pl-1">{ line[1] }</pre>
+                </div>
+              );
+            })}
+          </div>
+          <div
+            class={`${store.errors.length ? '' : 'hidden'} max-w-full overflow-x-auto text-sm`}
+            style={{ height: 'calc(100% - 2.75rem)' }}
+          >
+            {store.errors.map((e) => {
+              return (
+                <p>
+                  Line {e.line}, Column {e.column}: {e.msg}
+                </p>
+              );
+            })}
+          </div>
+          <div
+            class={`${store.assembled.length || store.errors.length ? 'hidden' : ''} max-w-full overflow-x-auto text-sm`}
+            style={{ height: 'calc(100% - 2.75rem)' }}
+          >
+            <p class="text-gray-500">
+              Load or Run the program to view the assembled output.
             </p>
-          );
-        })}
-      </div>
-      <div
-        class={`${store.assembled.length || store.errors.length ? 'hidden' : ''} max-w-full overflow-x-auto text-sm`}
-        style={{ height: 'calc(100% - 2.75rem)' }}
-      >
-        <p class="text-gray-500">
-          Load or Run the program to view the assembled output.
-        </p>
+          </div>
+        </div>
+        <div id="slot" class="hidden mt-10 rounded-sm max-w-[360] h-[100px] flex items-start">
+          <div class="carbon-demo card-shadow">
+            <img class="carbon-img" src="https://static4.buysellads.net/uu/1/93750/1624656839-Gatsby_Cloud_solid_purple_Gatsby_Monogram.png"/>
+            <div class="carbon-desc">Provision MongoDB clusters in minutes. Get $100 free credit.</div>
+          </div>
+        </div>
       </div>
     </div>
   );

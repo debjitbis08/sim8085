@@ -15,12 +15,12 @@ import '../components/styles.css';
         <!-- Message for small screens -->
         <div class="hidden md:flex items-start" style="height: calc(100vh - 6rem);">
             <!-- Left Panel with fixed width -->
-            <div class="rounded-lg w-[25vw] min-w-[320px] flex-shrink-0">
+            <div class="w-[25vw] min-w-[295px] flex-shrink-0">
                 <RightPanel client:idle />
             </div>
 
             <!-- Middle Panel that can grow, but with a min and max width to remain stable -->
-            <div class="grow flex-shrink-0 max-w-[800px] min-w-[500px] border-l border-l-gray-300">
+            <div class="w-[45vw] flex-grow flex-shrink max-w-[800px] min-w-[300px] border-l border-l-gray-300">
                 <div class="flex">
                     <div class="grow">
                         <div class="flex items-center">
@@ -36,7 +36,7 @@ import '../components/styles.css';
             </div>
 
             <!-- Right Panel with fixed width -->
-            <div class="w-[35vw] min-w-[320px] flex-shrink-0 flex items-start" style="height: calc(100vh - 5rem);">
+            <div class="w-[30vw] min-w-[320px] flex-grow flex-shrink-0 flex items-start h-[calc(100vh-5rem)]">
                 <Assembled client:idle />
             </div>
         </div>
