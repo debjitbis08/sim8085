@@ -328,9 +328,11 @@ machineCode = prg:program {
                 : (typeof line.data.value === "number") ? line.data.value
                 : typeof line.data.value === "object" && line.data.value.value ? line.data.value.value
                 : 0;
+
             if (dataVal < 0) {
                 dataVal = twosComplement(dataVal);
             }
+
             objCode.push({ data: line.opcode, kind: 'code', currentAddress: currentAddress, location: line.location });
             currentAddress += 1;
             objCode.push({ data: dataVal, kind: (typeof line.data.value === "string" && line.data.type === "direct") ? 'addr' : 'data', currentAddress: currentAddress, location: line.data.location });
@@ -349,14 +351,24 @@ machineCode = prg:program {
 
             var valueFromSymbolTable = symbolTable[line.data.value] ? symbolTable[line.data.value].value : null;
 
-            dataVal = (typeof line.data.value === "string")
-                ? line.data.type === "direct"
-                ? symbolTable[line.data.value].addr
-                : Array.isArray(valueFromSymbolTable) ? valueFromSymbolTable[0] << 8 | valueFromSymbolTable[1] : valueFromSymbolTable
-                : (typeof line.data === "number") ? line.data
-                : (typeof line.data.value === "number") ? line.data.value
-                : typeof line.data.value === "object" && line.data.value.value ? line.data.value.value
-                : 0;
+            if (typeof line.data.value === "string") {
+                if (line.data.type === "direct") {
+                    dataVal = symbolTable[line.data.value].addr;
+                } else if (Array.isArray(valueFromSymbolTable)) {
+                    // Handle array case by combining the first two elements as a 16-bit number
+                    dataVal = (valueFromSymbolTable[0] << 8) | valueFromSymbolTable[1];
+                } else {
+                    dataVal = valueFromSymbolTable;
+                }
+            } else if (typeof line.data === "number") {
+                dataVal = line.data;
+            } else if (typeof line.data.value === "number") {
+                dataVal = line.data.value;
+            } else if (typeof line.data.value === "object" && line.data.value.value) {
+                dataVal = line.data.value.value;
+            } else {
+                dataVal = 0;
+            }
 
             objCode.push({ data: line.opcode, kind: 'code', currentAddress: currentAddress, location: line.location });
             currentAddress += 1;
@@ -379,6 +391,7 @@ program = __ first:line rest:(eol+ __ l:(!. / l:line { return l; }) {return l})*
 
 opWithLabel = label:labelPart? op:(operation / directive) comment? {
     if (label && label !== "") {
+        console.log("label", label, op, ilc);
         symbolTable[label.value] = {
             addr: ilc,
             value: op.opcode != null ? op.opcode :
@@ -425,6 +438,7 @@ labelImmediate "label" = lbl:label {
 }
 
 labelDirect "label" = lbl:label {
+    console.log("label direct");
     return { value: lbl.value, location: lbl.location, type: "direct" }
 }
 
@@ -951,20 +965,20 @@ op_pop  = ("POP"  / "pop" ) whitespace+ (registerPair / registerPairPSW)
 op_dad  = ("DAD"  / "dad" ) whitespace+ (registerPair / stackPointer)
 op_inx  = ("INX"  / "inx" ) whitespace+ (registerPair / stackPointer)
 op_dcx  = ("DCX"  / "dcx" ) whitespace+ (registerPair / stackPointer)
-op_adi  = ("ADI"  / "adi" ) whitespace+ (expression / data8 / labelImmediate)
-op_aci  = ("ACI"  / "aci" ) whitespace+ (expression / data8 / labelImmediate)
-op_sui  = ("SUI"  / "sui" ) whitespace+ (expression / data8 / labelImmediate)
-op_sbi  = ("SBI"  / "sbi" ) whitespace+ (expression / data8 / labelImmediate)
-op_ani  = ("ANI"  / "ani" ) whitespace+ (expression / data8 / labelImmediate)
-op_xri  = ("XRI"  / "xri" ) whitespace+ (expression / data8 / labelImmediate)
-op_ori  = ("ORI"  / "ori" ) whitespace+ (expression / data8 / labelImmediate)
-op_cpi  = ("CPI"  / "cpi" ) whitespace+ (expression / data8 / labelImmediate)
-op_in   = ("IN"   / "in"  ) whitespace+ (expression / data8 / labelImmediate)
-op_out  = ("OUT"  / "out" ) whitespace+ (expression / data8 / labelImmediate)
-op_sta  = ("STA"  / "sta" ) whitespace+ (expression / data16 / labelDirect)
-op_lda  = ("LDA"  / "lda" ) whitespace+ (expression / data16 / labelDirect)
-op_shld = ("SHLD" / "shld") whitespace+ (expression / data16 / labelDirect)
-op_lhld = ("LHLD" / "lhld") whitespace+ (expression / data16 / labelDirect)
+op_adi  = ("ADI"  / "adi" ) whitespace+ (data8 / labelImmediate / expression)
+op_aci  = ("ACI"  / "aci" ) whitespace+ (data8 / labelImmediate / expression)
+op_sui  = ("SUI"  / "sui" ) whitespace+ (data8 / labelImmediate / expression)
+op_sbi  = ("SBI"  / "sbi" ) whitespace+ (data8 / labelImmediate / expression)
+op_ani  = ("ANI"  / "ani" ) whitespace+ (data8 / labelImmediate / expression)
+op_xri  = ("XRI"  / "xri" ) whitespace+ (data8 / labelImmediate / expression)
+op_ori  = ("ORI"  / "ori" ) whitespace+ (data8 / labelImmediate / expression)
+op_cpi  = ("CPI"  / "cpi" ) whitespace+ (data8 / labelImmediate / expression)
+op_in   = ("IN"   / "in"  ) whitespace+ (data8 / labelImmediate / expression)
+op_out  = ("OUT"  / "out" ) whitespace+ (data8 / labelImmediate / expression)
+op_sta  = ("STA"  / "sta" ) whitespace+ (data16 / labelDirect)
+op_lda  = ("LDA"  / "lda" ) whitespace+ (data16 / labelDirect)
+op_shld = ("SHLD" / "shld") whitespace+ (data16 / labelDirect)
+op_lhld = ("LHLD" / "lhld") whitespace+ (data16 / labelDirect)
 
 op_jmp  = inst:("JMP"  / "jmp" ) operand:jump_operand { return [inst].concat(operand); }
 op_jc   = inst:("JC"   / "jc"  ) operand:jump_operand { return [inst].concat(operand); }
@@ -976,7 +990,7 @@ op_jp   = inst:("JP"   / "jp"  ) operand:jump_operand { return [inst].concat(ope
 op_jpe  = inst:("JPE"  / "jpe" ) operand:jump_operand { return [inst].concat(operand); }
 op_jpo  = inst:("JPO"  / "jpo" ) operand:jump_operand { return [inst].concat(operand); }
 
-jump_operand = w:whitespace+ operand:(expression / labelDirect / data16) / jump_operand_error {
+jump_operand = w:whitespace+ operand:(labelDirect / data16 / expression) / jump_operand_error {
     return [w, operand]
 }
 
@@ -994,7 +1008,7 @@ op_cp   = inst:("CP"   / "cp"  ) operands:call_operand { return [inst].concat(op
 op_cpe  = inst:("CPE"  / "cpe" ) operands:call_operand { return [inst].concat(operands); }
 op_cpo  = inst:("CPO"  / "cpo" ) operands:call_operand { return [inst].concat(operands); }
 
-call_operand = w:whitespace+ operand:(expression / data16 / labelDirect) / call_operand_error {
+call_operand = w:whitespace+ operand:(data16 / labelDirect / expression) / call_operand_error {
     return [w, operand];
 }
 
@@ -1017,13 +1031,13 @@ movOperandsError = .* {
     error("Invalid operands for MOV instruction. Expected syntax: MOV register, register.");
 }
 
-op_lxi  = ("LXI"  / "lxi" ) whitespace+ (registerPair / stackPointer) whitespace* [,] whitespace* (expression / data16 / labelDirect)
+op_lxi  = ("LXI"  / "lxi" ) whitespace+ (registerPair / stackPointer) whitespace* [,] whitespace* (data16 / labelDirect / expression)
 
 op_mvi  = inst:("MVI"  / "mvi" ) operands:mvi_operands {
     return [inst].concat(operands);
 }
 
-mvi_operands = w1:whitespace+ dest:register w2:whitespace* c:[,] w3:whitespace* data:(expression / data8 / labelImmediate) / mvi_operand_error {
+mvi_operands = w1:whitespace+ dest:register w2:whitespace* c:[,] w3:whitespace* data:(data8 / labelImmediate / expression) / mvi_operand_error {
     return [w1, dest, w2, c, w3, data];
 }
 
