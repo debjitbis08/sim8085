@@ -261,6 +261,36 @@
     var twosComplement = function (d8) {
         return (0xFF + d8 + 1);
     };
+
+    var getSymbolValue = function (symbolName, type, size, location) {
+        if (!symbolTable[symbolName]) {
+            var e = new Error();
+            e.message = "Label " + symbolName + " is not defined. Also check the label definition, there may be some issues on that line.";
+            e.location = location;
+            throw e;
+        }
+
+        var symbolEntry = symbolTable[symbolName];
+        var dataVal;
+
+        if (type === "direct") {
+            dataVal = symbolEntry.addr;
+        } else if (Array.isArray(symbolEntry.value)) {
+            dataVal = size === 16 ? (symbolEntry.value[0] << 8) | symbolEntry.value[1] : symbolEntry.value[0];
+        } else {
+            dataVal = symbolEntry.value;
+        }
+
+        return dataVal;
+    };
+
+    var getSymbolValueOrValue = function (value, type, size, location) {
+        return typeof value === "string" ? getSymbolValue(value, type, size, location) : (
+            Array.isArray(value)
+                ?  size === 16 ? (symbolEntry.value[0] << 8) | symbolEntry.value[1] : value[0]
+                : value
+        );
+    };
 }
 
 /**
@@ -286,7 +316,12 @@ machineCode = prg:program {
 
         if (line.opcode == null || typeof line.opcode === "string") {
             if (line.opcode === "org") {
-                currentAddress = Number(line.data);
+                var data = line.data[0];
+                if (typeof data === 'function') {
+                    currentAddress = data();
+                } else {
+                    currentAddress = Number(data);
+                }
                 continue;
             }
         	if (Array.isArray(line.data)) {
@@ -309,25 +344,9 @@ machineCode = prg:program {
             currentAddress += 1;
         } else if (line.size === 2) {
             data = line.data.value;
-            if (typeof line.data.value === "string" && !symbolTable[line.data.value]) {
-                var e = new Error();
-                e.message = "Label " + line.data.value + " is not defined.";
-                e.location = line.location;
-                if (typeof line !== "undefined" && typeof column !== "undefined") {
-                    e.line = line; e.column = column;
-                }
-                throw e;
-            }
 
             if (typeof line.data.value === "string") {
-                // Handle string case, fetch value from symbolTable
-                const symbolEntry = symbolTable[line.data.value];
-
-                if (line.data.type === "direct") {
-                    dataVal = symbolEntry.addr;
-                } else {
-                    dataVal = symbolEntry.value;
-                }
+                dataVal = getSymbolValue(line.data.value, line.data.type, 8, line.location);
             } else if (typeof line.data === "number") {
                 // Handle number data directly
                 dataVal = line.data;
@@ -357,27 +376,9 @@ machineCode = prg:program {
             currentAddress += 1;
         } else {
             data = line.data.value;
-            if (typeof line.data.value === "string" && !symbolTable[line.data.value]) {
-                var e = new Error();
-                e.message = "Label " + line.data.value + " is not defined. Also check the label definition, there may be some issues on that line.";
-                e.location = line.location;
-                if (typeof line !== "undefined" && typeof column !== "undefined") {
-                    e.line = line; e.column = column;
-                }
-                throw e;
-            }
-
-            var valueFromSymbolTable = symbolTable[line.data.value] ? symbolTable[line.data.value].value : null;
 
             if (typeof line.data.value === "string") {
-                if (line.data.type === "direct") {
-                    dataVal = symbolTable[line.data.value].addr;
-                } else if (Array.isArray(valueFromSymbolTable)) {
-                    // Handle array case by combining the first two elements as a 16-bit number
-                    dataVal = (valueFromSymbolTable[0] << 8) | valueFromSymbolTable[1];
-                } else {
-                    dataVal = valueFromSymbolTable;
-                }
+                dataVal = getSymbolValue(line.data.value, line.data.type, 16, line.location);
             } else if (typeof line.data === "number") {
                 dataVal = line.data;
             } else if (typeof line.data.value === "number") {
@@ -411,7 +412,6 @@ program = __ first:line rest:(eol+ __ l:(!. / l:line { return l; }) {return l})*
 
 opWithLabel = label:labelPart? op:(operation / directive) comment? {
     if (label && label !== "") {
-        console.log("label", label, op, ilc);
         symbolTable[label.value] = {
             addr: ilc,
             value: op.data ?
@@ -483,18 +483,15 @@ stackPointer "Stack Pointer (written as, SP or sp)" =
     l:("SP" / "sp") !identLetter { return l.toLowerCase(); }
 
 expression_list "comma separated expression" = d:expressionImmediate ds:("," __ expressionImmediate)* {
-  console.log("d", d);
-  console.log("ds", ds);
-  console.log("value", [d.value].concat(ds.map(function (d_) { return d_[2].value; })));
-  return { value: [d.value].concat(ds.map(function (d_) { return d_[2].value; })), location: location() };
+    return { value: [typeof d.value === 'function' ? d.value() : d.value].concat(ds.map(function (d_) { return d_[2].value; }).flat()), location: location() };
 }
 
 data8_list "comma separated byte values" = d:data8 ds:("," __ data8)* {
-  return { value: [d.value].concat(ds.map(function (d_) { return d_[2].value; })), location: location() };
+    return { value: d.value.concat(ds.map(function (d_) { return d_[2].value; }).flat()), location: location() };
 }
 
 data16_list "comma separated byte values" = d:data16 ds:("," __ data16)* {
-  return { value: [d.value].concat(ds.map(function (d_) { return d_[2].value; })), location: location() };
+    return { value: [d.value].concat(ds.map(function (d_) { return d_[2].value; })), location: location() };
 }
 
 data8 "byte" = n:(numLiteral / stringLiteral) {
@@ -507,11 +504,11 @@ data8 "byte" = n:(numLiteral / stringLiteral) {
             }
             throw e;
         } else {
-            return { value: n.value, location: n.location };
+            return { value: [n.value], location: n.location };
         }
     } else if (Array.isArray(n.value)) {
         // Handle string literal where n.value is an array of ASCII values
-        if (n.value.length !== 1 || n.value[0] > 0xFF) {
+        if (n.value[0] > 0xFF) {
             var e = new Error();
             e.message = "8-bit data expected for string.";
             if (typeof line !== "undefined" && typeof column !== "undefined") {
@@ -519,7 +516,7 @@ data8 "byte" = n:(numLiteral / stringLiteral) {
             }
             throw e;
         } else {
-            return { value: n.value[0], location: n.location }; // Return the ASCII value of the single character
+            return { value: n.value, location: n.location }; // Return the ASCII value of the single character
         }
     }
 }
@@ -619,8 +616,8 @@ arithmeticImmediate "Arithmetic Expression" = additionImmediate
 additionImmediate "Addition"
   = left:subtractionImmediate whitespace* "+" whitespace* right:additionImmediate {
     return { value: function () {
-        var l = typeof left.value === "string" ? symbolTable[left.value].value: left.value;
-        var r = typeof right.value === "string" ? symbolTable[right.value].value : right.value;
+        var l = getSymbolValueOrValue(left.value, 'immediate', 8, location());
+        var r = getSymbolValueOrValue(right.value, 'immediate', 8, location());
         return l + r;
     }, location: location() };
   }
@@ -628,37 +625,45 @@ additionImmediate "Addition"
 
 subtractionImmediate "Subtraction"
   = left:multiplicationImmediate whitespace* "-" whitespace* right:subtractionImmediate {
-    var l = typeof left.value === "string" ? symbolTable[left.value].value: left.value;
-    var r = typeof right.value === "string" ? symbolTable[right.value].value : right.value;
-    return { value: l - r, location: location() };
+    return { value: function () {
+        var l = getSymbolValueOrValue(left.value, 'immediate', 8, location());
+        var r = getSymbolValueOrValue(right.value, 'immediate', 8, location());
+        return l - r;
+    }, location: location() };
   }
   / multiplicationImmediate
 
 multiplicationImmediate "Multiplication"
   = left:divisionImmediate whitespace* "*" whitespace* right:multiplicationImmediate {
-    var l = typeof left.value === "string" ? symbolTable[left.value].value: left.value;
-    var r = typeof right.value === "string" ? symbolTable[right.value].value : right.value;
-    return { value: l * r, location: location() };
+    return { value: function () {
+        var l = getSymbolValueOrValue(left.value, 'immediate', 8, location());
+        var r = getSymbolValueOrValue(right.value, 'immediate', 8, location());
+        return l * r;
+    }, location: location() };
   }
   / divisionImmediate
 
 divisionImmediate "Division"
   = left:moduloImmediate whitespace* "/" whitespace* right:divisionImmediate {
-    var l = typeof left.value === "string" ? symbolTable[left.value].value: left.value;
-    var r = typeof right.value === "string" ? symbolTable[right.value].value : right.value;
-    return { value: l / r, location: location() };
+    return { value: function () {
+        var l = getSymbolValueOrValue(left.value, 'immediate', 8, location());
+        var r = getSymbolValueOrValue(right.value, 'immediate', 8, location());
+        return l / r;
+    }, location: location() };
   }
   / moduloImmediate
 
 moduloImmediate "Modulo"
   = left:(numLiteral / labelImmediate) whitespace* "MOD"i whitespace* right:moduloImmediate {
-    var l = typeof left.value === "string" ? symbolTable[left.value].value: left.value;
-    var r = typeof right.value === "string" ? symbolTable[right.value].value : right.value;
-    return { value: l % r, location: location() };
+    return { value: function () {
+        var l = getSymbolValueOrValue(left.value, 'immediate', 8, location());
+        var r = getSymbolValueOrValue(right.value, 'immediate', 8, location());
+        return l % r;
+    }, location: location() };
   }
+  / labelImmediate
   / numLiteral
   / stringLiteral
-  / labelDirect
   / shiftImmediate
   / "(" addition:additionImmediate ")" { return addition; }
 
@@ -666,21 +671,25 @@ shiftImmediate "Shift Expression" = shiftRightImmediate
 
 shiftRightImmediate "Shift Right"
   = left:shiftLeftImmediate whitespace+ "SHR"i whitespace+ right:shiftRightImmediate {
-    var l = typeof left.value === "string" ? symbolTable[left.value].value: left.value;
-    var r = typeof right.value === "string" ? symbolTable[right.value].value : right.value;
-    return { value: l >> r, location: location() };
+    return { value: function () {
+        var l = getSymbolValueOrValue(left.value, 'immediate', 8, location());
+        var r = getSymbolValueOrValue(right.value, 'immediate', 8, location());
+        return l >> r;
+    }, location: location() };
   }
   / shiftLeftImmediate
 
 
 shiftLeftImmediate "Shift Left"
   = left:(numLiteral / labelImmediate) whitespace+ "SHL"i whitespace+ right:shiftLeftImmediate {
-    var l = typeof left.value === "string" ? symbolTable[left.value].value: left.value;
-    var r = typeof right.value === "string" ? symbolTable[right.value].value : right.value;
-    return { value: l << r, location: location() };
+    return { value: function () {
+        var l = getSymbolValueOrValue(left.value, 'immediate', 8, location());
+        var r = getSymbolValueOrValue(right.value, 'immediate', 8, location());
+        return l << r;
+    }, location: location() };
   }
-  / numLiteral
   / labelImmediate
+  / numLiteral
   / "(" shr:shiftImmediate ")" { return shr; }
 
 expressionDirect "expression" = arithmeticDirect
@@ -692,13 +701,8 @@ arithmeticDirect "Arithmetic Expression" = additionDirect
 additionDirect "Addition"
   = left:subtractionDirect whitespace* "+" whitespace* right:additionDirect {
     return { value: function () {
-        console.log("left", left);
-        console.log("right", right);
-        console.log("symbolTable", symbolTable);
-        var l = typeof left.value === "string" ? symbolTable[left.value].addr: left.value;
-        var r = typeof right.value === "string" ? symbolTable[right.value].addr : right.value;
-        console.log("left", l);
-        console.log("right", r);
+        var l = getSymbolValueOrValue(left.value, 'direct', 8, location());
+        var r = getSymbolValueOrValue(right.value, 'direct', 8, location());
         return l + r;
     }, location: location() };
   }
@@ -707,8 +711,8 @@ additionDirect "Addition"
 subtractionDirect "Subtraction"
   = left:multiplicationDirect whitespace* "-" whitespace* right:subtractionDirect {
     return { value: function () {
-        var l = typeof left.value === "string" ? symbolTable[left.value].addr: left.value;
-        var r = typeof right.value === "string" ? symbolTable[right.value].addr : right.value;
+        var l = getSymbolValueOrValue(left.value, 'direct', 8, location());
+        var r = getSymbolValueOrValue(right.value, 'direct', 8, location());
         return l - r;
     }, location: location() };
   }
@@ -717,8 +721,8 @@ subtractionDirect "Subtraction"
 multiplicationDirect "Multiplication"
   = left:divisionDirect whitespace* "*" whitespace* right:multiplicationDirect {
     return { value: function() {
-        var l = typeof left.value === "string" ? symbolTable[left.value].addr: left.value;
-        var r = typeof right.value === "string" ? symbolTable[right.value].addr : right.value;
+        var l = getSymbolValueOrValue(left.value, 'direct', 8, location());
+        var r = getSymbolValueOrValue(right.value, 'direct', 8, location());
         return l * r;
     }, location: location() };
   }
@@ -727,8 +731,8 @@ multiplicationDirect "Multiplication"
 divisionDirect "Division"
   = left:moduloDirect whitespace* "/" whitespace* right:divisionDirect {
     return { value: function () {
-        var l = typeof left.value === "string" ? symbolTable[left.value].addr: left.value;
-        var r = typeof right.value === "string" ? symbolTable[right.value].addr : right.value;
+        var l = getSymbolValueOrValue(left.value, 'direct', 8, location());
+        var r = getSymbolValueOrValue(right.value, 'direct', 8, location());
         return l / r;
     }, location: location() };
   }
@@ -737,8 +741,8 @@ divisionDirect "Division"
 moduloDirect "Modulo"
   = left:(numLiteral / labelDirect) whitespace* "MOD"i whitespace* right:moduloDirect {
     return { value: function () {
-        var l = typeof left.value === "string" ? symbolTable[left.value].addr: left.value;
-        var r = typeof right.value === "string" ? symbolTable[right.value].addr : right.value;
+        var l = getSymbolValueOrValue(left.value, 'direct', 8, location());
+        var r = getSymbolValueOrValue(right.value, 'direct', 8, location());
         return l % r;
     }, location: location() };
   }
@@ -752,8 +756,8 @@ shiftDirect "Shift Expression" = shiftRightDirect
 shiftRightDirect "Shift Right"
   = left:shiftLeftDirect whitespace+ "SHR"i whitespace+ right:shiftRightDirect {
     return { value: function () {
-        var l = typeof left.value === "string" ? symbolTable[left.value].addr: left.value;
-        var r = typeof right.value === "string" ? symbolTable[right.value].addr : right.value;
+        var l = getSymbolValueOrValue(left.value, 'direct', 8, location());
+        var r = getSymbolValueOrValue(right.value, 'direct', 8, location());
         return l >> r;
     }, location: location() };
   }
@@ -763,13 +767,13 @@ shiftRightDirect "Shift Right"
 shiftLeftDirect "Shift Left"
   = left:(numLiteral / labelDirect) whitespace+ "SHL"i whitespace+ right:shiftLeftDirect {
     return { value: function () {
-        var l = typeof left.value === "string" ? symbolTable[left.value].addr: left.value;
-        var r = typeof right.value === "string" ? symbolTable[right.value].addr : right.value;
+        var l = getSymbolValueOrValue(left.value, 'direct', 8, location());
+        var r = getSymbolValueOrValue(right.value, 'direct', 8, location());
         return l << r;
     }, location: location() };
   }
-  / numLiteral
   / labelDirect
+  / numLiteral
   / "(" shr:shiftDirect ")" { return shr; }
 
 comment "comment" = ";" c:[^\n\r\n\u2028\u2029]* {return c.join("");}
@@ -1000,7 +1004,6 @@ haltInstruction = op:(op_hlt) {
 }
 
 defineSymbol = dir:(dir_equ) {
-    console.log("defineSymbol", dir);
     return {
         name: dir,
         params: [dir[2].value]
@@ -1023,9 +1026,9 @@ orgDirective = dir:(dir_org) {
 }
 
 
-dir_db  = ("DB"   / "db"  ) whitespace+ (data8_list / expression_list)
-dir_equ = ("EQU"  / "equ" ) whitespace+ (expressionImmediate / data8)
-dir_org = ("ORG"  / "org" ) whitespace+ (expressionImmediate / data16)
+dir_db  = "DB"i  whitespace+ (expression_list / data8_list)
+dir_equ = "EQU"i whitespace+ (expressionImmediate / data8)
+dir_org = "ORG"i whitespace+ (expressionImmediate / data16)
 
 op_stc  = ("STC"  / "stc" )
 op_cmc  = ("CMC"  / "cmc" )
@@ -1070,16 +1073,16 @@ op_pop  = ("POP"  / "pop" ) whitespace+ (registerPair / registerPairPSW)
 op_dad  = ("DAD"  / "dad" ) whitespace+ (registerPair / stackPointer)
 op_inx  = ("INX"  / "inx" ) whitespace+ (registerPair / stackPointer)
 op_dcx  = ("DCX"  / "dcx" ) whitespace+ (registerPair / stackPointer)
-op_adi  = ("ADI"  / "adi" ) whitespace+ (data8 / labelImmediate / expressionImmediate)
-op_aci  = ("ACI"  / "aci" ) whitespace+ (data8 / labelImmediate / expressionImmediate)
-op_sui  = ("SUI"  / "sui" ) whitespace+ (data8 / labelImmediate / expressionImmediate)
-op_sbi  = ("SBI"  / "sbi" ) whitespace+ (data8 / labelImmediate / expressionImmediate)
-op_ani  = ("ANI"  / "ani" ) whitespace+ (data8 / labelImmediate / expressionImmediate)
-op_xri  = ("XRI"  / "xri" ) whitespace+ (data8 / labelImmediate / expressionImmediate)
-op_ori  = ("ORI"  / "ori" ) whitespace+ (data8 / labelImmediate / expressionImmediate)
-op_cpi  = ("CPI"  / "cpi" ) whitespace+ (data8 / labelImmediate / expressionImmediate)
-op_in   = ("IN"   / "in"  ) whitespace+ (data8 / labelImmediate / expressionImmediate)
-op_out  = ("OUT"  / "out" ) whitespace+ (data8 / labelImmediate / expressionImmediate)
+op_adi  = ("ADI"  / "adi" ) whitespace+ (expressionImmediate / data8 / labelImmediate)
+op_aci  = ("ACI"  / "aci" ) whitespace+ (expressionImmediate / data8 / labelImmediate)
+op_sui  = ("SUI"  / "sui" ) whitespace+ (expressionImmediate / data8 / labelImmediate)
+op_sbi  = ("SBI"  / "sbi" ) whitespace+ (expressionImmediate / data8 / labelImmediate)
+op_ani  = ("ANI"  / "ani" ) whitespace+ (expressionImmediate / data8 / labelImmediate)
+op_xri  = ("XRI"  / "xri" ) whitespace+ (expressionImmediate / data8 / labelImmediate)
+op_ori  = ("ORI"  / "ori" ) whitespace+ (expressionImmediate / data8 / labelImmediate)
+op_cpi  = ("CPI"  / "cpi" ) whitespace+ (expressionImmediate / data8 / labelImmediate)
+op_in   = ("IN"   / "in"  ) whitespace+ (expressionImmediate / data8 / labelImmediate)
+op_out  = ("OUT"  / "out" ) whitespace+ (expressionImmediate / data8 / labelImmediate)
 op_sta  = ("STA"  / "sta" ) whitespace+ (data16 / labelDirect)
 op_lda  = ("LDA"  / "lda" ) whitespace+ (data16 / labelDirect)
 op_shld = ("SHLD" / "shld") whitespace+ (data16 / labelDirect)
