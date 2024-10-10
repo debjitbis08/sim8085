@@ -2,7 +2,7 @@ import { Dialog } from "@kobalte/core/dialog";
 import { Switch } from "@kobalte/core/switch";
 import { FaSolidXmark } from "solid-icons/fa";
 import { VsSettingsGear } from "solid-icons/vs";
-import { setStore, store } from "../store/store.js";
+import { DEFAULT_SETTINGS, setStore, store } from "../store/store.js";
 import { produce } from "solid-js/store";
 import { createLens } from "../utils/lens.js";
 import { onMount } from "solid-js";
@@ -14,7 +14,21 @@ export function Settings() {
     const savedSettings = localStorage.getItem("settings");
     const parsedSettings = savedSettings ? JSON.parse(savedSettings) : {};
 
-    const mergedSettings = deepMerge(parsedSettings, store.settings);
+    const mergedSettings = deepMerge(parsedSettings, {
+      beforeRun: {
+        clearFlags: true,
+        clearRegisters: true,
+        clearAllMemoryLocations: false
+      },
+      alert: {
+        afterSuccessfulRun: true,
+        afterClearAll: true,
+        afterDebugStop: true
+      },
+      editor: {
+        fontSize: 16
+      }
+    });
 
     setStore("settings", mergedSettings);
   });

@@ -24,6 +24,22 @@ const initialRegisterState = () => {
   }), {});
 };
 
+export const DEFAULT_SETTINGS = {
+  beforeRun: {
+    clearFlags: true,
+    clearRegisters: true,
+    clearAllMemoryLocations: false
+  },
+  alert: {
+    afterSuccessfulRun: true,
+    afterClearAll: true,
+    afterDebugStop: true
+  },
+  editor: {
+    fontSize: 16
+  }
+};
+
 export const [store, setStore] = createStore({
   code: INITIAL_CODE,
   programState: 'Idle', // Idle, Loaded, Running, Paused
@@ -47,19 +63,5 @@ export const [store, setStore] = createStore({
   breakpoints: [],
   errors: [],
   openFiles: [ "main.asm" ],
-  settings: {
-    beforeRun: {
-      clearFlags: true,
-      clearRegisters: true,
-      clearAllMemoryLocations: false
-    },
-    alert: {
-      afterSuccessfulRun: true,
-      afterClearAll: true,
-      afterDebugStop: true
-    },
-    editor: {
-      fontSize: 16
-    }
-  }
+  settings: structuredClone(DEFAULT_SETTINGS)
 });
