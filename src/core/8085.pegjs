@@ -473,7 +473,7 @@ lineError "Error in this line" = lineWithError:.* {
 
 label_opcode_whitespace = [ \t\r\n]
 
-label_opcode_separator = label_opcode_whitespace* comment? label_opcode_whitespace*
+label_opcode_separator = (label_opcode_whitespace+ comment*)*
 
 labelPart = label:label ":" label_opcode_separator {
     return { value: label.value, location: label.location, type: "definition" }
@@ -522,15 +522,15 @@ stackPointer "Stack Pointer (written as, SP or sp)" =
     l:("SP" / "sp") !identLetter { return l.toLowerCase(); }
 
 expression_list "comma separated expression" = d:expressionImmediate ds:("," __ expressionImmediate)* {
-    return { value: [typeof d.value === 'function' ? d.value() : d.value].concat(ds.map(function (d_) { return d_[2].value; }).flat()), location: location() };
+    return { value: [typeof d.value === 'function' ? d.value() : d.value].concat(ds.map(function (d_) { return d_[2].value; }).flat()).flat(), location: location() };
 }
 
 data8_list "comma separated byte values" = d:data8 ds:("," __ data8)* {
-    return { value: d.value.concat(ds.map(function (d_) { return d_[2].value; }).flat()), location: location() };
+    return { value: d.value.concat(ds.map(function (d_) { return d_[2].value; }).flat()).flat(), location: location() };
 }
 
 data16_list "comma separated byte values" = d:data16 ds:("," __ data16)* {
-    return { value: [d.value].concat(ds.map(function (d_) { return d_[2].value; })), location: location() };
+    return { value: [d.value].concat(ds.map(function (d_) { return d_[2].value; })).flat(), location: location() };
 }
 
 data8 "byte" = n:(numLiteral / stringLiteral) {
