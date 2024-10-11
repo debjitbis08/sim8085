@@ -267,9 +267,12 @@
             var e = new Error();
             e.message = "Label " + symbolName + " is not defined.";
 
-            if (!Number.isNaN(parseInt(symbolName, 16))) {
+            if ((/h$/i).test(symbolName) && !Number.isNaN(parseInt(symbolName, 16))) {
                 e.message += " " +
                     "Are you trying to specify a hexadecimal number? Try adding a 0 (zero) to the beginning of the number.";
+            } else if ((/[abcdehlm]/i).test(symbolName)) {
+                e.message += " " +
+                    "Are you trying to specify a register? This instruction takes some data and not a register.";
             } else {
                 e.message +=  " " +
                     "Also check the label definition, there may be some issues on that line. " +
@@ -1083,31 +1086,31 @@ dir_equ = "EQU"i whitespace+ (expressionImmediate / data16)
 dir_set = "SET"i whitespace+ (expressionImmediate / data16)
 dir_org = "ORG"i whitespace+ (expressionImmediate / data16)
 
-op_stc  = ("STC"  / "stc" )
-op_cmc  = ("CMC"  / "cmc" )
-op_cma  = ("CMA"  / "cma" )
-op_daa  = ("DAA"  / "daa" )
-op_sphl = ("SPHL" / "sphl")
-op_pchl = ("PCHL" / "pchl")
-op_hlt  = ("HLT"  / "hlt" )
-op_rlc  = ("RLC"  / "rlc" )
-op_rrc  = ("RRC"  / "rrc" )
-op_rar  = ("RAR"  / "rar" )
-op_ral  = ("RAL"  / "ral" )
-op_ret  = ("RET"  / "ret" )
-op_rc   = ("RC"   / "rc"  )
-op_rnc  = ("RNC"  / "rnc" )
-op_rz   = ("RZ"   / "rz"  )
-op_rnz  = ("RNZ"  / "rnz" )
-op_rp   = ("RP"   / "rp"  )
-op_rm   = ("RM"   / "rm"  )
-op_rpe  = ("RPE"  / "rpe" )
-op_rpo  = ("RPO"  / "rpo" )
-op_xchg = ("XCHG" / "xchg")
-op_xthl = ("XTHL" / "xthl")
-op_ei   = ("EI"   / "ei"  )
-op_di   = ("DI"   / "di"  )
-op_nop  = ("NOP"  / "nop" )
+op_stc  = "STC"i
+op_cmc  = "CMC"i
+op_cma  = "CMA"i
+op_daa  = "DAA"i
+op_sphl = "SPHL"i
+op_pchl = "PCHL"i
+op_hlt  = "HLT"i
+op_rlc  = "RLC"i
+op_rrc  = "RRC"i
+op_rar  = "RAR"i
+op_ral  = "RAL"i
+op_ret  = "RET"i
+op_rc   = "RC"i
+op_rnc  = "RNC"i
+op_rz   = "RZ"i
+op_rnz  = "RNZ"i
+op_rp   = "RP"i
+op_rm   = "RM"i
+op_rpe  = "RPE"i
+op_rpo  = "RPO"i
+op_xchg = "XCHG"i
+op_xthl = "XTHL"i
+op_ei   = "EI"i
+op_di   = "DI"i
+op_nop  = "NOP"i
 
 op_inr  = ("INR"  / "inr" ) whitespace+ register
 op_dcr  = ("DCR"  / "dcr" ) whitespace+ register
@@ -1137,16 +1140,25 @@ registerPairOrStackPointerOperandError = .* {
     error("Invalid operands provided. Expected operands, register pair or stack pointer");
 }
 
-op_adi  = ("ADI"  / "adi" ) whitespace+ (expressionImmediate / data8 / labelImmediate)
-op_aci  = ("ACI"  / "aci" ) whitespace+ (expressionImmediate / data8 / labelImmediate)
-op_sui  = ("SUI"  / "sui" ) whitespace+ (expressionImmediate / data8 / labelImmediate)
-op_sbi  = ("SBI"  / "sbi" ) whitespace+ (expressionImmediate / data8 / labelImmediate)
-op_ani  = ("ANI"  / "ani" ) whitespace+ (expressionImmediate / data8 / labelImmediate)
-op_xri  = ("XRI"  / "xri" ) whitespace+ (expressionImmediate / data8 / labelImmediate)
-op_ori  = ("ORI"  / "ori" ) whitespace+ (expressionImmediate / data8 / labelImmediate)
-op_cpi  = ("CPI"  / "cpi" ) whitespace+ (expressionImmediate / data8 / labelImmediate)
-op_in   = ("IN"   / "in"  ) whitespace+ (expressionImmediate / data8 / labelImmediate)
-op_out  = ("OUT"  / "out" ) whitespace+ (expressionImmediate / data8 / labelImmediate)
+op_adi  = op:"ADI"i operands:immediate_instruction_operands { return [op].concat(operands); }
+op_aci  = op:"ACI"i operands:immediate_instruction_operands { return [op].concat(operands); }
+op_sui  = op:"SUI"i operands:immediate_instruction_operands { return [op].concat(operands); }
+op_sbi  = op:"SBI"i operands:immediate_instruction_operands { return [op].concat(operands); }
+op_ani  = op:"ANI"i operands:immediate_instruction_operands { return [op].concat(operands); }
+op_xri  = op:"XRI"i operands:immediate_instruction_operands { return [op].concat(operands); }
+op_ori  = op:"ORI"i operands:immediate_instruction_operands { return [op].concat(operands); }
+op_cpi  = op:"CPI"i operands:immediate_instruction_operands { return [op].concat(operands); }
+op_in   = op:"IN"i  operands:immediate_instruction_operands { return [op].concat(operands); }
+op_out  = op:"OUT"i operands:immediate_instruction_operands { return [op].concat(operands); }
+
+immediate_instruction_operands = w:whitespace+ o:(expressionImmediate / data8 / labelImmediate) {
+    return [w, o]
+} / immediate_instruction_operands_error
+
+immediate_instruction_operands_error = .* {
+    error("Invalid operand provided. The operand should be either an expression, 8-byte data or a label.");
+}
+
 op_sta  = ("STA"  / "sta" ) whitespace+ (data16 / labelDirect)
 op_lda  = ("LDA"  / "lda" ) whitespace+ (data16 / labelDirect)
 op_shld = ("SHLD" / "shld") whitespace+ (data16 / labelDirect)
