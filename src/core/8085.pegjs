@@ -265,7 +265,18 @@
     var getSymbolValue = function (symbolName, type, size, location) {
         if (!symbolTable[symbolName]) {
             var e = new Error();
-            e.message = "Label " + symbolName + " is not defined. Also check the label definition, there may be some issues on that line.";
+            e.message = "Label " + symbolName + " is not defined.";
+
+            if (!Number.isNaN(parseInt(symbolName, 16))) {
+                e.message += " " +
+                    "Are you trying to specify a hexadecimal number? Try adding a 0 (zero) to the beginning of the number.";
+            } else {
+                e.message +=  " " +
+                    "Also check the label definition, there may be some issues on that line. " +
+                    "Make sure there is no space between the label and the : (colon) symbol. " +
+                    "Symbols defined using EQU can be used after being defined.";
+            }
+
             e.location = location;
             throw e;
         }
@@ -322,6 +333,18 @@ machineCode = prg:program {
                 } else {
                     currentAddress = Number(data);
                 }
+                continue;
+            }
+            if (line.opcode === "equ" || line.opcode === 'set') {
+                var data = line.data[0];
+                if (symbolTable[line.label.value] && symbolTable[line.label.value].immutable) {
+                    error("Cannot redefine symbols defined with EQU. Use SET for that purpose. Trying to redefine " + line.label.value, line.location);
+                }
+                symbolTable[line.label.value] = {
+                    addr: ilc,
+                    value: typeof data === 'function' ? data() : data,
+                    immutable: line.opcode === 'equ'
+                };
                 continue;
             }
         	if (Array.isArray(line.data)) {
@@ -427,11 +450,15 @@ opWithLabel = label:labelPart? op:(operation / directive) comment? {
 
     if (op !== null) {
       ilc += op.size;
-      return op;
+      return { ...op, label };
     }
 }
 
-line = (op:opWithLabel) / (comment:comment) / __ / lineError {
+defineSymbolWithLabel = label:labelPartWithOptionalColon op:defineDirective comment? {
+    return { ...op, label };
+}
+
+line = op:(defineSymbolWithLabel / opWithLabel) / (comment:comment) / __ / lineError {
     return op;
 }
 
@@ -447,7 +474,16 @@ label_opcode_separator = label_opcode_whitespace* comment? label_opcode_whitespa
 
 labelPart = label:label ":" label_opcode_separator {
     return { value: label.value, location: label.location, type: "definition" }
+} / label whitespace* ":"  label_opcode_separator {
+    error("There should not be space between the label the ':' symbol");
 }
+
+labelPartWithOptionalColon = label:label ":"? label_opcode_separator {
+    return { value: label.value, location: label.location, type: "definition" }
+} / label whitespace* ":"  label_opcode_separator {
+    error("There should not be space between the label the ':' symbol");
+}
+
 label "label" = first:[a-zA-Z?@] rest:([a-zA-Z0-9_]*) {
 	return { value: first + rest.join(""), location: location() };
 }
@@ -559,7 +595,7 @@ decForm1 = neg:[-]? digits:digit+ {
     return { value: parseInt((!neg ? "":"-") + digits.join(""), 10), location: location() };
 }
 
-decForm2 = neg:[-]? digits:digit+ "D" {
+decForm2 = neg:[-]? digits:digit+ "D"i {
     return { value: parseInt((!neg ? "":"-") + digits.join(""), 10), location: location() };
 }
 
@@ -569,7 +605,7 @@ hexForm1 = '0x' hexits:hexit+ {
     return { value: parseInt(hexits.join(""), 16), location: location() };
 }
 
-hexForm2 = hexits:hexit+ ("H" / "h") {
+hexForm2 = hexits:hexit+ "H"i {
     return { value: parseInt(hexits.join(""), 16), location: location() };
 }
 
@@ -577,7 +613,7 @@ octalLiteral "Octal Literal" = octits:octit+ ("O" / "Q" / "o" / "q") {
     return { value: parseInt(octits.join(""), 8), location: location() };
 }
 
-binLiteral "binary literal" = bits:bit+ "B" {
+binLiteral "binary literal" = bits:bit+ "B"i {
     return { value: parseInt(bits.join(""), 2), location: location() };
 }
 
@@ -784,12 +820,22 @@ eol "line end" = "\n" / "\r\n" / "\r" / "\u2028" / "\u2029"
 
 whitespace "whitespace" = [ \t\v\f\u00A0\uFEFF\u1680\u180E\u2000-\u200A\u202F\u205F\u3000]
 
-directive = dir:(dataDefinition / defineSymbol / orgDirective) whitespace* {
+directive = dir:(dataDefinition / orgDirective) whitespace* {
     var opcode = dir.name[0].toLowerCase();
     return {
         opcode: opcode,
         data: dir.params,
-        size: opcode === "org" ? 0 : dir.params.length,
+        size: opcode === "org" || opcode === 'equ' ? 0 : dir.params.length,
+        location: location()
+    };
+}
+
+defineDirective = dir:(defineSymbol / setSymbol) whitespace* {
+    var opcode = dir.name[0].toLowerCase();
+    return {
+        opcode: opcode,
+        data: dir.params,
+        size: 0,
         location: location()
     };
 }
@@ -1010,6 +1056,13 @@ defineSymbol = dir:(dir_equ) {
     }
 }
 
+setSymbol = dir:(dir_set) {
+    return {
+        name: dir,
+        params: [dir[2].value]
+    }
+}
+
 dataDefinition = dir:(dir_db) {
     return {
        name: dir,
@@ -1025,9 +1078,9 @@ orgDirective = dir:(dir_org) {
     };
 }
 
-
 dir_db  = "DB"i  whitespace+ (expression_list / data8_list)
-dir_equ = "EQU"i whitespace+ (expressionImmediate / data8)
+dir_equ = "EQU"i whitespace+ (expressionImmediate / data16)
+dir_set = "SET"i whitespace+ (expressionImmediate / data16)
 dir_org = "ORG"i whitespace+ (expressionImmediate / data16)
 
 op_stc  = ("STC"  / "stc" )
@@ -1068,11 +1121,22 @@ op_ana  = ("ANA"  / "ana" ) whitespace+ register
 op_xra  = ("XRA"  / "xra" ) whitespace+ register
 op_ora  = ("ORA"  / "ora" ) whitespace+ register
 op_cmp  = ("CMP"  / "cmp" ) whitespace+ register
+
 op_push = ("PUSH" / "push") whitespace+ (registerPair / registerPairPSW / registerA)
 op_pop  = ("POP"  / "pop" ) whitespace+ (registerPair / registerPairPSW)
-op_dad  = ("DAD"  / "dad" ) whitespace+ (registerPair / stackPointer)
-op_inx  = ("INX"  / "inx" ) whitespace+ (registerPair / stackPointer)
-op_dcx  = ("DCX"  / "dcx" ) whitespace+ (registerPair / stackPointer)
+
+op_dad  = op:"DAD"i operands:registerPairOrStackPointerOperand { return [op].concat(operands); }
+op_inx  = op:"INX"i operands:registerPairOrStackPointerOperand { return [op].concat(operands); }
+op_dcx  = op:"DCX"i operands:registerPairOrStackPointerOperand { return [op].concat(operands); }
+
+registerPairOrStackPointerOperand = w:whitespace+ o:(registerPair / stackPointer) {
+    return [w, o];
+} / registerPairOrStackPointerOperandError
+
+registerPairOrStackPointerOperandError = .* {
+    error("Invalid operands provided. Expected operands, register pair or stack pointer");
+}
+
 op_adi  = ("ADI"  / "adi" ) whitespace+ (expressionImmediate / data8 / labelImmediate)
 op_aci  = ("ACI"  / "aci" ) whitespace+ (expressionImmediate / data8 / labelImmediate)
 op_sui  = ("SUI"  / "sui" ) whitespace+ (expressionImmediate / data8 / labelImmediate)
@@ -1106,15 +1170,15 @@ jump_operand_error = .* {
     error("Invalid operand for jump instruction. Expected a 2 byte address, label or an expression.");
 }
 
-op_call = inst:("CALL" / "call") operands:call_operand { return [inst].concat(operands); }
-op_cc   = inst:("CC"   / "cc"  ) operands:call_operand { return [inst].concat(operands); }
-op_cnc  = inst:("CNC"  / "cnc" ) operands:call_operand { return [inst].concat(operands); }
-op_cz   = inst:("CZ"   / "cz"  ) operands:call_operand { return [inst].concat(operands); }
-op_cnz  = inst:("CNZ"  / "cnz" ) operands:call_operand { return [inst].concat(operands); }
-op_cm   = inst:("CM"   / "cm"  ) operands:call_operand { return [inst].concat(operands); }
-op_cp   = inst:("CP"   / "cp"  ) operands:call_operand { return [inst].concat(operands); }
-op_cpe  = inst:("CPE"  / "cpe" ) operands:call_operand { return [inst].concat(operands); }
-op_cpo  = inst:("CPO"  / "cpo" ) operands:call_operand { return [inst].concat(operands); }
+op_call = inst:"CALL"i operands:call_operand { return [inst].concat(operands); }
+op_cc   = inst:"CC"i operands:call_operand { return [inst].concat(operands); }
+op_cnc  = inst:"CNC"i operands:call_operand { return [inst].concat(operands); }
+op_cz   = inst:"CZ"i operands:call_operand { return [inst].concat(operands); }
+op_cnz  = inst:"CNZ"i operands:call_operand { return [inst].concat(operands); }
+op_cm   = inst:"CM"i operands:call_operand { return [inst].concat(operands); }
+op_cp   = inst:"CP"i operands:call_operand { return [inst].concat(operands); }
+op_cpe  = inst:"CPE"i operands:call_operand { return [inst].concat(operands); }
+op_cpo  = inst:"CPO"i operands:call_operand { return [inst].concat(operands); }
 
 call_operand = w:whitespace+ operand:(expressionDirect / data16 / labelDirect) / call_operand_error {
     return [w, operand];
@@ -1124,7 +1188,7 @@ call_operand_error = .* {
     error("Invalid operand. Expected a 2 byte address, label or an expression.");
 }
 
-op_mov = inst:("MOV" / "mov") w1:whitespace+ operands:movOperands {
+op_mov = inst:"MOV"i w1:whitespace+ operands:movOperands {
     return [inst, w1].concat(operands);
 }
 
@@ -1133,22 +1197,26 @@ movOperands = dest:register w1:whitespace* ',' w2:whitespace* src:register {
         error("Invalid operands for MOV instruction. Both the operands cannot be the memory locations.");
     }
     return [dest, w1, ',', w2, src];
+} / register whitespace* register {
+    error("Invalid operand syntax for MOV instruction. You forgot to add a ',' (comma) between the operands. Expected syntax: MOV register, register.");
 } / movOperandsError
 
 movOperandsError = .* {
     error("Invalid operands for MOV instruction. Expected syntax: MOV register, register.");
 }
 
-op_lxi  = ("LXI"  / "lxi" ) whitespace+ (registerPair / stackPointer) whitespace* [,] whitespace* (expressionDirect  / data16 / labelDirect)
+op_lxi  = "LXI"i whitespace+ (registerPair / stackPointer) whitespace* [,] whitespace* (expressionDirect / data16 / labelDirect)
 
-op_mvi  = inst:("MVI"  / "mvi" ) operands:mvi_operands {
+op_mvi  = inst:"MVI"i operands:mvi_operands {
     return [inst].concat(operands);
 }
 
 mvi_operands = w1:whitespace+ dest:register w2:whitespace* c:[,] w3:whitespace* data:(expressionImmediate / data8 / labelImmediate) {
     return [w1, dest, w2, c, w3, data];
+} / whitespace+ register whitespace* data:(expressionImmediate / data8 / labelImmediate) {
+    error("Invalid operand syntax for MVI. You forgot to add a ',' (comma) between the operands.");
 } / mvi_operand_error
 
 mvi_operand_error = .* {
-    error("Invalid operands for MVI. Expected byte, a label or an expression.");
+    error("Invalid operands for MVI. Expected byte, a label or an expression. Also make sure the operands are separated by a comma. MVI register, register");
 }
