@@ -270,7 +270,7 @@
             if ((/h$/i).test(symbolName) && !Number.isNaN(parseInt(symbolName, 16))) {
                 e.message += " " +
                     "Are you trying to specify a hexadecimal number? Try adding a 0 (zero) to the beginning of the number.";
-            } else if ((/[abcdehlm]/i).test(symbolName)) {
+            } else if ((/^[abcdehlm]$/i).test(symbolName)) {
                 e.message += " " +
                     "Are you trying to specify a register? This instruction takes some data and not a register.";
             } else {
