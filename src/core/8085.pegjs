@@ -343,9 +343,10 @@ machineCode = prg:program {
                 if (symbolTable[line.label.value] && symbolTable[line.label.value].immutable) {
                     error("Cannot redefine symbols defined with EQU. Use SET for that purpose. Trying to redefine " + line.label.value, line.location);
                 }
+                var value = typeof data === 'function' ? data() : data;
                 symbolTable[line.label.value] = {
-                    addr: ilc,
-                    value: typeof data === 'function' ? data() : data,
+                    addr: value,
+                    value: value,
                     immutable: line.opcode === 'equ'
                 };
                 continue;
