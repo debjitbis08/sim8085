@@ -77,7 +77,7 @@ function zipAssembledSource(assembled, source) {
 function showCode(codes) {
   const code = codes.filter(c => c.kind === "code").map(c => c.data);
   const addr = codes.filter(c => c.kind === "addr").map(c => c.data);
-  const data = codes.filter(c => c.kind === "data").map(c => c.data);
+  const data = codes.filter(c => c.kind !== "code" && c.kind !== "addr").map(c => c.data);
 
   const absoluteAddrNum = addr.length === 2
     ? ((addr[1] || 0) << 8) + (addr[0] || 0)
@@ -89,10 +89,12 @@ function showCode(codes) {
     return s === "00" ? "" : s;
   }
 
-  const codeString = blankIfZero(toByteString((code[0] || 0)));
+  const codeString = code.length ? blankIfZero(toByteString((code[0] || 0))) : '';
 
   const addrOrDataString = (addr.length === 2 ? absoluteAddr : data)
-    .reduce((acc, a) => acc + toByteString(a) + " ", "");
+    .reduce((acc, a) => acc + (
+      Array.isArray(a) ? a.map(toByteString).join(" ") : toByteString(a)
+    ) + " ", "");
 
   return `${codeString}  ${addrOrDataString}`;
 }
