@@ -37,7 +37,7 @@ export function Assembled() {
             style={{ height: 'calc(100% - 2.75rem)' }}
           >
             {store.errors.map((e) => {
-              const codeLines = store.code.split('\n');
+              const codeLines = store.codeWithError.split('\n');
               const startLine = e.location.start.line - 1;
               const endLine = e.location.end.line - 1;
 
@@ -54,7 +54,7 @@ export function Assembled() {
                       <span class="text-red-700 dark:text-red-400"> {e.msg}</span>
                     </span>
                   </p>
-                  <div class="mt-2 overflow-x-auto">
+                  <div class="mt-8 overflow-x-auto">
                     {displayedLines.map((line, index) => {
                       const lineNumber = startLine + index + 1;
 

@@ -40,18 +40,22 @@ export function Actions() {
     let result = null;
 
     setStore("errors", []);
+    setStore("codeWithError", '');
 
     try {
       result = loadProgram(store);
     } catch (e) {
       if (e.name && e.message && e.location) {
+        showToaster("error", "Program has errors", "Check the \"Assembled Output\" section for details.");
         setStore("errors", [{
           name: e.name,
           msg: e.message,
+          location: e.location,
           line: e.location.start.line,
           column: e.location.start.column
         }]);
         setStore("assembled", []);
+        setStore("codeWithError", store.code);
         trackEvent("assemble failed", {
           code: store.code,
           name: e.name,
@@ -65,7 +69,7 @@ export function Actions() {
         trackEvent("assemble exception", {
           code: store.code,
         });
-        showToaster("error", "Assmeble Failed", "Assemble failed with unknown errors. Please check the syntax of your program.");
+        showToaster("error", "Assemble Failed", "Assemble failed with unknown errors. Please check the syntax of your program.");
         return;
       }
     }

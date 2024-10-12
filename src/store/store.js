@@ -43,6 +43,7 @@ export const DEFAULT_SETTINGS = {
 
 export const [store, setStore] = createStore({
   code: INITIAL_CODE,
+  codeWithError: '',
   programState: 'Idle', // Idle, Loaded, Running, Paused
   assembled: [],
   loadAddress: 0,
