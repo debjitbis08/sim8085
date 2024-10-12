@@ -87,7 +87,18 @@ const language = StreamLanguage.define({
           console.log("Got Label: ", w);
           context = CONTEXT.SOL;
           return "label";
-        } else return "identifier";
+        } else {
+          // Peek the next word after the current label
+          stream.eatWhile(/\s/); // Consume any white spaces
+          const nextWord = stream.match(/\w+/, false); // Match the next word without consuming
+
+          if (nextWord && (nextWord[0] === "EQU" || nextWord[0] === "SET")) {
+            return "label";
+          } else {
+            // No colon and not followed by EQU/SET
+            return "identifier";
+          }
+        }
       }
       if (context == CONTEXT.OPERAND && label.test(w))  {
         return "label";
@@ -95,9 +106,9 @@ const language = StreamLanguage.define({
     } else if (stream.eat(';')) {
       stream.skipToEnd();
       return 'comment';
-    } else if (stream.eat('"')) {
+    } else if (stream.eat('\'')) {
       while (w = stream.next()) {
-        if (w == '"')
+        if (w == '\'')
           break;
 
         if (w == '\\')
@@ -125,6 +136,7 @@ const syntaxHighlighter = syntaxHighlighting(
     { tag: tokenTable.comment, class: "text-gray-500 dark:text-gray-500 italic" },
     { tag: tokenTable.register, class: "text-red-700 dark:text-red-400" },
     { tag: tokenTable.number, class: "text-orange-700 dark:text-orange-400" },
+    { tag: tokenTable.string, class: "text-orange-600 dark:text-orange-600" },
     { tag: tokenTable.operator, class: "text-pink-700 dark:text-pink-400" },
     { tag: tokenTable.punctuation, class: "text-gray-600 dark:text-gray-400" },
   ])
