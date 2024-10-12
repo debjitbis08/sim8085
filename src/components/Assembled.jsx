@@ -2,6 +2,8 @@ import { createEffect, createSignal } from 'solid-js';
 import { store } from '../store/store.js';
 import { toByteString } from '../utils/NumberFormat.js';
 import { HiSolidWrench } from 'solid-icons/hi';
+import { VsError } from 'solid-icons/vs';
+import { FiAlertCircle, FiAlertTriangle } from 'solid-icons/fi';
 
 export function Assembled() {
   let [lines, setLines] = createSignal([]);
@@ -35,10 +37,66 @@ export function Assembled() {
             style={{ height: 'calc(100% - 2.75rem)' }}
           >
             {store.errors.map((e) => {
+              const codeLines = store.code.split('\n');
+              const startLine = e.location.start.line - 1;
+              const endLine = e.location.end.line - 1;
+
+              const displayedLines = codeLines.slice(startLine, endLine + 1); // All lines in the range
+
               return (
-                <p>
-                  Line {e.line}, Column {e.column}: {e.msg}
-                </p>
+                <>
+                  <p class="flex items-start gap-2 text-red-700 dark:text-red-400">
+                    <span class="pt-1 text-lg">
+                      <FiAlertTriangle />
+                    </span>
+                    <span>
+                      Line <span class="text-yellow-700 dark:text-yellow-400">{e.line}</span>, Column <span class="text-yellow-700 dark:text-yellow-400">{e.column}</span>:
+                      <span class="text-red-700 dark:text-red-400"> {e.msg}</span>
+                    </span>
+                  </p>
+                  <div class="mt-2 overflow-x-auto">
+                    {displayedLines.map((line, index) => {
+                      const lineNumber = startLine + index + 1;
+
+                      if (index === 0) {
+                        // Start Line
+                        const startMarker = ' '.repeat(e.location.start.column - 1) + '^'.repeat(line.length - (e.location.start.column - 1));
+                        return (
+                          <div key={index}>
+                            <pre class="text-sm">
+                              <code>{lineNumber}|  {line}</code>
+                            </pre>
+                            <pre class="text-yellow-600 text-sm">
+                              <code>{' '.repeat(lineNumber.toString().length) + '| '}{startMarker}</code>
+                            </pre>
+                          </div>
+                        );
+                      } else if (index === displayedLines.length - 1) {
+                        // End Line
+                        const endMarker = '^'.repeat(e.location.end.column - 1);
+                        return (
+                          <div key={index}>
+                            <pre class="text-sm">
+                              <code>{lineNumber}|  {line}</code>
+                            </pre>
+                            <pre class="text-yellow-600 text-sm">
+                              <code>{' '.repeat(lineNumber.toString().length) + '|  '}{endMarker}</code>
+                            </pre>
+                          </div>
+                        );
+                      } else {
+                        // Middle lines, show without any marker
+                        return (
+                          <div key={index}>
+                            <pre class="text-sm">
+                              <code>{lineNumber}|  {line}</code>
+                            </pre>
+                          </div>
+                        );
+                      }
+                    })}
+              </div>
+                </>
               );
             })}
           </div>

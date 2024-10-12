@@ -4,15 +4,16 @@ const INITIAL_CODE =
 `
 ;<Program title>
 
-jmp start
+JMP START
 
 ;data
 
 ;code
-start: nop
+START: NOP
 
+;Start writing your code here
 
-hlt
+HLT
 `
 
 export const REGISTER_KEYS = ['bc', 'de', 'hl'];

@@ -1,5 +1,6 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import Tips from '../components/Tips.astro';
 import { App } from '../components/App.jsx';
 import { RightPanel } from '../components/RightPanel.jsx';
 import { Actions } from '../components/Actions.jsx';
@@ -11,6 +12,7 @@ import '../components/styles.css';
 ---
 
 <Layout title="Sim8085 - A 8085 microprocessor simulator">
+    <!-- <Tips /> -->
     <main class="border-t bg-gray-100 dark:bg-gray-900 dark:border-t-gray-600 h-full relative">
         <!-- Message for small screens -->
         <div class="hidden md:flex items-start" style="height: calc(100vh - 6rem);">

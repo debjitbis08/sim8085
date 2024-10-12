@@ -13,6 +13,7 @@
   "scripts": {
     "dev": "astro dev",
     "test:dev": "vitest",
+    "test": "vitest run",
     "start": "astro dev",
     "build": "astro build",
     "preview": "astro preview",

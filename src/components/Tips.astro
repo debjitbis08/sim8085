@@ -1,0 +1,147 @@
+<div x-data="tipsModal">
+    <div role="dialog"
+         aria-labelledby="faq_modal_label"
+         aria-modal="true"
+         tabindex="0"
+         x-show="open"
+         style="display: none"
+         @click="open = false; $refs.faq_modal_button.focus()"
+         @click.away="open = false; $refs.faq_modal_button.focus()"
+         class="fixed z-[9999] top-0 left-0 w-full h-screen flex justify-center items-center backdrop-blur-sm"
+    >
+        <div aria-hidden="true"
+            class="absolute top-0 left-0 w-full h-screen bg-black transition duration-300"
+            :class="{ 'opacity-60': open, 'opacity-0': !open }"
+            x-show="open"
+            x-transition:leave="delay-150"></div>
+        <div data-modal-document
+            @click.stop=""
+            x-show="open"
+            x-transition:enter="transition ease-out duration-300"
+            x-transition:enter-start="transform scale-50 opacity-0"
+            x-transition:enter-end="transform scale-100 opacity-100"
+            x-transition:leave="transition ease-out duration-300"
+            x-transition:leave-start="transform scale-100 opacity-100"
+            x-transition:leave-end="transform scale-50 opacity-0"
+            class="flex flex-col rounded-md shadow-sm overflow-hidden w-2/5 h-2/5 z-10 bg-gray-100 dark:bg-gray-800"
+        >
+          <div class="p-4 pb-4 bg-gray-100 dark:bg-gray-700 flex items-center">
+            <h2 id="faq_modal_label" class="grow">Tip of the Day</h2>
+            <button type="button" class="text-2xl cursor-pointer" @click="open = false">&times;</button>
+          </div>
+          <div class="tip__content p-4 bg-gray-200 dark:bg-gray-800 grow overflow-y-auto" id="body" x-html="tipContent"
+            @mouseenter="startHoverTimer"
+            @mouseleave="clearHoverTimer"
+          >
+          </div>
+          <div class="p-4 border-t border-t-gray-400 dark:border-t-gray-700 flex items-center">
+            <label for="dont-show-again" class="cursor-pointer">
+                <input id="dont-show-again" type="checkbox" @change="toggleDontShowAgain" />
+                <span class="text-sm ml-2">Don't show tips on startup</span>
+            </label>
+            <div class="grow"></div>
+            <div>
+                <button type="button" @click="open = false" class="px-4 py-2 bg-transparent border dark:border-gray-700 rounded-md">Close</button
+            </div>
+          </div>
+        </div>
+    </div>
+</div>
+
+<style is:global>
+.tip__content .number {
+    @apply text-orange-700;
+    @apply dark:text-orange-400;
+}
+
+.tip__content .label {
+    @apply text-yellow-700;
+    @apply dark:text-yellow-400
+}
+
+.tip__content .inst {
+    @apply text-green-700;
+    @apply dark:text-green-400;
+}
+
+.tip__content .register {
+    @apply text-red-700;
+    @apply dark:text-red-400;
+}
+
+.tip__content .comment {
+    @apply text-gray-500;
+    @apply dark:text-gray-500;
+    @apply italic;
+}
+</style>
+
+<script>
+  document.addEventListener('alpine:init', () => {
+    Alpine.data('tipsModal', () => ({
+      open: true,
+      tipContent: '',
+
+      init() {
+        // Check if "Don't show again" is set in localStorage
+        const dontShowAgain = localStorage.getItem('dontShowTip');
+        if (dontShowAgain === 'true') {
+          this.open = false;
+          return;
+        }
+
+        const tips = ['/tips/Number.html', '/tips/Comments.html', '/tips/Labels.html'];
+        const readTips = JSON.parse(localStorage.getItem('readTips') || '[]').map(tip => `/tips/${tip}.html`);
+
+        // Filter out read tips
+        const unreadTips = tips.filter(tip => !readTips.includes(tip));
+
+        // Check if all tips are read
+        if (unreadTips.length === 0) {
+          this.open = false;
+          return;
+        }
+
+        // Load random unread tip
+        const randomTip = unreadTips[Math.floor(Math.random() * unreadTips.length)];
+        this.currentTip = randomTip.replace('/tips/', '').replace('.html', '');
+
+        fetch(randomTip)
+          .then(response => response.text())
+          .then(html => {
+            this.tipContent = html;
+          });
+      },
+      toggleDontShowAgain(event) {
+        if (event.target.checked) {
+          // Store user preference in localStorage
+          localStorage.setItem('dontShowTip', 'true');
+        } else {
+          // Remove preference if unchecked
+          localStorage.removeItem('dontShowTip');
+        }
+      },
+
+      startHoverTimer() {
+        // Start the timer when hovering over the content
+        this.hoverTimer = setTimeout(() => {
+          this.markAsRead(this.currentTip);
+        }, 3000); // 3 seconds delay
+      },
+
+      clearHoverTimer() {
+        // Clear the timer if the user stops hovering
+        clearTimeout(this.hoverTimer);
+      },
+
+      markAsRead(tip) {
+        let readTips = JSON.parse(localStorage.getItem('readTips') || '[]');
+        if (!readTips.includes(tip)) {
+          readTips.push(tip);
+          localStorage.setItem('readTips', JSON.stringify(readTips));
+        }
+      }
+
+    }));
+  });
+</script>
