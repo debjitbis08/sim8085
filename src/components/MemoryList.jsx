@@ -275,7 +275,7 @@ export default function MemoryList({ threshold = 4 }) {
             <span class="text-gray-400 dark:text-gray-500">0x</span>
             <input
               type="text"
-              class="p-1 bg-transparent outline-none"
+              class="p-1 bg-transparent outline-none placeholder:text-gray-300 dark:placeholder:text-gray-700"
               placeholder="Start"
               value={inputRange().start}
               onInput={(e) => setInputRange({ ...inputRange(), start: e.target.value })}
@@ -285,7 +285,7 @@ export default function MemoryList({ threshold = 4 }) {
             <span class="text-gray-400 dark:text-gray-500">0x</span>
             <input
               type="text"
-              class="p-1 bg-transparent outline-none"
+              class="p-1 bg-transparent outline-none placeholder:text-gray-300 dark:placeholder:text-gray-700"
               placeholder="End"
               value={inputRange().end}
               onInput={(e) => setInputRange({ ...inputRange(), end: e.target.value })}
@@ -293,13 +293,24 @@ export default function MemoryList({ threshold = 4 }) {
           </div>
         </div>
         <div class="mt-2">
-          <button
-            class="flex items-center justify-center gap-2 w-full p-1 rounded border border-gray-400 hover:bg-gray-500 dark:border-gray-600 hover:dark:bg-gray-900"
-            onClick={addOrEditCustomRange}
-          >
-            <AiFillEye />
-            <span>Watch Range</span>
-          </button>
+          <Tooltip>
+            <Tooltip.Trigger class="tooltip__trigger">
+              <button
+                class="flex items-center justify-center gap-2 w-full p-1 px-4 rounded border border-gray-400 hover:bg-gray-500 dark:border-gray-600 hover:dark:bg-gray-900"
+                onClick={addOrEditCustomRange}
+                disabled={inputRange().start === '' || inputRange().end === ''}
+              >
+                <AiFillEye />
+                <span>Watch Range</span>
+              </button>
+            </Tooltip.Trigger>
+            <Tooltip.Portal>
+              <Tooltip.Content class="tooltip__content">
+                <Tooltip.Arrow />
+                <p>{inputRange().start === '' || inputRange().end === '' ? "Please enter both start and end value to watch" : "Click to add range"}</p>
+              </Tooltip.Content>
+            </Tooltip.Portal>
+          </Tooltip>
         </div>
       </div>
 
