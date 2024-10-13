@@ -21,16 +21,31 @@ export function Assembled() {
             class={`${store.assembled.length ? '' : 'hidden'} w-full overflow-x-auto text-sm`}
               style={{ height: 'calc(100% - 2.75rem)' }}
           >
-            {lines().map((line, i) => {
-              const code = showCode(line[0]);
-              return (
-                <div class="grid grid-cols-8 gap-1 hover:bg-gray-200 dark:hover:bg-gray-700 px-1 py-0.5 border-b border-b-gray-200 dark:border-b-gray-800">
-                  <span class="col-span-1">{i + 1}</span>
-                  <span class="col-span-1 border-r border-r-gray-200 dark:border-r-gray-800">{ code === '0 ' ? '' : code }</span>
-                  <pre class="col-span-5 pl-1">{ line[1] }</pre>
-                </div>
-              );
-            })}
+            <For each={lines()}>
+              {((line, i) => {
+                const code = showCode(line[0]);
+                return (
+                  <div class="grid grid-cols-10 gap-2 hover:bg-gray-200 dark:hover:bg-gray-700 px-1 py-0.5 border-b border-b-gray-200 dark:border-b-gray-800">
+                    <span class="col-span-1">{i() + 1}</span>
+                    <span class="col-span-2 border-r border-r-gray-200 dark:border-r-gray-800">
+                      { code.length ? `0x${code[0].currentAddress.toString(16).toUpperCase()}` : '' }
+                    </span>
+                    <div class="col-span-2 flex items-center gap-2 flex-wrap border-r border-r-gray-200 dark:border-r-gray-800">
+                      <For each={code}>
+                        {(item) => (
+                          <div>
+                            <div class="text-orange-600 dark:text-yellow-400">
+                              {item.data}
+                            </div>
+                          </div>
+                        )}
+                      </For>
+                    </div>
+                    <pre class="col-span-5 pl-1">{ line[1] }</pre>
+                  </div>
+                );
+              })}
+            </For>
           </div>
           <div
             class={`${store.errors.length ? '' : 'hidden'} max-w-full overflow-x-auto text-sm`}
@@ -126,7 +141,7 @@ function zipAssembledSource(assembled, source) {
   function findAssembled(ln) {
     return assembled
       .filter(c => c.location.start.line - 1 === ln)
-      .map(a => ({ data: a.data, kind: a.kind }));
+      .map(a => ({ data: a.data, kind: a.kind, currentAddress: a.currentAddress }));
   }
 
   return sourceLines.map((s, i) => [findAssembled(i), s]);
@@ -147,12 +162,9 @@ function showCode(codes) {
     return s === "00" ? "" : s;
   }
 
-  const codeString = code.length ? blankIfZero(toByteString((code[0] || 0))) : '';
-
-  const addrOrDataString = (addr.length === 2 ? absoluteAddr : data)
-    .reduce((acc, a) => acc + (
-      Array.isArray(a) ? a.map(toByteString).join(" ") : toByteString(a)
-    ) + " ", "");
-
-  return `${codeString}  ${addrOrDataString}`;
+  return codes.map((c) => {
+    if (c.kind === 'code') return { ...c, data: blankIfZero(toByteString((c.data || 0))) };
+    else if (c.kind === 'addr') return { ...c, data: toByteString(c.data) };
+    else return { ...c, data: toByteString(c.data) };
+  });
 }
