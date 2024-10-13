@@ -2,8 +2,10 @@ import { createEffect, createSignal } from 'solid-js';
 import { store } from '../store/store.js';
 import { toByteString } from '../utils/NumberFormat.js';
 import { HiSolidWrench } from 'solid-icons/hi';
-import { VsError } from 'solid-icons/vs';
+import { VsCopy, VsError } from 'solid-icons/vs';
 import { FiAlertCircle, FiAlertTriangle } from 'solid-icons/fi';
+import CopyComponent from './CopyComponent.jsx';
+import { Tooltip } from '@kobalte/core/tooltip';
 
 export function Assembled() {
   let [lines, setLines] = createSignal([]);
@@ -12,8 +14,23 @@ export function Assembled() {
   });
   return (
     <div class="p-4 w-full h-full">
-      <div>
+      <div class="flex items-start gap-2">
         <h2 class="text-xl pb-4">Assembled Output</h2>
+        <div
+          class={`${store.assembled.length && store.errors.length === 0 ? '' : 'hidden'} pt-1`}
+        >
+          <Tooltip>
+            <Tooltip.Trigger class="tooltip__trigger">
+              <CopyComponent getTextToCopy={() => copyOutputAsText(lines())} />
+            </Tooltip.Trigger>
+            <Tooltip.Portal>
+              <Tooltip.Content class="tooltip__content">
+                <Tooltip.Arrow />
+                <p>Copy assembled output</p>
+              </Tooltip.Content>
+            </Tooltip.Portal>
+          </Tooltip>
+        </div>
       </div>
       <div class="flex flex-col" style={{ height: "calc(100vh - 10rem)" }}>
         <div style={{ height: 'calc(100% - 2.75rem - 120px)' }}>
@@ -167,4 +184,39 @@ function showCode(codes) {
     else if (c.kind === 'addr') return { ...c, data: toByteString(c.data) };
     else return { ...c, data: toByteString(c.data) };
   });
+}
+
+function copyOutputAsText(lines) {
+  const header = `${pad("Line No.", 10)}${pad("Memory Address", 16)}${pad("Machine Codes", 15)}Source`;
+  const separator = `${'-'.repeat(10)}${'-'.repeat(16)}${'-'.repeat(15)}${'-'.repeat(20)}`;
+
+  const output = [header, separator];
+
+  function pad(str, length) {
+    return str.padEnd(length, ' ');
+  }
+
+  // Loop through each line of your output and format it
+  lines.forEach((line, index) => {
+    const code = showCode(line[0]);
+
+    // Line number (padded to 10 characters)
+    const lineNumber = pad((index + 1).toString(), 10);
+
+    // Address (if code exists, padded to 20 characters)
+    const address = code.length ? `0x${code[0].currentAddress.toString(16).toUpperCase()}` : '';
+    const paddedAddress = pad(address, 16);
+
+    // Instructions (padded to 30 characters)
+    const instructions = code.map(item => item.data).join(' ');
+    const paddedInstructions = pad(instructions, 15);
+
+    // Source line (no padding required)
+    const source = line[1];
+
+    // Combine everything into a single formatted line
+    output.push(`${lineNumber}${paddedAddress}${paddedInstructions}${source}`);
+  });
+
+  return output.join('\n');
 }
