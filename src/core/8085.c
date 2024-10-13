@@ -931,15 +931,16 @@ void InvalidInstruction(State8085 *state)
 uint8_t addByte(State8085 *state, uint8_t lhs, uint8_t rhs, should_preserve_carry preserveCarry)
 {
 	uint16_t res = lhs + rhs;
+	state->cc.ac = (lhs & 0xf) + (rhs & 0xf) > 0xf;
 	ArithFlagsA(state, res, preserveCarry);
-	if((lhs & 0xf) + (rhs & 0xf) > 0xf)
-		state->cc.ac = 1;
 	return (uint8_t)res;
 }
 
 uint8_t addByteWithCarry(State8085 *state, uint8_t lhs, uint8_t rhs, should_preserve_carry preserveCarry)
 {
-	uint16_t res = lhs + rhs + (state->cc.cy ? 1 : 0);
+    uint8_t carry = state->cc.cy ? 1 : 0;
+	uint16_t res = lhs + rhs + carry;
+	state->cc.ac = (lhs & 0xf) + (rhs & 0xf) + carry > 0xf;
 	ArithFlagsA(state, res, preserveCarry);
 	return (uint8_t)res;
 }
@@ -947,9 +948,8 @@ uint8_t addByteWithCarry(State8085 *state, uint8_t lhs, uint8_t rhs, should_pres
 uint8_t subtractByte(State8085 *state, uint8_t lhs, uint8_t rhs, should_preserve_carry preserveCarry)
 {
 	uint16_t res = lhs - rhs;
+	state->cc.ac = (lhs & 0xf) + ((~rhs + 1) & 0xf) > 0xf;
 	ArithFlagsA(state, res, preserveCarry);
-	if((lhs & 0xf) + (~rhs & 0xf) + 1 > 0xf)
-		state->cc.ac = 1;
 	return (uint8_t)res;
 }
 
@@ -957,7 +957,7 @@ uint8_t subtractByteWithBorrow(State8085 *state, uint8_t lhs, uint8_t rhs, shoul
 {
 	uint16_t res = lhs - rhs - (state->cc.cy ? 1 : 0);
     uint8_t carry = state->cc.cy ? 1 : 0;
-    state->cc.ac = (lhs & 0x0F) + (~(rhs + carry) & 0x0f) > 0x0f;
+    state->cc.ac = (lhs & 0x0F) + ((~(rhs + carry) + 1) & 0x0f) > 0x0f;
 	ArithFlagsA(state, res, preserveCarry);
 	return (uint8_t)res;
 }
