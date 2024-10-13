@@ -15,7 +15,7 @@
     "test:dev": "vitest",
     "test": "vitest run",
     "start": "astro dev",
-    "build": "astro build",
+    "build": "astro build && cp _redirects dist/",
     "preview": "astro preview",
     "astro": "astro",
     "build-emulator": "./scripts/build-emulator.sh"
