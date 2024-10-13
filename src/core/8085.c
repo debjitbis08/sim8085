@@ -1849,6 +1849,7 @@ int Emulate8085Op(State8085 *state, uint16_t offset)
 		state->cc.s = (0x80 == (x & 0x80));
 		state->cc.p = parity((x & 0xff), 8);
 		state->cc.cy = (x > 0xff);
+	    state->cc.ac = (((state->a & 0x0f) + (opcode[1] & 0x0f)) > 0x0f);
 		state->a = (uint8_t)x;
 		state->pc++;
 	}
