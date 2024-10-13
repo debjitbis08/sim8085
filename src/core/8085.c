@@ -956,6 +956,8 @@ uint8_t subtractByte(State8085 *state, uint8_t lhs, uint8_t rhs, should_preserve
 uint8_t subtractByteWithBorrow(State8085 *state, uint8_t lhs, uint8_t rhs, should_preserve_carry preserveCarry)
 {
 	uint16_t res = lhs - rhs - (state->cc.cy ? 1 : 0);
+    uint8_t carry = state->cc.cy ? 1 : 0;
+    state->cc.ac = (lhs & 0x0F) + (~(rhs + carry) & 0x0f) > 0x0f;
 	ArithFlagsA(state, res, preserveCarry);
 	return (uint8_t)res;
 }
