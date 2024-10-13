@@ -1,0 +1,92 @@
+---
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+interface Props {
+	title: string;
+}
+
+const { title } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<link rel="icon" type="image/svg+xml" href="/favicon-dark.svg" media="(prefers-color-scheme: dark)"/>
+        <meta name="description" content="Simulator, Assembler and Debugger for Intel 8085 microprocessor." />
+        <meta name="author" content="Debjit Biswas, www.debjitbiswas.com" />
+        <meta name="keywords" content="8085, assembler, simulator, IDE, Intel">
+		<meta name="generator" content={Astro.generator} />
+		<title>{title}</title>
+		<script is:inline>
+          (function () {
+              // On page load or when changing themes, best to add inline in `head` to avoid FOUC
+              const theme = localStorage.theme;
+              if (theme === 'system') {
+                  // Detect system preference (dark or light)
+                  const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                  document.documentElement.classList.toggle('dark', isDarkMode);
+              } else {
+                  // Apply the manually selected theme ('light' or 'dark')
+                  document.documentElement.classList.toggle('dark', theme === 'dark');
+              }
+          }());
+        </script>
+	</head>
+	<body class="bg-white dark:bg-gray-900 text-black dark:text-gray-300 min-h-screen">
+        <Header />
+        <div style='height: calc(100vh - 6rem)'>
+            <slot />
+        </div>
+        <Footer />
+	</body>
+</html>
+<style is:global>
+</style>
+
+<script>
+import Alpine from 'alpinejs';
+
+document.addEventListener('alpine:init', () => {
+  Alpine.store('theme', {
+      value: 'system',
+
+      init() {
+          this.value = localStorage.getItem('theme') || 'system';
+          // On page load, apply the appropriate theme
+          this.applyTheme();
+
+          // Watch for changes in system preference if the theme is 'system'
+          this.watchSystemPreference();
+      },
+
+      switch(theme) {
+          this.value = theme;  // Update theme value
+          this.applyTheme();   // Apply the selected theme
+          localStorage.setItem('theme', theme);
+      },
+
+      applyTheme() {
+          if (this.value === 'system') {
+              // Detect system preference (dark or light)
+              const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+              document.documentElement.classList.toggle('dark', isDarkMode);
+          } else {
+              // Apply the manually selected theme ('light' or 'dark')
+              document.documentElement.classList.toggle('dark', this.value === 'dark');
+          }
+      },
+
+      watchSystemPreference() {
+          // Watch for system preference changes (e.g., user switches from dark to light mode in OS)
+          window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+              if (this.value === 'system') {
+                  document.documentElement.classList.toggle('dark', e.matches);
+              }
+          });
+      }
+  });
+});
+</script>

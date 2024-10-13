@@ -1,0 +1,37 @@
+.cm-editor {
+    height: 100%;
+}
+
+.cm-line.cm-activeLine {
+    @apply bg-blue-200;
+    @apply dark:bg-gray-800;
+    @apply bg-opacity-50;
+}
+
+.cm-editor .cm-gutters {
+    @apply dark:text-gray-200;
+    @apply dark:bg-gray-600;
+}
+
+.cm-editor .cm-activeLineGutter {
+    @apply dark:bg-gray-500;
+}
+
+.cm-editor .cm-cursor {
+    @apply border-l-gray-600;
+    @apply dark:border-l-gray-300;
+}
+
+.cm-editor .cm-content {
+    font-size: 0.85rem;
+}
+
+.cm-editor > .cm-scroller > .cm-selectionLayer .cm-selectionBackground {
+    @apply bg-blue-200;
+    @apply dark:bg-blue-900;
+}
+
+.cm-editor.cm-focused > .cm-scroller > .cm-selectionLayer .cm-selectionBackground {
+    @apply bg-blue-200;
+    @apply dark:bg-blue-900;
+}

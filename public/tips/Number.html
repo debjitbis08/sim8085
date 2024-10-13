@@ -1,0 +1,29 @@
+<h3 class="text-lg font-bold mb-4">Number Syntax</h3>
+
+<div class="text-sm">
+    <!-- Hexadecimal Section -->
+    <div class="mb-4">
+      <p class="text-gray-600 dark:text-gray-200 mb-2">Each hexadecimal number must begin with a numeric digit (0 through 9) and must be
+      followed by the letter <code class="text-green-800 bg-green-100 rounded px-1 pt-1">H</code>.</p>
+      <pre class="bg-gray-100 dark:bg-gray-900 p-2 rounded-md overflow-auto"><code class="block"><span class="label">HERE:</span> <span class="inst">MVI</span> C, 0BAH   ; LOAD REG C WITH HEX BA</code></pre>
+    </div>
+
+    <!-- Decimal Section -->
+    <div class="mb-4">
+      <p class="text-gray-600 dark:text-gray-200 mb-2">Each decimal number may be identified by the letter <code class="text-green-600 bg-green-100 rounded px-1">D</code> immediately after its last digit or may
+      stand alone. Any number not specifically identified as hexadecimal, octal, or binary is assumed to be decimal.</p>
+      <pre class="bg-gray-100 dark:bg-gray-900 p-2 rounded-md overflow-auto"><code class="block"><span class="label">ABC:</span> <span class="inst">MVI</span> E, 15D   ; LOAD E WITH 15 IN DECIMAL</code></pre>
+    </div>
+
+    <!-- Octal Section -->
+    <div class="mb-4">
+      <p class="text-gray-600 dark:text-gray-200 mb-2">Each octal number must be followed by the letter <code class="text-green-600 bg-green-100 rounded px-1">O</code> or the letter <code class="text-green-600 bg-green-100 rounded px-1">Q</code>.</p>
+      <pre class="bg-gray-100 dark:bg-gray-900 p-2 rounded-md overflow-auto"><code class="block"><span class="label">LABEL:</span> <span class="inst">MVI</span> A, 72Q   ; LOAD OCTAL 72 INTO ACCUM</code></pre>
+    </div>
+
+    <!-- Binary Section -->
+    <div class="mb-4">
+      <p class="text-gray-600 dark:text-gray-200 mb-2">Each binary number must be followed by the letter <code class="text-pink-600 bg-pink-100 rounded px-1">B</code>.</p>
+      <pre class="bg-gray-100 dark:bg-gray-900 p-2 rounded-md overflow-auto"><code class="block"><span class="label">NOW:</span> <span class="inst">MVI</span> D, 1111011OB   ; LOAD REGISTER D WITH 0F6H</code></pre>
+    </div>
+</div>

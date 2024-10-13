@@ -1,0 +1,24 @@
+---
+import GithubIcon from '../icons/github.svg?raw';
+import FAQs from './FAQs.astro';
+import ThemeSwitcher from './ThemeSwitcher.astro';
+---
+<header class="w-full p-4 bg-gray-100 dark:bg-gray-900 flex justify-between items-center h-16">
+  <div class="flex items-center gap-2">
+    <img src="/favicon-dark.svg" alt="Sim8085" class="w-8 h-8 hidden dark:inline">
+    <img src="/favicon.svg" alt="Sim8085" class="w-8 h-8 dark:hidden">
+    <span class="text-gray-800 dark:text-gray-200">Sim8085</span>
+  </div>
+  <div class="flex items-center gap-2 space-x-2">
+    <a href="https://www.debjitbiswas.com/tags/sim8085/" target="_blank" class="text-blue-600 dark:text-blue-400">Blog</a>
+    <a href="#" class="text-blue-600 dark:text-blue-400 hidden">About</a>
+    <FAQs />
+    <div class="pl-2 border-r border-r-gray-500 dark:border-r-gray-600 h-4"></div>
+    <ThemeSwitcher />
+    <a href="https://github.com/debjitbis08/sim8085" target="_blank" class="flex items-center gap-1 text-blue-600 dark:text-blue-400">
+        <div class="text-black dark:text-white">
+        <Fragment set:html={GithubIcon} />
+        </div>
+    </a>
+  </div>
+</header>

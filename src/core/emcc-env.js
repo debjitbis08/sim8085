@@ -1,3 +1,0 @@
-var Module = {
-  ENVIRONMENT: 'WEB'
-};

@@ -28,6 +28,7 @@ typedef struct State8085
 	struct Flags cc;
 	uint8_t int_enable;
 	uint8_t *memory;
+	uint8_t *io;
 } State8085;
 
 int parity(int x, int size)
@@ -978,8 +979,8 @@ int Emulate8085Op(State8085 *state, uint16_t offset)
 {
 	int cycles = 4;
 	unsigned char *opcode = &state->memory[state->pc];
-	printf("Emulating instruction at %d\n", state->pc);
-	printf("Emulating instruction %d\n", state->memory[state->pc]);
+	printf("Emulating instruction at $%02x\n", state->pc);
+	printf("Emulating instruction $%02x\n", state->memory[state->pc]);
 	if(offset == state->pc)
 		state->sp = 0xFFFF;
 
@@ -1173,18 +1174,35 @@ int Emulate8085Op(State8085 *state, uint16_t offset)
 	case 0x27: // DAA
 	{
 		uint16_t res = state->a;
+		// printf("value of a %d\n", res);
 
-		if (state->cc.ac == 1 || (state->a & 0x0f) > 9)
+		uint8_t least_four_bits = state->a & 0x0f;
+		// printf("least four bits %d\n", least_four_bits);
+
+		if (state->cc.ac == 1 || least_four_bits > 9) {
+		    // printf("Adding 6 to a\n");
 			res = state->a + 6;
 
-		ArithFlagsA(state, res, PRESERVE_CARRY);
-		if ((uint8_t)res > 0xf)
-			state->cc.ac = 1;
-		state->a = (uint8_t)res;
+    		if (least_four_bits + 6 > 0xf)
+    			state->cc.ac = 1;
+		}
 
-		if (state->cc.cy == 1 || ((state->a >> 4) & 0x0f) > 9)
-			res = state->a + 96;
+		if (res > 0xff) {
+		    // printf("Setting carry flag\n");
+    		state->cc.cy = 1;
+		}
 
+		res = res & 0xff;
+
+		least_four_bits = res & 0x0f;
+		uint8_t most_four_bits = (res >> 4) & 0x0f;
+
+		if (state->cc.cy == 1 || most_four_bits > 9) {
+		    // printf("Adding 6 to high bits %d\n", res);
+    		res = ((most_four_bits + 6) << 4) | least_four_bits;
+		}
+
+		// printf("Final value %d\n", res);
 		ArithFlagsA(state, res, UPDATE_CARRY);
 		state->a = (uint8_t)res;
 	}
@@ -1231,8 +1249,8 @@ int Emulate8085Op(State8085 *state, uint16_t offset)
 	case 0x2f: // CMA
 		state->a ^= 0xFF;
 		break;
-	case 0x30:
-		break; // NOP
+	case 0x30:  // NOP
+		break;
 	case 0x31: // LXI SP, word
 		state->sp = (opcode[2] << 8) | opcode[1];
 		state->pc += 2;
@@ -1508,9 +1526,9 @@ int Emulate8085Op(State8085 *state, uint16_t offset)
 		state->memory[offset] = state->l;
 	}
 	break;
-	case 0x76:
+	case 0x76:  // HLT
 		return 1;
-		break; // HLT
+		break;
 	case 0x77: // MOV M, A
 	{
 		uint16_t offset = (state->h << 8) | (state->l);
@@ -1887,10 +1905,10 @@ int Emulate8085Op(State8085 *state, uint16_t offset)
 		else
 			state->pc += 2;
 		break;
-	case 0xd3:
-		//Don't know what to do here (yet)
-		state->pc++;
-		break;
+	case 0xd3: // OUT d8
+        state->io[opcode[1]] = state->a;
+        state->pc += 1;
+        break;
 	case 0xd4: // CNC Addr
 		if (0 == state->cc.cy)
 			call(state, offset, (opcode[2] << 8) | opcode[1]);
@@ -1924,9 +1942,10 @@ int Emulate8085Op(State8085 *state, uint16_t offset)
 		else
 			state->pc += 2;
 		break;
-	case 0xdb:
-		UnimplementedInstruction(state);
-		break; // IN d8
+	case 0xdb: // IN d8
+        state->a = state->io[opcode[1]];
+        state->pc++;
+        break;
 	case 0xdc: // CC Addr
 		if (1 == state->cc.cy)
 			call(state, offset, (opcode[2] << 8) | opcode[1]);
@@ -2039,14 +2058,24 @@ int Emulate8085Op(State8085 *state, uint16_t offset)
 		break;
 	case 0xf1: //POP PSW
 	{
-		state->a = state->memory[state->sp + 1];
-		uint8_t psw = state->memory[state->sp];
-		state->cc.z = (0x01 == (psw & 0x01));
-		state->cc.s = (0x02 == (psw & 0x02));
-		state->cc.p = (0x04 == (psw & 0x04));
-		state->cc.cy = (0x05 == (psw & 0x08));
-		state->cc.ac = (0x10 == (psw & 0x10));
-		state->sp += 2;
+        // Step 1: Restore the condition flags from the current stack pointer location
+        uint8_t psw = state->memory[state->sp];
+
+        // Step 2: Extract the condition flags from the PSW byte
+        state->cc.cy = (psw & 0x01);  // Carry flag (bit 0)
+        state->cc.p = (psw & 0x04) >> 2;  // Parity flag (bit 2)
+        state->cc.ac = (psw & 0x10) >> 4;  // Auxiliary carry flag (bit 4)
+        state->cc.z = (psw & 0x40) >> 6;  // Zero flag (bit 6)
+        state->cc.s = (psw & 0x80) >> 7;  // Sign flag (bit 7)
+
+        // Step 3: Increment the stack pointer to the next memory location
+        state->sp++;
+
+        // Step 4: Restore the accumulator from the new stack pointer location
+        state->a = state->memory[state->sp];
+
+        // Step 5: Increment the stack pointer again
+        state->sp++;
 	}
 	break;
 	case 0xf2: // JP Addr
@@ -2066,14 +2095,27 @@ int Emulate8085Op(State8085 *state, uint16_t offset)
 		break;
 	case 0xf5: // PUSH PSW
 	{
-		state->memory[state->sp - 1] = state->a;
-		uint8_t psw = (state->cc.z |
-					   state->cc.s << 1 |
-					   state->cc.p << 2 |
-					   state->cc.cy << 3 |
-					   state->cc.ac << 4);
-		state->memory[state->sp - 2] = psw;
-		state->sp = state->sp - 2;
+        // Step 1: Decrement the stack pointer
+        state->sp--;
+
+        // Step 2: Store the accumulator at the new stack pointer location
+        state->memory[state->sp] = state->a;
+
+        // Step 3: Decrement the stack pointer again
+        state->sp--;
+
+        // Step 4: Construct the PSW byte (format: s z 0 ac 0 p 1 c)
+        uint8_t psw = (state->cc.s << 7) |  // Sign flag (bit 7)
+                      (state->cc.z << 6) |  // Zero flag (bit 6)
+                      (0 << 5) |            // Bit 5 is always 0
+                      (state->cc.ac << 4) | // Auxiliary carry (bit 4)
+                      (0 << 3) |            // Bit 3 is always 0
+                      (state->cc.p << 2) |  // Parity flag (bit 2)
+                      (1 << 1) |            // Bit 1 is always 1
+                      (state->cc.cy);       // Carry flag (bit 0)
+
+        // Step 5: Store the PSW byte at the new stack pointer location
+        state->memory[state->sp] = psw;
 	}
 	break;
 	case 0xf6: // ORI d8
@@ -2140,24 +2182,60 @@ int Emulate8085Op(State8085 *state, uint16_t offset)
 State8085 *Init8085(void)
 {
 	State8085 *state = calloc(1, sizeof(State8085));
-	state->memory = malloc(0x10000); //16K
+	state->memory = malloc(0x10000); // 64K
+	state->io = malloc(0x100);
 	printf("State Ptr: %p\n", state);
+	printf("Memory Ptr: %p\n", state->memory);
+	printf("IO Ptr: %p\n", state->io);
 	return state;
 }
 
-State8085 *LoadProgram(State8085 *state, uint8_t *lines, int len, uint16_t offset)
+State8085 *LoadProgram(State8085 *state, uint8_t *lines, int numLines, uint16_t offset)
 {
-	int i = 0;
-	while (i < len)
-	{
-		printf("line %d %u\n", i, lines[i]);
-		state->memory[offset + i] = lines[i];
-		i++;
-	}
-	printf("Offset %u\n", offset);
-	printf("Memory at offset %u\n", state->memory[offset]);
-	return state;
+    for (int i = 0; i < numLines; i++) {
+        uint8_t data = lines[i * 4]; // Data value
+        uint8_t lowByte = lines[(i * 4) + 1];        // Low byte of the address
+        uint8_t highByte = lines[(i * 4) + 2];       // High byte of the address
+        uint16_t currentAddress = (highByte << 8) | lowByte;
+        uint8_t kind = lines[(i * 4) + 2]; // Kind (1 for code, 2 for addr, 3 for data)
+
+        // printf("Loading %u (kind %u) at address %u\n", data, kind, currentAddress);
+
+        // Load the data into memory at the correct address
+        state->memory[currentAddress] = data;
+    }
+
+    return state;
 }
+
+State8085 *UnloadProgram(State8085 *state, uint8_t *lines, int numLines, uint16_t offset)
+{
+    for (int i = 0; i < numLines; i++) {
+        // Extract the address from the lines array
+        uint8_t lowByte = lines[(i * 4) + 1];        // Low byte of the address
+        uint8_t highByte = lines[(i * 4) + 2];       // High byte of the address
+        uint16_t currentAddress = (highByte << 8) | lowByte;
+
+        // Set the memory at the current address to 0
+        state->memory[currentAddress] = 0;
+    }
+
+    return state;
+}
+
+// State8085 *LoadProgram(State8085 *state, uint8_t *lines, int len, uint16_t offset)
+// {
+// 	int i = 0;
+// 	while (i < len)
+// 	{
+// 		printf("line %d %u\n", i, lines[i]);
+// 		state->memory[offset + i] = lines[i];
+// 		i++;
+// 	}
+// 	printf("Offset %u\n", offset);
+// 	printf("Memory at offset %u\n", state->memory[offset]);
+// 	return state;
+// }
 
 int ExecuteProgramUntil(State8085 *state, uint16_t offset, uint16_t startAt, uint16_t pauseAt)
 {

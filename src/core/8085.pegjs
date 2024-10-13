@@ -261,6 +261,50 @@
     var twosComplement = function (d8) {
         return (0xFF + d8 + 1);
     };
+
+    var getSymbolValue = function (symbolName, type, size, location) {
+        if (!symbolTable[symbolName]) {
+            var e = new Error();
+            e.message = "Label " + symbolName + " is not defined.";
+
+            if ((/h$/i).test(symbolName) && !Number.isNaN(parseInt(symbolName, 16))) {
+                e.message += " " +
+                    "Are you trying to specify a hexadecimal number? Try adding a 0 (zero) to the beginning of the number.";
+            } else if ((/^[abcdehlm]$/i).test(symbolName)) {
+                e.message += " " +
+                    "Are you trying to specify a register? This instruction takes some data and not a register.";
+            } else {
+                e.message +=  " " +
+                    "Also check the label definition, there may be some issues on that line. " +
+                    "Make sure there is no space between the label and the : (colon) symbol. " +
+                    "Symbols defined using EQU can be used after being defined.";
+            }
+
+            e.location = location;
+            throw e;
+        }
+
+        var symbolEntry = symbolTable[symbolName];
+        var dataVal;
+
+        if (type === "direct") {
+            dataVal = symbolEntry.addr;
+        } else if (Array.isArray(symbolEntry.value)) {
+            dataVal = size === 16 ? (symbolEntry.value[0] << 8) | symbolEntry.value[1] : symbolEntry.value[0];
+        } else {
+            dataVal = symbolEntry.value;
+        }
+
+        return dataVal;
+    };
+
+    var getSymbolValueOrValue = function (value, type, size, location) {
+        return typeof value === "string" ? getSymbolValue(value, type, size, location) : (
+            Array.isArray(value)
+                ?  size === 16 ? (symbolEntry.value[0] << 8) | symbolEntry.value[1] : value[0]
+                : value
+        );
+    };
 }
 
 /**
@@ -273,6 +317,7 @@ machineCode = prg:program {
         lines = prg.length,
         data,
         dataVal,
+        currentAddress = 0,
         objCode = [];
 
 
@@ -283,74 +328,104 @@ machineCode = prg:program {
 
         if (line == null) continue;
 
-        if (line.opcode == null) {
+        if (line.opcode == null || typeof line.opcode === "string") {
+            if (line.opcode === "org") {
+                var data = line.data[0];
+                if (typeof data === 'function') {
+                    currentAddress = data();
+                } else {
+                    currentAddress = Number(data);
+                }
+                continue;
+            }
+            if (line.opcode === "equ" || line.opcode === 'set') {
+                var data = line.data[0];
+                if (symbolTable[line.label.value] && symbolTable[line.label.value].immutable) {
+                    error("Cannot redefine symbols defined with EQU. Use SET for that purpose. Trying to redefine " + line.label.value, line.location);
+                }
+                var value = typeof data === 'function' ? data() : data;
+                symbolTable[line.label.value] = {
+                    addr: value,
+                    value: value,
+                    immutable: line.opcode === 'equ'
+                };
+                continue;
+            }
         	if (Array.isArray(line.data)) {
             	objCode = objCode.concat(line.data.map(function (d) {
-                    return {
+                    var ret = {
                         data: typeof d.value !== "undefined" ? d.value : d,
-                        kind: 'data',
+                        kind: typeof line.opcode === "string" ? line.opcode : "data",
+                        currentAddress: currentAddress,
                         location: typeof d.location !== "undefined" ? d.location : line.location
                     };
+                    currentAddress += 1;
+                    return ret;
                 }));
             }
             continue;
         };
 
         if (line.size === 1) {
-            objCode.push({ data: line.opcode, kind: 'code', location: line.location });
+            objCode.push({ data: line.opcode, kind: 'code', currentAddress: currentAddress, location: line.location });
+            currentAddress += 1;
         } else if (line.size === 2) {
             data = line.data.value;
-            if (typeof line.data.value === "string" && !symbolTable[line.data.value]) {
-                var e = new Error();
-                e.message = "Label " + line.data.value + " is not defined.";
-                e.location = line.location;
-                if (typeof line !== "undefined" && typeof column !== "undefined") {
-                    e.line = line; e.column = column;
-                }
-                throw e;
+
+            if (typeof line.data.value === "string") {
+                dataVal = getSymbolValue(line.data.value, line.data.type, 8, line.location);
+            } else if (typeof line.data === "number") {
+                // Handle number data directly
+                dataVal = line.data;
+            } else if (typeof line.data.value === "function") {
+                dataVal = line.data.value();
+            } else if (Array.isArray(line.data)) {
+                // Handle array case, use the first element
+                dataVal = line.data[0];
+            } else if (typeof line.data.value === "number") {
+                // Handle case where line.data.value is a number
+                dataVal = line.data.value;
+            } else if (typeof line.data.value === "object" && line.data.value.value) {
+                // Handle object with a nested value
+                dataVal = line.data.value.value;
+            } else {
+                // Default to 0 if no conditions are met
+                dataVal = 0;
             }
 
-            dataVal = (typeof line.data.value === "string")
-                ? line.data.type === "direct"
-                ? symbolTable[line.data.value].addr
-                : symbolTable[line.data.value].value
-                : (typeof line.data === "number") ? line.data
-                : Array.isArray(line.data) ? line.data[0]
-                : (typeof line.data.value === "number") ? line.data.value
-                : typeof line.data.value === "object" && line.data.value.value ? line.data.value.value
-                : 0;
             if (dataVal < 0) {
                 dataVal = twosComplement(dataVal);
             }
-            objCode.push({ data: line.opcode, kind: 'code', location: line.location });
-            objCode.push({ data: dataVal, kind: (typeof line.data.value === "string" && line.data.type === "direct") ? 'addr' : 'data', location: line.data.location });
+
+            objCode.push({ data: line.opcode, kind: 'code', currentAddress: currentAddress, location: line.location });
+            currentAddress += 1;
+            objCode.push({ data: dataVal, kind: (typeof line.data.value === "string" && line.data.type === "direct") ? 'addr' : 'data', currentAddress: currentAddress, location: line.data.location });
+            currentAddress += 1;
         } else {
             data = line.data.value;
-            if (typeof line.data.value === "string" && !symbolTable[line.data.value]) {
-                var e = new Error();
-                e.message = "Label " + line.data.value + " is not defined. Also check the label definition, there may be some issues on that line.";
-                e.location = line.location;
-                if (typeof line !== "undefined" && typeof column !== "undefined") {
-                    e.line = line; e.column = column;
-                }
-                throw e;
+
+            if (typeof line.data.value === "string") {
+                dataVal = getSymbolValue(line.data.value, line.data.type, 16, line.location);
+            } else if (typeof line.data === "number") {
+                dataVal = line.data;
+            } else if (typeof line.data.value === "number") {
+                dataVal = line.data.value;
+            } else if (typeof line.data.value === "function") {
+                dataVal = line.data.value();
+            } else if (typeof line.data.value === "object" && line.data.value.value) {
+                dataVal = line.data.value.value;
+            } else {
+                dataVal = 0;
             }
 
-            dataVal = (typeof line.data.value === "string")
-                ? line.data.type === "direct"
-                ? symbolTable[line.data.value].addr
-                : symbolTable[line.data.value].value
-                : (typeof line.data === "number") ? line.data
-                : (typeof line.data.value === "number") ? line.data.value
-                : typeof line.data.value === "object" && line.data.value.value ? line.data.value.value
-                : 0;
-            objCode.push({ data: line.opcode, kind: 'code', location: line.location });
-            objCode.push({ data: dataVal & 0xFF, kind: (typeof line.data.value === "string" && line.data.type === "direct") ? 'addr' : 'data', location: line.data.location });
-            objCode.push({ data: dataVal >> 8, kind: (typeof line.data.value === "string" && line.data.type === "direct") ? 'addr' : 'data', location: line.data.location });
+            objCode.push({ data: line.opcode, kind: 'code', currentAddress: currentAddress, location: line.location });
+            currentAddress += 1;
+            objCode.push({ data: dataVal & 0xFF, kind: (typeof line.data.value === "string" && line.data.type === "direct") ? 'addr' : 'data', currentAddress: currentAddress, location: line.data.location });
+            currentAddress += 1;
+            objCode.push({ data: dataVal >> 8, kind: (typeof line.data.value === "string" && line.data.type === "direct") ? 'addr' : 'data', currentAddress: currentAddress, location: line.data.location });
+            currentAddress += 1;
         }
     }
-
-    console.log(objCode);
 
     return objCode;
 }
@@ -358,31 +433,36 @@ machineCode = prg:program {
 /**
  * Create intermediate object code with symbol strings.
  */
-program = __ first:line rest:(eol+ __ l:line {return l})* {return [first].concat(rest);}
+program = __ first:line rest:(eol+ __ l:(!. / l:line { return l; }) {return l})* {
+    return [first].concat(rest);
+}
 
 opWithLabel = label:labelPart? op:(operation / directive) comment? {
     if (label && label !== "") {
-        console.log("op", op);
         symbolTable[label.value] = {
             addr: ilc,
-            value: op.opcode != null ? op.opcode :
-                op.data ?
+            value: op.data ?
                     Array.isArray(op.data) ?
-                        op.data[0].value ?
-                            op.data[0].value : op.data[0]
+                        op.data.map(function (d) {
+                            return d.value ? d.value : d;
+                        })
                         : op.data.value ?
                             op.data.value : op.data
-                    : null
+                    : ilc
         };
     }
 
     if (op !== null) {
       ilc += op.size;
-      return op;
+      return { ...op, label };
     }
 }
 
-line = (op:opWithLabel) / comment / __ / lineError {
+defineSymbolWithLabel = label:labelPartWithOptionalColon op:defineDirective comment? {
+    return { ...op, label };
+}
+
+line = op:(defineSymbolWithLabel / opWithLabel) / (comment:comment) / __ / lineError {
     return op;
 }
 
@@ -392,10 +472,23 @@ lineError "Error in this line" = lineWithError:.* {
     return false;
 }
 
-labelPart = label:label ":" whitespace* {
+label_opcode_whitespace = [ \t\r\n]
+
+label_opcode_separator = (label_opcode_whitespace+ comment*)*
+
+labelPart = label:label ":" label_opcode_separator {
     return { value: label.value, location: label.location, type: "definition" }
+} / label whitespace* ":"  label_opcode_separator {
+    error("There should not be space between the label the ':' symbol");
 }
-label "label" = first:[a-zA-Z?@] rest:([a-zA-Z0-9]*) {
+
+labelPartWithOptionalColon = label:label ":"? label_opcode_separator {
+    return { value: label.value, location: label.location, type: "definition" }
+} / label whitespace* ":"  label_opcode_separator {
+    error("There should not be space between the label the ':' symbol");
+}
+
+label "label" = first:[a-zA-Z?@] rest:([a-zA-Z0-9_]*) {
 	return { value: first + rest.join(""), location: location() };
 }
 
@@ -429,48 +522,76 @@ registerPairPSW "Program status word (Contents of A and status flags, written as
 stackPointer "Stack Pointer (written as, SP or sp)" =
     l:("SP" / "sp") !identLetter { return l.toLowerCase(); }
 
-expression_list "comma separated expression" = d:expression ds:("," __ expression)* {
-  console.log("d", d);
-  console.log("ds", ds);
-  console.log("value", [d.value].concat(ds.map(function (d_) { return d_[2].value; })));
-  return { value: [d.value].concat(ds.map(function (d_) { return d_[2].value; })), location: location() };
+expression_list "comma separated expression" = d:expressionImmediate ds:("," __ expressionImmediate)* {
+    return { value: [typeof d.value === 'function' ? d.value() : d.value].concat(ds.map(function (d_) { return d_[2].value; }).flat()).flat(), location: location() };
 }
 
 data8_list "comma separated byte values" = d:data8 ds:("," __ data8)* {
-  return { value: [d.value].concat(ds.map(function (d_) { return d_[2].value; })), location: location() };
+    return { value: d.value.concat(ds.map(function (d_) { return d_[2].value; }).flat()).flat(), location: location() };
 }
 
 data16_list "comma separated byte values" = d:data16 ds:("," __ data16)* {
-  return { value: [d.value].concat(ds.map(function (d_) { return d_[2].value; })), location: location() };
+    return { value: [d.value].concat(ds.map(function (d_) { return d_[2].value; })).flat(), location: location() };
 }
 
-data8 "byte" = n:numLiteral {
-    if (n > 0xFF) {
-        var e = new Error();
-        e.message = "8-bit data expected.";
-        if (typeof line !== "undefined" && typeof column !== "undefined") {
-            e.line = line; e.column = column;
+data8 "byte" = n:(numLiteral / stringLiteral) {
+    if (typeof n.value === 'number') {
+        if (n.value > 0xFF) {
+            var e = new Error();
+            e.message = "8-bit data expected.";
+            if (typeof line !== "undefined" && typeof column !== "undefined") {
+                e.line = line; e.column = column;
+            }
+            throw e;
+        } else {
+            return { value: [n.value], location: n.location };
         }
-        throw e;
-    } else {
-        return { value: n.value, location: n.location };
+    } else if (Array.isArray(n.value)) {
+        // Handle string literal where n.value is an array of ASCII values
+        if (n.value[0] > 0xFF) {
+            var e = new Error();
+            e.message = "8-bit data expected for string.";
+            if (typeof line !== "undefined" && typeof column !== "undefined") {
+                e.line = line; e.column = column;
+            }
+            throw e;
+        } else {
+            return { value: n.value, location: n.location }; // Return the ASCII value of the single character
+        }
     }
 }
 
-data16 "word" = n:numLiteral {
-    if (n > 0xFFFF) {
-        var e = new Error();
-        e.message = "16-bit data expected.";
-        if (typeof line !== "undefined" && typeof column !== "undefined") {
-            e.line = line; e.column = column;
+data16 "word" = n:(numLiteral / stringLiteral) {
+    if (typeof n.value === 'number') {
+        if (n.value > 0xFFFF) {
+            var e = new Error();
+            e.message = "16-bit data expected.";
+            if (typeof line !== "undefined" && typeof column !== "undefined") {
+                e.line = line; e.column = column;
+            }
+            throw e;
+        } else {
+            return { value: n.value, location: n.location };
         }
-        throw e;
-    } else {
-        return { value: n, location: location() };
+    } else if (Array.isArray(n.value)) {
+        // Handle string literal where n.value is an array of ASCII values
+        if (n.value.length !== 2) {
+            var e = new Error();
+            e.message = "16-bit data expected for string.";
+            if (typeof line !== "undefined" && typeof column !== "undefined") {
+                e.line = line; e.column = column;
+            }
+            throw e;
+        } else {
+            // Combine the two ASCII values to form a 16-bit word
+            const highByte = n.value[0] << 8;
+            const lowByte = n.value[1];
+            return { value: highByte | lowByte, location: n.location };
+        }
     }
 }
 
-numLiteral "numeric literal" = binLiteral / hexLiteral / octalLiteral / decLiteral
+numLiteral "numeric literal" =  hexLiteral / binLiteral / octalLiteral / decLiteral
 
 decLiteral "decimal literal" = decForm2 / decForm1
 
@@ -478,7 +599,7 @@ decForm1 = neg:[-]? digits:digit+ {
     return { value: parseInt((!neg ? "":"-") + digits.join(""), 10), location: location() };
 }
 
-decForm2 = neg:[-]? digits:digit+ "D" {
+decForm2 = neg:[-]? digits:digit+ "D"i {
     return { value: parseInt((!neg ? "":"-") + digits.join(""), 10), location: location() };
 }
 
@@ -488,7 +609,7 @@ hexForm1 = '0x' hexits:hexit+ {
     return { value: parseInt(hexits.join(""), 16), location: location() };
 }
 
-hexForm2 = hexits:hexit+ ("H" / "h") {
+hexForm2 = hexits:hexit+ "H"i {
     return { value: parseInt(hexits.join(""), 16), location: location() };
 }
 
@@ -496,8 +617,24 @@ octalLiteral "Octal Literal" = octits:octit+ ("O" / "Q" / "o" / "q") {
     return { value: parseInt(octits.join(""), 8), location: location() };
 }
 
-binLiteral "binary literal" = bits:bit+ "B" {
+binLiteral "binary literal" = bits:bit+ "B"i {
     return { value: parseInt(bits.join(""), 2), location: location() };
+}
+
+stringLiteral "string literal" = "'" chars:char* "'" {
+    return { value: chars, location: location() };
+}
+
+char =
+    escapedChar / // Handle escaped characters
+    asciiChar // Match any printable ASCII character except single quote
+
+asciiChar = [\x20-\x26\x28-\x7E] {
+    return text().charCodeAt(0); // Return the ASCII value of the matched character
+}
+
+escapedChar = "\\" ch:[\\'"] {
+    return ch.charCodeAt(0); // Return the ASCII value of the escaped character
 }
 
 
@@ -510,81 +647,174 @@ hexit "hex digit" = [0-9a-fA-F]
 octit "octal digit" = [0-7]
 bit "bit" = [01]
 
-expression "expression" = arithmetic
+expressionImmediate "expression" = arithmeticImmediate
 
 // / shift / logical / compare / byteIsolation
 
-arithmetic "Arithmetic Expression" = addition
+arithmeticImmediate "Arithmetic Expression" = additionImmediate
 
-addition "Addition"
-  = left:subtraction whitespace* "+" whitespace* right:addition {
-    console.log("left", left);
-    console.log("right", right);
-    console.log("symbolTable", symbolTable);
-    var l = typeof left.value === "string" ? symbolTable[left.value].value: left.value;
-    var r = typeof right.value === "string" ? symbolTable[right.value].value : right.value;
-    console.log("left", l);
-    console.log("right", r);
-    return { value: l + r, location: location() };
+additionImmediate "Addition"
+  = left:subtractionImmediate whitespace* "+" whitespace* right:additionImmediate {
+    return { value: function () {
+        var l = getSymbolValueOrValue(left.value, 'immediate', 8, location());
+        var r = getSymbolValueOrValue(right.value, 'immediate', 8, location());
+        return l + r;
+    }, location: location() };
   }
-  / subtraction
+  / subtractionImmediate
 
-subtraction "Subtraction"
-  = left:multiplication whitespace* "-" whitespace* right:subtraction {
-    var l = typeof left.value === "string" ? symbolTable[left.value].value: left.value;
-    var r = typeof right.value === "string" ? symbolTable[right.value].value : right.value;
-    return { value: l - r, location: location() };
+subtractionImmediate "Subtraction"
+  = left:multiplicationImmediate whitespace* "-" whitespace* right:subtractionImmediate {
+    return { value: function () {
+        var l = getSymbolValueOrValue(left.value, 'immediate', 8, location());
+        var r = getSymbolValueOrValue(right.value, 'immediate', 8, location());
+        return l - r;
+    }, location: location() };
   }
-  / multiplication
+  / multiplicationImmediate
 
-multiplication "Multiplication"
-  = left:division whitespace* "*" whitespace* right:multiplication {
-    var l = typeof left.value === "string" ? symbolTable[left.value].value: left.value;
-    var r = typeof right.value === "string" ? symbolTable[right.value].value : right.value;
-    return { value: l * r, location: location() };
+multiplicationImmediate "Multiplication"
+  = left:divisionImmediate whitespace* "*" whitespace* right:multiplicationImmediate {
+    return { value: function () {
+        var l = getSymbolValueOrValue(left.value, 'immediate', 8, location());
+        var r = getSymbolValueOrValue(right.value, 'immediate', 8, location());
+        return l * r;
+    }, location: location() };
   }
-  / division
+  / divisionImmediate
 
-division "Division"
-  = left:modulo whitespace* "/" whitespace* right:division {
-    var l = typeof left.value === "string" ? symbolTable[left.value].value: left.value;
-    var r = typeof right.value === "string" ? symbolTable[right.value].value : right.value;
-    return { value: l / r, location: location() };
+divisionImmediate "Division"
+  = left:moduloImmediate whitespace* "/" whitespace* right:divisionImmediate {
+    return { value: function () {
+        var l = getSymbolValueOrValue(left.value, 'immediate', 8, location());
+        var r = getSymbolValueOrValue(right.value, 'immediate', 8, location());
+        return l / r;
+    }, location: location() };
   }
-  / modulo
+  / moduloImmediate
 
-modulo "Modulo"
-  = left:(numLiteral / label) whitespace* "MOD"i whitespace* right:modulo {
-    var l = typeof left.value === "string" ? symbolTable[left.value].value: left.value;
-    var r = typeof right.value === "string" ? symbolTable[right.value].value : right.value;
-    return { value: l % r, location: location() };
+moduloImmediate "Modulo"
+  = left:(numLiteral / labelImmediate) whitespace* "MOD"i whitespace* right:moduloImmediate {
+    return { value: function () {
+        var l = getSymbolValueOrValue(left.value, 'immediate', 8, location());
+        var r = getSymbolValueOrValue(right.value, 'immediate', 8, location());
+        return l % r;
+    }, location: location() };
   }
-  / numLiteral
-  / label
-  / shift
-  / "(" addition:addition ")" { return addition; }
-
-shift "Shift Expression" = shiftRight
-
-shiftRight "Shift Right"
-  = left:shiftLeft whitespace+ "SHR"i whitespace+ right:shiftRight {
-    var l = typeof left.value === "string" ? symbolTable[left.value].value: left.value;
-    var r = typeof right.value === "string" ? symbolTable[right.value].value : right.value;
-    return { value: l >> r, location: location() };
-  }
-  / shiftLeft
-
-
-shiftLeft "Shift Left"
-  = left:(numLiteral / label) whitespace+ "SHL"i whitespace+ right:shiftLeft {
-    var l = typeof left.value === "string" ? symbolTable[left.value].value: left.value;
-    var r = typeof right.value === "string" ? symbolTable[right.value].value : right.value;
-    return { value: l << r, location: location() };
-  }
-  / numLiteral
   / labelImmediate
-  / "(" shr:shift ")" { return shr; }
+  / numLiteral
+  / stringLiteral
+  / shiftImmediate
+  / "(" addition:additionImmediate ")" { return addition; }
 
+shiftImmediate "Shift Expression" = shiftRightImmediate
+
+shiftRightImmediate "Shift Right"
+  = left:shiftLeftImmediate whitespace+ "SHR"i whitespace+ right:shiftRightImmediate {
+    return { value: function () {
+        var l = getSymbolValueOrValue(left.value, 'immediate', 8, location());
+        var r = getSymbolValueOrValue(right.value, 'immediate', 8, location());
+        return l >> r;
+    }, location: location() };
+  }
+  / shiftLeftImmediate
+
+
+shiftLeftImmediate "Shift Left"
+  = left:(numLiteral / labelImmediate) whitespace+ "SHL"i whitespace+ right:shiftLeftImmediate {
+    return { value: function () {
+        var l = getSymbolValueOrValue(left.value, 'immediate', 8, location());
+        var r = getSymbolValueOrValue(right.value, 'immediate', 8, location());
+        return l << r;
+    }, location: location() };
+  }
+  / labelImmediate
+  / numLiteral
+  / "(" shr:shiftImmediate ")" { return shr; }
+
+expressionDirect "expression" = arithmeticDirect
+
+// / shift / logical / compare / byteIsolation
+
+arithmeticDirect "Arithmetic Expression" = additionDirect
+
+additionDirect "Addition"
+  = left:subtractionDirect whitespace* "+" whitespace* right:additionDirect {
+    return { value: function () {
+        var l = getSymbolValueOrValue(left.value, 'direct', 8, location());
+        var r = getSymbolValueOrValue(right.value, 'direct', 8, location());
+        return l + r;
+    }, location: location() };
+  }
+  / subtractionDirect
+
+subtractionDirect "Subtraction"
+  = left:multiplicationDirect whitespace* "-" whitespace* right:subtractionDirect {
+    return { value: function () {
+        var l = getSymbolValueOrValue(left.value, 'direct', 8, location());
+        var r = getSymbolValueOrValue(right.value, 'direct', 8, location());
+        return l - r;
+    }, location: location() };
+  }
+  / multiplicationDirect
+
+multiplicationDirect "Multiplication"
+  = left:divisionDirect whitespace* "*" whitespace* right:multiplicationDirect {
+    return { value: function() {
+        var l = getSymbolValueOrValue(left.value, 'direct', 8, location());
+        var r = getSymbolValueOrValue(right.value, 'direct', 8, location());
+        return l * r;
+    }, location: location() };
+  }
+  / divisionDirect
+
+divisionDirect "Division"
+  = left:moduloDirect whitespace* "/" whitespace* right:divisionDirect {
+    return { value: function () {
+        var l = getSymbolValueOrValue(left.value, 'direct', 8, location());
+        var r = getSymbolValueOrValue(right.value, 'direct', 8, location());
+        return l / r;
+    }, location: location() };
+  }
+  / moduloDirect
+
+moduloDirect "Modulo"
+  = left:(numLiteral / labelDirect) whitespace* "MOD"i whitespace* right:moduloDirect {
+    return { value: function () {
+        var l = getSymbolValueOrValue(left.value, 'direct', 8, location());
+        var r = getSymbolValueOrValue(right.value, 'direct', 8, location());
+        return l % r;
+    }, location: location() };
+  }
+  / labelDirect
+  / numLiteral
+  / shiftDirect
+  / "(" addition:additionDirect ")" { return addition; }
+
+shiftDirect "Shift Expression" = shiftRightDirect
+
+shiftRightDirect "Shift Right"
+  = left:shiftLeftDirect whitespace+ "SHR"i whitespace+ right:shiftRightDirect {
+    return { value: function () {
+        var l = getSymbolValueOrValue(left.value, 'direct', 8, location());
+        var r = getSymbolValueOrValue(right.value, 'direct', 8, location());
+        return l >> r;
+    }, location: location() };
+  }
+  / shiftLeftDirect
+
+
+shiftLeftDirect "Shift Left"
+  = left:(numLiteral / labelDirect) whitespace+ "SHL"i whitespace+ right:shiftLeftDirect {
+    return { value: function () {
+        var l = getSymbolValueOrValue(left.value, 'direct', 8, location());
+        var r = getSymbolValueOrValue(right.value, 'direct', 8, location());
+        return l << r;
+    }, location: location() };
+  }
+  / labelDirect
+  / numLiteral
+  / "(" shr:shiftDirect ")" { return shr; }
 
 comment "comment" = ";" c:[^\n\r\n\u2028\u2029]* {return c.join("");}
 
@@ -594,25 +824,39 @@ eol "line end" = "\n" / "\r\n" / "\r" / "\u2028" / "\u2029"
 
 whitespace "whitespace" = [ \t\v\f\u00A0\uFEFF\u1680\u180E\u2000-\u200A\u202F\u205F\u3000]
 
-directive = dir:(dataDefinition / defineSymbol) {
-    console.log("directive", dir);
+directive = dir:(dataDefinition / orgDirective) whitespace* {
+    var opcode = dir.name[0].toLowerCase();
     return {
-        opcode: null,
+        opcode: opcode,
         data: dir.params,
-        size: dir.params.length,
+        size: opcode === "org" || opcode === 'equ' ? 0 : dir.params.length,
+        location: location()
+    };
+}
+
+defineDirective = dir:(defineSymbol / setSymbol) whitespace* {
+    var opcode = dir.name[0].toLowerCase();
+    return {
+        opcode: opcode,
+        data: dir.params,
+        size: 0,
         location: location()
     };
 }
 
 operation = inst:(carryBitInstructions / singleRegInstructions / nopInstruction /
     dataTransferInstructions / regOrMemToAccInstructions / rotateAccInstructions /
-    regPairInstructions / immediateInstructions / directAddressingInstructions /
+    regPairInstructions / immediateInstructions / ioInstructions / directAddressingInstructions /
     jumpInstructions / callInstructions / returnInstructions / haltInstruction) whitespace* {
 
     var paramTypes = inst.paramTypes,
         data,
         paramTypesStr = paramTypes.join(","),
         opcode = mnemonics[inst.name.toLowerCase() + (paramTypesStr === "" ? "" : " ") + paramTypesStr];
+
+    if (opcode == null) {
+        error("Invalid instruction. Please check if you have used the correct operands for the instruction.");
+    }
 
     if (typeof paramTypes[0] !== "undefined" &&
         (paramTypes[0] === "adr" || paramTypes[0] === "d16" || paramTypes[0] === "d8")) {
@@ -741,6 +985,15 @@ immediateInstructions = op:(op_lxi / op_mvi / op_adi / op_aci / op_sui / op_sbi 
     };
 }
 
+ioInstructions = op:(op_in / op_out) {
+    var name = op[0].toLowerCase(), params, paramTypes;
+    return {
+        name: name,
+        params: [op[2]],
+        paramTypes: ["d8"]
+    };
+}
+
 directAddressingInstructions = op:(op_sta / op_lda / op_shld / op_lhld) {
     return {
         name: op[0],
@@ -801,7 +1054,13 @@ haltInstruction = op:(op_hlt) {
 }
 
 defineSymbol = dir:(dir_equ) {
-    console.log("defineSymbol", dir);
+    return {
+        name: dir,
+        params: [dir[2].value]
+    }
+}
+
+setSymbol = dir:(dir_set) {
     return {
         name: dir,
         params: [dir[2].value]
@@ -815,36 +1074,44 @@ dataDefinition = dir:(dir_db) {
     };
 }
 
+orgDirective = dir:(dir_org) {
+    ilc = dir[2].value;
+    return {
+        name: dir,
+        params: [dir[2].value]
+    };
+}
 
-dir_db  = ("DB"   / "db"  ) whitespace+ (data8_list / expression_list)
-dir_equ = ("EQU"  / "equ" ) whitespace+ (data8 / expression)
+dir_db  = "DB"i  whitespace+ (expression_list / data8_list)
+dir_equ = "EQU"i whitespace+ (expressionImmediate / data16)
+dir_set = "SET"i whitespace+ (expressionImmediate / data16)
+dir_org = "ORG"i whitespace+ (expressionImmediate / data16)
 
-op_stc  = ("STC"  / "stc" )
-op_cmc  = ("CMC"  / "cmc" )
-op_cma  = ("CMA"  / "cma" )
-op_daa  = ("DAA"  / "daa" )
-op_sphl = ("SPHL" / "sphl")
-op_pchl = ("PCHL" / "pchl")
-op_hlt  = ("HLT"  / "hlt" )
-op_rlc  = ("RLC"  / "rlc" )
-op_rrc  = ("RRC"  / "rrc" )
-op_rar  = ("RAR"  / "rar" )
-op_ral  = ("RAL"  / "ral" )
-op_ret  = ("RET"  / "ret" )
-op_rc   = ("RC"   / "rc"  )
-op_rnc  = ("RNC"  / "rnc" )
-op_rz   = ("RZ"   / "rz"  )
-op_rnz  = ("RNZ"  / "rnz" )
-op_rp   = ("RP"   / "rp"  )
-op_rm   = ("RM"   / "rm"  )
-op_rpe  = ("RPE"  / "rpe" )
-op_rpo  = ("RPO"  / "rpo" )
-op_xchg = ("XCHG" / "xchg")
-op_xthl = ("XTHL" / "xthl")
-op_ei   = ("EI"   / "ei"  )
-op_di   = ("DI"   / "di"  )
-op_nop  = ("NOP"  / "nop" )
-
+op_stc  = "STC"i
+op_cmc  = "CMC"i
+op_cma  = "CMA"i
+op_daa  = "DAA"i
+op_sphl = "SPHL"i
+op_pchl = "PCHL"i
+op_hlt  = "HLT"i
+op_rlc  = "RLC"i
+op_rrc  = "RRC"i
+op_rar  = "RAR"i
+op_ral  = "RAL"i
+op_ret  = "RET"i
+op_rc   = "RC"i
+op_rnc  = "RNC"i
+op_rz   = "RZ"i
+op_rnz  = "RNZ"i
+op_rp   = "RP"i
+op_rm   = "RM"i
+op_rpe  = "RPE"i
+op_rpo  = "RPO"i
+op_xchg = "XCHG"i
+op_xthl = "XTHL"i
+op_ei   = "EI"i
+op_di   = "DI"i
+op_nop  = "NOP"i
 
 op_inr  = ("INR"  / "inr" ) whitespace+ register
 op_dcr  = ("DCR"  / "dcr" ) whitespace+ register
@@ -858,44 +1125,111 @@ op_ana  = ("ANA"  / "ana" ) whitespace+ register
 op_xra  = ("XRA"  / "xra" ) whitespace+ register
 op_ora  = ("ORA"  / "ora" ) whitespace+ register
 op_cmp  = ("CMP"  / "cmp" ) whitespace+ register
+
 op_push = ("PUSH" / "push") whitespace+ (registerPair / registerPairPSW / registerA)
 op_pop  = ("POP"  / "pop" ) whitespace+ (registerPair / registerPairPSW)
-op_dad  = ("DAD"  / "dad" ) whitespace+ (registerPair / stackPointer)
-op_inx  = ("INX"  / "inx" ) whitespace+ (registerPair / stackPointer)
-op_dcx  = ("DCX"  / "dcx" ) whitespace+ (registerPair / stackPointer)
-op_adi  = ("ADI"  / "adi" ) whitespace+ (data8 / labelImmediate / expression)
-op_aci  = ("ACI"  / "aci" ) whitespace+ (data8 / labelImmediate / expression)
-op_sui  = ("SUI"  / "sui" ) whitespace+ (data8 / labelImmediate / expression)
-op_sbi  = ("SBI"  / "sbi" ) whitespace+ (data8 / labelImmediate / expression)
-op_ani  = ("ANI"  / "ani" ) whitespace+ (data8 / labelImmediate / expression)
-op_xri  = ("XRI"  / "xri" ) whitespace+ (data8 / labelImmediate / expression)
-op_ori  = ("ORI"  / "ori" ) whitespace+ (data8 / labelImmediate / expression)
-op_cpi  = ("CPI"  / "cpi" ) whitespace+ (data8 / labelImmediate / expression)
-op_sta  = ("STA"  / "sta" ) whitespace+ (data16 / labelDirect / expression )
-op_lda  = ("LDA"  / "lda" ) whitespace+ (data16 / labelDirect / expression)
-op_shld = ("SHLD" / "shld") whitespace+ (data16 / labelDirect / expression)
-op_lhld = ("LHLD" / "lhld") whitespace+ (data16 / labelDirect / expression)
 
-op_jmp  = ("JMP"  / "jmp" ) whitespace+ (labelDirect / data16 / expression)
-op_jc   = ("JC"   / "jc"  ) whitespace+ (labelDirect / data16 / expression)
-op_jnc  = ("JNC"  / "jnc" ) whitespace+ (labelDirect / data16 / expression)
-op_jz   = ("JZ"   / "jz"  ) whitespace+ (labelDirect / data16 / expression)
-op_jnz  = ("JNZ"  / "jnz" ) whitespace+ (labelDirect / data16 / expression)
-op_jm   = ("JM"   / "jm"  ) whitespace+ (labelDirect / data16 / expression)
-op_jp   = ("JP"   / "jp"  ) whitespace+ (labelDirect / data16 / expression)
-op_jpe  = ("JPE"  / "jpe" ) whitespace+ (labelDirect / data16 / expression)
-op_jpo  = ("JPO"  / "jpo" ) whitespace+ (labelDirect / data16 / expression)
+op_dad  = op:"DAD"i operands:registerPairOrStackPointerOperand { return [op].concat(operands); }
+op_inx  = op:"INX"i operands:registerPairOrStackPointerOperand { return [op].concat(operands); }
+op_dcx  = op:"DCX"i operands:registerPairOrStackPointerOperand { return [op].concat(operands); }
 
-op_call = ("CALL" / "call") whitespace+ (data16 / labelDirect / expression)
-op_cc   = ("CC"   / "cc"  ) whitespace+ (data16 / labelDirect / expression)
-op_cnc  = ("CNC"  / "cnc" ) whitespace+ (data16 / labelDirect / expression)
-op_cz   = ("CZ"   / "cz"  ) whitespace+ (data16 / labelDirect / expression)
-op_cnz  = ("CNZ"  / "cnz" ) whitespace+ (data16 / labelDirect / expression)
-op_cm   = ("CM"   / "cm"  ) whitespace+ (data16 / labelDirect / expression)
-op_cp   = ("CP"   / "cp"  ) whitespace+ (data16 / labelDirect / expression)
-op_cpe  = ("CPE"  / "cpe" ) whitespace+ (data16 / labelDirect / expression)
-op_cpo  = ("CPO"  / "cpo" ) whitespace+ (data16 / labelDirect / expression)
+registerPairOrStackPointerOperand = w:whitespace+ o:(registerPair / stackPointer) {
+    return [w, o];
+} / registerPairOrStackPointerOperandError
 
-op_mov  = ("MOV"  / "mov" ) whitespace+ register whitespace* [,] whitespace* register
-op_lxi  = ("LXI"  / "lxi" ) whitespace+ (registerPair / stackPointer) whitespace* [,] whitespace* (data16 / labelImmediate / expression)
-op_mvi  = ("MVI"  / "mvi" ) whitespace+ register whitespace* [,] whitespace* (data8 / labelImmediate / expression)
+registerPairOrStackPointerOperandError = .* {
+    error("Invalid operands provided. Expected operands, register pair or stack pointer");
+}
+
+op_adi  = op:"ADI"i operands:immediate_instruction_operands { return [op].concat(operands); }
+op_aci  = op:"ACI"i operands:immediate_instruction_operands { return [op].concat(operands); }
+op_sui  = op:"SUI"i operands:immediate_instruction_operands { return [op].concat(operands); }
+op_sbi  = op:"SBI"i operands:immediate_instruction_operands { return [op].concat(operands); }
+op_ani  = op:"ANI"i operands:immediate_instruction_operands { return [op].concat(operands); }
+op_xri  = op:"XRI"i operands:immediate_instruction_operands { return [op].concat(operands); }
+op_ori  = op:"ORI"i operands:immediate_instruction_operands { return [op].concat(operands); }
+op_cpi  = op:"CPI"i operands:immediate_instruction_operands { return [op].concat(operands); }
+op_in   = op:"IN"i  operands:immediate_instruction_operands { return [op].concat(operands); }
+op_out  = op:"OUT"i operands:immediate_instruction_operands { return [op].concat(operands); }
+
+immediate_instruction_operands = w:whitespace+ o:(expressionImmediate / data8 / labelImmediate) {
+    return [w, o]
+} / immediate_instruction_operands_error
+
+immediate_instruction_operands_error = .* {
+    error("Invalid operand provided. The operand should be either an expression, 8-byte data or a label.");
+}
+
+op_sta  = ("STA"  / "sta" ) whitespace+ (data16 / labelDirect)
+op_lda  = ("LDA"  / "lda" ) whitespace+ (data16 / labelDirect)
+op_shld = ("SHLD" / "shld") whitespace+ (data16 / labelDirect)
+op_lhld = ("LHLD" / "lhld") whitespace+ (data16 / labelDirect)
+
+op_jmp  = inst:("JMP"  / "jmp" ) operand:jump_operand { return [inst].concat(operand); }
+op_jc   = inst:("JC"   / "jc"  ) operand:jump_operand { return [inst].concat(operand); }
+op_jnc  = inst:("JNC"  / "jnc" ) operand:jump_operand { return [inst].concat(operand); }
+op_jz   = inst:("JZ"   / "jz"  ) operand:jump_operand { return [inst].concat(operand); }
+op_jnz  = inst:("JNZ"  / "jnz" ) operand:jump_operand { return [inst].concat(operand); }
+op_jm   = inst:("JM"   / "jm"  ) operand:jump_operand { return [inst].concat(operand); }
+op_jp   = inst:("JP"   / "jp"  ) operand:jump_operand { return [inst].concat(operand); }
+op_jpe  = inst:("JPE"  / "jpe" ) operand:jump_operand { return [inst].concat(operand); }
+op_jpo  = inst:("JPO"  / "jpo" ) operand:jump_operand { return [inst].concat(operand); }
+
+jump_operand = w:whitespace+ operand:(expressionDirect / labelDirect / data16) / jump_operand_error {
+    return [w, operand]
+}
+
+jump_operand_error = .* {
+    error("Invalid operand for jump instruction. Expected a 2 byte address, label or an expression.");
+}
+
+op_call = inst:"CALL"i operands:call_operand { return [inst].concat(operands); }
+op_cc   = inst:"CC"i operands:call_operand { return [inst].concat(operands); }
+op_cnc  = inst:"CNC"i operands:call_operand { return [inst].concat(operands); }
+op_cz   = inst:"CZ"i operands:call_operand { return [inst].concat(operands); }
+op_cnz  = inst:"CNZ"i operands:call_operand { return [inst].concat(operands); }
+op_cm   = inst:"CM"i operands:call_operand { return [inst].concat(operands); }
+op_cp   = inst:"CP"i operands:call_operand { return [inst].concat(operands); }
+op_cpe  = inst:"CPE"i operands:call_operand { return [inst].concat(operands); }
+op_cpo  = inst:"CPO"i operands:call_operand { return [inst].concat(operands); }
+
+call_operand = w:whitespace+ operand:(expressionDirect / data16 / labelDirect) / call_operand_error {
+    return [w, operand];
+}
+
+call_operand_error = .* {
+    error("Invalid operand. Expected a 2 byte address, label or an expression.");
+}
+
+op_mov = inst:"MOV"i w1:whitespace+ operands:movOperands {
+    return [inst, w1].concat(operands);
+}
+
+movOperands = dest:register w1:whitespace* ',' w2:whitespace* src:register {
+    if (dest === src && dest.toLowerCase() === "m") {
+        error("Invalid operands for MOV instruction. Both the operands cannot be the memory locations.");
+    }
+    return [dest, w1, ',', w2, src];
+} / register whitespace* register {
+    error("Invalid operand syntax for MOV instruction. You forgot to add a ',' (comma) between the operands. Expected syntax: MOV register, register.");
+} / movOperandsError
+
+movOperandsError = .* {
+    error("Invalid operands for MOV instruction. Expected syntax: MOV register, register.");
+}
+
+op_lxi  = "LXI"i whitespace+ (registerPair / stackPointer) whitespace* [,] whitespace* (expressionDirect / data16 / labelDirect)
+
+op_mvi  = inst:"MVI"i operands:mvi_operands {
+    return [inst].concat(operands);
+}
+
+mvi_operands = w1:whitespace+ dest:register w2:whitespace* c:[,] w3:whitespace* data:(expressionImmediate / data8 / labelImmediate) {
+    return [w1, dest, w2, c, w3, data];
+} / whitespace+ register whitespace* data:(expressionImmediate / data8 / labelImmediate) {
+    error("Invalid operand syntax for MVI. You forgot to add a ',' (comma) between the operands.");
+} / mvi_operand_error
+
+mvi_operand_error = .* {
+    error("Invalid operands for MVI. Expected byte, a label or an expression. Also make sure the operands are separated by a comma. MVI register, register");
+}
