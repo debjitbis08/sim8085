@@ -10,6 +10,7 @@ import { VsEmptyWindow, VsInfo } from 'solid-icons/vs';
 import { HiSolidTrash } from 'solid-icons/hi';
 import { store, setStore } from '../store/store.js';
 import { setAllMemoryLocations, setMemoryLocation } from '../core/simulator.js';
+import { FiInfo } from 'solid-icons/fi';
 
 export default function MemoryList({ threshold = 4 }) {
   const [customRanges, setCustomRanges] = createSignal([]);
@@ -217,7 +218,7 @@ export default function MemoryList({ threshold = 4 }) {
           </Tooltip>
         </div>
       </div>
-      <div class="flex justify-between items-center gap-1 mb-4 mt-2">
+      <div class="flex justify-between items-center gap-1 mb-0 mt-2">
         <div class="w-full">
           <div class="flex flex-wrap items-center gap-2 font-mono text-xs">
             {dataRanges().map((range, index) => (
@@ -269,7 +270,7 @@ export default function MemoryList({ threshold = 4 }) {
           </Tooltip.Portal>
         </Tooltip>
       </div>
-      <div class={`w-full ${isAddingCustom() || editingCustom().start !== null ? '' : 'hidden'}`}>
+      <div class={`w-full mt-4 ${isAddingCustom() || editingCustom().start !== null ? '' : 'hidden'}`}>
         <div class="flex items-center justify-between gap-3">
           <div class="flex items-center gap-1 border-b border-b-gray-300 min-w-0">
             <span class="text-gray-400 dark:text-gray-500">0x</span>
@@ -296,7 +297,7 @@ export default function MemoryList({ threshold = 4 }) {
           <Tooltip>
             <Tooltip.Trigger class="tooltip__trigger">
               <button
-                class="flex items-center justify-center gap-2 w-full p-1 px-4 rounded border border-gray-400 hover:bg-gray-500 dark:border-gray-600 hover:dark:bg-gray-900"
+                class="flex items-center justify-center gap-2 w-full p-1 px-4 rounded border border-gray-400 hover:bg-gray-300 dark:border-gray-600 hover:dark:bg-gray-900 disabled:text-gray-400 dark:disabled:text-gray-700 disabled:hover:bg-gray-100 dark:disabled:hover:bg-gray-800"
                 onClick={addOrEditCustomRange}
                 disabled={inputRange().start === '' || inputRange().end === ''}
               >
@@ -327,7 +328,7 @@ export default function MemoryList({ threshold = 4 }) {
             </h3>
             <p class="text-gray-500 flex items-center gap-2 my-2">
               <VsInfo class="text-blue-400"/>
-              <span class="text-xs">Double click to edit then press Enter to save the value or Tab to edit the next location.</span>
+              <span class="text-xs">Double click the value to edit then press Enter to save the value or Tab to edit the next location.</span>
             </p>
             <div class="h-full overflow-y-auto grow min-h-0 pr-2 mt-2">
               {renderMemoryInRange(currentRange().start, currentRange().end)}
@@ -335,9 +336,15 @@ export default function MemoryList({ threshold = 4 }) {
           </div>
         </div>
       ) : (
-        <p class="text-gray-400 dark:text-gray-500 text-center mt-4">
-          No locations have any data yet. You may add a memory range to watch using the add button above.
-        </p>
+        <>
+          <p class="text-gray-400 dark:text-gray-500 text-center mt-4">
+            No locations have any data yet. You may add a memory range to watch using the add button above.
+          </p>
+          <p class="text-gray-400 dark:text-gray-500 text-center mt-8 flex flex-col items-center">
+            <VsInfo class="text-blue-400"/>
+            <span>This section allows to watch memory ranges you are interested in and also edit them.</span>
+          </p>
+        </>
       )}
     </div>
   );
@@ -413,13 +420,14 @@ function MemoryLocationRow(props) {
             onInput={handleInputChange(setValue)}
             onKeyDown={handleKeyOrBlur}
             onFocus={(e) => e.target.select()}
+            onBlur={saveValue}
             maxlength="2"
             autofocus={true}
             ref={inputRef}
           />
         ) : (
           <span
-            class={`font-mono cursor-pointer ${props.value ? 'text-orange-600 dark:bg-transparent dark:border-b-green-300 dark:text-yellow-400' : 'dark:text-gray-600'}`}
+            class={`font-mono cursor-pointer ${props.value ? 'text-orange-600 dark:bg-transparent dark:border-b-green-300 dark:text-yellow-400' : 'dark:text-gray-700'}`}
             onDblClick={startEditing}
           >{toByteString(props.value)}</span>
         )
