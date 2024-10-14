@@ -74,6 +74,8 @@ function Register(props) {
   const [editing, setEditing] = createSignal(false);
   const [highValue, setHighValue] = createSignal(toByteString(props.high));
   const [lowValue, setLowValue] = createSignal(toByteString(props.low));
+  let highRef;
+  let lowRef;
 
   createEffect(() => {
     if (!editing()) {
@@ -82,8 +84,14 @@ function Register(props) {
     }
   });
 
-  const startEditing = () => {
+  const startEditing = (getInputRef) => {
     setEditing(true);
+    setTimeout(() => {
+      const inputRef = getInputRef();
+      if (inputRef) {
+        inputRef.focus();
+      }
+    });
   };
 
   // Function to handle input change
@@ -108,6 +116,8 @@ function Register(props) {
   const handleKeyOrBlur = (e) => {
     if (e.key === 'Enter' || e.type === 'blur') {
       saveValue();
+    } else if (e.key === 'Escape') {
+      setEditing(false);
     }
   };
 
@@ -115,37 +125,41 @@ function Register(props) {
     <div class="flex items-center gap-1 my-2 p-1 hover:bg-gray-200 hover:dark:bg-gray-600">
       <span class="font-bold grow">{props.name}</span>
       <span class="font-mono text-gray-600 dark:text-gray-400">0x</span>
-      { editing() ? (
+      {editing() ? (
         <input
-          class="font-mono w-5 border-b border-b-gray-800"
+          class="font-mono w-5 border-b border-b-gray-400 dark:bg-transparent"
           value={highValue()}
           onInput={handleInputChange(setHighValue)}
           onKeyDown={handleKeyOrBlur}
           onFocus={(e) => e.target.select()}
+          onBlur={saveValue}
           maxlength="2"
-          autofocus
+          autofocus={true}
+          ref={highRef}
         />
       ) : (
         <span
           class="font-mono cursor-pointer"
-          onDblClick={() => setEditing(true)}
+          onDblClick={() => startEditing(() => highRef) }
         >
           {toByteString(props.high)}
         </span>
       )}
       { editing() && props.canEditLow ? (
         <input
-          class="font-mono w-5 border-b border-b-gray-800 dark:bg-transparent"
+          class="font-mono w-5 border-b border-b-gray-400 dark:bg-transparent"
           value={lowValue()}
           onInput={handleInputChange(setLowValue)}
           onKeyDown={handleKeyOrBlur}
+          onBlur={saveValue}
           onFocus={(e) => e.target.select()}
           maxlength="2"
+          ref={lowRef}
         />
       ) : (
           <span
             class="font-mono cursor-pointer"
-            onDblClick={() => setEditing(true)}
+            onDblClick={() => startEditing(() => lowRef) }
           >
             {toByteString(props.low)}
           </span>
