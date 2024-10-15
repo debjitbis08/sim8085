@@ -1113,18 +1113,25 @@ op_ei   = "EI"i
 op_di   = "DI"i
 op_nop  = "NOP"i
 
-op_inr  = ("INR"  / "inr" ) whitespace+ register
-op_dcr  = ("DCR"  / "dcr" ) whitespace+ register
+op_inr  = op:"INR"i operands:singleRegisterOperand { return [op].concat(operands); }
+op_dcr  = op:"DCR"i operands:singleRegisterOperand { return [op].concat(operands); }
+op_add  = op:"ADD"i operands:singleRegisterOperand { return [op].concat(operands); }
+op_adc  = op:"ADC"i operands:singleRegisterOperand { return [op].concat(operands); }
+op_sub  = op:"SUB"i operands:singleRegisterOperand { return [op].concat(operands); }
+op_sbb  = op:"SBB"i operands:singleRegisterOperand { return [op].concat(operands); }
+op_ana  = op:"ANA"i operands:singleRegisterOperand { return [op].concat(operands); }
+op_xra  = op:"XRA"i operands:singleRegisterOperand { return [op].concat(operands); }
+op_ora  = op:"ORA"i operands:singleRegisterOperand { return [op].concat(operands); }
+op_cmp  = op:"CMP"i operands:singleRegisterOperand { return [op].concat(operands); }
+
+singleRegisterOperand = w:whitespace+ r:register { return [w, r]; } / singleRegisterOperandError
+
+singleRegisterOperandError = .* {
+    error("Invalid operands provided. Expected a single register as operand.");
+}
+
 op_stax = ("STAX" / "stax") whitespace+ (registerPairB / registerPairD)
 op_ldax = ("LDAX" / "ldax") whitespace+ (registerPairB / registerPairD)
-op_add  = ("ADD"  / "add" ) whitespace+ register
-op_adc  = ("ADC"  / "adc" ) whitespace+ register
-op_sub  = ("SUB"  / "sub" ) whitespace+ register
-op_sbb  = ("SBB"  / "sbb" ) whitespace+ register
-op_ana  = ("ANA"  / "ana" ) whitespace+ register
-op_xra  = ("XRA"  / "xra" ) whitespace+ register
-op_ora  = ("ORA"  / "ora" ) whitespace+ register
-op_cmp  = ("CMP"  / "cmp" ) whitespace+ register
 
 op_push = ("PUSH" / "push") whitespace+ (registerPair / registerPairPSW / registerA)
 op_pop  = ("POP"  / "pop" ) whitespace+ (registerPair / registerPairPSW)
