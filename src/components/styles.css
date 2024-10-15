@@ -189,11 +189,6 @@
   animation: contentShow 150ms ease-out;
 }
 
-.cm-debug-line-highlight {
-    @apply bg-blue-400;
-    @apply dark:bg-blue-600
-}
-
 .switch {
   display: inline-flex;
   align-items: center;

@@ -5,7 +5,13 @@
 .cm-line.cm-activeLine {
     @apply bg-blue-200;
     @apply dark:bg-gray-800;
-    @apply bg-opacity-50;
+    @apply bg-opacity-30;
+}
+
+.cm-debug-line-highlight,
+.cm-line.cm-activeLine.cm-debug-line-highlight {
+    @apply bg-blue-400;
+    @apply dark:bg-blue-600
 }
 
 .cm-editor .cm-gutters {

@@ -177,13 +177,9 @@ export function CodeMirror(props) {
       view.dispatch({effects: removeLineHighlight.of()});
     }
 
-    console.log("programCounter", store.programCounter);
     const lineNo = store.assembled.find((line) => line.currentAddress === store.programCounter)?.location.start.line;
     if (!lineNo) return;
-    console.log('==== Line to Highlight ====');
-    console.log(lineNo);
     const docPosition = view.state.doc.line(lineNo).from;
-    console.log(`====== Program State ====== ${store.programState}`);
     if (store.programState === 'Paused' || store.programState === 'Running') {
       view.dispatch({effects: addLineHighlight.of(docPosition)});
     } else {
@@ -192,7 +188,7 @@ export function CodeMirror(props) {
   });
 
   return (
-    <div class="relative">
+    <div class={`relative programState__${store.programState}`}>
       <div ref={editorRef} class="editor-container border border-gray-300 dark:border-gray-600 border-l-0 border-b-0" style={{ height: "calc(100vh - 8rem - 1px)"}}>
         <div class={`${isEditorLoading() ? '' : 'hidden'} p-4 text-center`}>
           Editor is loading...
