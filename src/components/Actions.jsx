@@ -50,6 +50,7 @@ export function Actions() {
         setStore("errors", [{
           name: e.name,
           msg: e.message,
+          hint: e.hint || "",
           location: e.location,
           line: e.location.start.line,
           column: e.location.start.column

@@ -268,16 +268,13 @@
             e.message = "Label " + symbolName + " is not defined.";
 
             if ((/h$/i).test(symbolName) && !Number.isNaN(parseInt(symbolName, 16))) {
-                e.message += " " +
-                    "Are you trying to specify a hexadecimal number? Try adding a 0 (zero) to the beginning of the number.";
+                e.hint = "Are you trying to specify a hexadecimal number? Try adding a 0 (zero) to the beginning of the number.";
             } else if ((/^[abcdehlm]$/i).test(symbolName)) {
-                e.message += " " +
-                    "Are you trying to specify a register? This instruction takes some data and not a register.";
+                e.hint = "Are you trying to specify a register? This instruction takes some data and not a register.";
             } else {
-                e.message +=  " " +
-                    "Also check the label definition, there may be some issues on that line. " +
+                e.hint = "Check the line of which the label is defined, there may be some issues on that line. " +
                     "Make sure there is no space between the label and the : (colon) symbol. " +
-                    "Symbols defined using EQU can be used after being defined.";
+                    "Symbols defined using EQU can only be used after being defined.";
             }
 
             e.location = location;

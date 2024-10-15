@@ -77,21 +77,26 @@ export function Assembled() {
 
               return (
                 <>
-                  <p class="flex items-start gap-2 text-red-700 dark:text-red-400">
-                    <span class="pt-1 text-lg">
+                  <div class="flex items-start gap-2 text-red-700 dark:text-red-400">
+                    <span class="pt-1 ">
                       <FiAlertTriangle />
                     </span>
-                    <span>
-                      Line <span class="text-yellow-700 dark:text-yellow-400">{e.line}</span>, Column <span class="text-yellow-700 dark:text-yellow-400">{e.column}</span>:
-                      <span class="text-red-700 dark:text-red-400"> {e.msg}</span>
-                    </span>
-                  </p>
+                    <div>
+                      <p>
+                        Line <span class="text-yellow-700 dark:text-yellow-400">{e.line}</span>, Column <span class="text-yellow-700 dark:text-yellow-400">{e.column}</span>:
+                        <span class="text-red-700 dark:text-red-400"> {e.msg}</span>
+                      </p>
+                    </div>
+                  </div>
+                  {e.hint ? (<p class="pt-8 dark:text-gray-400">
+                    <span class="text-yellow-700 dark:text-yellow-600 font-bold">Hint</span>: {e.hint}
+                  </p>) : null}
                   <div class="mt-8 overflow-x-auto">
                     {displayedLines.map((line, index) => {
                       const lineNumber = startLine + index + 1;
 
+                      const startColMinusOne = e.location.start.column === 0 ? 1 : e.location.start.column - 1;
                       if (index === 0) {
-                        const startColMinusOne = e.location.start.column === 0 ? 1 : e.location.start.column - 1;
                         // Start Line
                         const startMarker = ' '.repeat(startColMinusOne) + '^'.repeat(line.length - startColMinusOne > 0 ? line.length - startColMinusOne : 0);
                         return (
