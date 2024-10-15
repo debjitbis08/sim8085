@@ -91,8 +91,9 @@ export function Assembled() {
                       const lineNumber = startLine + index + 1;
 
                       if (index === 0) {
+                        const startColMinusOne = e.location.start.column === 0 ? 1 : e.location.start.column - 1;
                         // Start Line
-                        const startMarker = ' '.repeat(e.location.start.column - 1) + '^'.repeat(line.length - (e.location.start.column - 1));
+                        const startMarker = ' '.repeat(startColMinusOne) + '^'.repeat(line.length - startColMinusOne > 0 ? line.length - startColMinusOne : 0);
                         return (
                           <div key={index}>
                             <pre class="text-sm">
@@ -105,7 +106,7 @@ export function Assembled() {
                         );
                       } else if (index === displayedLines.length - 1) {
                         // End Line
-                        const endMarker = '^'.repeat(e.location.end.column - 1);
+                        const endMarker = '^'.repeat(startColMinusOne);
                         return (
                           <div key={index}>
                             <pre class="text-sm">
@@ -127,7 +128,7 @@ export function Assembled() {
                         );
                       }
                     })}
-              </div>
+                  </div>
                 </>
               );
             })}
