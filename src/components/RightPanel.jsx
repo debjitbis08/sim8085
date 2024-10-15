@@ -26,7 +26,7 @@ export function RightPanel() {
         </button>
         <button type="button" onClick={() => setActiveTab('io')} class={`${activeTab() === 'io' ? 'text-blue-600 dark:text-blue-400' : ''} flex flex-col items-center`}>
           <p class="text-md font-bold flex gap-[-1]">
-            <span>I/O</span>
+            <span class="text-nowrap whitespace-nowrap">I/O</span>
             {/* <BsSlash class="text-2xl"/> */}
             {/* <span>O</span> */}
           </p>

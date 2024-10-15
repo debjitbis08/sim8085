@@ -170,39 +170,29 @@ export default function MemoryList({ threshold = 4 }) {
       <div class="flex border-b-2 dark:border-b-gray-600">
         <h2 class="text-xl grow pb-1">Memory</h2>
         <div class="flex gap-2">
-          <Tooltip>
-            <Tooltip.Trigger class="tooltip__trigger">
-              <Dialog>
-                <Dialog.Trigger class="dialog__trigger">
-                  <AiOutlineFullscreen class="font-bold" />
-                </Dialog.Trigger>
-                <Dialog.Portal>
-                  <Dialog.Overlay class="dialog__overlay fixed z-50 inset-0 backdrop-blur-sm" />
-                  <div class="dialog__positioner fixed z-50 inset-0 flex items-center justify-center">
-                    <Dialog.Content class="dialog__content p-4 bg-gray-100 dark:bg-gray-800 min-w-[600px] border border-gray-400 dark:border-gray-600 rounded">
-                      <div class="dialog__header flex items-center">
-                        <Dialog.Title class="dialog__title grow">Full Memory View</Dialog.Title>
-                        <Dialog.CloseButton class="dialog__close-button">
-                          <AiOutlinePlus class="transition-transform rotate-45" />
-                        </Dialog.CloseButton>
-                      </div>
-                      <Dialog.Description class="dialog__description mt-4">
-                        <div class="flex items-center px-2">
-                          <MemoryGrid />
-                        </div>
-                      </Dialog.Description>
-                    </Dialog.Content>
+          <Dialog>
+            <Dialog.Trigger class="dialog__trigger">
+              <AiOutlineFullscreen class="font-bold" title="View All Memory Locations" />
+            </Dialog.Trigger>
+            <Dialog.Portal>
+              <Dialog.Overlay class="dialog__overlay fixed z-50 inset-0 backdrop-blur-sm" />
+              <div class="dialog__positioner fixed z-50 inset-0 flex items-center justify-center">
+                <Dialog.Content class="dialog__content p-4 bg-gray-100 dark:bg-gray-800 min-w-[600px] border border-gray-400 dark:border-gray-600 rounded">
+                  <div class="dialog__header flex items-center">
+                    <Dialog.Title class="dialog__title grow">Full Memory View</Dialog.Title>
+                    <Dialog.CloseButton class="dialog__close-button">
+                      <AiOutlinePlus class="transition-transform rotate-45" />
+                    </Dialog.CloseButton>
                   </div>
-                </Dialog.Portal>
-              </Dialog>
-            </Tooltip.Trigger>
-            <Tooltip.Portal>
-              <Tooltip.Content class="tooltip__content">
-                <Tooltip.Arrow />
-                <p>View All Memory Locations</p>
-              </Tooltip.Content>
-            </Tooltip.Portal>
-          </Tooltip>
+                  <Dialog.Description class="dialog__description mt-4">
+                    <div class="flex items-center px-2">
+                      <MemoryGrid />
+                    </div>
+                  </Dialog.Description>
+                </Dialog.Content>
+              </div>
+            </Dialog.Portal>
+          </Dialog>
           <Tooltip>
             <Tooltip.Trigger class="tooltip__trigger">
               <button class="text-red-700" onClick={resetAllLocations}>

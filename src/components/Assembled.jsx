@@ -32,8 +32,8 @@ export function Assembled() {
           </Tooltip>
         </div>
       </div>
-      <div class="flex flex-col" style={{ height: "calc(100vh - 10rem)" }}>
-        <div style={{ height: 'calc(100% - 2.75rem - 120px)' }}>
+      <div class="flex flex-col" style={{ height: "calc(100vh - 8rem - 1px)" }}>
+        <div style={{ height: 'calc(100% - 0rem)' }}>
           <div
             class={`${store.assembled.length ? '' : 'hidden'} w-full overflow-x-auto text-sm`}
               style={{ height: 'calc(100% - 2.75rem)' }}
@@ -139,12 +139,6 @@ export function Assembled() {
             <p class="text-gray-500">
               Load or Run the program to view the assembled output.
             </p>
-          </div>
-        </div>
-        <div id="slot" class="hidden mt-10 rounded-sm max-w-[360] h-[100px] flex items-start">
-          <div class="carbon-demo card-shadow">
-            <img class="carbon-img" src="https://static4.buysellads.net/uu/1/93750/1624656839-Gatsby_Cloud_solid_purple_Gatsby_Monogram.png"/>
-            <div class="carbon-desc">Provision MongoDB clusters in minutes. Get $100 free credit.</div>
           </div>
         </div>
       </div>
