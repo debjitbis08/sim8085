@@ -47,14 +47,28 @@ export function Actions() {
     } catch (e) {
       if (e.name && e.message && e.location) {
         showToaster("error", "Program has errors", "Check the \"Assembled Output\" section for details.");
-        setStore("errors", [{
-          name: e.name,
-          msg: e.message,
-          hint: e.hint || "",
-          location: e.location,
-          line: e.location.start.line,
-          column: e.location.start.column
-        }]);
+        const message = e.message.startsWith("{") ? JSON.parse(e.message) : e.message;
+        if (typeof message === "string") {
+          setStore("errors", [{
+            name: e.name,
+            msg: message,
+            hint: e.hint || [],
+            type: "",
+            location: e.location,
+            line: e.location.start.line,
+            column: e.location.start.column
+          }]);
+        } else {
+          setStore("errors", [{
+            name: e.name,
+            msg: message.message,
+            hint: message.hint || [],
+            type: message.type || "",
+            location: e.location,
+            line: e.location.start.line,
+            column: e.location.start.column
+          }]);
+        }
         setStore("assembled", []);
         setStore("codeWithError", store.code);
         trackEvent("assemble failed", {
@@ -315,7 +329,7 @@ export function Actions() {
         onClick={clearAllDataOrStop}
         disabled={false}
       />
-      <Portal client:only="solid-js" >
+      <Portal>
           <Toast.Region>
              	<Toast.List class="toast__list" />
           </Toast.Region>

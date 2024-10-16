@@ -77,20 +77,27 @@ export function Assembled() {
 
               return (
                 <>
-                  <div class="flex items-start gap-2 text-red-700 dark:text-red-400">
-                    <span class="pt-1 ">
-                      <FiAlertTriangle />
-                    </span>
-                    <div>
-                      <p>
-                        Line <span class="text-yellow-700 dark:text-yellow-400">{e.line}</span>, Column <span class="text-yellow-700 dark:text-yellow-400">{e.column}</span>:
-                        <span class="text-red-700 dark:text-red-400"> {e.msg}</span>
-                      </p>
-                    </div>
+                  {e.type ? (
+                    <h4 class="flex items-start gap-2 mb-4 text-red-700 dark:text-red-400">
+                      <span class="pt-1 ">
+                        <FiAlertTriangle />
+                      </span>
+                      <div>{e.type.toUpperCase()}</div>
+                    </h4>
+                  ) : null}
+                  <div class="dark:text-gray-400">
+                    {e.hint.length ? null : (<span>Line <span class="text-yellow-700 dark:text-yellow-400">{e.line}</span>, Column: <span class="text-yellow-700 dark:text-yellow-400">{e.column}</span>: </span>)}
+                    <span class=""> {e.msg} </span> {e.hint.length ? (<span>on line <span class="text-yellow-700 dark:text-yellow-400">{e.line}</span></span>) : null}
                   </div>
-                  {e.hint ? (<p class="pt-8 dark:text-gray-400">
-                    <span class="text-yellow-700 dark:text-yellow-600 font-bold">Hint</span>: {e.hint}
-                  </p>) : null}
+                  {e.hint.length ? (
+                    <For each={e.hint}>
+                      {(hint) => (
+                        <p class="pt-8 dark:text-gray-400">
+                          <span class="text-yellow-700 dark:text-yellow-600 font-semibold underline">Hint</span>: {hint}
+                        </p>
+                      )}
+                    </For>
+                  ) : null}
                   <div class="mt-8 overflow-x-auto">
                     {displayedLines.map((line, index) => {
                       const lineNumber = startLine + index + 1;

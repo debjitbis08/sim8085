@@ -268,13 +268,15 @@
             e.message = "Label " + symbolName + " is not defined.";
 
             if ((/h$/i).test(symbolName) && !Number.isNaN(parseInt(symbolName, 16))) {
-                e.hint = "Are you trying to specify a hexadecimal number? Try adding a 0 (zero) to the beginning of the number.";
+                e.hint = ["Are you trying to specify a hexadecimal number? Try adding a 0 (zero) to the beginning of the number."];
             } else if ((/^[abcdehlm]$/i).test(symbolName)) {
-                e.hint = "Are you trying to specify a register? This instruction takes some data and not a register.";
+                e.hint = ["Are you trying to specify a register? This instruction takes some data and not a register."];
             } else {
-                e.hint = "Check the line of which the label is defined, there may be some issues on that line. " +
-                    "Make sure there is no space between the label and the : (colon) symbol. " +
-                    "Symbols defined using EQU can only be used after being defined.";
+                e.hint = [
+                    "Check the line on which the label is defined, there may be some issues on that line.",
+                    "Make sure there is no space between the label and the : (colon) symbol.",
+                    "Symbols defined using EQU can only be used after being defined."
+                ];
             }
 
             e.location = location;
@@ -1124,14 +1126,30 @@ op_cmp  = op:"CMP"i operands:singleRegisterOperand { return [op].concat(operands
 singleRegisterOperand = w:whitespace+ r:register { return [w, r]; } / singleRegisterOperandError
 
 singleRegisterOperandError = .* {
-    error("Invalid operands provided. Expected a single register as operand.");
+    error(`{
+        "type": "Invalid Operands",
+        "message": "Invalid operands syntax for instruction",
+        "hint": ["The operand should be a single register."]
+    }`);
 }
 
 op_stax = ("STAX" / "stax") whitespace+ (registerPairB / registerPairD)
 op_ldax = ("LDAX" / "ldax") whitespace+ (registerPairB / registerPairD)
 
-op_push = ("PUSH" / "push") whitespace+ (registerPair / registerPairPSW / registerA)
-op_pop  = ("POP"  / "pop" ) whitespace+ (registerPair / registerPairPSW)
+op_push = op:"PUSH"i operands:pushPopOperands { return [op].concat(operands); }
+op_pop  = op:"POP"i  operands:pushPopOperands { return [op].concat(operands); }
+
+pushPopOperands = w:whitespace+ r:(registerPair / registerPairPSW) {
+    return [w, r];
+} / pushPopOperandError
+
+pushPopOperandError = .* {
+    error(`{
+        "type": "Invalid Operands",
+        "message": "Invalid operands for PUSH/POP instruction",
+        "hint": ["The operand should be either a register pair or PSW.", "A register pair is written as B, D or H.", "Program status word (Contents of A and status flags, written as PSW or psw)"]
+    }`)
+}
 
 op_dad  = op:"DAD"i operands:registerPairOrStackPointerOperand { return [op].concat(operands); }
 op_inx  = op:"INX"i operands:registerPairOrStackPointerOperand { return [op].concat(operands); }
@@ -1142,7 +1160,11 @@ registerPairOrStackPointerOperand = w:whitespace+ o:(registerPair / stackPointer
 } / registerPairOrStackPointerOperandError
 
 registerPairOrStackPointerOperandError = .* {
-    error("Invalid operands provided. Expected operands, register pair or stack pointer");
+    error(`{
+        "type": "Invalid Operands",
+        "message": "Invalid operands syntax for instruction",
+        "hint": ["The operand should be either a register pair or stack pointer.", "A register pair is written as B, D or H."]
+    }`);
 }
 
 op_adi  = op:"ADI"i operands:immediate_instruction_operands { return [op].concat(operands); }
@@ -1161,7 +1183,11 @@ immediate_instruction_operands = w:whitespace+ o:(expressionImmediate / data8 / 
 } / immediate_instruction_operands_error
 
 immediate_instruction_operands_error = .* {
-    error("Invalid operand provided. The operand should be either an expression, 8-byte data or a label.");
+    error(`{
+        "type": "Invalid Operands",
+        "message": "Invalid operands syntax for instruction",
+        "hint": ["The operand should be either an expression, 8-byte data or a label."]
+    }`);
 }
 
 op_sta  = ("STA"  / "sta" ) whitespace+ (data16 / labelDirect)
@@ -1184,7 +1210,11 @@ jump_operand = w:whitespace+ operand:(expressionDirect / labelDirect / data16) /
 }
 
 jump_operand_error = .* {
-    error("Invalid operand for jump instruction. Expected a 2 byte address, label or an expression.");
+    error(`{
+        "type": "Invalid Operands",
+        "message": "Invalid operands syntax for Jump instruction",
+        "hint": ["Expected a 2 byte address, label or an expression."]
+    }`);
 }
 
 op_call = inst:"CALL"i operands:call_operand { return [inst].concat(operands); }
@@ -1202,27 +1232,59 @@ call_operand = w:whitespace+ operand:(expressionDirect / data16 / labelDirect) /
 }
 
 call_operand_error = .* {
-    error("Invalid operand. Expected a 2 byte address, label or an expression.");
+    error(`{
+        "type": "Invalid Operands",
+        "message": "Invalid operands syntax for Call instruction",
+        "hint": ["Expected a 2 byte address, label or an expression."]
+    }`);
 }
 
-op_mov = inst:"MOV"i w1:whitespace+ operands:movOperands {
-    return [inst, w1].concat(operands);
+op_mov = inst:"MOV"i operands:movOperands {
+    return [inst].concat(operands);
 }
 
-movOperands = dest:register w1:whitespace* ',' w2:whitespace* src:register {
+movOperands = w:whitespace+ dest:register w1:whitespace* ',' w2:whitespace* src:register {
     if (dest === src && dest.toLowerCase() === "m") {
-        error("Invalid operands for MOV instruction. Both the operands cannot be the memory locations.");
+        error(`{
+            "type": "Invalid Operands",
+            "message": "Invalid operands syntax for MOV instruction",
+            "hint": ["Both the operands cannot be memory locations."]
+        }`);
     }
-    return [dest, w1, ',', w2, src];
-} / register whitespace* register {
-    error("Invalid operand syntax for MOV instruction. You forgot to add a ',' (comma) between the operands. Expected syntax: MOV register, register.");
+    return [w, dest, w1, ',', w2, src];
+} / whitespace+ register whitespace* register {
+    error(`{
+        "type": "Invalid Operands",
+        "message": "Invalid operands syntax for MOV instruction",
+        "hint": ["You forgot to add a ',' (comma) between the operands. Expected syntax: MOV register, register."]
+    }`);
 } / movOperandsError
 
 movOperandsError = .* {
-    error("Invalid operands for MOV instruction. Expected syntax: MOV register, register.");
+    error(`{
+        "type": "Invalid Operands",
+        "message": "Invalid operands syntax for MOV instruction",
+        "hint": ["Expected syntax: MOV register, register."]
+    }`);
 }
 
-op_lxi  = "LXI"i whitespace+ (registerPair / stackPointer) whitespace* [,] whitespace* (expressionDirect / data16 / labelDirect)
+op_lxi  = op:"LXI"i operands:lxiOperands { return [op].concat(operands); }
+
+lxiOperands = w1:whitespace+ r:(registerPair / stackPointer) w2:whitespace* c:[,] w3:whitespace* d:(expressionDirect / data16 / labelDirect) {
+    return [w1, r, w2, c, w3, d];
+} / whitespace+ (registerPair / stackPointer) whitespace* whitespace* (expressionDirect / data16 / labelDirect) {
+    error(`{
+        "type": "Invalid Operands",
+        "message": "Invalid operands syntax for LXI instruction",
+        "hint": ["You forgot to add a ',' (comma) between the operands. Expected LXI register, data."]
+    }`);
+} / .* {
+    error(`{
+        "type": "Invalid Operands",
+        "message": "Invalid operands for LXI instruction",
+        "hint": ["Expected word, a label or an expression. Also make sure the operands are separated by a comma. Expected LXI register, data."]
+    }`);
+}
 
 op_mvi  = inst:"MVI"i operands:mvi_operands {
     return [inst].concat(operands);
@@ -1230,10 +1292,18 @@ op_mvi  = inst:"MVI"i operands:mvi_operands {
 
 mvi_operands = w1:whitespace+ dest:register w2:whitespace* c:[,] w3:whitespace* data:(expressionImmediate / data8 / labelImmediate) {
     return [w1, dest, w2, c, w3, data];
-} / whitespace+ register whitespace* data:(expressionImmediate / data8 / labelImmediate) {
-    error("Invalid operand syntax for MVI. You forgot to add a ',' (comma) between the operands.");
+} / whitespace+ r:register whitespace* data:(expressionImmediate / data8 / labelImmediate) {
+    error(`{
+        "type": "Invalid Operands",
+        "message": "Invalid operands syntax for MVI instruction",
+        "hint": ["You forgot to add a ',' (comma) between the operands. Expected MVI register, data."]
+    }`);
 } / mvi_operand_error
 
 mvi_operand_error = .* {
-    error("Invalid operands for MVI. Expected byte, a label or an expression. Also make sure the operands are separated by a comma. MVI register, register");
+    error(`{
+        "type": "Invalid Operands",
+        "message": "Invalid operands for MVI instruction",
+        "hint": ["Expected byte, a label or an expression. Also make sure the operands are separated by a comma. Expected MVI register, data."]
+    }`);
 }
