@@ -25,11 +25,6 @@ export function IOPorts () {
             {
               (item, index) => (<IOPortRow location={index()} value={item} onSave={updateIOPort} />)
             }
-          {/* {(item, index) => (
-            <div>
-              #{index()} {item}
-            </div>
-          )} */}
         </For>
       </div>
     </div>
@@ -83,24 +78,14 @@ function IOPortRow(props) {
           />
         ) : (
           <span
-            class={`font-mono cursor-pointer ${props.value ? 'text-orange-600 dark:bg-transparent dark:border-b-green-300 dark:text-yellow-400' : 'dark:text-gray-600'}`}
+            class={`font-mono cursor-pointer ${props.value ? 'text-orange-600 dark:bg-transparent dark:border-b-green-300 dark:text-yellow-400' : 'dark:text-gray-500'}`}
             onDblClick={() => setEditing(true)}
           >{toByteString(props.value)}</span>
         )
         }
-        <Tooltip>
-          <Tooltip.Trigger class="tooltip__trigger">
-            <button type="button" onClick={() => editing() ? saveValue() : startEditing() }>
-              {editing() ? <AiOutlineSave /> : <AiOutlineEdit /> }
-            </button>
-          </Tooltip.Trigger>
-          <Tooltip.Portal>
-            <Tooltip.Content class="tooltip__content">
-              <Tooltip.Arrow />
-              <p>{editing() ? "Save IO Value" : "Edit IO Value"}</p>
-            </Tooltip.Content>
-          </Tooltip.Portal>
-        </Tooltip>
+        <button type="button" onClick={() => editing() ? saveValue() : startEditing() } title={editing() ? "Save IO Value" : "Edit IO Value"}>
+          {editing() ? <AiOutlineSave /> : <AiOutlineEdit /> }
+        </button>
       </span>
     </div>
   );

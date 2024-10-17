@@ -194,10 +194,8 @@ export default function MemoryList({ threshold = 4 }) {
             </Dialog.Portal>
           </Dialog>
           <Tooltip>
-            <Tooltip.Trigger class="tooltip__trigger">
-              <button class="text-red-700" onClick={resetAllLocations}>
-                <AiOutlineClear />
-              </button>
+            <Tooltip.Trigger class="tooltip__trigger text-red-700" onClick={resetAllLocations}>
+              <AiOutlineClear />
             </Tooltip.Trigger>
             <Tooltip.Portal>
               <Tooltip.Content class="tooltip__content">
@@ -247,10 +245,8 @@ export default function MemoryList({ threshold = 4 }) {
           </div>
         </div>
         <Tooltip>
-          <Tooltip.Trigger class="tooltip__trigger">
-            <button onClick={() => setIsAddingCustom(isAddingCustom => !isAddingCustom)}>
-              <AiOutlinePlus class={`transition-transform ${isAddingCustom() || editingCustom().start !== null ? 'rotate-45' : 'rotate-0'}`} />
-            </button>
+          <Tooltip.Trigger class="tooltip__trigger" onClick={() => setIsAddingCustom(isAddingCustom => !isAddingCustom)}>
+            <AiOutlinePlus class={`transition-transform ${isAddingCustom() || editingCustom().start !== null ? 'rotate-45' : 'rotate-0'}`} />
           </Tooltip.Trigger>
           <Tooltip.Portal>
             <Tooltip.Content class="tooltip__content">
@@ -285,15 +281,12 @@ export default function MemoryList({ threshold = 4 }) {
         </div>
         <div class="mt-2">
           <Tooltip>
-            <Tooltip.Trigger class="tooltip__trigger">
-              <button
-                class="flex items-center justify-center gap-2 w-full p-1 px-4 rounded border border-gray-400 hover:bg-gray-300 dark:border-gray-600 hover:dark:bg-gray-900 disabled:text-gray-400 dark:disabled:text-gray-700 disabled:hover:bg-gray-100 dark:disabled:hover:bg-gray-800"
-                onClick={addOrEditCustomRange}
-                disabled={inputRange().start === '' || inputRange().end === ''}
-              >
-                <AiFillEye />
-                <span>Watch Range</span>
-              </button>
+            <Tooltip.Trigger class="tooltip__trigger flex items-center justify-center gap-2 w-full p-1 px-4 rounded border border-gray-400 hover:bg-gray-300 dark:border-gray-600 hover:dark:bg-gray-900 disabled:text-gray-400 dark:disabled:text-gray-700 disabled:hover:bg-gray-100 dark:disabled:hover:bg-gray-800"
+              onClick={addOrEditCustomRange}
+              disabled={inputRange().start === '' || inputRange().end === ''}
+            >
+              <AiFillEye />
+              <span>Watch Range</span>
             </Tooltip.Trigger>
             <Tooltip.Portal>
               <Tooltip.Content class="tooltip__content">

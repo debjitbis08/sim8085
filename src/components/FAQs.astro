@@ -1,6 +1,6 @@
 <div x-data="{ open: false }">
     <a
-        class="text-blue-600 dark:text-blue-400 cursor-pointer"
+        class="hover:text-gray-400 dark:hover:text-gray-400 transition-colors cursor-pointer"
         @click="open = true"
         x-ref="faq_modal_button"
     >FAQs</a>
@@ -13,7 +13,7 @@
          style="display: none"
          @click="open = false; $refs.faq_modal_button.focus()"
          @click.away="open = false; $refs.faq_modal_button.focus()"
-         class="fixed z-[9999] top-0 left-0 w-full h-screen flex justify-center items-center backdrop-blur-sm"
+         class="fixed z-[9999] top-0 left-0 w-full h-screen flex justify-center items-center backdrop-blur-sm text-base"
     >
         <div aria-hidden="true"
             class="absolute top-0 left-0 w-full h-screen bg-black transition duration-300"

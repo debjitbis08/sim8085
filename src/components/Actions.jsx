@@ -289,7 +289,7 @@ export function Actions() {
   };
 
   return (
-    <div class="flex items-center border border-gray-300 border-t-0 border-b-0 rounded-sm dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+    <div class="flex items-center border-r border-r-gray-300 border-l-0 border-t-0 border-b-0 rounded-sm dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
       <ActionButton
         icon={
           store.programState === 'Idle' ? (
@@ -341,17 +341,13 @@ export function Actions() {
 function ActionButton(props) {
   return (
     <Tooltip>
-      <Tooltip.Trigger class="tooltip__trigger">
-        <button
-          type="button"
-          class="px-2 py-1 border border-transparent hover:bg-gray-100 dark:hover:bg-gray-800 border-l border-l-gray-300 dark:border-l-gray-700"
-          onClick={props.onClick}
-          disabled={props.disabled}
-        >
-          <div class="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-            {props.icon}
-          </div>
-        </button>
+      <Tooltip.Trigger class="tooltip__trigger hover:bg-gray-100 dark:hover:bg-gray-800"
+        onClick={props.onClick}
+        disabled={props.disabled}
+      >
+        <div class="px-2 py-2 flex items-center gap-2 text-gray-600 dark:text-gray-400">
+          {props.icon}
+        </div>
       </Tooltip.Trigger>
       <Tooltip.Portal>
         <Tooltip.Content class="tooltip__content">
