@@ -46,9 +46,12 @@
     "tailwindcss": "^3.4.11"
   },
   "devDependencies": {
+    "@vite-pwa/assets-generator": "^0.2.6",
+    "@vite-pwa/astro": "^0.4.3",
     "fast-check": "^3.22.0",
     "peggy": "^4.0.3",
     "vite-plugin-peggy-loader": "^2.0.1",
-    "vitest": "^2.1.1"
+    "vitest": "^2.1.1",
+    "workbox-window": "^7.1.0"
   }
 }

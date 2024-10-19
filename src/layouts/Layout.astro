@@ -1,6 +1,10 @@
 ---
+import { pwaInfo } from 'virtual:pwa-info';
+import { pwaAssetsHead } from 'virtual:pwa-assets/head';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import PostHogInit from '../components/analytics/PostHogInit.astro';
+import CookieBanner from '../components/analytics/CookieBanner.astro';
 interface Props {
 	title: string;
 }
@@ -13,13 +17,19 @@ const { title } = Astro.props;
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" type="image/svg+xml" href="/favicon-dark.svg" media="(prefers-color-scheme: dark)"/>
         <meta name="description" content="Simulator, Assembler and Debugger for Intel 8085 microprocessor." />
         <meta name="author" content="Debjit Biswas, www.debjitbiswas.com" />
         <meta name="keywords" content="8085, assembler, simulator, IDE, Intel">
 		<meta name="generator" content={Astro.generator} />
 		<title>{title}</title>
+		{ pwaAssetsHead.themeColor && <meta name="theme-color" content={pwaAssetsHead.themeColor.content} /> }
+        { pwaAssetsHead.links.map(link => (
+            <link {...link} />
+        )) }
+        <script src="/src/pwa.js"></script>
+        { pwaInfo && <Fragment set:html={pwaInfo.webManifest.linkTag} /> }
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<link rel="icon" type="image/svg+xml" href="/favicon-dark.svg" media="(prefers-color-scheme: dark)"/>
 		<script is:inline>
           (function () {
               // On page load or when changing themes, best to add inline in `head` to avoid FOUC
@@ -34,13 +44,15 @@ const { title } = Astro.props;
               }
           }());
         </script>
-	</head>
+        <PostHogInit />
+    </head>
 	<body class="bg-white dark:bg-gray-900 text-black dark:text-gray-300 min-h-screen">
         <Header />
-        <div style='height: calc(100vh - 6rem)'>
+        <div>
             <slot />
         </div>
         <Footer />
+        <CookieBanner />
 	</body>
 </html>
 <style is:global>

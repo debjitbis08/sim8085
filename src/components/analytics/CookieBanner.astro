@@ -1,0 +1,43 @@
+<div x-data="cookieBanner" x-show="showBanner" class="fixed bottom-0 right-0 w-[30vw] max-w-[500px] p-4 m-4 rounded-md bg-white border border-gray-300 dark:border-0 dark:bg-gray-800 shadow-lg" style="display: none;">
+    <p class="mb-2">
+        We use tracking cookies to understand how you use
+        the product and help us improve it.
+        Please accept cookies to help us improve.
+    </p>
+    <p class="mb-4">
+        Please accept cookies to help us improve.
+    </p>
+    <div class="flex items-center gap-2">
+        <button @click="acceptCookies()" class="consent-button border border-green-500 text-white bg-green-700 dark:bg-green-800 hover:bg-green-800 dark:border-gray-600 hover:dark:bg-green-900">Accept cookies</button>
+        <button @click="declineCookies()" class="consent-button border border-gray-400 hover:bg-gray-300 dark:border-gray-600 hover:dark:bg-gray-900">Decline cookies</button>
+    </div>
+</div>
+
+<script>
+  import Alpine from 'alpinejs';
+  import posthog from 'posthog-js';
+
+  const useTracking = import.meta.env.PUBLIC_USE_TRACKING === 'true';
+  document.addEventListener('alpine:init', () => {
+    Alpine.data('cookieBanner', () => ({
+      showBanner: useTracking && localStorage.getItem('cookie_consent') !== 'yes' && localStorage.getItem('cookie_consent') !== 'no',
+      acceptCookies() {
+        localStorage.setItem('cookie_consent', 'yes');
+        this.showBanner = false;
+        posthog.set_config({ persistence: 'localStorage+cookie' });
+      },
+      declineCookies() {
+        localStorage.setItem('cookie_consent', 'no');
+        this.showBanner = false;
+      }
+    }));
+  });
+</script>
+<style>
+  .consent-button {
+      @apply px-4;
+      @apply py-2;
+      @apply cursor-pointer;
+      @apply rounded-sm;
+  }
+</style>

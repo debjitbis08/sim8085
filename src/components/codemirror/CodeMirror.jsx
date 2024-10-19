@@ -3,9 +3,7 @@ import { EditorState, StateField, StateEffect, RangeSet, Compartment } from "@co
 import { EditorView, GutterMarker, Decoration, keymap, gutter } from "@codemirror/view";
 import { defaultKeymap, indentWithTab } from "@codemirror/commands";
 import { basicSetup } from "codemirror";
-import { StoreContext } from "../StoreContext";
 import { Syntax8085 } from "./8085";
-import debounce from 'debounce';
 import './CodeMirror.css';
 import { Tooltip } from "@kobalte/core/tooltip";
 import { FiHelpCircle } from "solid-icons/fi";

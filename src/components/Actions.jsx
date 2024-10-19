@@ -11,7 +11,7 @@ import { FiFastForward } from "solid-icons/fi";
 import { BsFastForwardFill, BsStop } from "solid-icons/bs";
 import { store, setStore } from '../store/store.js';
 import { Toast, toaster } from "@kobalte/core/toast";
-import { trackEvent } from "../analytics/events.js";
+import { trackEvent } from "./analytics/tracker.js";
 import { showToaster } from "./toaster.jsx";
 import { FaSolidEject } from "solid-icons/fa";
 
