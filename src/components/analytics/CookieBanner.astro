@@ -1,15 +1,15 @@
 <div x-data="cookieBanner" x-show="showBanner" class="fixed bottom-0 right-0 w-[30vw] max-w-[500px] p-4 m-4 rounded-md bg-white border border-gray-300 dark:border-0 dark:bg-gray-800 shadow-lg" style="display: none;">
     <p class="mb-2">
         We use tracking cookies to understand how you use
-        the product and help us improve it.
-        Please accept cookies to help us improve.
+        the product and help us improve it. We do not collect any personal
+        information because we can't.
     </p>
     <p class="mb-4">
-        Please accept cookies to help us improve.
+        <span class="italic">Please</span>c accept cookies to help us improve.
     </p>
     <div class="flex items-center gap-2">
-        <button @click="acceptCookies()" class="consent-button border border-green-500 text-white bg-green-700 dark:bg-green-800 hover:bg-green-800 dark:border-gray-600 hover:dark:bg-green-900">Accept cookies</button>
-        <button @click="declineCookies()" class="consent-button border border-gray-400 hover:bg-gray-300 dark:border-gray-600 hover:dark:bg-gray-900">Decline cookies</button>
+        <button @click="acceptCookies()" title="Thank You" class="consent-button border border-green-500 text-white bg-green-700 dark:bg-green-800 hover:bg-green-800 dark:border-gray-600 hover:dark:bg-green-900">Accept cookies</button>
+        <button @click="declineCookies()" title="Really?" class="consent-button border border-gray-400 hover:bg-gray-300 dark:border-gray-600 hover:dark:bg-gray-900">Decline cookies</button>
     </div>
 </div>
 
