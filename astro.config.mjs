@@ -28,10 +28,11 @@ export default defineConfig({
       social: {
         github: 'https://github.com/debjitbis08/sim8085',
       },
+      disable404Route: true,
       sidebar: [
-        'docs/en/start',
-        'docs/en/assembly',
-        'docs/en/unsupported',
+        { slug: 'docs/en' },
+        { slug: 'docs/en/assembly' },
+        { slug: 'docs/en/unsupported' },
         /*
         {
           label: 'Instructions',
@@ -73,5 +74,8 @@ export default defineConfig({
   output: 'static',
   vite: {
     plugins: [peggy()],
-  }
+    ssr: {
+      noExternal: ['nanoid']
+    }
+  },
 });
