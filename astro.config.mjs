@@ -21,6 +21,10 @@ export default defineConfig({
       customCss: [
         './src/tailwind.docs.css',
       ],
+      components: {
+        Head: './src/components/DocumentationHead.astro',
+        // Footer: './src/components/DocumentationFooter.astro'
+      },
       social: {
         github: 'https://github.com/debjitbis08/sim8085',
       },
