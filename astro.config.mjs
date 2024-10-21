@@ -29,7 +29,7 @@ export default defineConfig({
         github: 'https://github.com/debjitbis08/sim8085',
       },
       sidebar: [
-        'docs/en/index',
+        'docs/en/start',
         'docs/en/assembly',
         'docs/en/unsupported',
         /*

@@ -34,6 +34,7 @@
     "@tanstack/solid-virtual": "^3.10.8",
     "alpinejs": "^3.14.1",
     "codemirror": "^6.0.1",
+    "nanoid": "^5.0.7",
     "posthog-js": "^1.166.1",
     "solid-devtools": "^0.30.1",
     "solid-icons": "^1.1.0",
