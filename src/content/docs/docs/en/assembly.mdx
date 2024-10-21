@@ -1,0 +1,201 @@
+---
+title: Assembly Language
+description: Sim8085 is a powerful graphical simulator, assembler, and debugger specifically designed for the Intel 8085 microprocessor.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+The assembly language used by the simulator closely follows the original assembly language
+grammar defined in the [8080/8085 Assembly Language Progamming Manual](https://archive.org/download/bitsavers_intelISISIssemblyLanguageProgrammingManualMay81_7150831/9800301-04_8080_8085_Assembly_Language_Programming_Manual_May81.pdf) released in 1971. Sim8085
+assembler does add some improvements where the differences are small and provide convinience to
+the programmer. Read the chapter 2 of the manual for detailed explantion on the assembly language
+usage.
+
+<Aside type="caution">
+The Sim8085 assembler tries to implement most of the features but lacks some advanced assembler features such as,
+Macros, relocatable code & many other directives. These may be implemented in future updates.
+<p>
+See Unsupported Features page for details.
+</p>
+</Aside>
+
+## Syntax Summary
+
+```asm
+; This is a comment
+; It starts with a semicolon and ends at the end of the line
+
+; All directives and mnemonics can be written in uppercase
+; or lowercase (MOV, mov, Mov, ...).
+
+
+; Instructions
+; ============
+
+MOV A, B   ; Instructions are written with mnemonics. In this case, it
+           ; copies the content of register B into register A.
+           ; Operands are separated by commas.
+
+
+; Labels
+; ======
+
+START: MOV A, B ; Labels can be added to a source line to reference
+                ; the memory location of this mov instruction.
+
+JMP START       ; Here it jumps to the MOV instruction above.
+
+
+; Directives
+; ==========
+
+ONES EQU 0FFH   ; EQU directive can be used to assign the
+                ; value of the expression specified as operand
+                ; to the name specified in the label field.
+
+
+ONES SET 0FFH   ; The SET directive is identical to EQU except
+                ; that the value of name specified can be
+                ; altered by subsequent SET directives.
+
+; You may think of SET as let in JavaScript and EQU as const.
+; Also, note that labels for EQU and SET do not need to end with
+; `:` symbol and they are called Names.
+
+
+; Label    Opcode     Operands       Assembled Code
+  HERE:    DB         0A3H           A3
+  WORD1:   DB         -03H, 5 * 2    FD0A
+  STR:     DB         'TIME'         54494D45
+
+
+; Label    Opcode     Operands       Assembled Code
+  FOUR:    DW         4H             0400
+  STRNG:   DW         'A', 'AB'      41004241
+
+
+ORG 1000H ; The ORG directive sets the location counter to the value
+          ; specified by the operand expression.
+          ; If no ORG directive is included before the first instruction
+          ; or data byte in the program, assembly begins at location
+          ; zero
+```
+
+## Source Line Format
+
+Each line in the program should be in the following format.
+
+```asm
+Label:/Name     Opcode    Operand    ;Comment
+```
+
+Some of the lines may only have comments. Label or the Name part of the line
+is also optional.
+
+### Label/Name Field
+
+Labels are always optional. An instruction label is a symbol name whose value is the location where the instruc-
+tion is assembled. A label may contain from one to six alphanumeric characters, but the first character must be
+alphabetic or the special characters "?' or '@'. The label name must be terminated with a colon. A symbol used
+as a label can be defined only once in your program.
+
+A name is required for the SET, EQU directives.
+
+## Operand Fields
+
+The operand may use the following four types of information,
+
+- Register
+- Register pair
+- Immediate Data
+- 16-bit Address
+
+There are multiple ways to specify these which are described below,
+
+### Hexadecimal Data
+
+Each hexadecimal number must begin with a numeric digit (0 through 9) and must be followed by the letter <code class="text-green-600 bg-green-100 rounded px-1">H</code>
+or <code class="text-green-600 bg-green-100 rounded px-1">h</code>.
+
+```asm
+;Label   Opcode   Operand    Comment
+ HERE:   MVI      C, 0BAH    ;LOAD REG C WITH HEX BA
+```
+
+### Decimal Data
+
+Each decimal number may be identified by the letter <code class="text-green-600 bg-green-100 rounded px-1">D</code> immediately after its last digit or may
+stand alone. Any number not specifically identified as hexadecimal, octal, or binary is assumed to be decimal.
+
+```asm
+;Label   Opcode   Operand    Comment
+ ABC:    MVI      E, 15      ;LOAD E WITH 15 DECIMAL
+         MVI      E, 15D
+```
+
+### Octal Data
+
+Each octal number must be followed by the letter <code class="text-green-600 bg-green-100 rounded px-1">O</code> or the letter <code class="text-green-600 bg-green-100 rounded px-1">Q</code>.
+
+```asm
+;Label   Opcode   Operand    Comment
+ LABEL:  MVI      A, 72Q     ;LOAD OCTAL 72 INTO ACCUM
+```
+
+### ASCII Constant
+
+One or more ASCII characters enclosed in single quotes define an ASCII constant. Two
+successive single quotes must be used to represent one single quote within an ASCII constant.
+
+```asm
+;Label   Opcode   Operand    Comment
+         MVI      E,'*'      ;LOAD E REG WITH 8-81T ASCII
+                            ;REPRESENTATION OF *
+
+ DATE:   DB       'TODAY"S DATE'
+```
+
+### Labels Assigned Values
+
+The SET and EQU directives can assign values to labels. In the following example,
+assume that VALUE has been assigned the value 9FH; the two `MVI` statements are equivalent:
+
+```asm
+;Label   Opcode   Operand    Comment
+ VALUE   EQU      9FH
+ Al:     MVI      D, 9FH
+ A2:     MVI      D, VALUE
+```
+
+### Labels of Instruction or Data
+
+The label assigned to an instruction or a data definition has as its value the
+address of the first byte of the instruction or data. Instructions elsewhere in the program can refer to this
+address by its symbolic label name.
+
+
+```asm
+;Label   Opcode   Operand    Comment
+ HERE:   JMP      THERE      ;JUMP TO INSTRUCTION AT THERE
+ THERE:  MVI      D, 9FH
+```
+
+### Expressions
+
+All of the operands discussed earlier can be combined by to form an expression. Details around expressions
+are discussed elsewhere.
+
+### Register Operands
+
+|Symbol|Meaning|
+|------|-------|
+| A | Accumulator register
+| B | Register B or register pair B and C
+| C | Register C
+| D | Register D or register pair D and E
+| E | Register E
+| H | Register H or register pair H and L
+| L | Register L
+| SP | Stack pointer register
+| PSW | Program status word (Contents of A and status flags)
+| M | Memory reference code using address in H and L

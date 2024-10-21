@@ -1,0 +1,36 @@
+---
+title: Unsupported Features
+description: Sim8085 does not support some instructions and advanced assmebler features yet.
+---
+
+We have tried our best to implement as many features specified in the original
+8080/85 Assembly Language Programming Manual but due to time constraints and
+not been able to implement all of them. We want the application to be useful
+to users as soon as possible and thus we have released the application with
+these missing features.
+
+We will be implementing all of these in due time.
+
+If you believe any of these are essential, please raise a request through the
+GitHub issues page.
+
+### Unsupported Instructions
+
+The application does not _yet_ implement the interrupt system and the related
+instructions such as `RST`, `EI`, `DI` etc.
+
+### Unsupported Directives
+
+The application does not support the following,
+
+- `DS`
+- `IF`, `ELSE` & `ENDIF`
+- `END`
+- `EOT`
+- Some of the relocation directives, `CSEG`, `DSEG`, `PUBLIC`, `EXTRN`, `NAME`, `STKLN` & the `STACK` and `MEMORY`
+reserved words.
+- None of the macro directives, `MACRO`, `ENDM`, `LOCAL`, `REPT`, `IRP`, `IRPC`, `EXITM`
+
+### Unsupported Expressions
+
+Apart of the arithmetic expression, no other kind of expression are supported right now.
