@@ -22,7 +22,7 @@ import '../components/styles.css';
             </div>
 
             <!-- Middle Panel that can grow, but with a min and max width to remain stable -->
-            <div class="w-[45vw] flex-grow flex-shrink max-w-[800px] min-w-[300px] border-l border-l-gray-300">
+            <div class="w-[45vw] flex-grow flex-shrink max-w-[800px] min-w-[300px] border-x border-x-gray-300">
                 <div class="flex">
                     <div class="grow">
                         <div class="flex items-center">
@@ -32,7 +32,7 @@ import '../components/styles.css';
                             </div>
                         </div>
                     </div>
-                    <Actions client:idle />
+                    <!-- <Actions client:idle /> -->
                 </div>
                 <CodeMirror client:load />
             </div>

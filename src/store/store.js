@@ -52,6 +52,7 @@ export const [store, setStore] = createStore({
   registers: initialRegisterState(),
   stackPointer: 0,
   programCounter: 0,
+  pcStartValue: 0,
   statePointer: null,
   flags: {
     s: false,

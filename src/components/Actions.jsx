@@ -1,5 +1,5 @@
 import { createSignal, onCleanup, onMount, useContext } from "solid-js";
-import { VsClearAll, VsDebug, VsDebugLineByLine, VsDebugStart, VsDebugStepInto, VsDebugStepOver, VsDebugStop, VsPlay } from 'solid-icons/vs';
+import { VsClearAll, VsDebug, VsDebugLineByLine, VsDebugStart, VsDebugStepInto, VsDebugStepOver, VsDebugStop, VsInfo, VsPlay, VsQuestion } from 'solid-icons/vs';
 import { HiOutlineWrench, HiSolidArrowRight, HiSolidPlay, HiSolidStop, HiSolidWrench } from 'solid-icons/hi';
 import Module from '../core/8085.js';
 import { StoreContext } from "./StoreContext.js";
@@ -200,7 +200,8 @@ export function Actions() {
 
     try {
       if (store.programState === 'Loaded') {
-        const pc = store.assembled.length ? store.assembled[0].currentAddress : 0;
+        // const pc = store.assembled.length ? store.assembled[0].currentAddress : 0;
+        const pc = store.pcStartValue;
         setStore(
           produce(draftStore => {
             draftStore.programState = 'Paused';
@@ -288,8 +289,41 @@ export function Actions() {
     }
   };
 
+  const setPCStartValue = (value) => {
+    setStore("pcStartValue", parseInt(value || "0", 16) % 65536);
+  };
+
   return (
-    <div class="flex items-center border-r border-r-gray-300 border-l-0 border-t-0 border-b-0 rounded-sm dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+    <div class="flex items-center gap-3 border-l-0 border-t-0 border-b-0 rounded-sm dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+      <div class="flex items-center gap-1 text-sm">
+        <div class="flex items-center gap-1 border-b border-b-gray-300 min-w-0">
+          <span class="font-mono text-gray-400 dark:text-gray-500">0x</span>
+          <input
+            type="text"
+            class="p-1 w-12 font-mono bg-transparent outline-none placeholder:text-gray-300 dark:placeholder:text-gray-700"
+            placeholder="Start PC Value"
+            value={store.pcStartValue.toString(16)}
+            onInput={(e) => setPCStartValue(e.target.value)}
+          />
+          <Tooltip>
+            <Tooltip.Trigger class="tooltip__trigger">
+              <VsQuestion />
+            </Tooltip.Trigger>
+            <Tooltip.Portal>
+              <Tooltip.Content class="tooltip__content">
+                <Tooltip.Arrow />
+                <p>Your program will start executing at this address instead of 0h. This is equivalent to the operation of GO &amp; EXEC in SDK-85.</p>
+              </Tooltip.Content>
+            </Tooltip.Portal>
+          </Tooltip>
+        </div>
+        <ActionButton
+          icon={<HiSolidPlay class="text-green-400 dark:text-green-600" />}
+          title="Load &amp; Run"
+          onClick={loadAndRun}
+          disabled={false}
+        />
+      </div>
       <ActionButton
         icon={
           store.programState === 'Idle' ? (
@@ -301,12 +335,6 @@ export function Actions() {
         onClick={loadOrUnload}
         disabled={false}
         title={store.programState === 'Idle' ? "Assemble & Load" : "Unload program from memory"}
-      />
-      <ActionButton
-        icon={<HiSolidPlay class="text-green-400 dark:text-green-600" />}
-        title="Load &amp; Run"
-        onClick={loadAndRun}
-        disabled={false}
       />
       <ActionButton
         icon={(

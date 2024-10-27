@@ -117,11 +117,11 @@ export function runProgram(store) {
     setState(simulator, store.statePointer, inputState);
   }
 
-  const loadAddress = Math.min(...store.assembled.map((line) => line.currentAddress));
+  // const loadAddress = Math.min(...store.assembled.map((line) => line.currentAddress));
 
   try {
-    console.log(getStateFromPtr(simulator, store.statePointer).memory[0]);
-    const newStatePointer = execute8085Program(store.statePointer, loadAddress);
+    console.log(`PC Start Value ${store.pcStartValue}`);
+    const newStatePointer = execute8085Program(store.statePointer, store.pcStartValue);
     const outputState = getStateFromPtr(simulator, newStatePointer);
 
     return {
@@ -153,10 +153,11 @@ export function runProgram(store) {
 export function runSingleInstruction(store) {
   var inputState = getCpuState(store);
 
-  const loadAddress = Math.min(...store.assembled.map((line) => line.currentAddress));
+  // const loadAddress = Math.min(...store.assembled.map((line) => line.currentAddress));
 
   try {
-    const status = simulator._Emulate8085Op(inputState.ptr, loadAddress);
+    console.log(`Emulating instruction at ${store.pcStartValue.toString(16)}`)
+    const status = simulator._Emulate8085Op(inputState.ptr, store.pcStartValue);
     const outputState = getStateFromPtr(simulator, inputState.ptr);
 
     console.log('status', status);
