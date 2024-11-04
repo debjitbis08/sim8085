@@ -4,7 +4,7 @@ import MemoryList from "./MemoryList";
 import { Registers } from "./Registers";
 import { Flags } from "./Flags";
 import { createSignal, onMount } from "solid-js";
-import { FiCpu } from 'solid-icons/fi'
+import { FiCpu, FiFolder } from 'solid-icons/fi'
 import { AiOutlineQuestionCircle } from "solid-icons/ai";
 import { IOPorts } from "./IOPorts";
 import { VsSettings, VsSettingsGear } from "solid-icons/vs";
