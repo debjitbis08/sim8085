@@ -5,6 +5,7 @@ import LogoWithBackground from '../icons/logo-with-green-background.svg?raw';
 import FAQs from './FAQs.astro';
 import ThemeSwitcher from './ThemeSwitcher.astro';
 import { Actions } from './Actions.jsx';
+import { supabase } from '../lib/supabase.js';
 
 interface Props {
 	showActions: boolean;
@@ -12,6 +13,12 @@ interface Props {
 }
 
 const { showActions, fullwidth } = Astro.props;
+
+// Get user session if logged in
+const { data: { session } } = await supabase.auth.getSession();
+const user = session?.user;
+const isLoggedIn = !!user;
+const avatarUrl = user?.user_metadata?.avatar_url || '/default-avatar.png'; // Default avatar if none exists
 ---
 <header class="w-full py-2 md:py-4 justify-start md:justify-between items-center h-auto md:h-16 md:flex">
     <div class="flex items-center gap-2 w-full">
@@ -42,18 +49,41 @@ const { showActions, fullwidth } = Astro.props;
         <!-- <div class="flex flex-grow items-center gap-2 space-x-2"> -->
             <!-- <div class="pl-2 border-r border-r-gray-500 dark:border-r-gray-600 h-4"></div> -->
             <div class="flex-grow"></div>
-            <ThemeSwitcher />
-            <link href="https://fonts.googleapis.com/css?family=Inter&amp;display=swap" rel="stylesheet">
-            <a
-                class="bmc-btn"
-                target="_blank"
-                href="https://buymeacoffee.com/sim8085"
-                title="Your support helps me improve Sim8085, create new tutorials, and keep this platform running for students and enthusiasts worldwide!"
-            >
-                <span>
-                    <Fragment set:html={HandHoldingHeartIcon } />
-                </span> <span class="hidden md:inline bmc-btn-text">Donate</span>
-            </a>
+            <div class="flex items-center gap-2">
+                <ThemeSwitcher />
+                <link href="https://fonts.googleapis.com/css?family=Cookie&amp;display=swap" rel="stylesheet">
+                <!-- Profile Icon and Logout Button -->
+                <div x-data="userProfile" class="ml-2 relative">
+                    <template x-if="isLoggedIn">
+                        <div class="relative">
+                            <button @click="toggleMenu" class="flex items-center focus:outline-none">
+                                <img :src="avatarUrl || '/default-avatar.png'" alt="User Avatar" class="w-8 h-8 rounded-full">
+                            </button>
+                            <div x-show="menuOpen" @click.away="menuOpen = false" class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-700 rounded-md shadow-lg overflow-hidden z-10">
+                                <button @click="logout" class="block w-full px-4 py-2 text-sm text-left text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600">
+                                    Logout
+                                </button>
+                            </div>
+                        </div>
+                    </template>
+                    <template x-if="!isLoggedIn">
+                        <a href="/login" class="inline-block text-gray-800 dark:text-gray-200 px-4 py-1 box-border rounded-md border dark:border-gray-700 hover:dark:bg-gray-800">
+                            Login
+                        </a>
+                    </template>
+                </div>
+                <link href="https://fonts.googleapis.com/css?family=Inter&amp;display=swap" rel="stylesheet">
+                <a
+                    class="bmc-btn"
+                    target="_blank"
+                    href="https://buymeacoffee.com/sim8085"
+                    title="Your support helps me improve Sim8085, create new tutorials, and keep this platform running for students and enthusiasts worldwide!"
+                >
+                    <span>
+                        <Fragment set:html={HandHoldingHeartIcon } />
+                    </span> <span class="hidden md:inline bmc-btn-text">Donate</span>
+                </a>
+            </div>
         </div>
     </div>
 </header>
@@ -90,3 +120,32 @@ const { showActions, fullwidth } = Astro.props;
   box-shadow: none;
 }
 </style>
+<script>
+    import Alpine from 'alpinejs';
+    import { supabase } from '../lib/supabase.js';
+
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('userProfile', () => ({
+            isLoggedIn: false,
+            user: null,
+            avatarUrl: '/default-avatar.png',
+            menuOpen: false,
+
+            async init() {
+                const { data: { session } } = await supabase.auth.getSession();
+                this.user = session?.user;
+                this.isLoggedIn = !!this.user;
+                this.avatarUrl = this.user?.user_metadata?.avatar_url || '/default-avatar.png'; // Default avatar if none exists
+            },
+
+            toggleMenu() {
+                this.menuOpen = !this.menuOpen;
+            },
+
+            async logout() {
+                await supabase.auth.signOut();
+                window.location.reload(); // Refresh the page after logout
+            }
+        }));
+    });
+</script>

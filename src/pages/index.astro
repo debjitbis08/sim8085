@@ -58,3 +58,32 @@ import '../components/styles.css';
         </div> -->
     </main>
 </Layout>
+
+<script>
+    import { supabase } from '../lib/supabase.js';
+
+    // Function to handle the OAuth tokens from URL
+    async function handleOAuthTokens() {
+        const hash = window.location.hash;
+        if (hash) {
+            const params = new URLSearchParams(hash.substring(1)); // Remove '#' and parse
+            const access_token = params.get('access_token');
+            const refresh_token = params.get('refresh_token');
+
+            if (access_token && refresh_token) {
+                // Set the session in Supabase
+                await supabase.auth.setSession({
+                    access_token,
+                    refresh_token,
+                });
+
+                // Redirect to clear the URL hash and go to dashboard
+                window.location.replace('/'); // Update with the correct path for your app
+            }
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        handleOAuthTokens();
+    });
+</script>

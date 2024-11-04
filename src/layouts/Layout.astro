@@ -14,9 +14,11 @@ interface Props {
 	showActions: boolean;
 	fullwidth: boolean;
 	smallFooter?: boolean;
+	noHeader?: boolean;
+	noFooter?: boolean;
 }
 
-const { title, showActions, fullwidth, smallFooter } = Astro.props;
+const { title, showActions, fullwidth, smallFooter, noHeader, noFooter } = Astro.props;
 ---
 
 <!doctype html>
@@ -55,12 +57,12 @@ const { title, showActions, fullwidth, smallFooter } = Astro.props;
     </head>
 	<body class={`bg-page-background text-primary-foreground min-h-dvh`}>
 	    <main class={`${!fullwidth ? "max-w-4xl mx-auto" : ""}`}>
-			<Header showActions={showActions} fullwidth={fullwidth} />
+			{!noHeader && <Header showActions={showActions} fullwidth={fullwidth} />}
             <div>
                 <slot />
             </div>
     	</main>
-        <Footer small={smallFooter} />
+        {!noFooter && <Footer small={smallFooter} />}
         <CookieBanner />
 	</body>
 </html>
