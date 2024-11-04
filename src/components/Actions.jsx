@@ -14,6 +14,7 @@ import { Toast, toaster } from "@kobalte/core/toast";
 import { trackEvent } from "./analytics/tracker.js";
 import { showToaster } from "./toaster.jsx";
 import { FaSolidEject } from "solid-icons/fa";
+import { createShortcut } from "@solid-primitives/keyboard";
 
 export function Actions() {
   const [ isReady, setIsReady ] = createSignal(false);
@@ -293,8 +294,55 @@ export function Actions() {
     setStore("pcStartValue", parseInt(value || "0", 16) % 65536);
   };
 
+  // Load and Run
+  createShortcut(
+    ["Control", "F5"],
+    loadAndRun,
+  );
+
+  // Start Debug
+  createShortcut(
+    ["Alt", "F5"],
+    () => {
+      if (store.programState === 'Idle' || store.programState === 'Loaded')  runOne();
+    },
+  );
+
+  // Step Over
+  createShortcut(
+    ["F10"],
+    () => {
+      if (store.programState === 'Paused') runOne();
+    },
+  );
+
+  // Stop Debug
+  createShortcut(
+    ["Shift", "F5"],
+    () => {
+      if (store.programState === 'Paused')  clearAllDataOrStop();
+    },
+  );
+
+  // Assemble and Load Program
+  createShortcut(
+    ["Control", "Shift", "B"],
+    () => {
+      if (store.programState === 'Idle') load();
+    },
+  );
+
+  // Unload Program
+  createShortcut(
+    ["Control", "Shift", "U"],
+    () => {
+      if (store.programState !== 'Idle') unload();
+    },
+  );
+
+
   return (
-    <div class="flex items-center gap-3 border-l-0 border-t-0 border-b-0 rounded-sm dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+    <div class="flex items-center gap-3 border-l-0 border-t-0 border-b-0 rounded-sm dark:border-gray-700 dark:bg-gray-900">
       <div class="flex items-center gap-1 text-sm">
         <div class="flex items-center gap-1 border-b border-b-gray-300 min-w-0">
           <span class="font-mono text-gray-400 dark:text-gray-500">0x</span>
@@ -312,7 +360,11 @@ export function Actions() {
             <Tooltip.Portal>
               <Tooltip.Content class="tooltip__content">
                 <Tooltip.Arrow />
-                <p>Your program will start executing at this address instead of 0h. This is equivalent to the operation of GO &amp; EXEC in SDK-85.</p>
+                <p>
+                  Your program will start executing at this address instead of 0h.
+                  This is equivalent to the operation of GO &amp; EXEC in <a class="text-blue-600 dark:text-blue-400" target="_blank" href="https://community.intel.com/cipcp26785/attachments/cipcp26785/processors/59602/1/9800451A.pdf">SDK-85</a>.
+                  See page 4-6 in the manual.
+                </p>
               </Tooltip.Content>
             </Tooltip.Portal>
           </Tooltip>
@@ -320,6 +372,7 @@ export function Actions() {
         <ActionButton
           icon={<HiSolidPlay class="text-green-400 dark:text-green-600" />}
           title="Load &amp; Run"
+          shortcut="Ctrl + F5"
           onClick={loadAndRun}
           disabled={false}
         />
@@ -335,6 +388,7 @@ export function Actions() {
         onClick={loadOrUnload}
         disabled={false}
         title={store.programState === 'Idle' ? "Assemble & Load" : "Unload program from memory"}
+        shortcut={store.programState === 'Idle' ? "Ctrl + Shift + B" : "Ctrl + Shift + U"}
       />
       <ActionButton
         icon={(
@@ -346,6 +400,7 @@ export function Actions() {
         onClick={runOne}
         disabled={false}
         title={store.programState === 'Loaded' ? 'Step Through' : store.programState === 'Paused' ? 'Execute One Instruction' : 'Load & Debug'}
+        shortcut={store.programState === 'Loaded' ? 'Alt + F5' : store.programState === 'Paused' ? 'F10' : 'Alt + F5'}
       />
       <ActionButton
         icon={store.programState === 'Paused' ? (
@@ -353,7 +408,8 @@ export function Actions() {
         ) : (
           <AiOutlineClear class="text-red-400 dark:text-red-600"/>
         )}
-        title="Clear All Data"
+        title={store.programState === 'Paused' ? 'Stop Debugging' : 'Clear All Data'}
+        shortcut={store.programState === 'Paused' ? 'Shift + F5' : ''}
         onClick={clearAllDataOrStop}
         disabled={false}
       />
@@ -369,7 +425,7 @@ export function Actions() {
 function ActionButton(props) {
   return (
     <Tooltip>
-      <Tooltip.Trigger class="tooltip__trigger hover:bg-gray-100 dark:hover:bg-gray-800"
+      <Tooltip.Trigger class="tooltip__trigger rounded-sm hover:bg-gray-200 dark:hover:bg-gray-800"
         onClick={props.onClick}
         disabled={props.disabled}
       >
@@ -380,7 +436,12 @@ function ActionButton(props) {
       <Tooltip.Portal>
         <Tooltip.Content class="tooltip__content">
           <Tooltip.Arrow />
-          <p>{props.title}</p>
+          <div class="flex items-center gap-2">
+            <p>{props.title}</p>
+            {props.shortcut ? (
+              <span class="text-xs bg-gray-300 dark:bg-gray-600 py-1 px-2 rounded-sm">{props.shortcut}</span>
+            ) : null}
+          </div>
         </Tooltip.Content>
       </Tooltip.Portal>
     </Tooltip>

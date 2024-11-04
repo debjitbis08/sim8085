@@ -7,8 +7,11 @@ import { produce } from "solid-js/store";
 import { createLens } from "../utils/lens.js";
 import { onMount } from "solid-js";
 import { deepMerge } from "../utils/deepMerge.js";
+import { createShortcut } from "@solid-primitives/keyboard";
+import { createSignal } from "solid-js";
 
 export function Settings() {
+  const [open, setOpen] = createSignal(false);
 
   onMount(() => {
     const savedSettings = localStorage.getItem("settings");
@@ -33,10 +36,28 @@ export function Settings() {
     setStore("settings", mergedSettings);
   });
 
+  createShortcut(
+    ['Control', ','],
+    () => setOpen(true),
+  );
+
   return (
-    <Dialog>
+    <Dialog open={open()} onOpenChange={setOpen}>
       <Dialog.Trigger class="dialog__trigger">
         <VsSettingsGear class="text-xl"/>
+        {/* <Tooltip>
+          <Tooltip.Trigger class="tooltip__trigger rounded-sm hover:bg-gray-200 dark:hover:bg-gray-800">
+          </Tooltip.Trigger>
+          <Tooltip.Portal>
+            <Tooltip.Content class="tooltip__content">
+              <Tooltip.Arrow />
+              <div class="flex items-center gap-2">
+                <p>Open Settings</p>
+                <span class="text-xs bg-gray-300 dark:bg-gray-600 py-1 px-2 rounded-sm">Ctrl + ,</span>
+              </div>
+            </Tooltip.Content>
+          </Tooltip.Portal>
+        </Tooltip> */}
       </Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Overlay class="dialog__overlay" />
