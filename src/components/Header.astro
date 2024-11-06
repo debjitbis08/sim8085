@@ -3,6 +3,12 @@ import GithubIcon from '../icons/github.svg?raw';
 import FAQs from './FAQs.astro';
 import ThemeSwitcher from './ThemeSwitcher.astro';
 import { Actions } from './Actions.jsx';
+
+interface Props {
+	showActions: boolean;
+}
+
+const { showActions } = Astro.props;
 ---
 <header class="w-full py-4 bg-gray-100 dark:bg-gray-900 flex justify-between items-center h-16">
     <div class="flex items-center gap-2 w-full">
@@ -13,7 +19,7 @@ import { Actions } from './Actions.jsx';
         </div>
         <div class="w-[45vw] flex-grow flex-shrink max-w-[800px] min-w-[300px] flex">
             <div class="flex-grow"></div>
-            <Actions client:idle />
+            { showActions ? <Actions client:idle /> : null }
         </div>
         <div class="w-[30vw] min-w-[320px] flex-grow flex-shrink-0 flex items-start">
         <!-- <div class="flex flex-grow items-center gap-2 space-x-2"> -->
