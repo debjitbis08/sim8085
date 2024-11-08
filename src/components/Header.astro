@@ -21,11 +21,26 @@ const { showActions } = Astro.props;
             <div class="flex-grow"></div>
             { showActions ? <Actions client:idle /> : null }
         </div>
-        <div class="w-[30vw] min-w-[320px] flex-grow flex-shrink-0 flex items-start">
+        <div class="w-[30vw] min-w-[320px] flex-grow flex-shrink-0 flex items-start pr-4">
         <!-- <div class="flex flex-grow items-center gap-2 space-x-2"> -->
             <!-- <div class="pl-2 border-r border-r-gray-500 dark:border-r-gray-600 h-4"></div> -->
             <div class="flex-grow"></div>
             <ThemeSwitcher />
+            <link href="https://fonts.googleapis.com/css?family=Cookie&amp;display=swap" rel="stylesheet">
+            <a class="bmc-btn" target="_blank" href="https://buymeacoffee.com/sim8085"><span>📚</span> <span class="bmc-btn-text">Buy me a book</span></a>
         </div>
     </div>
 </header>
+
+<style>
+.bmc-btn {
+  color: #ffffff;
+  background-color: #FF5F5F !important;
+  border: none;
+  text-decoration: none !important;
+  font-family: 'Cookie', cursive !important;
+  -webkit-box-sizing: border-box !important;
+  box-sizing: border-box !important;
+  @apply h-8 py-0 px-4 flex items-center gap-2 rounded-md font-bold;
+}
+</style>
