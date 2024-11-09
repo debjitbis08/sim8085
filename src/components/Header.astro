@@ -1,5 +1,5 @@
 ---
-import GithubIcon from '../icons/github.svg?raw';
+import HandHoldingHeartIcon from '../icons/hand-holding-heart.svg?raw';
 import FAQs from './FAQs.astro';
 import ThemeSwitcher from './ThemeSwitcher.astro';
 import { Actions } from './Actions.jsx';
@@ -27,20 +27,48 @@ const { showActions } = Astro.props;
             <div class="flex-grow"></div>
             <ThemeSwitcher />
             <link href="https://fonts.googleapis.com/css?family=Cookie&amp;display=swap" rel="stylesheet">
-            <a class="bmc-btn" target="_blank" href="https://buymeacoffee.com/sim8085"><span>📚</span> <span class="bmc-btn-text">Buy me a book</span></a>
+            <a
+                class="bmc-btn"
+                target="_blank"
+                href="https://buymeacoffee.com/sim8085"
+                title="Your support helps me improve Sim8085, create new tutorials, and keep this platform running for students and enthusiasts worldwide!"
+            >
+                <span>
+                    <Fragment set:html={HandHoldingHeartIcon } />
+                </span> <span class="bmc-btn-text">Support Sim8085</span>
+            </a>
         </div>
     </div>
 </header>
 
 <style>
 .bmc-btn {
-  color: #ffffff;
-  background-color: #FF5F5F !important;
-  border: none;
-  text-decoration: none !important;
   font-family: 'Cookie', cursive !important;
-  -webkit-box-sizing: border-box !important;
-  box-sizing: border-box !important;
-  @apply h-8 py-0 px-4 flex items-center gap-2 rounded-md font-bold;
+  @apply h-8 py-0 px-4 flex items-center gap-2 rounded-md text-lg font-bold bg-sky-700 box-border text-white;
+  position: relative;
+  z-index: 1;
+  transition: transform 0.2s ease, box-shadow 0.5s ease;
+  box-shadow: 0 0 10px rgba(0, 204, 255, 0.2);
+  animation: subtle-glow 3s infinite;
+}
+
+/* Glow animation */
+@keyframes subtle-glow {
+  0% {
+    box-shadow: 0 0 8px rgba(0, 204, 255, 0.2), 0 0 15px rgba(0, 204, 255, 0.15);
+  }
+  50% {
+    box-shadow: 0 0 12px rgba(0, 204, 255, 0.3), 0 0 20px rgba(0, 204, 255, 0.2);
+  }
+  100% {
+    box-shadow: 0 0 8px rgba(0, 204, 255, 0.2), 0 0 15px rgba(0, 204, 255, 0.15);
+  }
+}
+
+/* Hover effect */
+.bmc-btn:hover {
+  /* transform: scale(1.05); */
+  animation: none;
+  box-shadow: none;
 }
 </style>
