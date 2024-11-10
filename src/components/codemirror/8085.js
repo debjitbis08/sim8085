@@ -22,7 +22,7 @@ const tokenTable = {
 };
 
 const opcodes = /^(call|[crj](c|nc|z|nz|p|m|pe|po)|ret|rst|in[xr]?|out|lxi|push|pop|stax?|ldax?|xchg|(xt|sp|pc)hl|dad|mov|hlt|mvi|dc[rx]|ad[dci]|su[bi]|sb[bi]|an[di]|[xo]r[ai]|cmp|aci|cpi|rlc|rrc|ral|rar|jmp|cm[ac]|stc|daa|[sl]hld|[rs]im|[ed]i|nop|ana)\b/i;
-const directives = /^(db|dw|ds|org|equ|set)\b/i;
+const directives = /^(db|dw|ds|org|equ|set|end)\b/i;
 const registers = /^(a|bc?|c|de?|e|hl?|l|psw|sp)\b/i;
 const numbers = /^(0x[\da-f]+|[\da-f]+h|[0-7]+o|[0-7]+q|[01]+b|\d+d?)\b/i;
 const label = /^[?@a-z][a-zA-Z0-9]{0,5}/i;

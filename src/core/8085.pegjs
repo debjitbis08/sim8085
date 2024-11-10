@@ -317,6 +317,7 @@ machineCode = prg:program {
         data,
         dataVal,
         currentAddress = 0,
+        pcStartValue,
         objCode = [];
 
 
@@ -328,6 +329,12 @@ machineCode = prg:program {
         if (line == null) continue;
 
         if (line.opcode == null || typeof line.opcode === "string") {
+            if (line.opcode === "end") {
+                if (line.data.length) {
+                    pcStartValue = line.data[0];
+                }
+                break;
+            }
             if (line.opcode === "org") {
                 var data = line.data[0];
                 if (typeof data === 'function') {
@@ -426,7 +433,7 @@ machineCode = prg:program {
         }
     }
 
-    return objCode;
+    return { pcStartValue, assembled: objCode };
 }
 
 /**
@@ -803,12 +810,12 @@ eol "line end" = "\n" / "\r\n" / "\r" / "\u2028" / "\u2029"
 
 whitespace "whitespace" = [ \t\v\f\u00A0\uFEFF\u1680\u180E\u2000-\u200A\u202F\u205F\u3000]
 
-directive = dir:(dataDefinition / orgDirective) whitespace* {
+directive = dir:(dataDefinition / orgDirective / endDirective) whitespace* {
     var opcode = dir.name[0].toLowerCase();
     return {
         opcode: opcode,
         data: dir.params,
-        size: opcode === "org" || opcode === 'equ' ? 0 : dir.params.length,
+        size: opcode === "org" || opcode === 'equ' || opcode === 'end' ? 0 : dir.params.length,
         location: location()
     };
 }
@@ -1061,10 +1068,20 @@ orgDirective = dir:(dir_org) {
     };
 }
 
+endDirective = dir:(dir_end) {
+    console.log(dir);
+    return {
+        name: dir,
+        // Whitespace and value together in a single array
+        params: dir[1] ? [dir[1][1].value] : []
+    };
+}
+
 dir_db  = "DB"i  whitespace+ (expression_list / data8_list)
 dir_equ = "EQU"i whitespace+ (expressionImmediate / data16)
 dir_set = "SET"i whitespace+ (expressionImmediate / data16)
 dir_org = "ORG"i whitespace+ (expressionImmediate / data16)
+dir_end = "END"i (whitespace+ (expressionImmediate / data16))?
 
 op_stc  = "STC"i
 op_cmc  = "CMC"i

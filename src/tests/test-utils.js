@@ -7,7 +7,7 @@ export async function setupSimulator(code, loadAddress = 0) {
   let statePointer = await initSimulator();
 
   // Assemble the code
-  let assembled = assembleProgram(code);
+  let { assembled } = assembleProgram(code);
 
   // Load the program into the simulator
   const loadResult = loadProgram({
