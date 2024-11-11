@@ -24,12 +24,15 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: "lts/*"
+          node-version: "latest" # Use the latest version of Node.js
+          cache: "pnpm" # Cache for pnpm dependencies
+      - name: Setup pnpm
+        run: npm install -g pnpm
       - name: Install dependencies
-        run: npm clean-install
+        run: pnpm install --frozen-lockfile
       - name: Verify the integrity of provenance attestations and registry signatures for installed dependencies
-        run: npm audit signatures
+        run: pnpm audit
       - name: Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npx semantic-release
+        run: pnpm exec semantic-release
