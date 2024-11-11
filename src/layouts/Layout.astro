@@ -10,9 +10,11 @@ import CookieBanner from '../components/analytics/CookieBanner.astro';
 interface Props {
 	title: string;
 	showActions: boolean;
+	fullwidth: boolean;
+	smallFooter?: boolean;
 }
 
-const { title, showActions } = Astro.props;
+const { title, showActions, fullwidth, smallFooter } = Astro.props;
 ---
 
 <!doctype html>
@@ -49,12 +51,14 @@ const { title, showActions } = Astro.props;
         </script>
         <PostHogInit />
     </head>
-	<body class="bg-white dark:bg-gray-900 text-black dark:text-gray-300 min-h-screen">
-        <Header showActions={showActions} />
-        <div>
-            <slot />
-        </div>
-        <Footer />
+	<body class={`bg-white dark:bg-gray-900 text-black dark:text-gray-300 min-h-screen`}>
+	    <main  class={`${!fullwidth ? "max-w-4xl mx-auto" : ""}`}>
+			<Header showActions={showActions} fullwidth={fullwidth} />
+            <div>
+                <slot />
+            </div>
+    	</main>
+        <Footer small={smallFooter} />
         <CookieBanner />
 	</body>
 </html>

@@ -1,0 +1,76 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { getCollection, getEntries } from 'astro:content';
+
+const dateFormatter = new Intl.DateTimeFormat('en-US', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+})
+
+const entries = await Promise.all(
+  (await getCollection("changelog"))
+    .sort((entryA, entryB) =>
+      Number(new Date(entryB.data.date)) - Number(new Date(entryA.data.date))
+    )
+    .map((entry) => {
+      return entry.render().then(({ Content }) => ({
+        ...entry,
+        Content,
+        date: dateFormatter.format(new Date(entry.data.date)),
+      })).catch((err) => console.error(err))
+    })
+);
+---
+
+<Layout title="Changelog - Sim8085" showActions={false} fullwidth={false}>
+    <main class="privacy-policy max-w-4xl mx-auto py-8 px-6">
+        <section>
+            <div class="lg:max-w-[1024px] flex items-start gap-3 mt-8 mb-16 pb-16 border-b border-b-gray-800">
+                <div class="text-transparent">
+                    <p>2024-00-00</p>
+                    <p>v0.0.0</p>
+                </div>
+                <div>
+                    <h2 class="text-4xl">Changelog</h2>
+                    <p class="dark:text-gray-500 mt-2">New updates and improvements for Sim8085</p>
+                </div>
+            </div>
+            <div class="lg:max-w-[1024px]">
+                {entries.map((entry, index) => (
+                  <div class="p-4 mb-4 flex items-start gap-3">
+                    <div class="lg:w-[256px] dark:text-gray-500 sticky top-16">
+                        <p class="mb-2 font-mono">
+                            {entry.date}
+                        </p>
+                        <p class="font-mono text-sm">
+                            <a href={`https://github.com/debjitbis08/sim8085/releases/tag/v${entry.data.version}`} class="text-blue-600 dark:text-blue-400">v{entry.data.version}</a>
+                        </p>
+                    </div>
+                    <div class="changelog-entry lg:w-[588px]">
+                        <entry.Content />
+                    </div>
+                  </div>
+                ))}
+            </div>
+        </section>
+    </main>
+</Layout>
+
+<style>
+:global(.changelog-entry h3) {
+    @apply text-2xl font-bold mb-4;
+}
+
+:global(.changelog-entry h3:not(:first-child)) {
+    @apply mt-8;
+}
+
+:global(.changelog-entry a) {
+    @apply text-blue-600 dark:text-blue-400;
+}
+
+:global(.changelog-entry img) {
+    @apply my-3;
+}
+</style>

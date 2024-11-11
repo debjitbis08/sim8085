@@ -7,6 +7,6 @@ import {
 export default defineConfig({
   preset,
   images: [
-    'public/favicon.svg',
+    'public/favicon-with-background.svg',
   ]
 });

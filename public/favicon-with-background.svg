@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="128.0px"
+   height="128.0px"
+   viewBox="0 0 128.0 128.0"
+   version="1.1"
+   id="SVGRoot"
+   sodipodi:docname="favicon-with-background.svg"
+   inkscape:version="1.1.2 (0a00cf5339, 2022-02-04)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview56"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:document-units="px"
+     showgrid="true"
+     inkscape:zoom="6.2217172"
+     inkscape:cx="16.072733"
+     inkscape:cy="83.256758"
+     inkscape:window-width="2560"
+     inkscape:window-height="1371"
+     inkscape:window-x="0"
+     inkscape:window-y="32"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer3">
+    <inkscape:grid
+       type="xygrid"
+       id="grid62" />
+  </sodipodi:namedview>
+  <defs
+     id="defs51" />
+  <g
+     inkscape:groupmode="layer"
+     id="layer2"
+     inkscape:label="Background"
+     style="display:inline">
+    <rect
+       style="fill:#ffffff;stroke-width:0.984616"
+       id="rect1242"
+       width="128"
+       height="128"
+       x="0"
+       y="0"
+       ry="25" />
+  </g>
+  <g
+     inkscape:groupmode="layer"
+     id="layer3"
+     inkscape:label="Foreground">
+    <g
+       style="display:inline;overflow:visible;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"
+       id="g1050"
+       transform="matrix(4.0498615,0,0,4.0498615,15.401662,15.401662)">
+      <rect
+         width="16"
+         height="16"
+         x="4"
+         y="4"
+         rx="2"
+         ry="2"
+         id="rect1014" />
+      <path
+         d="m 9,9 h 6 v 6 H 9 Z"
+         id="path1016" />
+      <path
+         d="M 9,1 V 4"
+         id="path1018" />
+      <path
+         d="M 15,1 V 4"
+         id="path1020" />
+      <path
+         d="m 9,20 v 3"
+         id="path1022" />
+      <path
+         d="m 15,20 v 3"
+         id="path1024" />
+      <path
+         d="m 20,9 h 3"
+         id="path1026" />
+      <path
+         d="m 20,14 h 3"
+         id="path1028" />
+      <path
+         d="M 1,9 H 4"
+         id="path1030" />
+      <path
+         d="M 1,14 H 4"
+         id="path1032" />
+    </g>
+  </g>
+</svg>

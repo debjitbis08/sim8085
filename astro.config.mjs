@@ -65,7 +65,7 @@ export default defineConfig({
         short_name: 'Sim8085',
         theme_color: '#ffffff',
       },
-      includeAssets: ['favicon.svg', 'favicon-dark.svg', 'favicon.ico'],
+      includeAssets: ['favicon.svg', 'favicon-dark.svg', 'favicon.ico', 'favicon-with-background.svg'],
       pwaAssets: {
         config: true,
       },

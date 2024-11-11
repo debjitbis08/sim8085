@@ -44,6 +44,8 @@
   "devDependencies": {
     "@astrojs/starlight": "^0.28.3",
     "@astrojs/starlight-tailwind": "^2.0.3",
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/git": "^10.0.1",
     "@types/alpinejs": "^3.13.10",
     "@vite-pwa/assets-generator": "^0.2.6",
     "@vite-pwa/astro": "^0.4.3",

@@ -1,15 +1,28 @@
 ---
 import FAQs from './FAQs.astro';
 const year = new Date().getFullYear();
+
+interface Props {
+	small?: boolean;
+}
+
+const { small } = Astro.props;
 ---
-<footer class="flex items-center justify-center h-8 bg-gray-100 dark:bg-gray-900 text-gray-500 z-999 border-t dark:border-t-gray-500 text-xs tracking-wider">
-    <a href="/docs/en" target="_blank" class="hover:text-gray-400 dark:hover:text-gray-400 transition-colors">Documentation</a>
-    <span class="px-2">·</span>
-    <a href="https://www.debjitbiswas.com/tags/sim8085/" target="_blank" class="hover:text-gray-400 dark:hover:text-gray-400 transition-colors">Blog</a>
-    <span class="px-2">·</span>
-    <FAQs />
-    <span class="px-2">·</span>
-    <a href="https://github.com/debjitbis08/sim8085" target="_blank" class="hover:text-gray-400 dark:hover:text-gray-400 transition-colors">GitHub</a>
-    <span class="px-2">·</span>
-    <p>&copy; Copyright {year} — <a href="https://www.debjitbiswas.com" target="_blank" class="hover:text-gray-400 dark:hover:text-gray-400 transition-colors">Debjit Biswas</a></p>
+<footer class="w-[100vw] h-7 bg-gray-100 dark:bg-gray-900 text-gray-500 z-999 border-t dark:border-t-gray-800 text-xs tracking-wider">
+    <div class={`flex items-center justify-center ${small ? "mt-2" : "my-5"}`}>
+        <a href="/docs/en" target="_blank" class="hover:text-gray-400 dark:hover:text-gray-400 transition-colors">Documentation</a>
+        <span class="px-2">·</span>
+        <a href="https://www.debjitbiswas.com/tags/sim8085/" target="_blank" class="hover:text-gray-400 dark:hover:text-gray-400 transition-colors">Blog</a>
+        <span class="px-2">·</span>
+        <!-- <FAQs /> -->
+        <a href="/changelog" target="_blank" class="hover:text-gray-400 dark:hover:text-gray-400 transition-colors">Changelog</a>
+        <span class="px-2">·</span>
+        <a href="https://github.com/debjitbis08/sim8085" target="_blank" class="hover:text-gray-400 dark:hover:text-gray-400 transition-colors">GitHub</a>
+        <span class="px-2">·</span>
+        <a href="https://github.com/debjitbis08/sim8085/discussions/categories/ideas" target="_blank" class="hover:text-gray-400 dark:hover:text-gray-400 transition-colors">Submit an Idea</a>
+        <span class="px-2">·</span>
+        <a href="https://github.com/debjitbis08/sim8085/discussions/categories/q-a" target="_blank" class="hover:text-gray-400 dark:hover:text-gray-400 transition-colors">Community</a>
+        <span class="px-2">·</span>
+        <p>&copy; Copyright {year} — <a href="https://www.debjitbiswas.com" target="_blank" class="hover:text-gray-400 dark:hover:text-gray-400 transition-colors">Debjit Biswas</a></p>
+    </div>
 </footer>
