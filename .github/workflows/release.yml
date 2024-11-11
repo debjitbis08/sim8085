@@ -11,23 +11,20 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
-    permissions:
-      contents: write # to be able to publish a GitHub release
-      issues: write # to be able to comment on released issues
-      pull-requests: write # to be able to comment on released pull requests
-      id-token: write # to enable use of OIDC for npm provenance
+    strategy:
+      matrix:
+        node-version: [20] # Use the desired Node.js version
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v4 # Checkout the repository
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4 # Use pnpm's official GitHub Action
         with:
-          fetch-depth: 0
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
+          version: 9 # Specify the pnpm version to use
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
         with:
-          node-version: "latest" # Use the latest version of Node.js
-          cache: "pnpm" # Cache pnpm dependencies
-      - name: Setup pnpm
-        run: corepack enable # Enable pnpm through Corepack, included in Node.js
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm' # Enable pnpm cache
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
       - name: Verify the integrity of provenance attestations and registry signatures for installed dependencies
@@ -35,4 +32,4 @@ jobs:
       - name: Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: pnpm exec semantic-release
+        run: pnpm semantic-release
