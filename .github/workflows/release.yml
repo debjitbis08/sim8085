@@ -25,9 +25,9 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: "latest" # Use the latest version of Node.js
-          cache: "pnpm" # Cache for pnpm dependencies
+          cache: "pnpm" # Cache pnpm dependencies
       - name: Setup pnpm
-        run: npm install -g pnpm
+        run: corepack enable # Enable pnpm through Corepack, included in Node.js
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
       - name: Verify the integrity of provenance attestations and registry signatures for installed dependencies
