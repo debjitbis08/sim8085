@@ -367,6 +367,9 @@ export function Actions() {
                   This is equivalent to the operation of GO &amp; EXEC in <a class="text-blue-600 dark:text-blue-400" target="_blank" href="https://community.intel.com/cipcp26785/attachments/cipcp26785/processors/59602/1/9800451A.pdf">SDK-85</a>.
                   See page 4-6 in the manual.
                 </p>
+                <p>
+                  This can be also manipulated using the <a class="text-blue-600 dark:text-blue-400" href="/docs/en/directives/end">END directive</a>.
+                </p>
               </Tooltip.Content>
             </Tooltip.Portal>
           </Tooltip>
