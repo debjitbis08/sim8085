@@ -51,6 +51,7 @@
     "fast-check": "^3.22.0",
     "nanoid": "^5.0.7",
     "peggy": "^4.0.3",
+    "semantic-release": "^24.2.0",
     "sharp": "^0.33.5",
     "vite-plugin-peggy-loader": "^2.0.1",
     "vitest": "^2.1.1",
