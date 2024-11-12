@@ -16,7 +16,7 @@ export function RightPanel() {
 
   return (
     <div class="flex items-start w-full">
-      <div class="flex flex-col gap-8 px-4 pt-4 border-r border-r-gray-300 dark:border-r-gray-600" style={{ height: "calc(100vh - 6rem)" }}>
+      <div class="flex flex-col items-center h-sm:gap-4 gap-8 px-4 pt-4 border-r border-r-gray-300 dark:border-r-gray-600" style={{ height: "calc(100vh - 6rem)" }}>
         <button type="button" onClick={() => setActiveTab('cpu')} class={`${activeTab() === 'cpu' ? 'text-blue-600 dark:text-blue-400' : ''} flex flex-col items-center`}>
           <FiCpu class="text-2xl"/>
               {/*<span>CPU</span>*/}
@@ -43,8 +43,8 @@ export function RightPanel() {
         </button>
         <div class="pb-1"></div>
       </div>
-      <div class="min-w-60 w-full bg-gray-100 dark:bg-gray-800 p-4 h-full flex" style={{ height: "calc(100vh - 6rem)" }}>
-        <div class={`w-full ${activeTab() === 'cpu' ? '' : 'hidden'}`}>
+      <div class="min-w-60 w-full bg-gray-100 dark:bg-gray-800 p-4 h-full flex overflow-x-hidden overflow-y-auto" style={{ height: "calc(100vh - 6rem)" }}>
+        <div class={`w-full max-h-full ${activeTab() === 'cpu' ? '' : 'hidden'}`}>
           <div>
             <Registers />
           </div>

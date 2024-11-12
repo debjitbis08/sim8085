@@ -10,4 +10,11 @@ export default {
     ]
   },
 	darkMode: 'selector',
+	theme: {
+    extend: {
+      screens: {
+        'h-sm': { raw: '(max-height: 400px)' },
+      },
+    },
+  },
 }
