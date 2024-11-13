@@ -46,9 +46,9 @@ export function Registers() {
 
   return (
     <div>
-      <div class="flex border-b-2 dark:border-b-gray-600">
+      <div class="flex border-b border-b-foreground-border">
           <h2 class="text-xl grow pb-1">Registers</h2>
-          <button title="Clear Registers" class="text-red-700" onClick={clearRegisters}>
+          <button title="Clear Registers" class="text-red-foreground" onClick={clearRegisters}>
             <AiOutlineClear />
           </button>
       </div>
@@ -124,10 +124,10 @@ function Register(props) {
   return (
     <div class="flex items-center gap-1 my-2 p-1 hover:bg-gray-200 hover:dark:bg-gray-600">
       <span class="font-bold grow">{props.name}</span>
-      <span class="font-mono text-gray-600 dark:text-gray-400">0x</span>
+      <span class="font-mono text-secondary-foreground">0x</span>
       {editing() ? (
         <input
-          class="font-mono w-5 border-b border-b-gray-400 dark:bg-transparent"
+          class="font-mono w-5 border-b border-b-primary-border"
           value={highValue()}
           onInput={handleInputChange(setHighValue)}
           onKeyDown={handleKeyOrBlur}
@@ -147,7 +147,7 @@ function Register(props) {
       )}
       { editing() && props.canEditLow ? (
         <input
-          class="font-mono w-5 border-b border-b-gray-400 dark:bg-transparent"
+          class="font-mono w-5 border-b border-b-primary-border"
           value={lowValue()}
           onInput={handleInputChange(setLowValue)}
           onKeyDown={handleKeyOrBlur}

@@ -375,7 +375,7 @@ export function Actions() {
           </Tooltip>
         </div>
         <ActionButton
-          icon={<HiSolidPlay class="text-green-400 dark:text-green-600" />}
+          icon={<HiSolidPlay class="text-green-foreground" />}
           title="Load &amp; Run"
           shortcut="Ctrl + F5"
           onClick={loadAndRun}
@@ -385,7 +385,7 @@ export function Actions() {
       <ActionButton
         icon={
           store.programState === 'Idle' ? (
-            <HiSolidWrench class="text-yellow-400 dark:text-yellow-600" />
+            <HiSolidWrench class="text-yellow-foreground" />
           ) : (
             <FaSolidEject class="text-yellow-400 dark:text-yellow-600" />
           )
@@ -398,8 +398,8 @@ export function Actions() {
       <ActionButton
         icon={(
           <>
-            <VsDebug class={store.programState === 'Loaded' || store.programState === 'Idle' ? 'text-green-400 dark:text-green-600' : 'hidden'} />
-            <VsDebugStepOver class={`${store.programState === 'Paused' || store.programState === 'Running' ? 'text-green-400 dark:text-green-600' : 'hidden'}`} />
+            <VsDebug class={store.programState === 'Loaded' || store.programState === 'Idle' ? 'text-green-foreground' : 'hidden'} />
+            <VsDebugStepOver class={`${store.programState === 'Paused' || store.programState === 'Running' ? 'text-green-foreground' : 'hidden'}`} />
           </>
         )}
         onClick={runOne}
@@ -409,9 +409,9 @@ export function Actions() {
       />
       <ActionButton
         icon={store.programState === 'Paused' ? (
-          <HiSolidStop  class="text-red-400 dark:text-red-600"/>
+          <HiSolidStop  class="text-red-foreground"/>
         ) : (
-          <AiOutlineClear class="text-red-400 dark:text-red-600"/>
+          <AiOutlineClear class="text-red-foreground"/>
         )}
         title={store.programState === 'Paused' ? 'Stop Debugging' : 'Clear All Data'}
         shortcut={store.programState === 'Paused' ? 'Shift + F5' : ''}
@@ -430,7 +430,7 @@ export function Actions() {
 function ActionButton(props) {
   return (
     <Tooltip>
-      <Tooltip.Trigger class="tooltip__trigger rounded-sm hover:bg-gray-200 dark:hover:bg-gray-800"
+      <Tooltip.Trigger class="tooltip__trigger rounded-sm hover:bg-active-background border border-transparent hover:border-active-border"
         onClick={props.onClick}
         disabled={props.disabled}
       >

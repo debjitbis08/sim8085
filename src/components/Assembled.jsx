@@ -13,7 +13,7 @@ export function Assembled() {
     setLines(zipAssembledSource(store.assembled, store.code));
   });
   return (
-    <div class="p-4 w-full h-full">
+    <div class="p-4 w-full h-full border-y border-y-main-border border-l border-l-gray-200 bg-main-background" style={{ height: "calc(100vh - 6em)" }}>
       <div class="flex items-start gap-2">
         <h2 class="text-xl pb-4">Assembled Output</h2>
         <div

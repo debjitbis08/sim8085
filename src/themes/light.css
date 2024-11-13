@@ -1,11 +1,4 @@
-@config './tailwind.main.config.mjs';
-
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-@layer base {
-:root {
+html[data-theme="light"] {
     --sm-primary-50:  #eefbf3;
     --sm-primary-100: #d6f5e1;
     --sm-primary-200: #b1e9c8;
@@ -53,5 +46,4 @@
     --sm-red-foreground: #b91c1c;
     --sm-green-foreground: #22c55e;
     --sm-yellow-foreground: #eab308;
-}
 }
