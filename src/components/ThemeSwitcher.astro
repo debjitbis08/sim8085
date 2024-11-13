@@ -6,9 +6,12 @@ import ComputerDesktopIcon from '../icons/computer-desktop.svg?raw';
 <!-- Dropdown menu for theme selection -->
 <div class="flex justify-center">
     <div
-        class="relative text-left"
+        class="relative text-left hidden"
         x-data="{
             open: false,
+            init() {
+                this.$el.classList.remove('hidden');
+            },
             toggle() {
                 if (this.open) {
                     return this.close()
