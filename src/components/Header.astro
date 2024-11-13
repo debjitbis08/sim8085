@@ -12,13 +12,13 @@ interface Props {
 const { showActions, fullwidth } = Astro.props;
 ---
 <header class="w-full py-4 bg-gray-100 dark:bg-gray-900 flex justify-between items-center h-16">
-    <adiv class="flex items-center gap-2 w-full">
-        <a href="/" class="w-[25vw] min-w-[295px] flex items-center gap-2 pl-4">
-            <img src="/favicon-dark.svg" alt="Sim8085" class="w-8 h-8 hidden dark:inline">
-            <img src="/favicon.svg" alt="Sim8085" class="w-8 h-8 dark:hidden">
+    <div class="flex items-center gap-2 w-full">
+        <a href="/" class="w-[25vw] md:min-w-[295px] flex items-center gap-2 pl-4">
+            <img src="/favicon-dark.svg" alt="Sim8085" class="w-6 h-6 hidden dark:inline">
+            <img src="/favicon.svg" alt="Sim8085" class="w-6 h-6 dark:hidden">
             <span class="text-gray-800 dark:text-gray-200">Sim8085</span>
         </a>
-        <div class="w-[45vw] flex-grow flex-shrink max-w-[800px] min-w-[300px] flex">
+        <div class="w-[45vw] hidden md:flex flex-grow flex-shrink max-w-[800px] min-w-[300px]">
             <div class="flex-grow"></div>
             { showActions ? <Actions client:idle /> : null }
         </div>
@@ -45,7 +45,7 @@ const { showActions, fullwidth } = Astro.props;
 <style>
 .bmc-btn {
   font-family: 'Cookie', cursive !important;
-  @apply h-8 py-0 px-4 flex items-center gap-2 rounded-md text-lg font-bold bg-sky-700 box-border text-white;
+  @apply h-8 py-0 px-4 flex items-center gap-2 rounded-md text-base md:text-lg font-bold bg-sky-700 box-border text-white;
   position: relative;
   z-index: 1;
   transition: transform 0.2s ease, box-shadow 0.5s ease;
