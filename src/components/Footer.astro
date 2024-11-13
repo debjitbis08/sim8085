@@ -1,4 +1,6 @@
 ---
+import GithubIcon from '../icons/github.svg?raw';
+import BMCIcon from '../icons/bmc.svg?raw';
 import FAQs from './FAQs.astro';
 const year = new Date().getFullYear();
 
@@ -8,6 +10,7 @@ interface Props {
 
 const { small } = Astro.props;
 ---
+{small && (
 <footer class="w-[100vw] h-7 bg-gray-100 dark:bg-gray-900 text-gray-500 z-999 border-t dark:border-t-gray-800 text-xs tracking-wider">
     <div class={`flex items-center justify-center ${small ? "mt-2" : "my-5"}`}>
         <a href="/docs/en" target="_blank" class="hover:text-gray-400 dark:hover:text-gray-400 transition-colors">Documentation</a>
@@ -21,8 +24,77 @@ const { small } = Astro.props;
         <span class="px-2">·</span>
         <a href="https://github.com/debjitbis08/sim8085/discussions/categories/ideas" target="_blank" class="hover:text-gray-400 dark:hover:text-gray-400 transition-colors">Submit an Idea</a>
         <span class="px-2">·</span>
-        <a href="https://github.com/debjitbis08/sim8085/discussions/categories/q-a" target="_blank" class="hover:text-gray-400 dark:hover:text-gray-400 transition-colors">Community</a>
+        <a href="https://github.com/debjitbis08/sim8085/discussions/categories/q-a" target="_blank" class="hover:text-gray-400 dark:hover:text-gray-400 transition-colors">Discussions</a>
         <span class="px-2">·</span>
         <p>&copy; Copyright {year} — <a href="https://www.debjitbiswas.com" target="_blank" class="hover:text-gray-400 dark:hover:text-gray-400 transition-colors">Debjit Biswas</a></p>
     </div>
 </footer>
+)}
+
+{!small && (
+<footer class="py-5 px-4 bg-gray-100 dark:bg-gray-900 text-gray-500 z-999 border-t dark:border-t-gray-800 text-xs md:text-sm">
+    <div class="max-w-4xl mx-auto">
+        <div class="flex flex-wrap items-start justify-between md:justify-start">
+            <div class="flex flex-row md:flex-col items-center md:items-start md:gap-8 w-full md:w-[50%] md:h-full">
+                <a href="/" class="flex-grow flex items-center gap-2">
+                    <img src="/favicon-dark.svg" alt="Sim8085" class="w-6 h-6 hidden dark:inline">
+                    <img src="/favicon.svg" alt="Sim8085" class="w-6 h-6 dark:hidden">
+                    <span class="flex gap-2 text-gray-800 dark:text-gray-200">
+                        <span>Sim8085</span>
+                        <span class="hidden md:inline">—</span>
+                        <span class="hidden md:inline">👨‍💻</span>
+                        <span class="hidden md:inline">❤</span>
+                        <span class="hidden md:inline">📘</span>
+                    </span>
+                </a>
+                <div class="flex gap-2">
+                    <a href="https://github.com/debjitbis08/sim8085" target="_blank" class="hover:text-gray-400 dark:hover:text-gray-400 transition-colors">
+                        <Fragment set:html={GithubIcon} />
+                    </a>
+                    <a href="https://buymeacoffee.com/sim8085" target="_blank" class="hover:text-gray-400 dark:hover:text-gray-400 transition-colors">
+                        <Fragment set:html={BMCIcon} />
+                    </a>
+                </div>
+            </div>
+            <div class="min-w-[50%] md:min-w-[200px] mt-8 md:mt-0">
+                <h3 class="text-gray-800 dark:text-gray-200 mb-3">Product</h3>
+                <ul class="flex flex-col gap-2">
+                    <li>
+                        <a href="/docs/en" target="_blank" class="hover:text-gray-400 dark:hover:text-gray-400 transition-colors">Documentation</a>
+                    </li>
+                    <li>
+                        <a href="/changelog" target="_blank" class="hover:text-gray-400 dark:hover:text-gray-400 transition-colors">Changelog</a>
+                    </li>
+                    <li>
+                        <a href="https://www.debjitbiswas.com/tags/sim8085/" target="_blank" class="hover:text-gray-400 dark:hover:text-gray-400 transition-colors">Blog</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="min-w-[50%] md:min-w-[200px] mt-8 md:mt-0">
+                <h3 class="text-gray-800 dark:text-gray-200 mb-3">Community</h3>
+                <ul class="flex flex-col gap-2">
+                    <li>
+                        <a
+                            href="https://github.com/debjitbis08/sim8085/discussions/categories/q-a"
+                            target="_blank"
+                            class="hover:text-gray-400 dark:hover:text-gray-400 transition-colors"
+                        >Discussions</a>
+                    </li>
+                    <li>
+                        <a
+                            href="https://github.com/debjitbis08/sim8085/discussions/categories/ideas"
+                            target="_blank"
+                            class="hover:text-gray-400 dark:hover:text-gray-400 transition-colors"
+                        >Submit an Idea</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="flex items-center gap-3 mt-6">
+            <a href="/tos" target="_blank" class="hover:text-gray-400 dark:hover:text-gray-400 transition-colors">Terms & Conditions</a>
+            <a href="/privacy-policy" target="_blank" class="hover:text-gray-400 dark:hover:text-gray-400 transition-colors">Privacy Policy</a>
+        </div>
+        <p class="mt-4"><span class="text-base align-middle">&copy;</span> Copyright {year} — <a href="https://www.debjitbiswas.com" target="_blank" class="hover:text-gray-400 dark:hover:text-gray-400 transition-colors">Debjit Biswas</a></p>
+    </div>
+</footer>
+)}
