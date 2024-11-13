@@ -187,7 +187,7 @@ export function CodeMirror(props) {
 
   return (
     <div class={`relative programState__${store.programState}`}>
-      <div ref={editorRef} class="editor-container border border-gray-300 dark:border-gray-600 border-l-0 border-b-0" style={{ height: "calc(100vh - 8rem - 1px)"}}>
+      <div ref={editorRef} class="editor-container border-l-0 border-b-0 bg-main-background" style={{ height: "calc(100vh - 8rem - 2px)"}}>
         <div class={`${isEditorLoading() ? '' : 'hidden'} p-4 text-center`}>
           Editor is loading...
         </div>

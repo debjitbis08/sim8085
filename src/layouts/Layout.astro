@@ -1,5 +1,6 @@
 ---
 import '../tailwind.main.css';
+import '../themes/light.css';
 import { pwaInfo } from 'virtual:pwa-info';
 import { pwaAssetsHead } from 'virtual:pwa-assets/head';
 import Header from '../components/Header.astro';
@@ -18,7 +19,7 @@ const { title, showActions, fullwidth, smallFooter } = Astro.props;
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="light">
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, viewport-fit=cover" />
@@ -51,8 +52,8 @@ const { title, showActions, fullwidth, smallFooter } = Astro.props;
         </script>
         <PostHogInit />
     </head>
-	<body class={`bg-white dark:bg-gray-900 text-black dark:text-gray-300 min-h-screen`}>
-	    <main  class={`${!fullwidth ? "max-w-4xl mx-auto" : ""}`}>
+	<body class={`bg-page-background text-primary-foreground min-h-screen`}>
+	    <main class={`${!fullwidth ? "max-w-4xl mx-auto" : ""}`}>
 			<Header showActions={showActions} fullwidth={fullwidth} />
             <div>
                 <slot />

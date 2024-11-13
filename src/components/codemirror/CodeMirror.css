@@ -15,8 +15,7 @@
 }
 
 .cm-editor .cm-gutters {
-    @apply dark:text-gray-200;
-    @apply dark:bg-gray-600;
+    @apply bg-main-background border-0;
 }
 
 .cm-editor .cm-activeLineGutter {
@@ -29,6 +28,7 @@
 }
 
 .cm-editor .cm-content {
+    @apply bg-main-background;
     font-size: 0.85rem;
 }
 

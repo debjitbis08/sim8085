@@ -1,5 +1,6 @@
 ---
 import HandHoldingHeartIcon from '../icons/hand-holding-heart.svg?raw';
+import Logo from '../icons/logo.svg?raw';
 import FAQs from './FAQs.astro';
 import ThemeSwitcher from './ThemeSwitcher.astro';
 import { Actions } from './Actions.jsx';
@@ -11,12 +12,11 @@ interface Props {
 
 const { showActions, fullwidth } = Astro.props;
 ---
-<header class="w-full py-4 bg-gray-100 dark:bg-gray-900 flex justify-between items-center h-16">
+<header class="w-full py-4 flex justify-between items-center h-16">
     <div class="flex items-center gap-2 w-full">
         <a href="/" class="w-[25vw] md:min-w-[295px] flex items-center gap-2 pl-4">
-            <img src="/favicon-dark.svg" alt="Sim8085" class="w-6 h-6 hidden dark:inline">
-            <img src="/favicon.svg" alt="Sim8085" class="w-6 h-6 dark:hidden">
-            <span class="text-gray-800 dark:text-gray-200">Sim8085</span>
+            <span class="w-6 h-6 text-terminal"><Fragment set:html={Logo} /></span>
+            <!-- <span class="text-gray-800 dark:text-gray-200">Sim8085</span> -->
         </a>
         <div class="w-[45vw] hidden md:flex flex-grow flex-shrink max-w-[800px] min-w-[300px]">
             <div class="flex-grow"></div>

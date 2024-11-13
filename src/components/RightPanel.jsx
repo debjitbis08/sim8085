@@ -31,16 +31,16 @@ export function RightPanel() {
 
   return (
     <div class={`flex items-start ${expanded() ? "w-[25vw] min-w-[295px] flex-shrink-0" : ""}`}>
-      <div class="relative z-10 dark:bg-gray-900 flex flex-col items-center h-sm:gap-4 gap-8 px-4 pt-4 border-r border-r-gray-300 dark:border-r-gray-600" style={{ height: "calc(100vh - 6rem)" }}>
-        <button type="button" onClick={() => showTab('cpu') } class={`${activeTab() === 'cpu' && expanded() ? 'text-blue-600 dark:text-blue-400' : ''} flex flex-col items-center`}>
+      <div class="relative z-10 bg-page-background flex flex-col items-center h-sm:gap-4 gap-8 px-4 pt-4 border-r border-r-main-border" style={{ height: "calc(100vh - 6rem)" }}>
+        <button type="button" onClick={() => showTab('cpu') } class={`${activeTab() === 'cpu' && expanded() ? 'text-active-foreground' : 'text-inactive-foreground'} flex flex-col items-center`}>
           <FiCpu class="text-2xl"/>
               {/*<span>CPU</span>*/}
         </button>
-        <button type="button" onClick={() => showTab('memory')} class={`${activeTab() === 'memory' && expanded() ? 'text-blue-600 dark:text-blue-400' : ''} flex flex-col items-center`}>
+        <button type="button" onClick={() => showTab('memory')} class={`${activeTab() === 'memory' && expanded() ? 'text-active-foreground' : 'text-inactive-foreground'} flex flex-col items-center`}>
           <BsMemory class="text-2xl" />
             {/*<span>Memory</span>*/}
         </button>
-        <button type="button" onClick={() => showTab('io')} class={`${activeTab() === 'io' && expanded() ? 'text-blue-600 dark:text-blue-400' : ''} flex flex-col items-center`}>
+        <button type="button" onClick={() => showTab('io')} class={`${activeTab() === 'io' && expanded() ? 'text-active-foreground' : 'text-inactive-foreground'} flex flex-col items-center`}>
           <p class="text-md font-bold flex gap-[-1]">
             <span class="text-nowrap whitespace-nowrap">I/O</span>
             {/* <BsSlash class="text-2xl"/> */}
@@ -55,7 +55,7 @@ export function RightPanel() {
         </button>
         <div class="pb-1"></div>
       </div>
-      <div id="content" class="relative z-5 min-w-60 w-full bg-gray-100 dark:bg-gray-800 p-4 h-full flex overflow-x-hidden overflow-y-auto transform transition-transform duration-300 ease-in-out"
+      <div id="content" class="relative z-5 min-w-60 w-full bg-secondary-background border-l-0 border-t border-b border-r-0 border-main-border rounded-tl-sm rounded-bl-sm p-4 h-full flex overflow-x-hidden overflow-y-auto transform transition-transform duration-300 ease-in-out"
         style={{
           height: "calc(100vh - 6rem)",
           display: expanded() ? "flex" : "none",
