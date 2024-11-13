@@ -98,8 +98,8 @@ export function Actions() {
           draftStore.assembled = result.assembled;
           draftStore.errors = [];
           draftStore.programState = 'Loaded';
-          draftStore.pcStartValue = result.pcStartValue != null ? result.pcStartValue : 0;
-          draftStore.programCounter = result.pcStartValue != null ? result.pcStartValue : 0;
+          draftStore.pcStartValue = result.pcStartValue != null ? result.pcStartValue : store.pcStartValue;
+          draftStore.programCounter = result.pcStartValue != null ? result.pcStartValue : store.pcStartValue;
           for (const line of result.assembled) {
             draftStore.memory[line.currentAddress] = line.data;
           }
