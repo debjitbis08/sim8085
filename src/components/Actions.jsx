@@ -2,13 +2,10 @@ import { createSignal, onCleanup, onMount, useContext } from "solid-js";
 import { VsClearAll, VsDebug, VsDebugLineByLine, VsDebugStart, VsDebugStepInto, VsDebugStepOver, VsDebugStop, VsInfo, VsPlay, VsQuestion } from 'solid-icons/vs';
 import { HiOutlineWrench, HiSolidArrowRight, HiSolidPlay, HiSolidStop, HiSolidWrench } from 'solid-icons/hi';
 import Module from '../core/8085.js';
-import { StoreContext } from "./StoreContext.js";
 import { produce } from "solid-js/store";
 import { initSimulator, loadProgram, runProgram, runSingleInstruction, setAllMemoryLocations, setFlags, setPC, setRegisters, startDebug, unloadProgram } from "../core/simulator.js";
-import { AiFillFastForward, AiFillStop, AiOutlineClear } from "solid-icons/ai";
+import { AiOutlineClear } from "solid-icons/ai";
 import { Tooltip } from "@kobalte/core/tooltip";
-import { FiFastForward } from "solid-icons/fi";
-import { BsFastForwardFill, BsStop } from "solid-icons/bs";
 import { store, setStore } from '../store/store.js';
 import { Toast, toaster } from "@kobalte/core/toast";
 import { trackEvent } from "./analytics/tracker.js";
@@ -90,7 +87,6 @@ export function Actions() {
       }
     }
 
-    console.log("pcStartValue", result.pcStartValue);
     if (result) {
       setStore(
         produce((draftStore) => {
@@ -165,7 +161,9 @@ export function Actions() {
       }
     } catch (e) {
       if (e.status === 1) showToaster("error", "Program existed with error", "Unknown instruction encountered in the program.");
-      else if (e.status === 2) showToaster("error", "Program existed with error", "Infinite loop detected. Did you forget to add HLT.");
+      else if (e.status === 2) {
+        showToaster("error", "Program existed with error", (<InfiniteLoopError code={store.code} />));
+      }
       else showToaster("error", "Program existed with error", "We could not identify the error.");
       errorStatus = e.status;
       trackEvent("run failed", {
@@ -221,7 +219,9 @@ export function Actions() {
         if (errorStatus > 0) {
           setStore('programState', 'Loaded');
           if (errorStatus === 1) showToaster("error", "Program existed with error", "Unknown instruction encountered in the program.");
-          else if (errorStatus === 2) showToaster("error", "Program existed with error", "Infinite loop detected. Did you forget to add HLT.");
+          else if (errorStatus === 2) {
+            showToaster("error", "Program existed with error", (<InfiniteLoopError code={store.code} />));
+          }
           else showToaster("error", "Program existed with error",  "We could not identify the error.");
           trackEvent("run failed", {
             code: store.code,
@@ -344,13 +344,13 @@ export function Actions() {
 
 
   return (
-    <div class="flex items-center gap-3 border-l-0 border-t-0 border-b-0 rounded-sm dark:border-gray-700 dark:bg-gray-900">
-      <div class="flex items-center gap-1 text-sm">
-        <div class="flex items-center gap-1 border-b border-b-gray-300 min-w-0">
-          <span class="font-mono text-gray-400 dark:text-gray-500">0x</span>
+    <div class="flex items-center gap-2 border-l-0 border-t-0 border-b-0 rounded-sm">
+      <div class="flex items-center gap-1 text-sm pl-2 rounded border border-active-border">
+        <div class="flex items-center gap-1 border-b-0 border-b-gray-300 min-w-0">
+          <span class="font-mono text-gray-400">0x</span>
           <input
             type="text"
-            class="p-1 w-12 font-mono bg-transparent outline-none placeholder:text-gray-300 dark:placeholder:text-gray-700"
+            class="p-1 w-12 font-mono bg-transparent outline-none placeholder:text-gray-300"
             placeholder="Start PC Value"
             value={store.pcStartValue.toString(16)}
             onInput={(e) => setPCStartValue(e.target.value)}
@@ -364,18 +364,21 @@ export function Actions() {
                 <Tooltip.Arrow />
                 <p>
                   Your program will start executing at this address instead of 0h.
-                  This is equivalent to the operation of GO &amp; EXEC in <a class="text-blue-600 dark:text-blue-400" target="_blank" href="https://community.intel.com/cipcp26785/attachments/cipcp26785/processors/59602/1/9800451A.pdf">SDK-85</a>.
+                  This is equivalent to the operation of GO &amp; EXEC in <a class="text-blue-foreground" target="_blank" href="https://community.intel.com/cipcp26785/attachments/cipcp26785/processors/59602/1/9800451A.pdf">SDK-85</a>.
                   See page 4-6 in the manual.
                 </p>
-                <p>
-                  This can be also manipulated using the <a class="text-blue-600 dark:text-blue-400" href="/docs/en/directives/end">END directive</a>.
+                <p class="mt-2">
+                  This can be also manipulated using the <a class="text-blue-foreground" href="/docs/en/directives/end">END directive</a>.
+                </p>
+                <p class="mt-2">
+                  You must specify this value if your code uses ORG directive.
                 </p>
               </Tooltip.Content>
             </Tooltip.Portal>
           </Tooltip>
         </div>
         <ActionButton
-          icon={<HiSolidPlay class="text-green-foreground" />}
+          icon={<HiSolidPlay class="text-terminal" />}
           title="Load &amp; Run"
           shortcut="Ctrl + F5"
           onClick={loadAndRun}
@@ -387,7 +390,7 @@ export function Actions() {
           store.programState === 'Idle' ? (
             <HiSolidWrench class="text-yellow-foreground" />
           ) : (
-            <FaSolidEject class="text-yellow-400 dark:text-yellow-600" />
+            <FaSolidEject class="text-yellow-foreground" />
           )
         }
         onClick={loadOrUnload}
@@ -430,11 +433,11 @@ export function Actions() {
 function ActionButton(props) {
   return (
     <Tooltip>
-      <Tooltip.Trigger class="tooltip__trigger rounded-sm hover:bg-active-background border border-transparent hover:border-active-border"
+      <Tooltip.Trigger class="tooltip__trigger rounded hover:bg-active-background border border-transparent hover:border-active-border"
         onClick={props.onClick}
         disabled={props.disabled}
       >
-        <div class="px-2 py-2 flex items-center gap-2 text-gray-600 dark:text-gray-400">
+        <div class="px-2 py-2 flex items-center gap-2 text-gray-600">
           {props.icon}
         </div>
       </Tooltip.Trigger>
@@ -444,7 +447,7 @@ function ActionButton(props) {
           <div class="flex items-center gap-2">
             <p>{props.title}</p>
             {props.shortcut ? (
-              <span class="text-xs bg-gray-300 dark:bg-gray-600 py-1 px-2 rounded-sm">{props.shortcut}</span>
+              <span class="text-xs bg-secondary-background py-1 px-2 rounded-sm">{props.shortcut}</span>
             ) : null}
           </div>
         </Tooltip.Content>
@@ -452,3 +455,27 @@ function ActionButton(props) {
     </Tooltip>
   );
 };
+
+function InfiniteLoopError(props) {
+  return (
+    <>
+      <p>Infinite loop detected</p>
+      {!props.code.match(/\s+HLT(\s+|$)/i) ? <p class="mt-2">Did you forget to add HLT?</p> :
+        props.code.match(/(^|\s+)ORG(\s+|$)/i) ? (
+          <>
+            <p class="mt-2">
+              Using <span class="text-editor-directive">ORG</span> may cause the program to load at a different address.
+            </p>
+            <div class="mt-2">
+              Enter the address where your program begins execution in the text box near the
+              <span class="inline text-terminal no-wrap">
+                <svg class="inline" fill="none" stroke-width="0" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" viewBox="0 0 24 24" style="overflow: visible; color: currentcolor;" height="1em" width="1em"><path fill="currentColor" fill-rule="evenodd" d="M4.5 5.653c0-1.426 1.529-2.33 2.779-1.643l11.54 6.348c1.295.712 1.295 2.573 0 3.285L7.28 19.991c-1.25.687-2.779-.217-2.779-1.643V5.653Z" clip-rule="evenodd"></path></svg>
+                <span class="text-terminal">Run</span>
+              </span> button.
+            </div>
+          </>
+        ) : <p>Please check your program for logic errors.</p>
+      }
+    </>
+  );
+}

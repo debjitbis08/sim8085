@@ -130,15 +130,15 @@ const language = StreamLanguage.define({
 
 const syntaxHighlighter = syntaxHighlighting(
   HighlightStyle.define([
-    { tag: tokenTable.opcode, class: "text-green-700 dark:text-green-400" },
-    { tag: tokenTable.directive, class: "text-blue-700 dark:text-blue-400" },
-    { tag: tokenTable.label, class: "text-yellow-700 dark:text-yellow-400" },
-    { tag: tokenTable.comment, class: "text-gray-500 dark:text-gray-500 italic" },
-    { tag: tokenTable.register, class: "text-red-700 dark:text-red-400" },
-    { tag: tokenTable.number, class: "text-orange-700 dark:text-orange-400" },
-    { tag: tokenTable.string, class: "text-orange-600 dark:text-orange-600" },
-    { tag: tokenTable.operator, class: "text-pink-700 dark:text-pink-400" },
-    { tag: tokenTable.punctuation, class: "text-gray-600 dark:text-gray-400" },
+    { tag: tokenTable.opcode, class: "text-editor-opcode" /* "text-green-700 dark:text-green-400" */ },
+    { tag: tokenTable.directive, class: "text-editor-directive" /* "text-blue-700 dark:text-blue-400" */ },
+    { tag: tokenTable.label, class: "text-editor-label" /* "text-yellow-700 dark:text-yellow-400" */ },
+    { tag: tokenTable.comment, class: "text-editor-comment italic" /* "text-gray-500 dark:text-gray-500 italic" */ },
+    { tag: tokenTable.register, class: "text-editor-register" /* "text-red-700 dark:text-red-400" */ },
+    { tag: tokenTable.number, class: "text-editor-number" /* "text-orange-700 dark:text-orange-400" */ },
+    { tag: tokenTable.string, class: "text-editor-string" /* "text-orange-600 dark:text-orange-600" */ },
+    { tag: tokenTable.operator, class: "text-editor-operator" /* "text-pink-700 dark:text-pink-400" */ },
+    { tag: tokenTable.punctuation, class: "text-editor-punctuation" /* "text-gray-600 dark:text-gray-400" */ },
   ])
 );
 

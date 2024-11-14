@@ -46,7 +46,7 @@ export function Registers() {
 
   return (
     <div>
-      <div class="flex border-b border-b-foreground-border">
+      <div class="flex border-b border-b-inactive-border">
           <h2 class="text-xl grow pb-1">Registers</h2>
           <button title="Clear Registers" class="text-red-foreground" onClick={clearRegisters}>
             <AiOutlineClear />
@@ -122,7 +122,7 @@ function Register(props) {
   };
 
   return (
-    <div class="flex items-center gap-1 my-2 p-1 hover:bg-gray-200 hover:dark:bg-gray-600">
+    <div class="flex items-center gap-1 my-2 p-1 hover:bg-active-background">
       <span class="font-bold grow">{props.name}</span>
       <span class="font-mono text-secondary-foreground">0x</span>
       {editing() ? (

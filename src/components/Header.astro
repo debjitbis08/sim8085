@@ -1,6 +1,7 @@
 ---
 import HandHoldingHeartIcon from '../icons/hand-holding-heart.svg?raw';
 import Logo from '../icons/logo.svg?raw';
+import LogoWithBackground from '../icons/logo-with-green-background.svg?raw';
 import FAQs from './FAQs.astro';
 import ThemeSwitcher from './ThemeSwitcher.astro';
 import { Actions } from './Actions.jsx';
@@ -12,12 +13,27 @@ interface Props {
 
 const { showActions, fullwidth } = Astro.props;
 ---
-<header class="w-full py-4 flex justify-between items-center h-16">
+<header class="w-full py-4 justify-between items-center h-16 hidden md:flex">
     <div class="flex items-center gap-2 w-full">
-        <a href="/" class="w-[25vw] md:min-w-[295px] flex items-center gap-2 pl-4">
-            <span class="w-6 h-6 text-terminal"><Fragment set:html={Logo} /></span>
-            <!-- <span class="text-gray-800 dark:text-gray-200">Sim8085</span> -->
-        </a>
+        <!-- <a href="/" class="w-[25vw] md:min-w-[295px] flex items-center gap-2 pl-4">
+            <span class="w-6 h-6 text-terminal"><Fragment set:html={LogoWithBackground} /></span>
+            <span class="text-gray-800 dark:text-gray-200">Sim8085</span>
+        </a> -->
+        <div class="w-[25vw] md:min-w-[295px]">
+            <a
+                href="/"
+                class="inline-flex items-center gap-2 ml-2 pl-2 pr-2 py-2 rounded group hover:bg-terminal-200"
+            >
+            <span class="w-6 h-6 text-terminal z-10 relative">
+                <Fragment set:html={LogoWithBackground} />
+            </span>
+            <span
+                class="relative text-gray-800 transform -translate-x-8 opacity-0 transition-all duration-100 group-hover:translate-x-0 group-hover:opacity-100"
+            >
+                Sim8085
+            </span>
+            </a>
+        </div>
         <div class="w-[45vw] hidden md:flex flex-grow flex-shrink max-w-[800px] min-w-[300px]">
             <div class="flex-grow"></div>
             { showActions ? <Actions client:idle /> : null }
@@ -27,7 +43,7 @@ const { showActions, fullwidth } = Astro.props;
             <!-- <div class="pl-2 border-r border-r-gray-500 dark:border-r-gray-600 h-4"></div> -->
             <div class="flex-grow"></div>
             <ThemeSwitcher />
-            <link href="https://fonts.googleapis.com/css?family=Cookie&amp;display=swap" rel="stylesheet">
+            <link href="https://fonts.googleapis.com/css?family=Inter&amp;display=swap" rel="stylesheet">
             <a
                 class="bmc-btn"
                 target="_blank"
@@ -36,7 +52,7 @@ const { showActions, fullwidth } = Astro.props;
             >
                 <span>
                     <Fragment set:html={HandHoldingHeartIcon } />
-                </span> <span class="bmc-btn-text">Support Sim8085</span>
+                </span> <span class="bmc-btn-text">Donate</span>
             </a>
         </div>
     </div>
@@ -44,13 +60,14 @@ const { showActions, fullwidth } = Astro.props;
 
 <style>
 .bmc-btn {
-  font-family: 'Cookie', cursive !important;
-  @apply h-8 py-0 px-4 flex items-center gap-2 rounded-md text-base md:text-lg font-bold bg-sky-700 box-border text-white;
+  @apply h-8 py-4 px-4 flex items-center gap-2 rounded-lg text-sm bg-transparent box-border text-terminal border-2 border-terminal border-opacity-20 hover:border-opacity-100;
+  /* font-family: 'Inter', sans-serif !important; */
+  font-weight: bold;
   position: relative;
   z-index: 1;
   transition: transform 0.2s ease, box-shadow 0.5s ease;
-  box-shadow: 0 0 10px rgba(0, 204, 255, 0.2);
-  animation: subtle-glow 3s infinite;
+  /* box-shadow: 0 0 10px rgba(0, 204, 255, 0.2); */
+  /* animation: subtle-glow 3s infinite; */
 }
 
 /* Glow animation */

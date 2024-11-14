@@ -35,7 +35,7 @@ import ComputerDesktopIcon from '../icons/computer-desktop.svg?raw';
     >
       <div>
         <button
-            class="inline-flex justify-center rounded-md px-3 py-2 text-sm font-semibold text-gray-800 dark:text-gray-200 bg-transparent focus:outline-none"
+            class="inline-flex justify-center rounded-md px-3 py-2 text-sm font-semibold text-inactive-foreground hover:text-active-foreground transition-colors bg-transparent focus:outline-none"
             x-ref="button"
             x-on:click="toggle()"
             :aria-expanded="open"
@@ -57,7 +57,7 @@ import ComputerDesktopIcon from '../icons/computer-desktop.svg?raw';
       </div>
 
       <div
-          class="absolute right-0 z-10 mt-2 w-36 origin-top-right rounded-md bg-white dark:bg-gray-800 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+          class="absolute right-0 z-10 mt-2 w-36 origin-top-right rounded-md bg-secondary-background shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
           role="menu"
           aria-orientation="vertical"
           aria-labelledby="theme-switcher-button"
@@ -76,10 +76,10 @@ import ComputerDesktopIcon from '../icons/computer-desktop.svg?raw';
                 { name: 'System', theme: 'system', icon: 'computer-desktop' }
               ]">
                 <button
-                  class="px-4 py-2 text-sm flex items-center gap-2 bg-transparent hover:bg-gray-100 dark:hover:bg-gray-700 w-full rounded-none"
+                  class="px-4 py-2 text-sm flex items-center gap-2 bg-transparent hover:bg-active-background w-full rounded-none"
                   role="menuitem"
                   tabindex="-1"
-                  :class="{ 'text-blue-400 dark:text-blue-400': $store.theme.value === option.theme }"
+                  :class="{ 'text-terminal': $store.theme.value === option.theme }"
                   @click="$store.theme.switch(option.theme)"
                 >
                   <!-- Dynamically inject icon based on theme -->
