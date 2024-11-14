@@ -10,6 +10,7 @@ import { IOPorts } from "./IOPorts";
 import { VsSettings, VsSettingsGear } from "solid-icons/vs";
 import { Settings } from "./Settings";
 import { KeyboardShortcuts } from "./KeyboardShortcuts";
+import { Tooltip } from "@kobalte/core/tooltip";
 
 export function RightPanel() {
   const [activeTab, setActiveTab] = createSignal('cpu');
@@ -29,24 +30,35 @@ export function RightPanel() {
     setActiveTab(tab);
   };
 
+  const isActive = (tab) => {
+    return activeTab() === tab && expanded();
+  }
+
   return (
     <div class={`flex items-start ${expanded() ? "w-[25vw] min-w-[295px] flex-shrink-0" : ""}`}>
       <div class="relative z-10 bg-page-background flex flex-col items-center h-sm:gap-4 gap-8 px-4 pt-4 border-r border-r-main-border" style={{ height: "calc(100vh - 6rem)" }}>
-        <button type="button" onClick={() => showTab('cpu') } class={`${activeTab() === 'cpu' && expanded() ? 'text-active-foreground' : 'text-inactive-foreground'} flex flex-col items-center`}>
-          <FiCpu class="text-2xl"/>
-              {/*<span>CPU</span>*/}
-        </button>
-        <button type="button" onClick={() => showTab('memory')} class={`${activeTab() === 'memory' && expanded() ? 'text-active-foreground' : 'text-inactive-foreground'} flex flex-col items-center`}>
-          <BsMemory class="text-2xl" />
-            {/*<span>Memory</span>*/}
-        </button>
-        <button type="button" onClick={() => showTab('io')} class={`${activeTab() === 'io' && expanded() ? 'text-active-foreground' : 'text-inactive-foreground'} flex flex-col items-center`}>
-          <p class="text-md font-bold flex gap-[-1]">
-            <span class="text-nowrap whitespace-nowrap">I/O</span>
-            {/* <BsSlash class="text-2xl"/> */}
-            {/* <span>O</span> */}
-          </p>
-        </button>
+        <PanelButton
+          icon={<FiCpu class="text-2xl"/>}
+          isActive={isActive('cpu')}
+          onClick={() => showTab('cpu')}
+          title="CPU"
+        />
+        <PanelButton
+          icon={<BsMemory />}
+          isActive={isActive('memory')}
+          onClick={() => showTab('memory')}
+          title="Memory"
+        />
+        <PanelButton
+          icon={(
+            <p class="text-md font-bold flex gap-[-1] text-base">
+              <span class="text-nowrap whitespace-nowrap">I/O</span>
+            </p>
+          )}
+          isActive={isActive('io')}
+          onClick={() => showTab('io')}
+          title="Input Output Ports"
+        />
         <div class="grow"></div>
         <KeyboardShortcuts />
         <Settings />
@@ -77,5 +89,26 @@ export function RightPanel() {
         <div class="grow"></div>
       </div>
     </div>
+  );
+}
+
+export function PanelButton (props) {
+  return (
+    <Tooltip placement="left">
+      <Tooltip.Trigger class={`tooltip_trigger ${props.isActive ? 'text-active-foreground' : 'text-inactive-foreground'} flex flex-col items-center`}
+        onClick={props.onClick}
+        disabled={props.disabled}
+      >
+        <span class="text-2xl">{props.icon}</span>
+      </Tooltip.Trigger>
+      <Tooltip.Portal>
+        <Tooltip.Content class="tooltip__content">
+          <Tooltip.Arrow />
+          <div class="flex items-center gap-2">
+            <p>{props.title}</p>
+          </div>
+        </Tooltip.Content>
+      </Tooltip.Portal>
+    </Tooltip>
   );
 }
