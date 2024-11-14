@@ -1,8 +1,22 @@
 /** @type {import('tailwindcss').Config} */
 
-const generateColorString = (variable) => {
-  return `rgb(var(--${variable}) / 1)`;
+function formatCSSVarToRGB(varName) {
+  if (!varName.startsWith('--')) {
+    throw new Error('Invalid variable name. CSS variables should start with "--".');
+  }
+  return `rgb(var(${varName}) / <alpha-value>)`;
 }
+
+const grayLevels = ['50', '100', '200', '300', '400', '500', '600', '700', '800', '900', '950'];
+
+const grayColors = Object.fromEntries(
+  grayLevels.map((shade) => [`${shade}`, formatCSSVarToRGB(`--sm-gray-${shade}`)])
+);
+
+const primaryShades = ['50', '100', '200', '300', '400', '500', '600', '700', '800', '900', '950', 'DEFAULT'];
+const primaryColors = Object.fromEntries(
+  primaryShades.map((shade) => [`${shade}`, formatCSSVarToRGB(shade === 'DEFAULT' ? '--sm-primary' : `--sm-primary-${shade}`)])
+);
 
 export default {
   content: {
@@ -21,79 +35,75 @@ export default {
         'h-sm': { raw: '(max-height: 400px)' },
       },
       colors: {
-        terminal: {
-          50:  "var(--sm-primary-50)",
-          100: "var(--sm-primary-100)",
-          200: "var(--sm-primary-200)",
-          300: "var(--sm-primary-300)",
-          400: "var(--sm-primary-400)",
-          500: "var(--sm-primary-500)",
-          600: "var(--sm-primary-600)",
-          700: "var(--sm-primary-700)",
-          800: "var(--sm-primary-800)",
-          900: "var(--sm-primary-900)",
-          950: "var(--sm-primary-950)",
-          DEFAULT: "var(--sm-primary)", // Alias for 500
-        },
-        gray: {
-          50: "var(--sm-gray-50)",
-          100: "var(--sm-gray-100)",
-          200: "var(--sm-gray-200)",
-          300: "var(--sm-gray-300)",
-          400: "var(--sm-gray-400)",
-          500: "var(--sm-gray-500)",
-          600: "var(--sm-gray-600)",
-          700: "var(--sm-gray-700)",
-          800: "var(--sm-gray-800)",
-          900: "var(--sm-gray-900)",
-          950: "var(--sm-gray-950)",
-        },
+        terminal: primaryColors,
+        gray: grayColors,
         page: {
-          background: "var(--sm-page-background)",
+          background: formatCSSVarToRGB("--sm-page-background"),
         },
         main: {
-          background: "var(--sm-main-background)",
-          border: "var(--sm-main-border)",
+          background: formatCSSVarToRGB("--sm-main-background"),
+          border: formatCSSVarToRGB("--sm-main-border"),
         },
         primary: {
-          foreground: "var(--sm-primary-foreground)",
-          border: "var(--sm-primary-border)",
+          foreground: formatCSSVarToRGB("--sm-primary-foreground"),
+          border: formatCSSVarToRGB("--sm-primary-border"),
         },
         secondary: {
-          foreground: "var(--sm-secondary-foreground)",
-          background: "var(--sm-secondary-background)",
-          border: "var(--sm-secondary-border)",
+          foreground: formatCSSVarToRGB("--sm-secondary-foreground"),
+          background: formatCSSVarToRGB("--sm-secondary-background"),
+          border: formatCSSVarToRGB("--sm-secondary-border"),
         },
         active: {
-          foreground: "var(--sm-active-foreground)",
-          background: "var(--sm-active-background)",
-          border: "var(--sm-active-border)",
+          foreground: formatCSSVarToRGB("--sm-active-foreground"),
+          background: formatCSSVarToRGB("--sm-active-background"),
+          border: formatCSSVarToRGB("--sm-active-border"),
         },
         inactive: {
-          foreground: "var(--sm-inactive-foreground)",
-          border: "var(--sm-inactive-border)",
+          foreground: formatCSSVarToRGB("--sm-inactive-foreground"),
+          border: formatCSSVarToRGB("--sm-inactive-border"),
         },
         red: {
-          foreground: "var(--sm-red-foreground)",
+          foreground: formatCSSVarToRGB("--sm-red-foreground"),
         },
         green: {
-          foreground: "var(--sm-green-foreground)",
+          foreground: formatCSSVarToRGB("--sm-green-foreground"),
         },
         yellow: {
-          foreground: "var(--sm-yellow-foreground)",
+          foreground: formatCSSVarToRGB("--sm-yellow-foreground"),
         },
+        blue: {
+          foreground: formatCSSVarToRGB("--sm-blue-foreground"),
+        },
+        orange: {
+          foreground: formatCSSVarToRGB("--sm-orange-foreground"),
+        },
+        editor: {
+          activeLine: formatCSSVarToRGB("--sm-editor-active-line"),
+          debugLine: formatCSSVarToRGB("--sm-editor-debug-line"),
+          cursor: formatCSSVarToRGB("--sm-editor-cursor"),
+          selectionBackground: formatCSSVarToRGB("--sm-editor-selection-background"),
+          opcode: formatCSSVarToRGB("--sm-editor-opcode"),
+          directive: formatCSSVarToRGB("--sm-editor-directive"),
+          label: formatCSSVarToRGB("--sm-editor-label"),
+          comment: formatCSSVarToRGB("--sm-editor-comment"),
+          register: formatCSSVarToRGB("--sm-editor-register"),
+          number: formatCSSVarToRGB("--sm-editor-number"),
+          string: formatCSSVarToRGB("--sm-editor-string"),
+          operator: formatCSSVarToRGB("--sm-editor-operator"),
+          punctuation: formatCSSVarToRGB("--sm-editor-punctuation"),
+        }
       },
     },
   },
   safelist: [
-    "text-primary-500"
-    /*
-    {
-      pattern:  /(bg|text|border)-primary-(50|100|200|300|400|500|600|700|800|900)/,
-    },
     {
       pattern:  /(bg|text|border)-primary/,
-    }
-    */
+    },
+    {
+      pattern:  /(bg|text|border)-secondary-.+/,
+    },
+    {
+      pattern:  /(bg|text|border)-editor-.+/,
+    },
   ]
 }

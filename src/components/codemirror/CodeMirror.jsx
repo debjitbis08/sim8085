@@ -187,12 +187,12 @@ export function CodeMirror(props) {
 
   return (
     <div class={`relative programState__${store.programState}`}>
-      <div ref={editorRef} class="editor-container border-l-0 border-b-0 bg-main-background" style={{ height: "calc(100vh - 8rem - 2px)"}}>
+      <div ref={editorRef} class="editor-container border-l-0 border-b-0 bg-main-background h-lvh md:h-[calc(100vh-8rem-2px)]">
         <div class={`${isEditorLoading() ? '' : 'hidden'} p-4 text-center`}>
           Editor is loading...
         </div>
       </div>
-      <span class={`${store.programState === 'Idle' ? 'hidden' : ''} absolute text-xs text-gray-100 px-3 py-2 top-2 right-2 rounded-sm bg-red-500 dark:bg-red-700 flex items-center gap-1 opacity-80`}>
+      <span class={`${store.programState === 'Idle' ? 'hidden' : ''} absolute text-xs text-gray-100 px-3 py-2 top-2 right-2 rounded-sm bg-red-foreground flex items-center gap-1 opacity-80`}>
         <span>Editor is Read Only</span>
         <Tooltip>
           <Tooltip.Trigger class="tooltip__trigger">

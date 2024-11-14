@@ -18,7 +18,7 @@ function CopyComponent(props) {
   return (
     <button class="relative" onClick={() => copyOutputAsText()}>
       {copied() ? (
-        <span class="flex items-center gap-2 text-green-400 dark:text-green-600">
+        <span class="flex items-center gap-2 text-terminal">
           <HiSolidCheckCircle />
           <span>Copied</span>
         </span>

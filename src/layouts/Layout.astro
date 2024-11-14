@@ -1,6 +1,7 @@
 ---
 import '../tailwind.main.css';
 import '../themes/light.css';
+import '../themes/dark.css';
 import { pwaInfo } from 'virtual:pwa-info';
 import { pwaAssetsHead } from 'virtual:pwa-assets/head';
 import Header from '../components/Header.astro';
@@ -92,10 +93,12 @@ document.addEventListener('alpine:init', () => {
           if (this.value === 'system') {
               // Detect system preference (dark or light)
               const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
-              document.documentElement.classList.toggle('dark', isDarkMode);
+              // document.documentElement.classList.toggle('dark', isDarkMode);
+              document.documentElement.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
           } else {
               // Apply the manually selected theme ('light' or 'dark')
-              document.documentElement.classList.toggle('dark', this.value === 'dark');
+              // document.documentElement.classList.toggle('dark', this.value === 'dark');
+              document.documentElement.setAttribute('data-theme', this.value === 'dark' ? 'dark' : 'light');
           }
       },
 
@@ -103,7 +106,8 @@ document.addEventListener('alpine:init', () => {
           // Watch for system preference changes (e.g., user switches from dark to light mode in OS)
           window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
               if (this.value === 'system') {
-                  document.documentElement.classList.toggle('dark', e.matches);
+                  // document.documentElement.classList.toggle('dark', e.matches);
+                  document.documentElement.setAttribute('data-theme', e.matches ? 'dark' : 'light');
               }
           });
       }

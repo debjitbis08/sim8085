@@ -43,7 +43,7 @@ export function Settings() {
 
   return (
     <Dialog open={open()} onOpenChange={setOpen}>
-      <Dialog.Trigger class="dialog__trigger">
+      <Dialog.Trigger class="dialog__trigger hidden md:block text-inactive-foreground hover:text-active-foreground transition-colors">
         <VsSettingsGear class="text-xl"/>
         {/* <Tooltip>
           <Tooltip.Trigger class="tooltip__trigger rounded-sm hover:bg-gray-200 dark:hover:bg-gray-800">
@@ -73,7 +73,7 @@ export function Settings() {
               <section>
                 <div class="mb-4">
                   <h3 class="mb-1 text-lg">Before Run</h3>
-                  <p class="text-xs dark:text-gray-400">
+                  <p class="text-xs text-secondary-foreground">
                     These settings control any action that need to be taken before the
                     program is run, or before starting debug.
                   </p>
@@ -100,7 +100,7 @@ export function Settings() {
               <section class="mt-4 pt-4 border-t border-t-gray-200 dark:border-t-gray-700">
                 <div class="mb-4">
                   <h3 class="mb-1 text-lg">Alert</h3>
-                  <p class="text-xs dark:text-gray-400">
+                  <p class="text-xs text-secondary-foreground">
                     These settings control the display of notifications after certain
                     actions.
                   </p>

@@ -28,9 +28,9 @@ export function Flags() {
 
   return (
     <div>
-      <div class="flex border-b-2 dark:border-b-gray-600">
+      <div class="flex border-b border-b-inactive-border">
           <h2 class="text-xl grow pb-1">Flags</h2>
-          <button title="Reset Flags" class="text-red-700" onClick={clearFlags}>
+          <button title="Reset Flags" class="text-red-foreground" onClick={clearFlags}>
             <AiOutlineClear />
           </button>
       </div>
@@ -53,7 +53,7 @@ export function Flags() {
 function Flag(props) {
   const id = `flag-${props.id}`;
   return (
-    <div class="flex items-center gap-1 my-2 p-1 hover:bg-gray-200 hover:dark:bg-gray-600">
+    <div class="flex items-center gap-1 my-2 p-1 hover:bg-active-background">
       <label htmlFor={id} className="w-full flex cursor-pointer items-center">
         <div class="grow">
           <strong className="font-medium">{props.name}</strong>
@@ -62,7 +62,7 @@ function Flag(props) {
           &#8203;
           <input
             type="checkbox"
-            className="size-4 rounded border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:ring-offset-gray-900"
+            className="size-4 rounded border-gray-300 checked:accent-terminal"
             id={id}
             checked={props.value}
             onChange={(e) => props.onSave(e.target.checked)}

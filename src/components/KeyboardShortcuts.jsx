@@ -14,7 +14,7 @@ export function KeyboardShortcuts() {
 
   return (
     <Dialog open={open()} onOpenChange={setOpen}>
-      <Dialog.Trigger class="dialog__trigger">
+      <Dialog.Trigger class="dialog__trigger hidden md:block text-inactive-foreground hover:text-active-foreground transition-colors">
         <FaSolidKeyboard />
       </Dialog.Trigger>
       <Dialog.Portal>

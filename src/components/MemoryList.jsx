@@ -167,7 +167,7 @@ export default function MemoryList({ threshold = 4 }) {
 
   return (
     <div class="h-full flex flex-col">
-      <div class="flex border-b-2 dark:border-b-gray-600">
+      <div class="flex border-b border-b-inactive-border">
         <h2 class="text-xl grow pb-1">Memory</h2>
         <div class="flex gap-2">
           <Dialog>
@@ -194,7 +194,7 @@ export default function MemoryList({ threshold = 4 }) {
             </Dialog.Portal>
           </Dialog>
           <Tooltip>
-            <Tooltip.Trigger class="tooltip__trigger text-red-700" onClick={resetAllLocations}>
+            <Tooltip.Trigger class="tooltip__trigger text-red-foreground" onClick={resetAllLocations}>
               <AiOutlineClear />
             </Tooltip.Trigger>
             <Tooltip.Portal>
@@ -210,9 +210,9 @@ export default function MemoryList({ threshold = 4 }) {
         <div class="w-full">
           <div class="flex flex-wrap items-center gap-2 font-mono text-xs">
             {dataRanges().map((range, index) => (
-              <div class="flex items-center gap-1 border border-gray-300 dark:border-gray-700" key={index}>
+              <div class="flex items-center gap-1" key={index}>
                 <button
-                  class={`py-1 px-2 rounded-sm border-r border-r-border-gray-300 dark:border-gray-700 text-gray-600 dark:text-gray-400 ${currentRange().start === range.start && currentRange().end === range.end ? 'bg-gray-200 dark:bg-gray-700' : ''} hover:bg-gray-300 dark:hover:bg-gray-700`}
+                  class={`py-1 px-2 rounded-sm border border-active-border text-active-foreground ${currentRange().start === range.start && currentRange().end === range.end ? 'bg-active-background' : ''} hover:bg-active-background`}
                   onClick={() => setCurrentRange({
                     start: range.start,
                     end: range.end
@@ -259,20 +259,20 @@ export default function MemoryList({ threshold = 4 }) {
       <div class={`w-full mt-4 ${isAddingCustom() || editingCustom().start !== null ? '' : 'hidden'}`}>
         <div class="flex items-center justify-between gap-3">
           <div class="flex items-center gap-1 border-b border-b-gray-300 min-w-0">
-            <span class="text-gray-400 dark:text-gray-500">0x</span>
+            <span class="text-secondary-foreground">0x</span>
             <input
               type="text"
-              class="p-1 bg-transparent outline-none placeholder:text-gray-300 dark:placeholder:text-gray-700"
+              class="p-1 bg-transparent outline-none placeholder:text-inactive-foreground"
               placeholder="Start"
               value={inputRange().start}
               onInput={(e) => setInputRange({ ...inputRange(), start: e.target.value })}
             />
           </div>
           <div class="flex items-center gap-1 border-b border-b-gray-300 min-w-0">
-            <span class="text-gray-400 dark:text-gray-500">0x</span>
+            <span class="text-secondary-foreground">0x</span>
             <input
               type="text"
-              class="p-1 bg-transparent outline-none placeholder:text-gray-300 dark:placeholder:text-gray-700"
+              class="p-1 bg-transparent outline-none placeholder:text-inactive-foreground"
               placeholder="End"
               value={inputRange().end}
               onInput={(e) => setInputRange({ ...inputRange(), end: e.target.value })}
@@ -281,7 +281,8 @@ export default function MemoryList({ threshold = 4 }) {
         </div>
         <div class="mt-2">
           <Tooltip>
-            <Tooltip.Trigger class="tooltip__trigger flex items-center justify-center gap-2 w-full p-1 px-4 rounded border border-gray-400 hover:bg-gray-300 dark:border-gray-600 hover:dark:bg-gray-900 disabled:text-gray-400 dark:disabled:text-gray-700 disabled:hover:bg-gray-100 dark:disabled:hover:bg-gray-800"
+            <Tooltip.Trigger
+              class="tooltip__trigger flex items-center justify-center gap-2 w-full p-1 px-4 rounded border border-active-border hover:bg-active-background disabled:text-inactive-foreground disabled:bg-secondary-background hover:disabled:bg-secondary-background"
               onClick={addOrEditCustomRange}
               disabled={inputRange().start === '' || inputRange().end === ''}
             >
@@ -302,15 +303,15 @@ export default function MemoryList({ threshold = 4 }) {
         <div class="memory-list mt-4 grow min-h-0">
           <div class="h-full flex flex-col">
             <h3 class="font-bold mb-2">
-              <div class="text-sm text-gray-400 dark:text-gray-400">
+              <div class="text-sm text-secondary-foreground">
                 <span>Displaying Memory Locations from </span>
                 <span>0x{currentRange().start.toString(16).padStart(4, '0').toUpperCase()}</span>
                 <span> to </span>
                 <span>0x{currentRange().end.toString(16).padStart(4, '0').toUpperCase()}</span>
               </div>
             </h3>
-            <p class="text-gray-500 flex items-center gap-2 my-2">
-              <VsInfo class="text-blue-400"/>
+            <p class="text-secondary-foreground flex items-center gap-2 my-2">
+              <VsInfo class="text-blue-foreground"/>
               <span class="text-xs">Double click the value to edit then press Enter to save the value or Tab to edit the next location.</span>
             </p>
             <div class="h-full overflow-y-auto grow min-h-0 pr-2 mt-2">
@@ -320,10 +321,10 @@ export default function MemoryList({ threshold = 4 }) {
         </div>
       ) : (
         <>
-          <p class="text-gray-400 dark:text-gray-500 text-center mt-4">
+          <p class="text-secondary-foreground text-center mt-4">
             No locations have any data yet. You may add a memory range to watch using the add button above.
           </p>
-          <p class="text-gray-400 dark:text-gray-500 text-center mt-8 flex flex-col items-center">
+          <p class="text-secondary-foreground text-center mt-8 flex flex-col items-center">
             <VsInfo class="text-blue-400"/>
             <span>This section allows to watch memory ranges you are interested in and also edit them.</span>
           </p>
@@ -390,7 +391,7 @@ function MemoryLocationRow(props) {
   return (
     <div
       key={props.value}
-      class="flex justify-between items-center py-1 px-1 hover:bg-gray-400 dark:hover:bg-gray-600"
+      class="flex justify-between items-center py-1 px-1 hover:bg-active-background"
       ref={containerRef}
     >
       <span class="font-mono">0x{props.location.toString(16).padStart(4, '0').toUpperCase()}</span>
@@ -398,7 +399,7 @@ function MemoryLocationRow(props) {
         {
         editing() ? (
           <input
-            class="font-mono w-5 border-b border-b-gray-800 dark:border-b-gray-400 dark:bg-transparent"
+            class="font-mono w-5 border-b border-b-active-border bg-main-background"
             value={value()}
             onInput={handleInputChange(setValue)}
             onKeyDown={handleKeyOrBlur}
@@ -410,7 +411,7 @@ function MemoryLocationRow(props) {
           />
         ) : (
           <span
-            class={`font-mono cursor-pointer ${props.value ? 'text-orange-600 dark:bg-transparent dark:border-b-green-300 dark:text-yellow-400' : 'dark:text-gray-700'}`}
+            class={`font-mono cursor-pointer ${props.value ? 'text-orange-foreground' : 'text-inactive-foreground'}`}
             onDblClick={startEditing}
           >{toByteString(props.value)}</span>
         )

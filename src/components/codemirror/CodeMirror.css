@@ -3,41 +3,36 @@
 }
 
 .cm-line.cm-activeLine {
-    @apply bg-blue-200;
-    @apply dark:bg-gray-800;
-    @apply bg-opacity-30;
+    background-color: rgba(var(--sm-editor-active-line), 0.3);
 }
 
 .cm-debug-line-highlight,
 .cm-line.cm-activeLine.cm-debug-line-highlight {
-    @apply bg-blue-400;
-    @apply dark:bg-blue-600
+    background-color: rgb(var(--sm-editor-debug-line));
 }
 
 .cm-editor .cm-gutters {
-    @apply bg-main-background border-0;
+    @apply border-0;
+    background-color: rgb(var(--sm-main-background));
 }
 
 .cm-editor .cm-activeLineGutter {
-    @apply dark:bg-gray-500;
+    background-color: rgb(var(--sm-secondary-background));
 }
 
 .cm-editor .cm-cursor {
-    @apply border-l-gray-600;
-    @apply dark:border-l-gray-300;
+    border-left: 1px solid rgb(var(--sm-editor-cursor));
 }
 
 .cm-editor .cm-content {
-    @apply bg-main-background;
     font-size: 0.85rem;
 }
 
-.cm-editor > .cm-scroller > .cm-selectionLayer .cm-selectionBackground {
-    @apply bg-blue-200;
-    @apply dark:bg-blue-900;
+.cm-editor > .cm-scroller > .cm-selectionLayer .cm-selectionBackground,
+.cm-editor.cm-focused > .cm-scroller > .cm-selectionLayer .cm-selectionBackground {
+    background-color: rgb(var(--sm-editor-selection-background));
 }
 
-.cm-editor.cm-focused > .cm-scroller > .cm-selectionLayer .cm-selectionBackground {
-    @apply bg-blue-200;
-    @apply dark:bg-blue-900;
+.cm-editor.cm-focused {
+    outline: none;
 }

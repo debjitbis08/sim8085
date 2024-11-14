@@ -3,7 +3,7 @@ import { HiOutlineCpuChip } from "solid-icons/hi";
 import MemoryList from "./MemoryList";
 import { Registers } from "./Registers";
 import { Flags } from "./Flags";
-import { createSignal } from "solid-js";
+import { createSignal, onMount } from "solid-js";
 import { FiCpu } from 'solid-icons/fi'
 import { AiOutlineQuestionCircle } from "solid-icons/ai";
 import { IOPorts } from "./IOPorts";
@@ -15,6 +15,25 @@ import { Tooltip } from "@kobalte/core/tooltip";
 export function RightPanel() {
   const [activeTab, setActiveTab] = createSignal('cpu');
   const [expanded, setExpanded] = createSignal(true);
+  const [width, setWidth] = createSignal(300);
+
+  onMount(() => {
+    const handleResize = () => {
+      const isMd = window.matchMedia("(min-width: 768px)").matches;
+      setExpanded(isMd);
+    };
+
+    // Initial check
+    handleResize();
+
+    // Listen for resize events
+    window.addEventListener("resize", handleResize);
+
+    // Cleanup listener on component unmount
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  });
 
   const toggleExpanded = () => {
     setExpanded((expanded) => !expanded);
@@ -34,11 +53,22 @@ export function RightPanel() {
     return activeTab() === tab && expanded();
   }
 
+  const startResize = (event) => {
+    const onMouseMove = (e) => setWidth((prev) => Math.max(300, prev + e.movementX));
+    const onMouseUp = () => {
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseup", onMouseUp);
+    };
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseup", onMouseUp);
+    onCleanup(() => onMouseUp()); // Cleanup when SolidJS destroys the component
+  };
+
   return (
-    <div class={`flex items-start ${expanded() ? "w-[25vw] min-w-[295px] flex-shrink-0" : ""}`}>
-      <div class="relative z-10 bg-page-background flex flex-col items-center h-sm:gap-4 gap-8 px-4 pt-4 border-r border-r-main-border" style={{ height: "calc(100vh - 6rem)" }}>
+    <div class={`flex items-start ${expanded() ? "" : ""}`} style={{ width: `${expanded() ? `${width()}px` : 'auto'}` }}>
+      <div class="relative z-10 bg-page-background flex flex-col items-center h-sm:gap-4 gap-8 px-2 md:px-4 pt-4 border-r border-r-main-border h-lvh md:h-[calc(100vh-6rem)]">
         <PanelButton
-          icon={<FiCpu class="text-2xl"/>}
+          icon={<FiCpu />}
           isActive={isActive('cpu')}
           onClick={() => showTab('cpu')}
           title="CPU"
@@ -51,7 +81,7 @@ export function RightPanel() {
         />
         <PanelButton
           icon={(
-            <p class="text-md font-bold flex gap-[-1] text-base">
+            <p class="font-bold flex gap-[-1] text-sm md:text-md">
               <span class="text-nowrap whitespace-nowrap">I/O</span>
             </p>
           )}
@@ -67,9 +97,9 @@ export function RightPanel() {
         </button>
         <div class="pb-1"></div>
       </div>
-      <div id="content" class="relative z-5 min-w-60 w-full bg-secondary-background border-l-0 border-t border-b border-r-0 border-main-border rounded-tl-sm rounded-bl-sm p-4 h-full flex overflow-x-hidden overflow-y-auto transform transition-transform duration-300 ease-in-out"
+      <div id="content"
+        class="shadow-xl md:shadow-none relative z-5 min-w-60 w-full bg-secondary-background border-l-0 border-t border-b border-r md:border-r-0 border-main-border rounded-tl-sm rounded-bl-sm px-2 md:px-4 py-4  h-lvh md:h-[calc(100vh-6rem)] flex overflow-x-hidden overflow-y-auto transform transition-transform duration-300 ease-in-out"
         style={{
-          height: "calc(100vh - 6rem)",
           display: expanded() ? "flex" : "none",
         }}>
         <div class={`w-full max-h-full ${activeTab() === 'cpu' ? '' : 'hidden'}`}>
@@ -88,6 +118,12 @@ export function RightPanel() {
         </div>
         <div class="grow"></div>
       </div>
+      <div class="w-[5px] h-lvh md:h-[calc(100vh-6rem)] cursor-col-resize bg-secondary-background hover:bg-terminal active:bg-terminal border-y border-y-main-border" onMouseDown={startResize}
+        style={{
+          display: expanded() ? "flex" : "none",
+        }}
+      >
+      </div>
     </div>
   );
 }
@@ -95,11 +131,11 @@ export function RightPanel() {
 export function PanelButton (props) {
   return (
     <Tooltip placement="left">
-      <Tooltip.Trigger class={`tooltip_trigger ${props.isActive ? 'text-active-foreground' : 'text-inactive-foreground'} flex flex-col items-center`}
+      <Tooltip.Trigger class={`tooltip_trigger ${props.isActive ? 'text-active-foreground' : 'text-inactive-foreground'} hover:text-active-foreground transition-colors flex flex-col items-center`}
         onClick={props.onClick}
         disabled={props.disabled}
       >
-        <span class="text-2xl">{props.icon}</span>
+        <span class="text-base md:text-xl lg:text-2xl">{props.icon}</span>
       </Tooltip.Trigger>
       <Tooltip.Portal>
         <Tooltip.Content class="tooltip__content">

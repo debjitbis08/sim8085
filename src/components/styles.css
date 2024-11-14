@@ -117,9 +117,8 @@
 
 .dialog__content {
     @apply z-50;
-    @apply min-w-[500px];
-    @apply bg-gray-100;
-    @apply dark:bg-gray-800;
+    @apply min-w-full md:min-w-[500px];
+    background-color: rgb(var(--sm-secondary-background));
     border: 1px solid hsl(240 5% 84%);
     border-radius: 6px;
     padding: 16px;
@@ -146,7 +145,7 @@
 .dialog__title {
     @apply text-lg;
     @apply font-semibold;
-    @apply text-gray-600;
+    color: rgb(var(--sm-secondary-foreground));
 }
 
 .dialog__description {
@@ -172,14 +171,11 @@
 .tooltip__content {
   @apply border;
   @apply rounded-sm;
-  @apply border-gray-400;
-  @apply dark:border-gray-600;
   @apply p-2;
-  @apply bg-gray-400;
-  @apply dark:bg-gray-800;
-  @apply dark:text-gray-200;
   @apply text-sm;
   @apply z-50;
+  background-color: rgb(var(--sm-main-background));
+  border-color: rgb(var(--sm-main-border));
   max-width: min(calc(100vw - 16px), 380px);
   box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
   animation: contentHide 150ms ease-in forwards;
@@ -193,6 +189,7 @@
   display: inline-flex;
   align-items: center;
 }
+
 .switch__control {
   display: inline-flex;
   align-items: center;
@@ -206,17 +203,16 @@
   transition: 250ms background-color;
   @apply cursor-pointer;
 }
+
 .switch__input:focus-visible + .switch__control {
   outline: 2px solid hsl(200 98% 39%);
   outline-offset: 2px;
 }
+
 .switch__control[data-checked] {
-  border-color: hsl(200 98% 39%);
   @apply border;
-  @apply border-green-400;
-  @apply dark:border-green-600;
-  @apply bg-green-400;
-  @apply dark:bg-green-600;
+  border-color: rgb(var(--sm-primary));
+  background-color: rgb(var(--sm-primary));
 }
 .switch__thumb {
   height: 20px;
