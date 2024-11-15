@@ -127,7 +127,7 @@ function Register(props) {
       <span class="font-mono text-secondary-foreground">0x</span>
       {editing() ? (
         <input
-          class="font-mono w-5 border-b border-b-primary-border"
+          class="font-mono w-5 border-b border-b-primary-border bg-main-background"
           value={highValue()}
           onInput={handleInputChange(setHighValue)}
           onKeyDown={handleKeyOrBlur}
@@ -147,7 +147,7 @@ function Register(props) {
       )}
       { editing() && props.canEditLow ? (
         <input
-          class="font-mono w-5 border-b border-b-primary-border"
+          class="font-mono w-5 border-b border-b-primary-border bg-main-background"
           value={lowValue()}
           onInput={handleInputChange(setLowValue)}
           onKeyDown={handleKeyOrBlur}

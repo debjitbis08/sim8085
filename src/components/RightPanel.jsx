@@ -66,7 +66,7 @@ export function RightPanel() {
 
   return (
     <div class={`flex items-start ${expanded() ? "" : ""}`} style={{ width: `${expanded() ? `${width()}px` : 'auto'}` }}>
-      <div class="relative z-10 bg-page-background flex flex-col items-center h-sm:gap-4 gap-8 px-2 md:px-4 pt-4 border-r border-r-main-border h-lvh md:h-[calc(100vh-6rem)]">
+      <div class="relative z-10 bg-page-background flex flex-col items-center h-sm:gap-4 gap-8 px-2 lg:px-4 pt-4 border-r border-r-main-border h-dvh md:h-[calc(100vh-6rem)]">
         <PanelButton
           icon={<FiCpu />}
           isActive={isActive('cpu')}
@@ -98,7 +98,7 @@ export function RightPanel() {
         <div class="pb-1"></div>
       </div>
       <div id="content"
-        class="shadow-xl md:shadow-none relative z-5 min-w-60 w-full bg-secondary-background border-l-0 border-t border-b border-r md:border-r-0 border-main-border rounded-tl-sm rounded-bl-sm px-2 md:px-4 py-4  h-lvh md:h-[calc(100vh-6rem)] flex overflow-x-hidden overflow-y-auto transform transition-transform duration-300 ease-in-out"
+        class="shadow-xl md:shadow-none relative z-5 min-w-60 w-full bg-secondary-background border-l-0 border-t border-b border-r md:border-r-0 border-main-border rounded-tl-sm rounded-bl-sm px-2 md:px-4 py-4  h-dvh md:h-[calc(100vh-6rem)] flex overflow-x-hidden overflow-y-auto transform transition-transform duration-300 ease-in-out"
         style={{
           display: expanded() ? "flex" : "none",
         }}>
@@ -118,7 +118,7 @@ export function RightPanel() {
         </div>
         <div class="grow"></div>
       </div>
-      <div class="w-[5px] h-lvh md:h-[calc(100vh-6rem)] cursor-col-resize bg-secondary-background hover:bg-terminal active:bg-terminal border-y border-y-main-border" onMouseDown={startResize}
+      <div class="w-[5px] h-dvh md:h-[calc(100vh-6rem)] cursor-col-resize bg-secondary-background hover:bg-terminal active:bg-terminal border-y border-y-main-border" onMouseDown={startResize}
         style={{
           display: expanded() ? "flex" : "none",
         }}

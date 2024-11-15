@@ -195,11 +195,10 @@
   align-items: center;
   height: 24px;
   width: 44px;
-  border: 1px solid hsl(240 5% 84%);
+  border: 1px solid rgb(var(--sm-gray-200));
   border-radius: 12px;
   padding: 0 2px;
-  @apply bg-gray-400;
-  @apply dark:bg-gray-600;
+  background-color: rgb(var(--sm-gray-300));
   transition: 250ms background-color;
   @apply cursor-pointer;
 }

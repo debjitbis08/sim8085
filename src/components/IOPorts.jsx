@@ -17,7 +17,7 @@ export function IOPorts () {
   };
   return (
     <div class="h-full flex flex-col">
-      <div class="flex border-b-2 dark:border-b-gray-600 mb-4">
+      <div class="flex border-b border-b-secondary-border mb-4">
         <h2 class="text-xl grow pb-1">I/O Ports</h2>
       </div>
       <div class="h-full overflow-y-auto grow min-h-0 pr-2">
@@ -62,13 +62,13 @@ function IOPortRow(props) {
   const startEditing = () => setEditing(true);
 
   return (
-    <div key={props.value} class="flex justify-between items-center py-1 px-1 hover:bg-gray-400 dark:hover:bg-gray-600">
+    <div key={props.value} class="flex justify-between items-center py-1 px-1 hover:bg-active-background">
       <span class="font-mono">0x{props.location.toString(16).padStart(2, '0').toUpperCase()}</span>
       <span class="flex items-center gap-2">
         {
         editing() ? (
           <input
-            class="font-mono w-5 border-b border-b-gray-800 dark:border-b-gray-400 dark:bg-transparent"
+            class="font-mono w-5 border-b border-b-main-border bg-main-background"
             value={value()}
             onInput={handleInputChange(setValue)}
             onKeyDown={handleKeyOrBlur}
@@ -78,7 +78,7 @@ function IOPortRow(props) {
           />
         ) : (
           <span
-            class={`font-mono cursor-pointer ${props.value ? 'text-orange-600 dark:bg-transparent dark:border-b-green-300 dark:text-yellow-400' : 'dark:text-gray-500'}`}
+            class={`font-mono cursor-pointer ${props.value ? 'text-orange-foreground' : 'text-inactive-foreground'}`}
             onDblClick={() => setEditing(true)}
           >{toByteString(props.value)}</span>
         )

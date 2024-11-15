@@ -13,32 +13,32 @@ interface Props {
 
 const { showActions, fullwidth } = Astro.props;
 ---
-<header class="w-full py-4 justify-between items-center h-16 hidden md:flex">
+<header class="w-full py-2 md:py-4 justify-start md:justify-between items-center h-auto md:h-16 md:flex">
     <div class="flex items-center gap-2 w-full">
         <!-- <a href="/" class="w-[25vw] md:min-w-[295px] flex items-center gap-2 pl-4">
             <span class="w-6 h-6 text-terminal"><Fragment set:html={LogoWithBackground} /></span>
             <span class="text-gray-800 dark:text-gray-200">Sim8085</span>
         </a> -->
-        <div class="w-[25vw] md:min-w-[295px]">
+        <div class="hidden md:block w-[25vw]">
             <a
                 href="/"
-                class="inline-flex items-center gap-2 ml-2 pl-2 pr-2 py-2 rounded group hover:bg-terminal-200"
+                class="inline-flex items-center gap-2 ml-1 pl-1 lg:ml-2 lg:pl-2 pr-2 py-2 rounded group hover:bg-terminal-200"
             >
             <span class="w-6 h-6 text-terminal z-10 relative">
                 <Fragment set:html={LogoWithBackground} />
             </span>
             <span
-                class="relative text-gray-800 transform -translate-x-8 opacity-0 transition-all duration-100 group-hover:translate-x-0 group-hover:opacity-100"
+                class="hidden md:block relative text-gray-800 transform -translate-x-8 opacity-0 transition-all duration-100 group-hover:translate-x-0 group-hover:opacity-100"
             >
                 Sim8085
             </span>
             </a>
         </div>
-        <div class="w-[45vw] hidden md:flex flex-grow flex-shrink max-w-[800px] min-w-[300px]">
-            <div class="flex-grow"></div>
+        <div class="w-auto md:w-[45vw] pl-2 md:pl-0 flex flex-grow flex-shrink max-w-[800px] md:min-w-[300px]">
+            <div class="flex-grow hidden md:block"></div>
             { showActions ? <Actions client:idle /> : null }
         </div>
-        <div class={`${fullwidth ? "w-[30vw] min-w-[320px]" : ""} flex-grow flex-shrink-0 flex items-start pr-4`}>
+        <div class={`${fullwidth ? "w-[30vw]" : ""} flex-grow flex-shrink-0 flex items-start pr-4`}>
         <!-- <div class="flex flex-grow items-center gap-2 space-x-2"> -->
             <!-- <div class="pl-2 border-r border-r-gray-500 dark:border-r-gray-600 h-4"></div> -->
             <div class="flex-grow"></div>
@@ -52,7 +52,7 @@ const { showActions, fullwidth } = Astro.props;
             >
                 <span>
                     <Fragment set:html={HandHoldingHeartIcon } />
-                </span> <span class="bmc-btn-text">Donate</span>
+                </span> <span class="hidden md:inline bmc-btn-text">Donate</span>
             </a>
         </div>
     </div>

@@ -23,7 +23,7 @@ const { title, showActions, fullwidth, smallFooter } = Astro.props;
 <html lang="en" data-theme="light">
 	<head>
 		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, viewport-fit=cover" />
+		<meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
         <meta name="description" content="Simulator, Assembler and Debugger for Intel 8085 microprocessor." />
         <meta name="author" content="Debjit Biswas, www.debjitbiswas.com" />
         <meta name="keywords" content="8085, assembler, simulator, IDE, Intel">
@@ -53,7 +53,7 @@ const { title, showActions, fullwidth, smallFooter } = Astro.props;
         </script>
         <PostHogInit />
     </head>
-	<body class={`bg-page-background text-primary-foreground min-h-screen`}>
+	<body class={`bg-page-background text-primary-foreground min-h-dvh`}>
 	    <main class={`${!fullwidth ? "max-w-4xl mx-auto" : ""}`}>
 			<Header showActions={showActions} fullwidth={fullwidth} />
             <div>

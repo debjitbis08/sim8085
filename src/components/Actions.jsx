@@ -344,7 +344,7 @@ export function Actions() {
 
 
   return (
-    <div class="flex items-center gap-2 border-l-0 border-t-0 border-b-0 rounded-sm">
+    <div class="flex items-center gap-1 md:gap-2 border-l-0 border-t-0 border-b-0 rounded-sm">
       <div class="flex items-center gap-1 text-sm pl-2 rounded border border-active-border">
         <div class="flex items-center gap-1 border-b-0 border-b-gray-300 min-w-0">
           <span class="font-mono text-gray-400">0x</span>

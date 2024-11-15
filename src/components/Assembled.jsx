@@ -22,7 +22,7 @@ export function Assembled() {
   };
 
   onMount(() => {
-    setWidth(window.innerWidth * 0.3);
+    setWidth(window.innerWidth * (window.innerWidth > 768 ? 0.3 : 0.8));
     const handleResize = () => {
       const isMd = window.matchMedia("(min-width: 768px)").matches;
       setExpanded(isMd);
@@ -56,14 +56,14 @@ export function Assembled() {
       class={`${expanded() ? "w-[calc(100vw-8rem)] md:w-full" : "w-8"} flex border-y border-y-main-border ${expanded() ? "border-l" : "border-l-0" } border-l-main-border bg-main-background h-lvh md:h-[calc(100vh-6em)] absolute top-0 right-0 md:static ${expanded() ? "shadow-xl" : ""} md:shadow-none`}
       style={{ width: `${expanded() ? `${width()}px` : 'auto'}` }}
     >
-      <button type="button" class="w-[3px] h-lvh md:h-[calc(100vh-6rem)] cursor-col-resize hover:bg-terminal active:bg-terminal" onMouseDown={startResize}
+      <button type="button" class="w-[3px] h-svh md:h-[calc(100vh-6rem)] cursor-col-resize hover:bg-terminal active:bg-terminal" onMouseDown={startResize}
         style={{
           display: expanded() ? "block" : "none",
         }}
       >
       </button>
       <div
-        class={`${expanded() ? "p-1 md:p-4" : "p-0 pt-4 pr-2"} w-full`}
+        class={`${expanded() ? "p-1 md:p-4 pt-2 md:pt-2" : "p-0 pt-2 pr-2"} w-full`}
       >
         <div class="flex items-start gap-2">
         <h2 class={`md:text-xl pb-4 ${expanded() ? 'block' : 'hidden'}`}>Assembled Output</h2>
