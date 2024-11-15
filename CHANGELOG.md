@@ -1,3 +1,10 @@
+## [2.2.1](https://github.com/debjitbis08/sim8085/compare/v2.2.0...v2.2.1) (2024-11-15)
+
+
+### Bug Fixes
+
+* Fix cookie consent banner colors ([ecf1605](https://github.com/debjitbis08/sim8085/commit/ecf16051af6608102ff8d2a2bf095a57e401ffa5))
+
 # [2.2.0](https://github.com/debjitbis08/sim8085/compare/v2.1.0...v2.2.0) (2024-11-15)
 
 
