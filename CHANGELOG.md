@@ -1,3 +1,10 @@
+## [2.3.1](https://github.com/debjitbis08/sim8085/compare/v2.3.0...v2.3.1) (2024-11-15)
+
+
+### Bug Fixes
+
+* Improve mobile styling ([86de784](https://github.com/debjitbis08/sim8085/commit/86de784d78658a5dae516e695a360acfc651e45a))
+
 # [2.3.0](https://github.com/debjitbis08/sim8085/compare/v2.2.1...v2.3.0) (2024-11-15)
 
 
