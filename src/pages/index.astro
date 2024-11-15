@@ -11,9 +11,9 @@ import '../components/styles.css';
 
 <Layout title="Sim8085 - A 8085 microprocessor simulator" showActions={true} fullwidth={true} smallFooter={true}>
     <!-- <Tips /> -->
-    <main class="h-full relative">
+    <main class="relative">
         <div
-            class="flex items-start h-dvh md:h-[calc(100vh-6rem)]"
+            class="flex items-start h-[calc(100dvh-4rem)] md:h-[calc(100vh-6.2rem)]"
         >
             <!-- Left Panel with fixed width -->
             <div
@@ -44,7 +44,7 @@ import '../components/styles.css';
 
             <!-- Right Panel with fixed width -->
             <div
-                class="flex min-w-max items-start h-dvh md:h-[calc(100vh-6rem)]"
+                class="flex min-w-max items-start h-[calc(100dvh-4rem)] md:h-[calc(100vh-6.2rem)]"
             >
                 <Assembled client:idle />
             </div>

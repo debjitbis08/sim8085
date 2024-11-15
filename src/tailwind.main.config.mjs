@@ -28,6 +28,9 @@ export default {
       './components/**/*.{astro,html,js,jsx,md,mdx,css}',
     ]
   },
+  future: {
+    hoverOnlyWhenSupported: true,
+  },
 	darkMode: 'selector',
 	theme: {
     extend: {

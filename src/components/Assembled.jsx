@@ -53,10 +53,10 @@ export function Assembled() {
 
   return (
     <div
-      class={`${expanded() ? "w-[calc(100vw-8rem)] md:w-full" : "w-8"} flex border-y border-y-main-border ${expanded() ? "border-l" : "border-l-0" } border-l-main-border bg-main-background h-lvh md:h-[calc(100vh-6em)] absolute top-0 right-0 md:static ${expanded() ? "shadow-xl" : ""} md:shadow-none`}
+      class={`${expanded() ? "w-[calc(100vw-8rem)] md:w-full" : "w-8"} flex border-y border-y-main-border ${expanded() ? "border-l" : "border-l-0" } border-l-main-border bg-main-background h-[calc(100dvh-4rem)] md:h-[calc(100vh-6.2rem)] absolute top-0 right-0 md:static ${expanded() ? "shadow-xl" : ""} md:shadow-none`}
       style={{ width: `${expanded() ? `${width()}px` : 'auto'}` }}
     >
-      <button type="button" class="w-[3px] h-svh md:h-[calc(100vh-6rem)] cursor-col-resize hover:bg-terminal active:bg-terminal" onMouseDown={startResize}
+      <button type="button" class="w-[3px] h-svh md:h-[calc(100vh-6.2rem)] cursor-col-resize hover:bg-terminal active:bg-terminal" onMouseDown={startResize}
         style={{
           display: expanded() ? "block" : "none",
         }}
