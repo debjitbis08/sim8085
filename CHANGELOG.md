@@ -1,3 +1,10 @@
+# [2.3.0](https://github.com/debjitbis08/sim8085/compare/v2.2.1...v2.3.0) (2024-11-15)
+
+
+### Features
+
+* Mobile support and minor space adjustments ([f4a7f10](https://github.com/debjitbis08/sim8085/commit/f4a7f10fec3b838745a91f85f2d45c9c39ac2a81))
+
 ## [2.2.1](https://github.com/debjitbis08/sim8085/compare/v2.2.0...v2.2.1) (2024-11-15)
 
 
