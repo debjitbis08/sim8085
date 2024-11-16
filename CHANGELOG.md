@@ -1,3 +1,10 @@
+## [2.3.2](https://github.com/debjitbis08/sim8085/compare/v2.3.1...v2.3.2) (2024-11-16)
+
+
+### Bug Fixes
+
+* Add cue for assembled section content on mobile ([3b90fd0](https://github.com/debjitbis08/sim8085/commit/3b90fd0ba541c1ff2088e1f6753b1e333820640f))
+
 ## [2.3.1](https://github.com/debjitbis08/sim8085/compare/v2.3.0...v2.3.1) (2024-11-15)
 
 
