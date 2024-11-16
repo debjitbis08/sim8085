@@ -69,6 +69,11 @@ export default defineConfig({
       pwaAssets: {
         config: true,
       },
+      workbox: {
+        globIgnores: [
+          'tips/**', // Exclude all files in the `tips` folder
+        ],
+      }
     }),
   ],
   output: 'static',
