@@ -1,4 +1,4 @@
-import { BsKeyboard, BsMemory, BsSlash, BsSlashLg } from "solid-icons/bs";
+import { BsArrowBarLeft, BsArrowBarRight, BsKeyboard, BsMemory, BsSlash, BsSlashLg } from "solid-icons/bs";
 import { HiOutlineCpuChip } from "solid-icons/hi";
 import MemoryList from "./MemoryList";
 import { Registers } from "./Registers";
@@ -100,8 +100,11 @@ export function RightPanel() {
       <div id="content"
         class="shadow-xl md:shadow-none text-sm md:text-base relative z-5 min-w-60 w-full bg-secondary-background border-l-0 border-t border-b border-r md:border-r-0 border-main-border rounded-tl-sm rounded-bl-sm px-2 md:px-4 py-4  h-[calc(100dvh-4rem)] md:h-[calc(100vh-6.2rem)] flex overflow-x-hidden overflow-y-auto transform transition-transform duration-300 ease-in-out"
         style={{
-          display: expanded() ? "flex" : "none",
+          display: expanded() ? "block" : "none",
         }}>
+        <div onClick={toggleExpanded} class="md:hidden cursor-pointer w-full mb-2 flex justify-end">
+          {expanded() ? <BsArrowBarLeft /> : <BsArrowBarRight />}
+        </div>
         <div class={`w-full max-h-full ${activeTab() === 'cpu' ? '' : 'hidden'}`}>
           <div>
             <Registers />
