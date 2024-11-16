@@ -4,7 +4,7 @@ import { docsSchema } from '@astrojs/starlight/schema';
 export const collections = {
 	docs: defineCollection({ schema: docsSchema() }),
 	changes: defineCollection({
-	  version: z.string(),
+	  versions: z.array(z.string()),
 		date: z.string()
 	})
 };

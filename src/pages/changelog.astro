@@ -27,13 +27,15 @@ const entries = await Promise.all(
     <main class="privacy-policy max-w-4xl mx-auto py-8 px-6">
         <section>
             <div class="lg:max-w-[1024px] flex flex-col sm:flex-col md:flex-row items-start gap-3 mt-8 mb-8 md:mb-16 pb-16 border-b border-b-gray-800">
-                <div class="text-transparent hidden md:block">
-                    <p>2024-00-00</p>
-                    <p>v0.0.0</p>
+                <div class="text-transparent hidden md:block lg:w-[256px]">
+                    <p class="font-mono">December 00, 0000</p>class
                 </div>
                 <div>
                     <h2 class="text-4xl">Changelog</h2>
                     <p class="dark:text-gray-500 mt-2">New updates and improvements for Sim8085</p>
+                    <div class="mt-2">
+                        <a href="https://github.com/debjitbis08/sim8085/releases/" class="text-blue-600 dark:text-blue-400 font-bold">Detailed Changelog</a>
+                    </div>
                 </div>
             </div>
             <div class="lg:max-w-[1024px]">
@@ -43,12 +45,19 @@ const entries = await Promise.all(
                         <p class="mb-2 font-mono">
                             {entry.date}
                         </p>
-                        <p class="font-mono text-sm">
-                            <a href={`https://github.com/debjitbis08/sim8085/releases/tag/v${entry.data.version}`} class="text-blue-600 dark:text-blue-400">v{entry.data.version}</a>
-                        </p>
                     </div>
                     <div class="changelog-entry lg:w-[588px]">
                         <entry.Content />
+                        <div>
+                            <h3 class="mt-4">Detailed Changelogs</h3>
+                            <ul>
+                            {entry.data.versions.map((version) => (
+                                <li>
+                                    <a href={`https://github.com/debjitbis08/sim8085/releases/tag/v${version}`} class="text-blue-600 dark:text-blue-400">v{version}</a>
+                                </li>
+                            ))}
+                            </ul>
+                        </div>
                     </div>
                   </div>
                 ))}
@@ -58,6 +67,14 @@ const entries = await Promise.all(
 </Layout>
 
 <style>
+:global(.changelog-entry p) {
+    @apply mb-4;
+}
+
+:global(.changelog-entry li) {
+    @apply mb-2;
+}
+
 :global(.changelog-entry h3) {
     @apply text-2xl font-bold mb-4;
 }
