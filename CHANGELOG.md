@@ -1,3 +1,11 @@
+## [2.3.3](https://github.com/debjitbis08/sim8085/compare/v2.3.2...v2.3.3) (2024-11-16)
+
+
+### Bug Fixes
+
+* Fix offline mode ([2bddf96](https://github.com/debjitbis08/sim8085/commit/2bddf962a365cdae6d810f4cf0ed0d59d74dbc29))
+* Improve left panel collapse UX ([a33588f](https://github.com/debjitbis08/sim8085/commit/a33588f77bcd8be944621580a5c473436d185819))
+
 ## [2.3.2](https://github.com/debjitbis08/sim8085/compare/v2.3.1...v2.3.2) (2024-11-16)
 
 
