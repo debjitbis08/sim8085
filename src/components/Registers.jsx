@@ -46,7 +46,7 @@ export function Registers() {
 
   return (
     <div>
-      <div class="flex border-b border-b-inactive-border">
+      <div class="flex border-b border-b-inactive-border px-1">
           <h2 class="text-xl grow pb-1">Registers</h2>
           <button title="Clear Registers" class="text-red-foreground" onClick={clearRegisters}>
             <AiOutlineClear />

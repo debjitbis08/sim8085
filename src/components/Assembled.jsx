@@ -7,6 +7,7 @@ import { FiAlertCircle, FiAlertTriangle } from 'solid-icons/fi';
 import CopyComponent from './CopyComponent.jsx';
 import { Tooltip } from '@kobalte/core/tooltip';
 import { BsArrowBarLeft, BsArrowBarRight } from 'solid-icons/bs';
+import styles from './Assembled.module.css';
 
 export function Assembled() {
   let [lines, setLines] = createSignal([]);
@@ -84,15 +85,18 @@ export function Assembled() {
         </div>
         <div class="flex-grow"></div>
         <Tooltip placement="left">
-          <Tooltip.Trigger class="tooltip__trigger" onClick={toggleExpanded}>
-            {expanded() ? <BsArrowBarRight /> : <BsArrowBarLeft />}
-          </Tooltip.Trigger>
-          <Tooltip.Portal>
-            <Tooltip.Content class="tooltip__content">
-              <Tooltip.Arrow />
-              <p>{expanded() ? "Collapse Panel" : "Expand Panel"}</p>
-            </Tooltip.Content>
-          </Tooltip.Portal>
+            <Tooltip.Trigger class="tooltip__trigger relative" onClick={toggleExpanded}>
+              {expanded() ? <BsArrowBarRight /> : <BsArrowBarLeft />}
+              { store.assembled.length || store.errors.length && !expanded() ? (
+                <span class={`w-2 h-2 rounded-[2rem] bg-terminal absolute left-0 bottom-[-4px] ${styles.radiatingBorder}`}> </span>
+              ) : null }
+            </Tooltip.Trigger>
+            <Tooltip.Portal>
+              <Tooltip.Content class="tooltip__content">
+                <Tooltip.Arrow />
+                <p>{expanded() ? "Collapse Panel" : "Expand Assembled Ouput Panel"}</p>
+              </Tooltip.Content>
+            </Tooltip.Portal>
         </Tooltip>
         </div>
         <div class={`flex flex-col ${expanded() ? 'block' : 'hidden'}`} style={{ height: "calc(100vh - 8rem - 1px)" }}>
