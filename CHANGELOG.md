@@ -1,3 +1,12 @@
+## [2.3.4](https://github.com/debjitbis08/sim8085/compare/v2.3.3...v2.3.4) (2024-11-17)
+
+
+### Bug Fixes
+
+* Collapse right panel on small width ([0f5ea85](https://github.com/debjitbis08/sim8085/commit/0f5ea858b0c32b501d5fd98772ef3cbc1b213259))
+* Increase clickable area for right panel icons ([ca709a3](https://github.com/debjitbis08/sim8085/commit/ca709a33e4a8655253c09362686e71271c77f817))
+* Remove breakpoint gutter from editor ([bf7a055](https://github.com/debjitbis08/sim8085/commit/bf7a0558727702b99c3825ea39ce144b2a83098a))
+
 ## [2.3.3](https://github.com/debjitbis08/sim8085/compare/v2.3.2...v2.3.3) (2024-11-16)
 
 
