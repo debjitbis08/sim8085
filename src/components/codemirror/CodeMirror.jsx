@@ -127,7 +127,7 @@ export function CodeMirror(props) {
     const startState = EditorState.create({
       doc: storedFile || store.code, // Load from store or default content
       extensions: [
-        breakpointGutter,
+        // breakpointGutter,
         lineHighlightField,
         basicSetup,
         keymap.of([defaultKeymap, indentWithTab]),
