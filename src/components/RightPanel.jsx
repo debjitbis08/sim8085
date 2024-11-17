@@ -66,7 +66,7 @@ export function RightPanel() {
 
   return (
     <div class={`flex items-start ${expanded() ? "" : ""}`} style={{ width: `${expanded() ? `${width()}px` : 'auto'}` }}>
-      <div class="relative z-10 bg-page-background flex flex-col items-center h-sm:gap-4 gap-8 px-2 lg:px-4 pt-4 border-r border-r-main-border h-[calc(100dvh-4rem)] md:h-[calc(100vh-6.2rem)]">
+      <div class="relative z-10 bg-page-background flex flex-col items-center h-sm:gap-4 gap-4 pt-4 border-r border-r-main-border h-[calc(100dvh-4rem)] md:h-[calc(100vh-6.2rem)]">
         <PanelButton
           icon={<FiCpu />}
           isActive={isActive('cpu')}
@@ -138,7 +138,7 @@ export function PanelButton (props) {
         onClick={props.onClick}
         disabled={props.disabled}
       >
-        <span class="text-base md:text-xl lg:text-2xl">{props.icon}</span>
+        <span class="sm:text-xl md:text-xl lg:text-2xl py-2 px-2 lg:px-4">{props.icon}</span>
       </Tooltip.Trigger>
       <Tooltip.Portal>
         <Tooltip.Content class="tooltip__content">
