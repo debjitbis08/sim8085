@@ -19,6 +19,7 @@ export function Assembled() {
   });
 
   const toggleExpanded = () => {
+    if (width() <= 32) setWidth(window.innerWidth * (window.innerWidth > 768 ? 0.3 : 0.8));
     setExpanded((expanded) => !expanded);
   };
 
@@ -42,7 +43,16 @@ export function Assembled() {
   });
 
   const startResize = (event) => {
-    const onMouseMove = (e) => setWidth((prev) => prev - e.movementX);
+    const onMouseMove = (e) => setWidth((prev) => {
+      let newW = prev - e.movementX;
+      if (newW <= 32) {
+        newW = 32;
+        setExpanded(false);
+      } else {
+        setExpanded(true);
+      }
+      return newW;
+    });
     const onMouseUp = () => {
       window.removeEventListener("mousemove", onMouseMove);
       window.removeEventListener("mouseup", onMouseUp);
