@@ -1,3 +1,10 @@
+## [2.3.5](https://github.com/debjitbis08/sim8085/compare/v2.3.4...v2.3.5) (2024-11-18)
+
+
+### Bug Fixes
+
+* Fix resizing of right panel ([a2188c1](https://github.com/debjitbis08/sim8085/commit/a2188c10e858e3300da7ce4dc3af11a80c871c48))
+
 ## [2.3.4](https://github.com/debjitbis08/sim8085/compare/v2.3.3...v2.3.4) (2024-11-17)
 
 
