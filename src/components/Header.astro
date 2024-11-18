@@ -1,21 +1,23 @@
 ---
 import HandHoldingHeartIcon from '../icons/hand-holding-heart.svg?raw';
+import LockIcon from '../icons/lock.svg?raw';
 import Logo from '../icons/logo.svg?raw';
 import LogoWithBackground from '../icons/logo-with-green-background.svg?raw';
 import FAQs from './FAQs.astro';
 import ThemeSwitcher from './ThemeSwitcher.astro';
-import { Actions } from './Actions.jsx';
-import { supabase } from '../lib/supabase.js';
+import {Actions} from './Actions.jsx';
+import {FileActions} from './FileActions.jsx';
+import {supabase} from '../lib/supabase.js';
 
 interface Props {
-	showActions: boolean;
-	fullwidth: boolean;
+    showActions: boolean;
+    fullwidth: boolean;
 }
 
-const { showActions, fullwidth } = Astro.props;
+const {showActions, fullwidth} = Astro.props;
 
 // Get user session if logged in
-const { data: { session } } = await supabase.auth.getSession();
+const {data: {session}} = await supabase.auth.getSession();
 const user = session?.user;
 const isLoggedIn = !!user;
 const avatarUrl = user?.user_metadata?.avatar_url || '/default-avatar.png'; // Default avatar if none exists
@@ -26,48 +28,58 @@ const avatarUrl = user?.user_metadata?.avatar_url || '/default-avatar.png'; // D
             <span class="w-6 h-6 text-terminal"><Fragment set:html={LogoWithBackground} /></span>
             <span class="text-gray-800 dark:text-gray-200">Sim8085</span>
         </a> -->
-        <div class="hidden md:block w-[25vw]">
+        <div class="hidden md:block">
             <a
                 href="/"
-                class="inline-flex items-center gap-2 ml-1 pl-1 lg:ml-2 lg:pl-2 pr-2 py-2 rounded group hover:bg-terminal-200"
+                class="inline-flex items-center gap-2 ml-1 pl-1 lg:ml-2 lg:pl-2 pr-2 py-2 rounded group hover:bg-terminal-200 relative"
             >
-            <span class="w-6 h-6 text-terminal z-10 relative">
-                <Fragment set:html={LogoWithBackground} />
-            </span>
-            <span
-                class="hidden md:block relative text-gray-800 transform -translate-x-8 opacity-0 transition-all duration-100 group-hover:translate-x-0 group-hover:opacity-100"
-            >
-                Sim8085
-            </span>
+                <span class="w-6 h-6 text-terminal z-10 relative">
+                    <Fragment set:html={LogoWithBackground} />
+                </span>
+                <span
+                    class="absolute left-8 opacity-0 transform translate-x-2 transition-all duration-300 group-hover:opacity-100 group-hover:translate-x-0 group-hover:static text-gray-800"
+                >
+                    Sim8085
+                </span>
             </a>
         </div>
+        <!--
+        <div class="pl-4">
+            <FileActions client:idle/>
+        </div>
+        -->
         <div class="w-auto md:w-[45vw] pl-2 md:pl-0 flex flex-grow flex-shrink max-w-[800px] md:min-w-[300px]">
             <div class="flex-grow hidden md:block"></div>
-            { showActions ? <Actions client:idle /> : null }
+            {showActions ?
+                <Actions client:idle/> : null}
         </div>
         <div class={`${fullwidth ? "w-[30vw]" : ""} flex-grow flex-shrink-0 flex items-start pr-2 md:pr-4`}>
-        <!-- <div class="flex flex-grow items-center gap-2 space-x-2"> -->
+            <!-- <div class="flex flex-grow items-center gap-2 space-x-2"> -->
             <!-- <div class="pl-2 border-r border-r-gray-500 dark:border-r-gray-600 h-4"></div> -->
             <div class="flex-grow"></div>
             <div class="flex items-center gap-2">
-                <ThemeSwitcher />
+                <ThemeSwitcher/>
                 <link href="https://fonts.googleapis.com/css?family=Cookie&amp;display=swap" rel="stylesheet">
                 <!-- Profile Icon and Logout Button -->
-                <div x-data="userProfile" class="ml-2 relative">
+                <div x-data="userProfile" class="relative">
                     <template x-if="isLoggedIn">
                         <div class="relative">
                             <button @click="toggleMenu" class="flex items-center focus:outline-none">
-                                <img :src="avatarUrl || '/default-avatar.png'" alt="User Avatar" class="w-8 h-8 rounded-full">
+                                <img :src="avatarUrl || '/default-avatar.png'" alt="User Avatar"
+                                     class="w-8 h-8 rounded-full">
                             </button>
-                            <div x-show="menuOpen" @click.away="menuOpen = false" class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-700 rounded-md shadow-lg overflow-hidden z-10">
-                                <button @click="logout" class="block w-full px-4 py-2 text-sm text-left text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600">
+                            <div x-show="menuOpen" @click.away="menuOpen = false"
+                                 class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-700 rounded-md shadow-lg overflow-hidden z-10">
+                                <button @click="logout"
+                                        class="block w-full px-4 py-2 text-sm text-left text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600">
                                     Logout
                                 </button>
                             </div>
                         </div>
                     </template>
                     <template x-if="!isLoggedIn">
-                        <a href="/login" class="inline-block text-gray-800 dark:text-gray-200 px-4 py-1 box-border rounded-md border dark:border-gray-700 hover:dark:bg-gray-800">
+                        <a href="/login"
+                           class="inline-block text-secondary-foreground px-4 py-1 box-border rounded-md border border-inactive-border bg-secondary-background hover:bg-main-background">
                             Login
                         </a>
                     </template>
@@ -80,49 +92,61 @@ const avatarUrl = user?.user_metadata?.avatar_url || '/default-avatar.png'; // D
                     title="Your support helps me improve Sim8085, create new tutorials, and keep this platform running for students and enthusiasts worldwide!"
                 >
                     <span>
-                        <Fragment set:html={HandHoldingHeartIcon } />
+                        <Fragment set:html={HandHoldingHeartIcon}/>
                     </span> <span class="hidden md:inline bmc-btn-text">Donate</span>
                 </a>
+                <button
+                    x-data="unlockPlusButton"
+                    type="button"
+                    class="hidden h-8 py-4 px-4 flex items-center gap-2 rounded text-sm bg-transparent hover:bg-secondary-background box-border border border-main-border hover:border-yellow-foreground text-yellow-foreground"
+                    @click="showPlusDialog"
+                    x-show="tier === 'FREE'"
+                >
+                    <span>
+                        <Fragment set:html={LockIcon}/>
+                    </span>
+                    <span class="hidden md:inline bmc-btn-text">Unlock Plus</span>
+                </button>
             </div>
         </div>
     </div>
 </header>
 
 <style>
-.bmc-btn {
-  @apply h-8 py-4 px-4 flex items-center gap-2 rounded-lg text-sm bg-transparent box-border text-terminal border-2 border-terminal border-opacity-20 hover:border-opacity-100;
-  /* font-family: 'Inter', sans-serif !important; */
-  font-weight: bold;
-  position: relative;
-  z-index: 1;
-  transition: transform 0.2s ease, box-shadow 0.5s ease;
-  /* box-shadow: 0 0 10px rgba(0, 204, 255, 0.2); */
-  /* animation: subtle-glow 3s infinite; */
-}
+    .bmc-btn {
+        @apply h-8 py-4 px-4 flex items-center gap-2 rounded-lg text-sm bg-transparent box-border text-terminal border-2 border-terminal border-opacity-20 hover:border-opacity-100;
+        /* font-family: 'Inter', sans-serif !important; */
+        font-weight: bold;
+        position: relative;
+        z-index: 1;
+        transition: transform 0.2s ease, box-shadow 0.5s ease;
+        /* box-shadow: 0 0 10px rgba(0, 204, 255, 0.2); */
+        /* animation: subtle-glow 3s infinite; */
+    }
 
-/* Glow animation */
-@keyframes subtle-glow {
-  0% {
-    box-shadow: 0 0 8px rgba(0, 204, 255, 0.2), 0 0 15px rgba(0, 204, 255, 0.15);
-  }
-  50% {
-    box-shadow: 0 0 12px rgba(0, 204, 255, 0.3), 0 0 20px rgba(0, 204, 255, 0.2);
-  }
-  100% {
-    box-shadow: 0 0 8px rgba(0, 204, 255, 0.2), 0 0 15px rgba(0, 204, 255, 0.15);
-  }
-}
+    /* Glow animation */
+    @keyframes subtle-glow {
+        0% {
+            box-shadow: 0 0 8px rgba(0, 204, 255, 0.2), 0 0 15px rgba(0, 204, 255, 0.15);
+        }
+        50% {
+            box-shadow: 0 0 12px rgba(0, 204, 255, 0.3), 0 0 20px rgba(0, 204, 255, 0.2);
+        }
+        100% {
+            box-shadow: 0 0 8px rgba(0, 204, 255, 0.2), 0 0 15px rgba(0, 204, 255, 0.15);
+        }
+    }
 
-/* Hover effect */
-.bmc-btn:hover {
-  /* transform: scale(1.05); */
-  animation: none;
-  box-shadow: none;
-}
+    /* Hover effect */
+    .bmc-btn:hover {
+        /* transform: scale(1.05); */
+        animation: none;
+        box-shadow: none;
+    }
 </style>
 <script>
     import Alpine from 'alpinejs';
-    import { supabase } from '../lib/supabase.js';
+    import {supabase} from '../lib/supabase.js';
 
     document.addEventListener('alpine:init', () => {
         Alpine.data('userProfile', () => ({
@@ -132,7 +156,7 @@ const avatarUrl = user?.user_metadata?.avatar_url || '/default-avatar.png'; // D
             menuOpen: false,
 
             async init() {
-                const { data: { session } } = await supabase.auth.getSession();
+                const {data: {session}} = await supabase.auth.getSession();
                 this.user = session?.user;
                 this.isLoggedIn = !!this.user;
                 this.avatarUrl = this.user?.user_metadata?.avatar_url || '/default-avatar.png'; // Default avatar if none exists
@@ -144,7 +168,46 @@ const avatarUrl = user?.user_metadata?.avatar_url || '/default-avatar.png'; // D
 
             async logout() {
                 await supabase.auth.signOut();
+                localStorage.removeItem("activeFile");
                 window.location.reload(); // Refresh the page after logout
+            },
+
+        }));
+
+        Alpine.data("unlockPlusButton", () => ({
+            tier: "FREE",
+            async init() {
+                const data = await this.fetchUserId();
+
+                this.tier = data ? data.tier : "FREE";
+            },
+
+            async fetchUserId() {
+                const {data: {user}, error} = await supabase.auth.getUser();
+
+                if (error && error.name === 'AuthSessionMissingError') {
+                    return null;
+                }
+
+                if (error || user == null) throw new Error("Unable to fetch user ID");
+
+                const { data: tier, error: tierFetchError } = await supabase
+                    .from("customers")
+                    .select("subscription_tier")
+                    .eq("id", user?.id)
+                    .single();
+
+                if (tierFetchError) throw new Error("Unable to fetch user's subscription tier.");
+
+                return { id: user?.id, tier: tier.subscription_tier };
+            },
+
+            showPlusDialog() {
+                window.dispatchEvent(
+                    new CustomEvent("showPlusDialog", {
+                        detail: {},
+                    })
+                );
             }
         }));
     });

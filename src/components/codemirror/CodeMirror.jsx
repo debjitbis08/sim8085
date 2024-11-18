@@ -113,19 +113,18 @@ export function CodeMirror(props) {
     const onChangeListener = EditorView.updateListener.of((update) => {
       if (update.docChanged) {
         const newDoc = update.state.doc.toString(); // Get the new document content
-        setStore("code", newDoc); // Update the store with new content
+        /*
         if (store.assembled.length) {
           setStore("assembled", []);
         }
-        localStorage.setItem("main.asm", newDoc);
+        */
+        props.onChange(newDoc);
       }
     });
 
-    const storedFile = localStorage.getItem("main.asm");
-
     // Create the initial state for the editor
     const startState = EditorState.create({
-      doc: storedFile || store.code, // Load from store or default content
+      doc: props.value, // Load from store or default content
       extensions: [
         // breakpointGutter,
         lineHighlightField,
@@ -136,10 +135,6 @@ export function CodeMirror(props) {
         readOnly.of(EditorState.readOnly.of(false))
       ],
     });
-
-    if (storedFile) {
-      setStore("code", storedFile);
-    }
 
     // Create the editor view
     view = new EditorView({
@@ -185,7 +180,24 @@ export function CodeMirror(props) {
     }
   });
 
-  return (
+    createEffect(() => {
+        if (!view) return;
+
+        const currentContent = view.state.doc.toString(); // Get the current editor content
+
+        if (currentContent !== props.value) {
+            // If content differs, update the editor
+            view.dispatch({
+                changes: {
+                    from: 0,
+                    to: currentContent.length,
+                    insert: props.value, // Insert the new content
+                },
+            });
+        }
+    });
+
+    return (
     <div class={`relative programState__${store.programState}`}>
       <div ref={editorRef} class="editor-container border-l-0 border-b-0 bg-main-background h-[calc(100dvh-4rem-2px)]  md:h-[calc(100vh-8.2rem-2px)]">
         <div class={`${isEditorLoading() ? '' : 'hidden'} p-4 text-center`}>

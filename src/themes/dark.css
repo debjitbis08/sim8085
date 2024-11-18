@@ -11,7 +11,7 @@ html[data-theme="dark"] {
     --sm-primary-900: 15 69 48;
     --sm-primary-950: 8 38 27;
 
-    --sm-primary: var(--sm-primary-500);
+    --sm-primary: var(--sm-primary-600);
 
     --sm-gray-50: 248 248 248; /* #f8f8f8 */
     --sm-gray-100: 240 240 240; /* # */

@@ -68,9 +68,9 @@ export function Actions() {
           }]);
         }
         setStore("assembled", []);
-        setStore("codeWithError", store.code);
+        setStore("codeWithError", store.activeFile.content);
         trackEvent("assemble failed", {
-          code: store.code,
+          code: store.activeFile.content,
           name: e.name,
           msg: e.message,
           line: e.location.start.line,
@@ -80,7 +80,7 @@ export function Actions() {
       } else {
         setStore("assembled", []);
         trackEvent("assemble exception", {
-          code: store.code,
+          code: store.activeFile.content,
         });
         showToaster("error", "Assemble Failed", "Assemble failed with unknown errors. Please check the syntax of your program.");
         return;
@@ -162,12 +162,12 @@ export function Actions() {
     } catch (e) {
       if (e.status === 1) showToaster("error", "Program existed with error", "Unknown instruction encountered in the program.");
       else if (e.status === 2) {
-        showToaster("error", "Program existed with error", (<InfiniteLoopError code={store.code} />));
+        showToaster("error", "Program existed with error", (<InfiniteLoopError code={store.activeFile.content} />));
       }
       else showToaster("error", "Program existed with error", "We could not identify the error.");
       errorStatus = e.status;
       trackEvent("run failed", {
-        code: store.code,
+        code: store.activeFile.content,
         status: e.status === 1 ? 'UNKNONWN_INSTRUCTION_ERROR' : (e.status === 2 ? 'INFINITE_LOOP' : 'UNKNOWN_RUNTIME_ERROR')
       });
       console.error(e);
@@ -220,11 +220,11 @@ export function Actions() {
           setStore('programState', 'Loaded');
           if (errorStatus === 1) showToaster("error", "Program existed with error", "Unknown instruction encountered in the program.");
           else if (errorStatus === 2) {
-            showToaster("error", "Program existed with error", (<InfiniteLoopError code={store.code} />));
+            showToaster("error", "Program existed with error", (<InfiniteLoopError code={store.activeFile.content} />));
           }
           else showToaster("error", "Program existed with error",  "We could not identify the error.");
           trackEvent("run failed", {
-            code: store.code,
+            code: store.activeFile.content,
             status: e.status === 1 ? 'UNKNONWN_INSTRUCTION_ERROR' : (e.status === 2 ? 'INFINITE_LOOP' : 'UNKNOWN_RUNTIME_ERROR')
           });
         } else if (status > 0) {
@@ -454,7 +454,7 @@ function ActionButton(props) {
       </Tooltip.Portal>
     </Tooltip>
   );
-};
+}
 
 function InfiniteLoopError(props) {
   return (

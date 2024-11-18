@@ -49,7 +49,7 @@ export function packAddress(address) {
 
 // Load the program into the simulator memory
 export function loadProgram(store) {
-  let { pcStartValue, assembled }  = assembleProgram(store.code);
+  let { pcStartValue, assembled }  = assembleProgram(store.activeFile.content);
 
   if (!assembled) return;
 

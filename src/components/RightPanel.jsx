@@ -1,16 +1,15 @@
-import { BsArrowBarLeft, BsArrowBarRight, BsKeyboard, BsMemory, BsSlash, BsSlashLg } from "solid-icons/bs";
-import { HiOutlineCpuChip } from "solid-icons/hi";
+import { BsArrowBarLeft, BsArrowBarRight, BsMemory } from "solid-icons/bs";
 import MemoryList from "./MemoryList";
 import { Registers } from "./Registers";
 import { Flags } from "./Flags";
-import { createSignal, onMount } from "solid-js";
+import { createSignal, onMount, onCleanup } from "solid-js";
 import { FiCpu, FiFolder } from 'solid-icons/fi'
 import { AiOutlineQuestionCircle } from "solid-icons/ai";
 import { IOPorts } from "./IOPorts";
-import { VsSettings, VsSettingsGear } from "solid-icons/vs";
 import { Settings } from "./Settings";
 import { KeyboardShortcuts } from "./KeyboardShortcuts";
 import { Tooltip } from "@kobalte/core/tooltip";
+import { Workspace } from "./Workspace.jsx";
 
 export function RightPanel() {
   const [activeTab, setActiveTab] = createSignal('cpu');
@@ -67,6 +66,12 @@ export function RightPanel() {
   return (
     <div class={`flex items-start ${expanded() ? "" : ""}`} style={{ width: `${expanded() ? `${width()}px` : 'auto'}` }}>
       <div class="relative z-10 bg-page-background flex flex-col items-center h-sm:gap-4 gap-4 pt-4 border-r border-r-main-border h-[calc(100dvh-4rem)] md:h-[calc(100vh-6.2rem)]">
+        {/*<PanelButton*/}
+        {/*  icon={<FiFolder />}*/}
+        {/*  isActive={isActive('workspace')}*/}
+        {/*  onClick={() => showTab('workspace')}*/}
+        {/*  title="Files & Folders"*/}
+        {/*/>*/}
         <PanelButton
           icon={<FiCpu />}
           isActive={isActive('cpu')}
@@ -98,14 +103,17 @@ export function RightPanel() {
         <div class="pb-1"></div>
       </div>
       <div id="content"
-        class="shadow-xl md:shadow-none text-sm md:text-base relative z-5 min-w-60 w-full bg-secondary-background border-l-0 border-t border-b border-r md:border-r-0 border-main-border rounded-tl-sm rounded-bl-sm px-2 md:px-4 py-4  h-[calc(100dvh-4rem)] md:h-[calc(100vh-6.2rem)] flex overflow-x-hidden overflow-y-auto transform transition-transform duration-300 ease-in-out"
+        class="shadow-xl md:shadow-none text-sm md:text-base relative z-5 min-w-60 w-full bg-secondary-background border-l-0 border-t border-b border-r md:border-r-0 border-main-border rounded-tl-sm rounded-bl-sm py-4  h-[calc(100dvh-4rem)] md:h-[calc(100vh-6.2rem)] flex overflow-x-hidden overflow-y-auto transform transition-transform duration-300 ease-in-out"
         style={{
           display: expanded() ? "block" : "none",
         }}>
         <div onClick={toggleExpanded} class="md:hidden cursor-pointer w-full mb-2 flex justify-end">
           {expanded() ? <BsArrowBarLeft /> : <BsArrowBarRight />}
         </div>
-        <div class={`w-full max-h-full ${activeTab() === 'cpu' ? '' : 'hidden'}`}>
+        <div class={`w-full ${activeTab() === 'workspace' ? '' : 'hidden'}`}>
+          <Workspace />
+        </div>
+        <div class={`w-full max-h-full ${activeTab() === 'cpu' ? '' : 'hidden'} px-2 md:px-4`}>
           <div>
             <Registers />
           </div>
@@ -113,10 +121,10 @@ export function RightPanel() {
             <Flags />
           </div>
         </div>
-        <div class={`w-full ${activeTab() === 'memory' ? '' : 'hidden'}`}>
+        <div class={`w-full ${activeTab() === 'memory' ? '' : 'hidden'} px-2 md:px-4`}>
           <MemoryList />
         </div>
-        <div class={`w-full ${activeTab() === 'io' ? '' : 'hidden'}`}>
+        <div class={`w-full ${activeTab() === 'io' ? '' : 'hidden'} px-2 md:px-4`}>
           <IOPorts />
         </div>
         <div class="grow"></div>

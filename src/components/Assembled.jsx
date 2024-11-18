@@ -15,7 +15,7 @@ export function Assembled() {
   const [width, setWidth] = createSignal(300);
 
   createEffect(() => {
-    setLines(zipAssembledSource(store.assembled, store.code));
+    setLines(zipAssembledSource(store.assembled, store.activeFile.content));
   });
 
   const toggleExpanded = () => {
