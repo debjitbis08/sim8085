@@ -1,13 +1,25 @@
 <script>
-  import posthog from 'posthog-js';
+    import posthog from 'posthog-js';
+    import {supabase} from '../../lib/supabase.js';
 
-  const apiKey = import.meta.env.PUBLIC_POSTHOG_API_KEY;
-  const useTracking = import.meta.env.PUBLIC_USE_TRACKING === 'true';
+    const apiKey = import.meta.env.PUBLIC_POSTHOG_API_KEY;
+    const useTracking = import.meta.env.PUBLIC_USE_TRACKING === 'true';
 
-  if (useTracking && apiKey && !window.location.host.includes('127.0.0.1') && !window.location.host.includes('localhost')) {
-    posthog.init(apiKey, {
-      api_host: 'https://us.i.posthog.com',
-      persistence: localStorage.getItem('cookie_consent') === 'yes' ? 'localStorage+cookie' : 'memory',
-    });
-  }
+    if (useTracking && apiKey && !window.location.host.includes('127.0.0.1') && !window.location.host.includes('localhost')) {
+        posthog.init(apiKey, {
+            api_host: 'https://us.i.posthog.com',
+            persistence: localStorage.getItem('cookie_consent') === 'yes' ? 'localStorage+cookie' : 'memory',
+        });
+
+        supabase.auth.getSession().then(({data, error}) => {
+            if (error || data == null || data.session == null || data.session.user == null) return;
+
+            const name = data.session.user?.user_metadata?.name || "";
+
+            posthog.identify(
+                data.session.user.id,
+                {email: data.session.user.email, name}
+            );
+        });
+    }
 </script>

@@ -1,4 +1,5 @@
 /** @type {import('tailwindcss').Config} */
+import colors from "tailwindcss/colors.js";
 
 function formatCSSVarToRGB(varName) {
   if (!varName.startsWith('--')) {
@@ -66,18 +67,22 @@ export default {
           border: formatCSSVarToRGB("--sm-inactive-border"),
         },
         red: {
+            ...colors.red,
           foreground: formatCSSVarToRGB("--sm-red-foreground"),
         },
         green: {
           foreground: formatCSSVarToRGB("--sm-green-foreground"),
         },
         yellow: {
+            ...colors.yellow,
           foreground: formatCSSVarToRGB("--sm-yellow-foreground"),
         },
         blue: {
+            ...colors.blue,
           foreground: formatCSSVarToRGB("--sm-blue-foreground"),
         },
         orange: {
+            ...colors.orange,
           foreground: formatCSSVarToRGB("--sm-orange-foreground"),
         },
         editor: {
