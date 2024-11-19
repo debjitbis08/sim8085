@@ -1,3 +1,12 @@
+## [2.3.6](https://github.com/debjitbis08/sim8085/compare/v2.3.5...v2.3.6) (2024-11-19)
+
+
+### Bug Fixes
+
+* Change right panel heading to reduce confusion ([182e2e5](https://github.com/debjitbis08/sim8085/commit/182e2e5795ff1cb1ff5d59cd2e72265359b17e88))
+* Fix heading for right panel ([11233c3](https://github.com/debjitbis08/sim8085/commit/11233c3ed5265862b65a64eff94983ba60e097ee))
+* Improve right panel layout ([f66bef2](https://github.com/debjitbis08/sim8085/commit/f66bef2f2e5385d6b5fcc836fdff835c90c48621))
+
 ## [2.3.5](https://github.com/debjitbis08/sim8085/compare/v2.3.4...v2.3.5) (2024-11-18)
 
 
