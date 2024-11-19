@@ -1,4 +1,4 @@
-import { createEffect, createSignal, onMount } from 'solid-js';
+import { createEffect, createSignal, onMount, onCleanup } from 'solid-js';
 import { store } from '../store/store.js';
 import { toByteString } from '../utils/NumberFormat.js';
 import { HiSolidWrench } from 'solid-icons/hi';
@@ -67,7 +67,7 @@ export function Assembled() {
       class={`${expanded() ? "w-[calc(100vw-8rem)] md:w-full" : "w-8"} flex border-y border-y-main-border ${expanded() ? "border-l" : "border-l-0" } border-l-main-border bg-main-background h-[calc(100dvh-4rem)] md:h-[calc(100vh-6.2rem)] absolute top-0 right-0 md:static ${expanded() ? "shadow-xl" : ""} md:shadow-none`}
       style={{ width: `${expanded() ? `${width()}px` : 'auto'}` }}
     >
-      <button type="button" class="w-[3px] h-svh md:h-[calc(100vh-6.2rem)] cursor-col-resize hover:bg-terminal active:bg-terminal" onMouseDown={startResize}
+      <button type="button" class="min-w-[3px] w-[3px] h-svh md:h-[calc(100vh-6.2rem)] cursor-col-resize hover:bg-terminal active:bg-terminal" onMouseDown={startResize}
         style={{
           display: expanded() ? "block" : "none",
         }}
@@ -117,31 +117,55 @@ export function Assembled() {
               class={`${store.assembled.length ? '' : 'hidden'} w-full overflow-x-auto text-[0.7rem] md:text-sm`}
                 style={{ height: 'calc(100% - 2.75rem)' }}
             >
+              <table class={`font-mono table ${styles.machineCodeTable}`}>
+                <thead>
+                  <tr class="border-t-0 border-t-main-border hidden md:table-row">
+                    <td class="px-2 py-2">Line Number</td>
+                    <td class="px-2 py-2">Address</td>
+                    <td class="px-2 py-2">Machine Code</td>
+                    <td class="px-2 py-2">Source Code</td>
+                  </tr>
+                </thead>
+                <tbody>
               <For each={lines()}>
                 {((line, i) => {
                   const code = showCode(line[0]);
+
                   return (
-                    <div class="grid grid-cols-10 gap-2 hover:bg-active-background px-1 py-0.5 border-b border-b-inactive-border">
-                      <span class="col-span-1">{i() + 1}</span>
-                      <span class="col-span-2 border-r border-r-inactive-border">
-                        { code.length ? `0x${code[0].currentAddress.toString(16).toUpperCase()}` : '' }
-                      </span>
-                      <div class="col-span-2 flex items-center gap-2 flex-wrap border-r border-r-inactive-border">
-                        <For each={code}>
-                          {(item) => (
-                            <div>
-                              <div class="text-orange-foreground">
-                                {item.data}
-                              </div>
-                            </div>
+                      <tr class="border-t-0 border-t-gray-900 hover:bg-active-background">
+                        <td class="px-2 py-1">{i() + 1}</td>
+                        <td class="px-2 py-1">
+                          {code.length ? (
+                            <span>
+                              <span class="opacity-0">{ `0x${code[0].currentAddress.toString(16)}`.padStart(6, 'X').split('0x')[0] }</span>
+                              {`0x${code[0].currentAddress.toString(16).toUpperCase()}`}
+                            </span>
+                          ) : (
+                            <span class="opacity-0">0x0000</span>
                           )}
-                        </For>
-                      </div>
-                      <pre class="col-span-5 pl-1">{ line[1] }</pre>
-                    </div>
+                        </td>
+                        <td class="px-2 py-1">
+                          <div class="flex items-center gap-2">
+                          <For each={code}>
+                            {(item) => (
+                              <div>
+                                <div class="text-orange-foreground">
+                                  {item.data}
+                                </div>
+                              </div>
+                            )}
+                          </For>
+                          </div>
+                        </td>
+                        <td class="px-2 py-1">
+                          <pre class="flex-grow pl-1">{ line[1] }</pre>
+                        </td>
+                      </tr>
                   );
                 })}
               </For>
+                </tbody>
+              </table>
             </div>
             <div
               class={`${store.errors.length ? '' : 'hidden'} max-w-full overflow-x-auto text-sm`}
