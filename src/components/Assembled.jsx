@@ -77,7 +77,7 @@ export function Assembled() {
         class={`${expanded() ? "p-1 md:p-4 pt-2 md:pt-2" : "p-0 pt-2 pr-2"} w-full`}
       >
         <div class="flex items-start gap-2">
-        <h2 class={`md:text-xl pb-4 ${expanded() ? 'block' : 'hidden'}`}>Assembled Output</h2>
+        <h2 class={`md:text-xl pb-4 ${expanded() ? 'block' : 'hidden'}`}>Machine Code</h2>
         <div
           class={`${store.assembled.length && store.errors.length === 0 ? '' : 'hidden'} pt-1 ${expanded() ? 'block' : 'hidden'}`}
         >
@@ -88,7 +88,7 @@ export function Assembled() {
             <Tooltip.Portal>
               <Tooltip.Content class="tooltip__content">
                 <Tooltip.Arrow />
-                <p>Copy assembled output</p>
+                <p>Copy machine codes</p>
               </Tooltip.Content>
             </Tooltip.Portal>
           </Tooltip>
@@ -104,7 +104,7 @@ export function Assembled() {
             <Tooltip.Portal>
               <Tooltip.Content class="tooltip__content">
                 <Tooltip.Arrow />
-                <p>{expanded() ? "Collapse Panel" : "Expand Assembled Ouput Panel"}</p>
+                <p>{expanded() ? "Collapse Panel" : "Expand Machine Code Panel"}</p>
               </Tooltip.Content>
             </Tooltip.Portal>
         </Tooltip>
@@ -227,7 +227,7 @@ export function Assembled() {
               style={{ height: 'calc(100% - 2.75rem)' }}
             >
               <p class="text-gray-500">
-                Load or Run the program to view the assembled output.
+                Load or Run the program to view machine codes.
               </p>
             </div>
           </div>
