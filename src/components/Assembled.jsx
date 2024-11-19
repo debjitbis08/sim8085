@@ -77,7 +77,9 @@ export function Assembled() {
         class={`${expanded() ? "p-1 md:p-4 pt-2 md:pt-2" : "p-0 pt-2 pr-2"} w-full`}
       >
         <div class="flex items-start gap-2">
-        <h2 class={`md:text-xl pb-4 ${expanded() ? 'block' : 'hidden'}`}>Machine Code</h2>
+        <h2 class={`md:text-xl pb-4 ${expanded() ? 'block' : 'hidden'}`}>
+          {store.errors.length ? "Assembler Errors" : "Machine Code"}
+        </h2>
         <div
           class={`${store.assembled.length && store.errors.length === 0 ? '' : 'hidden'} pt-1 ${expanded() ? 'block' : 'hidden'}`}
         >
