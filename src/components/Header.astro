@@ -2,6 +2,10 @@
 import HandHoldingHeartIcon from '../icons/hand-holding-heart.svg?raw';
 import LockIcon from '../icons/lock.svg?raw';
 import MenuIcon from '../icons/menu.svg?raw';
+import RegularDockLeftIcon from '../icons/regular-dock-left.svg?raw';
+import SolidDockLeftIcon from '../icons/solid-dock-left.svg?raw';
+import RegularDockRightIcon from '../icons/regular-dock-right.svg?raw';
+import SolidDockRightIcon from '../icons/solid-dock-right.svg?raw';
 import Logo from '../icons/logo.svg?raw';
 import LogoWithBackground from '../icons/logo-with-green-background.svg?raw';
 import FAQs from './FAQs.astro';
@@ -23,13 +27,13 @@ const user = session?.user;
 const isLoggedIn = !!user;
 const avatarUrl = user?.user_metadata?.avatar_url || '/default-avatar.png'; // Default avatar if none exists
 ---
-<header class="w-full py-2 md:py-4 justify-start md:justify-between items-center h-auto md:h-16 md:flex">
+<header class="w-full py-0 md:py-4 justify-start md:justify-between items-center h-auto md:h-16 md:flex">
     <div class="flex items-center gap-2 w-full">
         <!-- <a href="/" class="w-[25vw] md:min-w-[295px] flex items-center gap-2 pl-4">
             <span class="w-6 h-6 text-terminal"><Fragment set:html={LogoWithBackground} /></span>
             <span class="text-gray-800 dark:text-gray-200">Sim8085</span>
         </a> -->
-        <div class="hidden md:block">
+        <div class="md:block">
             <a
                 href="/"
                 class="inline-flex items-center gap-2 ml-1 pl-1 lg:ml-2 lg:pl-2 pr-2 py-2 rounded group hover:bg-terminal-200 relative"
@@ -44,16 +48,28 @@ const avatarUrl = user?.user_metadata?.avatar_url || '/default-avatar.png'; // D
                 </span>
             </a>
         </div>
-        <!--
-        <div class="pl-4">
+        {showActions ? <div class="pl-4 hidden">
             <FileActions client:idle/>
-        </div>
-        -->
-        <div class="w-auto md:w-[45vw] pl-2 md:pl-0 flex flex-grow flex-shrink max-w-[800px] md:min-w-[300px]">
-            <div class="flex-grow hidden md:block"></div>
-            {showActions ?
-                <Actions client:idle/> : null}
-        </div>
+        </div> : null}
+        {showActions ? (
+            <div class="
+                md:pl-0 flex flex-grow flex-shrink md:min-w-[300px] md:gap-2 md:justify-end
+                fixed bottom-0 left-0 z-50 bg-page-background w-full py-2 px-4
+                md:static
+            ">
+                <button type="button" id="left-panel-btn" class="md:hidden">
+                    <span class="regular-icon"><Fragment set:html={RegularDockLeftIcon} /></span>
+                    <span class="solid-icon"><Fragment set:html={SolidDockLeftIcon} /></span>
+                </button>
+                <div class="flex-grow hidden md:block"></div>
+                {showActions ?
+                    <Actions client:idle/> : null}
+                <button type="button" id="right-panel-btn" class="md:hidden">
+                    <span class="regular-icon"><Fragment set:html={RegularDockRightIcon} /></span>
+                    <span class="solid-icon"><Fragment set:html={SolidDockRightIcon} /></span>
+                </button>
+            </div>
+        ) : null}
         <div class={`${fullwidth ? "w-[30vw]" : ""} flex-grow flex-shrink-0 flex items-start pr-2 md:pr-4`}>
             <!-- <div class="flex flex-grow items-center gap-2 space-x-2"> -->
             <!-- <div class="pl-2 border-r border-r-gray-500 dark:border-r-gray-600 h-4"></div> -->
@@ -110,9 +126,9 @@ const avatarUrl = user?.user_metadata?.avatar_url || '/default-avatar.png'; // D
                 </button>
                 <div x-data="mobileMenu" class="relative block md:hidden">
                     <div class="relative">
-                        <button @click="menuOpen = !menuOpen" class="flex items-center focus:outline-none py-2">
+                        <button @click="menuOpen = !menuOpen" class="flex items-center focus:outline-none py-1">
                             <span
-                                class="w-8 h-8 rounded-full text-xl content-center text-inactive-foreground hover:text-active-foreground">
+                                class="w-8 h-8 rounded-full text-xl content-center text-inactive-foreground hover:text-active-foreground flex items-center justify-end">
                                 <Fragment set:html={MenuIcon}/>
                             </span>
                         </button>
@@ -120,19 +136,34 @@ const avatarUrl = user?.user_metadata?.avatar_url || '/default-avatar.png'; // D
                              class="absolute right-0 mt-2 w-48 bg-secondary-background rounded-md shadow-lg overflow-hidden z-10">
                             <template x-if="isLoggedIn">
                                 <button @click="logout"
-                                        class="block w-full px-4 py-2 text-sm text-left text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600">
+                                        class="block w-full px-4 py-2 text-sm text-left text-active-foreground hover:bg-active-background">
                                     Logout
                                 </button>
                             </template>
                             <template x-if="!isLoggedIn">
                                 <a href="/login"
-                                   class="block w-full px-4 py-2 text-sm text-left text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600">
+                                   class="block w-full px-4 py-2 text-sm text-left text-active-foreground hover:bg-active-background">
                                     Login
                                 </a>
                             </template>
                             <a href="https://buymeacoffee.com/sim8085"
-                               class="block w-full px-4 py-2 text-sm text-left text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600">
+                               class="block w-full px-4 py-2 text-sm text-left text-active-foreground hover:bg-active-background">
                                 Donate
+                            </a>
+                            <a href="/docs/en"
+                               target="_blank"
+                               class="block w-full px-4 py-2 text-sm text-left text-active-foreground hover:bg-active-background">
+                                Documentation
+                            </a>
+                            <a href="/changelog"
+                               target="_blank"
+                               class="block w-full px-4 py-2 text-sm text-left text-active-foreground hover:bg-active-background">
+                                Changelog
+                            </a>
+                            <a href="https://github.com/debjitbis08/sim8085"
+                               target="_blank"
+                               class="block w-full px-4 py-2 text-sm text-left text-active-foreground hover:bg-active-background">
+                                GitHub
                             </a>
                         </div>
                     </div>
@@ -172,6 +203,22 @@ const avatarUrl = user?.user_metadata?.avatar_url || '/default-avatar.png'; // D
         /* transform: scale(1.05); */
         animation: none;
         box-shadow: none;
+    }
+
+    .regular-icon {
+        display: block;
+    }
+
+    .solid-icon {
+        display: none;
+    }
+
+    .solid .solid-icon {
+        display: block
+    }
+
+    .solid .regular-icon {
+        display: none;
     }
 </style>
 <script>
@@ -258,4 +305,32 @@ const avatarUrl = user?.user_metadata?.avatar_url || '/default-avatar.png'; // D
             }
         }));
     });
+
+    document.getElementById("left-panel-btn")?.addEventListener("click", function () {
+        window.dispatchEvent(
+            new CustomEvent("showLeftPanel", {
+                detail: {},
+            })
+        );
+        if (this.classList.contains("solid")) {
+            this.classList.remove("solid");
+        } else {
+            this.classList.add("solid");
+        }
+    });
+
+    document.getElementById("right-panel-btn")?.addEventListener("click", function () {
+        window.dispatchEvent(
+            new CustomEvent("showRightPanel", {
+                detail: {},
+            })
+        );
+        if (this.classList.contains("solid")) {
+            this.classList.remove("solid");
+        } else {
+            this.classList.add("solid");
+        }
+    });
 </script>
+
+

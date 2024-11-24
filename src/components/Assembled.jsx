@@ -8,6 +8,7 @@ import CopyComponent from './CopyComponent.jsx';
 import {Tooltip} from '@kobalte/core/tooltip';
 import {BsArrowBarLeft, BsArrowBarRight} from 'solid-icons/bs';
 import styles from './Assembled.module.css';
+import {BiRegularDockLeft, BiRegularDockRight, BiSolidDockLeft, BiSolidDockRight} from "solid-icons/bi";
 
 export function Assembled() {
     let [lines, setLines] = createSignal([]);
@@ -24,7 +25,7 @@ export function Assembled() {
     };
 
     onMount(() => {
-        setWidth(window.innerWidth * (window.innerWidth > 768 ? 0.3 : 0.8));
+        setWidth(window.innerWidth * (window.innerWidth > 768 ? 0.3 : 1));
         const handleResize = () => {
             const isMd = window.matchMedia("(min-width: 768px)").matches;
             setExpanded(isMd);
@@ -33,8 +34,16 @@ export function Assembled() {
         // Initial check
         handleResize();
 
-        // Listen for resize events
-        window.addEventListener("resize", handleResize);
+        const isMd = window.matchMedia("(min-width: 768px)").matches;
+
+        if (isMd) {
+            // Listen for resize events
+            window.addEventListener("resize", handleResize);
+        }
+
+        window.addEventListener("showRightPanel", () => {
+            setExpanded(true);
+        });
 
         // Cleanup listener on component unmount
         return () => {
@@ -68,11 +77,11 @@ export function Assembled() {
 
     return (
         <div
-            class={`${expanded() ? "w-[calc(100vw-8rem)] md:w-full" : "w-8"} flex border-y border-y-main-border ${expanded() ? "border-l" : "border-l-0"} border-l-main-border bg-main-background h-[calc(100dvh-4rem)] md:h-[calc(100vh-6.2rem)] absolute top-0 right-0 md:static ${expanded() ? "shadow-xl" : ""} md:shadow-none`}
+            class={`${expanded() ? "w-svw md:w-full" : "w-8"} flex border-y-0 md:border-y border-y-main-border ${expanded() ? "md:border-l" : "border-l-0"} border-l-main-border bg-page-background md:bg-main-background h-[calc(100svh-5.6rem)] md:h-[calc(100vh-6.2rem)] absolute top-0 right-0 md:static ${expanded() ? "shadow-xl" : ""} md:shadow-none`}
             style={{width: `${expanded() ? `${width()}px` : 'auto'}`}}
         >
             <button type="button"
-                    class="min-w-[3px] w-[3px] h-svh md:h-[calc(100vh-6.2rem)] cursor-col-resize hover:bg-terminal active:bg-terminal"
+                    class="w-0 md:min-w-[3px] md:w-[3px] h-[calc(100svh-5.5rem)] md:h-[calc(100vh-6.2rem)] cursor-col-resize hover:bg-terminal active:bg-terminal"
                     onMouseDown={startResize}
                     style={{
                         display: expanded() ? "block" : "none",
@@ -80,7 +89,7 @@ export function Assembled() {
             >
             </button>
             <div
-                class={`${expanded() ? "p-1 md:p-4 pt-2 md:pt-2" : "p-0 pt-2 pr-2"} w-full`}
+                class={`${expanded() ? "p-2 md:p-4 pt-2 md:pt-2" : "p-1 pt-2 pr-4"} w-full`}
             >
                 <div class="flex items-start gap-2">
                     <h2 class={`md:text-xl pb-4 ${expanded() ? 'block' : 'hidden'}`}>
@@ -103,8 +112,8 @@ export function Assembled() {
                     </div>
                     <div class="flex-grow"></div>
                     <Tooltip placement="left">
-                        <Tooltip.Trigger class="tooltip__trigger relative" onClick={toggleExpanded}>
-                            {expanded() ? <BsArrowBarRight/> : <BsArrowBarLeft/>}
+                        <Tooltip.Trigger class="tooltip__trigger relative py-1 hidden md:block" onClick={toggleExpanded}>
+                            {expanded() ? <BiSolidDockRight /> : <BiRegularDockRight />}
                             {store.assembled.length || store.errors.length && !expanded() ? (
                                 <span
                                     class={`w-2 h-2 rounded-[2rem] bg-terminal absolute left-0 bottom-[-4px] ${styles.radiatingBorder}`}> </span>
@@ -119,11 +128,11 @@ export function Assembled() {
                     </Tooltip>
                 </div>
                 <div class={`flex flex-col ${expanded() ? 'block' : 'hidden'}`}
-                     style={{height: "calc(100vh - 8rem - 1px)"}}>
+                     style={{height: "calc(100vh - 5.5rem)"}}>
                     <div style={{height: 'calc(100% - 0rem)'}}>
                         <div
                             class={`${store.assembled.length ? '' : 'hidden'} w-full overflow-x-auto text-[0.7rem] md:text-sm`}
-                            style={{height: 'calc(100% - 2.75rem)'}}
+                            style={{height: 'calc(100% - 3.75rem)'}}
                         >
                             <table class={`font-mono table ${styles.machineCodeTable}`}>
                                 <thead>

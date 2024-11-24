@@ -10,6 +10,7 @@ import {Settings} from "./Settings";
 import {KeyboardShortcuts} from "./KeyboardShortcuts";
 import {Tooltip} from "@kobalte/core/tooltip";
 import {Workspace} from "./Workspace.jsx";
+import {BiRegularDockLeft, BiSolidDockLeft} from "solid-icons/bi";
 
 export function RightPanel() {
     const [activeTab, setActiveTab] = createSignal('cpu');
@@ -27,6 +28,10 @@ export function RightPanel() {
 
         // Listen for resize events
         window.addEventListener("resize", handleResize);
+
+        window.addEventListener("showLeftPanel", () => {
+            setExpanded(true);
+        });
 
         // Cleanup listener on component unmount
         return () => {
@@ -73,7 +78,16 @@ export function RightPanel() {
         <div class={`flex items-start ${expanded() ? "" : ""}`}
              style={{width: `${expanded() ? `${width()}px` : 'auto'}`}}>
             <div
-                class="relative z-10 bg-page-background flex flex-col items-center h-sm:gap-4 gap-4 pt-4 border-r border-r-main-border h-[calc(100dvh-4rem)] md:h-[calc(100vh-6.2rem)]">
+                class="relative z-10 bg-page-background flex flex-col items-center h-sm:gap-4 gap-4 pt-2 md:pt-4 border-r-0 md:border-r border-r-main-border h-[calc(100dvh-4rem)] md:h-[calc(100vh-6.2rem)]">
+                <div class="hidden md:block">
+                    <PanelButton
+                        icon={expanded() ? <BiSolidDockLeft /> : <BiRegularDockLeft />}
+                        isActive={true}
+                        onClick={() => toggleExpanded()}
+                        title="Expand or Collapse this panel"
+                    />
+                </div>
+                <div class="h-[0.1rem] bg-secondary-foreground w-5 hidden md:block"></div>
                 {/*<PanelButton*/}
                 {/*  icon={<FiFolder />}*/}
                 {/*  isActive={isActive('workspace')}*/}
@@ -115,9 +129,6 @@ export function RightPanel() {
                  style={{
                      display: expanded() ? "block" : "none",
                  }}>
-                <div onClick={toggleExpanded} class="md:hidden cursor-pointer w-full mb-2 flex justify-end">
-                    {expanded() ? <BsArrowBarLeft/> : <BsArrowBarRight/>}
-                </div>
                 <div class={`w-full ${activeTab() === 'workspace' ? '' : 'hidden'}`}>
                     <Workspace/>
                 </div>
@@ -138,7 +149,7 @@ export function RightPanel() {
                 <div class="grow"></div>
             </div>
             <div
-                class="w-[5px] h-[calc(100dvh-4rem)] md:h-[calc(100vh-6.2rem)] cursor-col-resize bg-secondary-background hover:bg-terminal active:bg-terminal border-y border-y-main-border"
+                class="w-0 md:w-[5px] h-[calc(100dvh-4rem)] md:h-[calc(100vh-6.2rem)] cursor-col-resize bg-secondary-background hover:bg-terminal active:bg-terminal border-y border-y-main-border"
                 onMouseDown={startResize}
                 style={{
                     display: expanded() ? "flex" : "none",
@@ -157,7 +168,7 @@ export function PanelButton(props) {
                 onClick={props.onClick}
                 disabled={props.disabled}
             >
-                <span class="sm:text-xl md:text-xl lg:text-2xl py-2 px-2 lg:px-4">{props.icon}</span>
+                <span class="sm:text-xl md:text-xl lg:text-2xl py-1 md:py-2 px-2 lg:px-4">{props.icon}</span>
             </Tooltip.Trigger>
             <Tooltip.Portal>
                 <Tooltip.Content class="tooltip__content">

@@ -117,7 +117,7 @@
 
 .dialog__content {
     @apply z-50;
-    @apply min-w-full md:min-w-[500px];
+    @apply min-w-full md:min-w-[500px] min-h-svh md:min-h-max;
     background-color: rgb(var(--sm-secondary-background));
     border: 1px solid hsl(240 5% 84%);
     border-radius: 6px;

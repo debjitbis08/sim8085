@@ -171,7 +171,7 @@ export default function MemoryList({ threshold = 4 }) {
         <h2 class="text-xl grow pb-1">Memory</h2>
         <div class="flex gap-2">
           <Dialog>
-            <Dialog.Trigger class="dialog__trigger">
+            <Dialog.Trigger class="dialog__trigger hidden md:block">
               <AiOutlineFullscreen class="font-bold" title="View All Memory Locations" />
             </Dialog.Trigger>
             <Dialog.Portal>
