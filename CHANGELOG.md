@@ -1,3 +1,18 @@
+# [2.4.0](https://github.com/debjitbis08/sim8085/compare/v2.3.6...v2.4.0) (2024-11-24)
+
+
+### Bug Fixes
+
+* Add collapsed menu on mobile ([21456d1](https://github.com/debjitbis08/sim8085/commit/21456d19a4dae22963bbe9102dd4b08244553200))
+* Fix the height of the coding area ([87f6aae](https://github.com/debjitbis08/sim8085/commit/87f6aae8b97634951fee556e867b7dce125e68b8))
+* Stop text selection on panel resize ([a724c8d](https://github.com/debjitbis08/sim8085/commit/a724c8d13de3ae5420e1ff3f597b4b0fdaaf6769))
+
+
+### Features
+
+* Add login ([38399f1](https://github.com/debjitbis08/sim8085/commit/38399f115fd676201cdb4fd4a1a9ec187a886899))
+* Add storage ([6141c9c](https://github.com/debjitbis08/sim8085/commit/6141c9c692b8997c383163fe6cbf06a3dabff9a0))
+
 ## [2.3.6](https://github.com/debjitbis08/sim8085/compare/v2.3.5...v2.3.6) (2024-11-19)
 
 
