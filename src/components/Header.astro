@@ -1,6 +1,7 @@
 ---
 import HandHoldingHeartIcon from '../icons/hand-holding-heart.svg?raw';
 import LockIcon from '../icons/lock.svg?raw';
+import MenuIcon from '../icons/menu.svg?raw';
 import Logo from '../icons/logo.svg?raw';
 import LogoWithBackground from '../icons/logo-with-green-background.svg?raw';
 import FAQs from './FAQs.astro';
@@ -61,7 +62,7 @@ const avatarUrl = user?.user_metadata?.avatar_url || '/default-avatar.png'; // D
                 <ThemeSwitcher/>
                 <link href="https://fonts.googleapis.com/css?family=Cookie&amp;display=swap" rel="stylesheet">
                 <!-- Profile Icon and Logout Button -->
-                <div x-data="userProfile" class="relative">
+                <div x-data="userProfile" class="relative hidden md:block">
                     <template x-if="isLoggedIn">
                         <div class="relative">
                             <button @click="toggleMenu" class="flex items-center focus:outline-none">
@@ -107,6 +108,35 @@ const avatarUrl = user?.user_metadata?.avatar_url || '/default-avatar.png'; // D
                     </span>
                     <span class="hidden md:inline bmc-btn-text">Unlock Plus</span>
                 </button>
+                <div x-data="mobileMenu" class="relative block md:hidden">
+                    <div class="relative">
+                        <button @click="menuOpen = !menuOpen" class="flex items-center focus:outline-none py-2">
+                            <span
+                                class="w-8 h-8 rounded-full text-xl content-center text-inactive-foreground hover:text-active-foreground">
+                                <Fragment set:html={MenuIcon}/>
+                            </span>
+                        </button>
+                        <div x-show="menuOpen" @click.away="menuOpen = false"
+                             class="absolute right-0 mt-2 w-48 bg-secondary-background rounded-md shadow-lg overflow-hidden z-10">
+                            <template x-if="isLoggedIn">
+                                <button @click="logout"
+                                        class="block w-full px-4 py-2 text-sm text-left text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600">
+                                    Logout
+                                </button>
+                            </template>
+                            <template x-if="!isLoggedIn">
+                                <a href="/login"
+                                   class="block w-full px-4 py-2 text-sm text-left text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600">
+                                    Login
+                                </a>
+                            </template>
+                            <a href="https://buymeacoffee.com/sim8085"
+                               class="block w-full px-4 py-2 text-sm text-left text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600">
+                                Donate
+                            </a>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -114,7 +144,7 @@ const avatarUrl = user?.user_metadata?.avatar_url || '/default-avatar.png'; // D
 
 <style>
     .bmc-btn {
-        @apply h-8 py-4 px-4 flex items-center gap-2 rounded-lg text-sm bg-transparent box-border text-terminal border-2 border-terminal border-opacity-20 hover:border-opacity-100;
+        @apply h-8 py-4 px-4 hidden md:flex items-center gap-2 rounded-lg text-sm bg-transparent box-border text-terminal border-2 border-terminal border-opacity-20 hover:border-opacity-100;
         /* font-family: 'Inter', sans-serif !important; */
         font-weight: bold;
         position: relative;
@@ -172,6 +202,23 @@ const avatarUrl = user?.user_metadata?.avatar_url || '/default-avatar.png'; // D
                 window.location.reload(); // Refresh the page after logout
             },
 
+        }));
+
+        Alpine.data("mobileMenu", () => ({
+            isLoggedIn: false,
+            menuOpen: false,
+
+            async init() {
+                const {data: {session}} = await supabase.auth.getSession();
+                const user = session?.user;
+                this.isLoggedIn = !!user;
+            },
+
+            async logout() {
+                await supabase.auth.signOut();
+                localStorage.removeItem("activeFile");
+                window.location.reload(); // Refresh the page after logout
+            },
         }));
 
         Alpine.data("unlockPlusButton", () => ({
