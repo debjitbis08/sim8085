@@ -1,3 +1,10 @@
+## [2.4.1](https://github.com/debjitbis08/sim8085/compare/v2.4.0...v2.4.1) (2024-11-24)
+
+
+### Bug Fixes
+
+* Fix migration of code storage ([5bd3c11](https://github.com/debjitbis08/sim8085/commit/5bd3c11c7b3a53c0814f403e1f21325fcbf69f1f))
+
 # [2.4.0](https://github.com/debjitbis08/sim8085/compare/v2.3.6...v2.4.0) (2024-11-24)
 
 
