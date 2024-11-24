@@ -16,6 +16,7 @@ export function CodingArea() {
                 workspaceItemId: null,
                 content: mainAsmCode || INITIAL_CODE,
             });
+            localStorage.setItem("activeFile", JSON.stringify(store.activeFile));
             if (mainAsmCode) {
                 localStorage.removeItem("main.asm");
             }
