@@ -1,3 +1,10 @@
+## [2.4.5](https://github.com/debjitbis08/sim8085/compare/v2.4.4...v2.4.5) (2024-11-25)
+
+
+### Bug Fixes
+
+* Fix cookie banner on mobile ([f5229f9](https://github.com/debjitbis08/sim8085/commit/f5229f9fa09b20075a60522686e6fafe42be7465))
+
 ## [2.4.4](https://github.com/debjitbis08/sim8085/compare/v2.4.3...v2.4.4) (2024-11-25)
 
 
