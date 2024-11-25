@@ -1130,8 +1130,20 @@ singleRegisterOperandError = .* {
     }`);
 }
 
-op_stax = ("STAX" / "stax") whitespace+ (registerPairB / registerPairD)
-op_ldax = ("LDAX" / "ldax") whitespace+ (registerPairB / registerPairD)
+op_stax = "STAX"i operands:ldaxStaxOperands { return [op].concat(operands); }
+op_ldax = "LDAX"i operands:ldaxStaxOperands { return [op].concat(operands); }
+
+ldaxStaxOperands = w:whitespace+ r:(registerPairB / registerPairD) {
+    return [w, r];
+} / ldaxStaxOperandError
+
+ldaxStaxOperandError = .* {
+    error(`{
+        "type": "Invalid Operands",
+        "message": "Invalid operands for LDAX/STAX instruction",
+        "hint": ["The operand should be either the register pair B or D."]
+    }`)
+}
 
 op_push = op:"PUSH"i operands:pushPopOperands { return [op].concat(operands); }
 op_pop  = op:"POP"i  operands:pushPopOperands { return [op].concat(operands); }
@@ -1187,10 +1199,22 @@ immediate_instruction_operands_error = .* {
     }`);
 }
 
-op_sta  = ("STA"  / "sta" ) whitespace+ (data16 / labelDirect)
-op_lda  = ("LDA"  / "lda" ) whitespace+ (data16 / labelDirect)
-op_shld = ("SHLD" / "shld") whitespace+ (data16 / labelDirect)
-op_lhld = ("LHLD" / "lhld") whitespace+ (data16 / labelDirect)
+op_sta  = op:"STA"i operands:loadStoreOperands { return [op].concat(operands); }
+op_lda  = op:"LDA"i operands:loadStoreOperands { return [op].concat(operands); }
+op_shld = op:"SHLD"i operands:loadStoreOperands { return [op].concat(operands); }
+op_lhld = op:"LHLD"i operands:loadStoreOperands { return [op].concat(operands); }
+
+loadStoreOperands = w:whitespace+ operand:(data16 / labelDirect) {
+    return [w, operand];
+} / loadStoreOperandError
+
+loadStoreOperandError = .* {
+    error(`{
+        "type": "Invalid Operand for STA/LDA/SHLD/LHLD",
+        "message": "Invalid operands syntax for instruction",
+        "hint": ["Expected a 2 byte data or a label."]
+    }`);
+}
 
 op_jmp  = inst:("JMP"  / "jmp" ) operand:jump_operand { return [inst].concat(operand); }
 op_jc   = inst:("JC"   / "jc"  ) operand:jump_operand { return [inst].concat(operand); }
