@@ -1,3 +1,10 @@
+## [2.4.2](https://github.com/debjitbis08/sim8085/compare/v2.4.1...v2.4.2) (2024-11-25)
+
+
+### Bug Fixes
+
+* Improve mobile layout ([b8ea11c](https://github.com/debjitbis08/sim8085/commit/b8ea11c9a1049f8bc8a2ca34d736ae5d654b3f64))
+
 ## [2.4.1](https://github.com/debjitbis08/sim8085/compare/v2.4.0...v2.4.1) (2024-11-24)
 
 
