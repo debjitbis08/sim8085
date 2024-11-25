@@ -1,3 +1,11 @@
+## [2.4.4](https://github.com/debjitbis08/sim8085/compare/v2.4.3...v2.4.4) (2024-11-25)
+
+
+### Bug Fixes
+
+* Improve error for some instructions ([59c7959](https://github.com/debjitbis08/sim8085/commit/59c795983e3bb48946c4cb4a06bcd42cfb595171))
+* Improve mobile layout for right panel ([b058c61](https://github.com/debjitbis08/sim8085/commit/b058c6114592882e41153ab74ae74b3799787bad))
+
 ## [2.4.3](https://github.com/debjitbis08/sim8085/compare/v2.4.2...v2.4.3) (2024-11-25)
 
 
