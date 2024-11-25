@@ -1,3 +1,10 @@
+## [2.4.3](https://github.com/debjitbis08/sim8085/compare/v2.4.2...v2.4.3) (2024-11-25)
+
+
+### Bug Fixes
+
+* Improve bottom icon size on mobile ([2e7de8a](https://github.com/debjitbis08/sim8085/commit/2e7de8a92e6054678abf38a21a0c038d299922d2))
+
 ## [2.4.2](https://github.com/debjitbis08/sim8085/compare/v2.4.1...v2.4.2) (2024-11-25)
 
 
