@@ -114,10 +114,6 @@ export function Assembled() {
                     <Tooltip placement="left">
                         <Tooltip.Trigger class="tooltip__trigger relative py-1 hidden md:block" onClick={toggleExpanded}>
                             {expanded() ? <BiSolidDockRight /> : <BiRegularDockRight />}
-                            {store.assembled.length || store.errors.length && !expanded() ? (
-                                <span
-                                    class={`w-2 h-2 rounded-[2rem] bg-terminal absolute left-0 bottom-[-4px] ${styles.radiatingBorder}`}> </span>
-                            ) : null}
                         </Tooltip.Trigger>
                         <Tooltip.Portal>
                             <Tooltip.Content class="tooltip__content">

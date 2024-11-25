@@ -78,7 +78,11 @@ export function RightPanel() {
         <div class={`flex items-start ${expanded() ? "" : ""}`}
              style={{width: `${expanded() ? `${width()}px` : 'auto'}`}}>
             <div
-                class="relative z-10 bg-page-background flex flex-col items-center h-sm:gap-4 gap-4 pt-2 md:pt-4 border-r-0 md:border-r border-r-main-border h-[calc(100dvh-4rem)] md:h-[calc(100vh-6.2rem)]">
+                class="
+                    md:relative z-10 bg-page-background flex md:flex-col items-center h-sm:gap-4 gap-4 pt-2 md:pt-4 border-r-0 md:border-r border-r-main-border md:h-[calc(100vh-6.2rem)]
+                    fixed bottom-[5.5rem] left-0 h-auto flex-row w-full text-xl pl-2 content-evenly justify-evenly
+                    md:bottom-0 md:left-0 md:pl-0 md:w-auto
+                ">
                 <div class="hidden md:block">
                     <PanelButton
                         icon={expanded() ? <BiSolidDockLeft /> : <BiRegularDockLeft />}
@@ -125,7 +129,7 @@ export function RightPanel() {
                 <div class="pb-1"></div>
             </div>
             <div id="content"
-                 class="shadow-xl md:shadow-none text-sm md:text-base relative z-5 min-w-60 w-full bg-secondary-background border-l-0 border-t border-b border-r md:border-r-0 border-main-border rounded-tl-sm rounded-bl-sm py-4  h-[calc(100dvh-4rem)] md:h-[calc(100vh-6.2rem)] flex overflow-x-hidden overflow-y-auto transform transition-transform duration-300 ease-in-out"
+                 class="shadow-xl md:shadow-none text-sm md:text-base relative z-5 min-w-60 w-full bg-secondary-background border-l-0 border-t border-b border-r md:border-r-0 border-main-border rounded-tl-sm rounded-bl-sm py-4  h-[calc(100svh-10rem)] md:h-[calc(100vh-6.2rem)] flex overflow-x-hidden overflow-y-auto transform transition-transform duration-300 ease-in-out"
                  style={{
                      display: expanded() ? "block" : "none",
                  }}>
@@ -149,7 +153,7 @@ export function RightPanel() {
                 <div class="grow"></div>
             </div>
             <div
-                class="w-0 md:w-[5px] h-[calc(100dvh-4rem)] md:h-[calc(100vh-6.2rem)] cursor-col-resize bg-secondary-background hover:bg-terminal active:bg-terminal border-y border-y-main-border"
+                class="w-0 md:min-w-[3px] md:w-[3px] h-[calc(100dvh-4rem)] md:h-[calc(100vh-6.2rem)] cursor-col-resize bg-secondary-background hover:bg-terminal active:bg-terminal border-y border-y-main-border"
                 onMouseDown={startResize}
                 style={{
                     display: expanded() ? "flex" : "none",
