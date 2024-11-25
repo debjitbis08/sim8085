@@ -440,7 +440,7 @@ function ActionButton(props) {
         onClick={props.onClick}
         disabled={props.disabled}
       >
-        <div class="px-2 py-2 flex items-center gap-2 text-gray-600">
+        <div class="px-2 py-2 flex items-center gap-2 text-gray-600 text-xl md:text-base">
           {props.icon}
         </div>
       </Tooltip.Trigger>
