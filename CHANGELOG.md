@@ -1,3 +1,11 @@
+## [2.4.6](https://github.com/debjitbis08/sim8085/compare/v2.4.5...v2.4.6) (2024-11-26)
+
+
+### Bug Fixes
+
+* Fix cookie banner on larger screen ([c3be0dc](https://github.com/debjitbis08/sim8085/commit/c3be0dc4bd92291b6db67be8cd38646c227757b2))
+* Fix stax and ldax instruction assembling ([4170d0a](https://github.com/debjitbis08/sim8085/commit/4170d0adf10fa886ad9187f119a38fe3c91a46a7))
+
 ## [2.4.5](https://github.com/debjitbis08/sim8085/compare/v2.4.4...v2.4.5) (2024-11-25)
 
 
