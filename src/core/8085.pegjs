@@ -1130,8 +1130,8 @@ singleRegisterOperandError = .* {
     }`);
 }
 
-op_stax = "STAX"i operands:ldaxStaxOperands { return [op].concat(operands); }
-op_ldax = "LDAX"i operands:ldaxStaxOperands { return [op].concat(operands); }
+op_stax = op:"STAX"i operands:ldaxStaxOperands { return [op].concat(operands); }
+op_ldax = op:"LDAX"i operands:ldaxStaxOperands { return [op].concat(operands); }
 
 ldaxStaxOperands = w:whitespace+ r:(registerPairB / registerPairD) {
     return [w, r];
