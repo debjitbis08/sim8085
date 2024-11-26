@@ -1,0 +1,12 @@
+{
+    "title": "Addition of Two 8-bit Numbers",
+    "description": "Learn how to add two 8-bit numbers step-by-step using 8085 assembly language.",
+    "category": "Basics",
+    "difficulty": "Easy",
+    "publishedDate": "2025-03-25",
+    "isDraft": true,
+    "steps": [
+        "8-bit-addition/step1",
+        "8-bit-addition/step2"
+    ]
+}

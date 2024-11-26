@@ -1,0 +1,149 @@
+---
+export const prerender = false;
+
+const { slug } = Astro.params; // Fetch the slug from the URL
+import { getCollection, getEntry, getEntries } from 'astro:content';
+import Layout from '../../layouts/Layout.astro';
+import Tips from '../../components/Tips.astro';
+import { RightPanel } from '../../components/RightPanel.jsx';
+import { CodingArea } from '../../components/CodingArea.jsx';
+import { Assembled } from '../../components/Assembled.jsx';
+import { PlusDialog } from '../../components/PlusDialog.jsx';
+import '../../components/styles.css';
+
+
+export const fetchTutorial = async (slug) => {
+  const entry = await getEntry("tutorials", `${slug}/metadata`);
+  const metadata = entry?.data;
+
+  const steps = await getEntries(metadata?.steps)
+  return { metadata, steps };
+};
+
+const { metadata, steps } = await fetchTutorial(slug);
+---
+
+<Layout title={`Sim8085 - ${metadata ? metadata.title : ""} Tutorial`} showActions={true} fullwidth={true} smallFooter={true} headerTitle={metadata.title}>
+    <main class="relative">
+        <div
+            class="flex items-start h-[calc(100dvh-4rem)] md:h-[calc(100vh-6.2rem)]"
+        >
+            <!-- Left Panel with fixed width -->
+            <div
+                id="left-panel"
+                class="absolute md:static z-10 min-w-max max-w-[400px] hidden md:block"
+            >
+                <RightPanel client:idle />
+            </div>
+
+            <!-- Middle Panel that can grow, but with a min and max width to remain stable -->
+            <div
+                class="px-2 md:px-0 md:pr-0 md:pl-0 border-y border-y-main-border bg-main-background md:bg-secondary-background flex-grow min-w-0"
+            >
+                <!-- <div class="flex justify-center md:hidden">
+                    <Actions client:idle />
+                </div> -->
+                <CodingArea client:load />
+            </div>
+
+            <!-- Right Panel with fixed width -->
+            <div
+                id="right-panel"
+                class="hidden md:flex min-w-max items-start h-[calc(100svh-5.5rem)] md:h-[calc(100vh-6.2rem)]"
+            >
+                <Assembled client:idle />
+            </div>
+        </div>
+
+        <PlusDialog client:idle />
+        {metadata ? (
+          <>
+          <div class="fixed w-full h-[100vh] top-20 bg-page-background backdrop-blur bg-opacity-40 z-20"></div>
+          <div class="mx-auto max-w-prose text-center fixed p-10 rounded bg-page-background h-[40vh] top-20 bottom-0 left-0 right-0 z-30">
+            <div class="font-bold text-green-500">
+              Tutorial
+            </div>
+            <h1 class="text-3xl leading-[2] font-bold">
+              {metadata.title}
+            </h1>
+
+            <p class="mt-4 text-base text-pretty sm:text-lg/relaxed">
+              {metadata.description}
+            </p>
+
+            <div class="mt-4 flex justify-center gap-4 sm:mt-6">
+              <a
+                class="inline-block rounded border border-indigo-600 bg-indigo-600 px-5 py-3 font-medium text-white shadow-sm transition-colors hover:bg-indigo-700"
+                href={`/tutorials/${slug}/1`}
+              >
+                Start Tutorial
+              </a>
+            </div>
+            <div class="mt-4">
+              Number of steps: {metadata.steps.length}
+            </div>
+          </div>
+          </>
+        ) : null}
+
+        </div>
+
+        <!-- Mobile warning message -->
+        <!-- <div class="flex md:hidden justify-center items-start bg-gray-100 dark:bg-gray-900" style="height: calc(100vh - 6rem);">
+            <p class="text-center dark:text-red-800 text-lg font-semibold mt-10 px-4">
+                Sim8085 is not supported on mobile devices. Please use a larger screen for the best experience.
+            </p>
+        </div> -->
+    </main>
+</Layout>
+
+<script>
+    import { supabase } from '../../lib/supabase.js';
+
+    // Function to handle the OAuth tokens from URL
+    async function handleOAuthTokens() {
+        const hash = window.location.hash;
+        if (hash) {
+            const params = new URLSearchParams(hash.substring(1)); // Remove '#' and parse
+            const access_token = params.get('access_token');
+            const refresh_token = params.get('refresh_token');
+
+            if (access_token && refresh_token) {
+                // Set the session in Supabase
+                await supabase.auth.setSession({
+                    access_token,
+                    refresh_token,
+                });
+
+                // Redirect to clear the URL hash and go to dashboard
+                window.location.replace('/'); // Update with the correct path for your app
+            }
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        handleOAuthTokens();
+    });
+
+    window.addEventListener("showLeftPanel", () => {
+        const el = document.getElementById("left-panel");
+        if (el) {
+            if (el.classList.contains("hidden")) {
+                el.classList.remove("hidden");
+            } else {
+                el.classList.add("hidden");
+            }
+        }
+    });
+
+    window.addEventListener("showRightPanel", () => {
+        const el = document.getElementById("right-panel");
+        if (el) {
+            if (el.classList.contains("hidden")) {
+                el.classList.remove("hidden");
+            } else {
+                el.classList.add("hidden");
+            }
+        }
+    });
+</script>

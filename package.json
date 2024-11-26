@@ -21,9 +21,9 @@
     "build-emulator": "./scripts/build-emulator.sh"
   },
   "dependencies": {
-    "@astrojs/alpinejs": "^0.4.0",
-    "@astrojs/solid-js": "^4.4.1",
-    "@astrojs/tailwind": "^5.1.0",
+    "@astrojs/alpinejs": "^0.4.3",
+    "@astrojs/solid-js": "^5.0.5",
+    "@astrojs/tailwind": "^6.0.1",
     "@codemirror/commands": "^6.6.2",
     "@codemirror/language": "^6.10.3",
     "@codemirror/state": "^6.4.1",
@@ -44,14 +44,14 @@
     "uuid": "^11.0.1"
   },
   "devDependencies": {
-    "@astrojs/starlight": "^0.28.3",
-    "@astrojs/starlight-tailwind": "^2.0.3",
+    "@astrojs/starlight": "^0.32.4",
+    "@astrojs/starlight-tailwind": "^3.0.1",
     "@semantic-release/changelog": "^6.0.3",
     "@semantic-release/git": "^10.0.1",
     "@types/alpinejs": "^3.13.10",
     "@vite-pwa/assets-generator": "^0.2.6",
     "@vite-pwa/astro": "^0.4.3",
-    "astro": "^4.16.6",
+    "astro": "^5.5.4",
     "fast-check": "^3.22.0",
     "nanoid": "^5.0.7",
     "peggy": "^4.0.3",

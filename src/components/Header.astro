@@ -17,9 +17,10 @@ import {supabase} from '../lib/supabase.js';
 interface Props {
     showActions: boolean;
     fullwidth: boolean;
+    title?: string;
 }
 
-const {showActions, fullwidth} = Astro.props;
+const {showActions, fullwidth, title} = Astro.props;
 
 // Get user session if logged in
 const {data: {session}} = await supabase.auth.getSession();
@@ -48,6 +49,9 @@ const avatarUrl = user?.user_metadata?.avatar_url || '/default-avatar.png'; // D
                 </span>
             </a>
         </div>
+        {title ? (
+            <div class="pl-4 flex-grow w-full">Tutorial - {title}</div>
+        ) : null}
         {showActions ? <div class="pl-4 hidden">
             <FileActions client:idle/>
         </div> : null}

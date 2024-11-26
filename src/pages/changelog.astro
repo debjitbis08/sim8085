@@ -1,6 +1,6 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { getCollection, getEntries } from 'astro:content';
+import { getCollection, render } from 'astro:content';
 
 const dateFormatter = new Intl.DateTimeFormat('en-US', {
   year: 'numeric',
@@ -14,7 +14,7 @@ const entries = await Promise.all(
       Number(new Date(entryB.data.date)) - Number(new Date(entryA.data.date))
     )
     .map((entry) => {
-      return entry.render().then(({ Content }) => ({
+      return render(entry).then(({ Content }) => ({
         ...entry,
         Content,
         date: dateFormatter.format(new Date(entry.data.date)),
