@@ -1,41 +1,40 @@
 import { describe, test } from "vitest";
 import { runTest } from "./test-utils";
 
-describe("ADI Instruction Tests", () => {
-    test("ADI: Sets AC flag", async () => {
+describe("RAR Instruction Tests", () => {
+    test("RAR: Rotate accumulator left with carry flag 0", async () => {
         const code = `
-      mvi a, 8h
-      adi 8h
+      mvi a, 0aah  ; A = 10101010
+      rar
       hlt
     `;
         const expectedCpuState = {
-            accumulator: 0x10,
+            accumulator: 0x55, // A = 01010101 after rotation
             flags: {
                 z: false,
                 s: false,
                 p: false,
                 c: false,
-                ac: true,
             },
-            programCounter: 0x0005,
+            programCounter: 0x0004,
         };
         await runTest(code, {}, expectedCpuState);
     });
 
-    test("ADI: Resets AC flag", async () => {
+    test("RAR: Rotate accumulator left with carry flag 1", async () => {
         const code = `
-      mvi a, 14h
-      adi 42h
+      mvi a, 0aah  ; A = 10101010
+      stc          ; Set carry flag to 1
+      rar
       hlt
     `;
         const expectedCpuState = {
-            accumulator: 0x56,
+            accumulator: 0xd5, // A = 11010101 after rotation
             flags: {
                 z: false,
                 s: false,
-                p: true,
+                p: false,
                 c: false,
-                ac: false,
             },
             programCounter: 0x0005,
         };

@@ -2,13 +2,12 @@ import { describe, test } from "vitest";
 import * as fc from "fast-check";
 import { runTest } from "./test-utils";
 
-describe("SBI Instruction Tests", () => {
-    test("SBI: Subtracts immediate data and carry from accumulator and updates flags", async () => {
+describe("SUI Instruction Tests", () => {
+    test("SUI: Subtracts immediate data from accumulator and updates flags", async () => {
         await fc.assert(
             fc.asyncProperty(
                 fc.integer({ min: 0x00, max: 0xff }), // Random 8-bit accumulator value
                 fc.integer({ min: 0x00, max: 0xff }), // Random 8-bit immediate value
-                fc.boolean(), // Carry flag state (true or false)
                 fc.record({
                     z: fc.boolean(),
                     s: fc.boolean(),
@@ -16,14 +15,10 @@ describe("SBI Instruction Tests", () => {
                     c: fc.boolean(),
                     ac: fc.boolean(),
                 }), // Random initial flag states
-                async (accumulator, immediateValue, carryFlag, flags) => {
-                    const carry = carryFlag ? 1 : 0; // Convert boolean carry flag to numeric
-                    const totalSubtraction = immediateValue + carry;
+                async (accumulator, immediateValue, flags) => {
+                    const result = accumulator - immediateValue;
 
-                    // Perform the subtraction
-                    const result = accumulator - totalSubtraction;
-
-                    // Calculate flags
+                    // Calculate expected flags
                     const zeroFlag = (result & 0xff) === 0;
                     const signFlag = (result & 0x80) !== 0;
                     const parityFlag =
@@ -33,18 +28,14 @@ describe("SBI Instruction Tests", () => {
                             .filter((bit) => bit === "1").length %
                             2 ===
                         0;
-                    const carryFlagResult = accumulator < totalSubtraction;
-
-                    // Correct AC flag logic for two's complement subtraction
-                    const acFlag = (accumulator & 0x0f) + ((~totalSubtraction + 1) & 0x0f) > 0x0f;
+                    const carryFlag = accumulator < immediateValue;
+                    const auxCarryFlag = (accumulator & 0x0f) + ((~immediateValue + 1) & 0x0f) > 0x0f;
 
                     const code = `
                       org 0x0000
-                      sbi ${immediateValue}
+                      sui ${immediateValue}
                       hlt
                     `;
-
-                    console.log(code);
 
                     // Define the initial state of the CPU
                     const initialCpuState = {
@@ -54,7 +45,7 @@ describe("SBI Instruction Tests", () => {
                             de: { high: 0x00, low: 0x00 },
                             hl: { high: 0x00, low: 0x00 },
                         },
-                        flags: { ...flags, c: carryFlag }, // Set the carry flag to the test-generated value
+                        flags, // Randomized flags from fast-check
                     };
 
                     // Define the expected state of the CPU after execution
@@ -65,16 +56,16 @@ describe("SBI Instruction Tests", () => {
                             z: zeroFlag,
                             s: signFlag,
                             p: parityFlag,
-                            c: carryFlagResult, // Carry flag indicates borrow
-                            ac: acFlag, // Correct AC flag logic
+                            c: carryFlag, // Carry flag indicates borrow
+                            ac: auxCarryFlag, // Auxiliary carry flag indicates lower nibble borrow
                         },
-                        programCounter: 0x0003, // PC should increment by 2 after SBI (2-byte instruction)
+                        programCounter: 0x0003, // PC should increment by 2 after SUI (2-byte instruction)
                     };
 
                     await runTest(code, initialCpuState, expectedCpuState);
                 },
             ),
-            { verbose: true, numRuns: 100 }, // Run 100 variations for SBI instruction
+            { verbose: true, numRuns: 100 }, // Run 100 variations for SUI instruction
         );
     });
 });

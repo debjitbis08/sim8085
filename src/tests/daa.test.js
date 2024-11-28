@@ -21,7 +21,7 @@ describe('DAA Instruction Tests', () => {
       },
       programCounter: 0x0004    // After HLT, PC should increment by 4
     };
-    await runTest(code, expectedCpuState);
+    await runTest(code, {}, expectedCpuState);
   });
 
   // Test 2: DAA with half-carry adjust
@@ -42,7 +42,7 @@ describe('DAA Instruction Tests', () => {
       },
       programCounter: 0x0004    // After HLT, PC should increment by 4
     };
-    await runTest(code, expectedCpuState);
+    await runTest(code, {}, expectedCpuState);
   });
 
   // Test 3: DAA with carry, no half-carry
@@ -63,7 +63,7 @@ describe('DAA Instruction Tests', () => {
       },
       programCounter: 0x0004    // After HLT, PC should increment by 4
     };
-    await runTest(code, expectedCpuState);
+    await runTest(code, {}, expectedCpuState);
   });
 
   // Test 4: DAA with both carry and half-carry
@@ -84,7 +84,7 @@ describe('DAA Instruction Tests', () => {
       },
       programCounter: 0x0004    // After HLT, PC should increment by 4
     };
-    await runTest(code, expectedCpuState);
+    await runTest(code, {}, expectedCpuState);
   });
 
   // Test 5: DAA on a BCD number
@@ -105,7 +105,7 @@ describe('DAA Instruction Tests', () => {
       },
       programCounter: 0x0004    // After HLT, PC should increment by 4
     };
-    await runTest(code, expectedCpuState);
+    await runTest(code, {}, expectedCpuState);
   });
 
   // Test 6: DAA adjusts to zero
@@ -126,7 +126,7 @@ describe('DAA Instruction Tests', () => {
         ac: true                // Half-carry expected
       }
     };
-    await runTest(code, expectedCpuState);
+    await runTest(code, {}, expectedCpuState);
   });
 
 });

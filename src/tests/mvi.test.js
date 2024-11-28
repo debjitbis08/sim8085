@@ -13,7 +13,7 @@ describe('MVI Instruction Tests', () => {
       accumulator: 0x5A,        // Verifying the accumulator value
       programCounter: 0x0003,   // After HLT, PC should increment by 3
     };
-    await runTest(code, expectedCpuState);
+    await runTest(code, {}, expectedCpuState);
   });
 
   // Test 2: MVI B with a specific value
@@ -28,7 +28,7 @@ describe('MVI Instruction Tests', () => {
       },
       programCounter: 0x0003,   // After HLT, PC should increment by 3
     };
-    await runTest(code, expectedCpuState);
+    await runTest(code, {}, expectedCpuState);
   });
 
   // Test 3: MVI C with a specific value
@@ -43,7 +43,7 @@ describe('MVI Instruction Tests', () => {
       },
       programCounter: 0x0003,   // After HLT, PC should increment by 3
     };
-    await runTest(code, expectedCpuState);
+    await runTest(code, {}, expectedCpuState);
   });
 
   // Test 4: MVI D with a specific value
@@ -58,7 +58,7 @@ describe('MVI Instruction Tests', () => {
       },
       programCounter: 0x0003,   // After HLT, PC should increment by 3
     };
-    await runTest(code, expectedCpuState);
+    await runTest(code, {}, expectedCpuState);
   });
 
   // Test 5: MVI E with a specific value
@@ -73,7 +73,7 @@ describe('MVI Instruction Tests', () => {
       },
       programCounter: 0x0003,   // After HLT, PC should increment by 3
     };
-    await runTest(code, expectedCpuState);
+    await runTest(code, {}, expectedCpuState);
   });
 
   // Test 6: MVI H with a specific value
@@ -88,7 +88,7 @@ describe('MVI Instruction Tests', () => {
       },
       programCounter: 0x0003,   // After HLT, PC should increment by 3
     };
-    await runTest(code, expectedCpuState);
+    await runTest(code, {}, expectedCpuState);
   });
 
   // Test 7: MVI L with a specific value
@@ -103,7 +103,7 @@ describe('MVI Instruction Tests', () => {
       },
       programCounter: 0x0003,   // After HLT, PC should increment by 3
     };
-    await runTest(code, expectedCpuState);
+    await runTest(code, {}, expectedCpuState);
   });
 
 });

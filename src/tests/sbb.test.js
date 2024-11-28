@@ -23,6 +23,6 @@ describe('SBB Instruction Tests', () => {
       },
       programCounter: 0x0007    // After HLT, PC should increment by 7
     };
-    await runTest(code, expectedCpuState);
+    await runTest(code, {}, expectedCpuState);
   });
 });
