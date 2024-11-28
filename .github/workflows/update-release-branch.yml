@@ -1,0 +1,29 @@
+name: Update Release Branch
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  update-release-branch:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Fetch all history for tags and branches
+
+      - name: Update release branch
+        run: |
+          # Get the latest tag
+          LATEST_TAG=$(git describe --tags --abbrev=0)
+          echo "Latest Tag: $LATEST_TAG"
+
+          # Update the release branch to point to the latest tag
+          git checkout release
+          git reset --hard "$LATEST_TAG"
+
+          # Push the updated release branch
+          git push origin release --force
