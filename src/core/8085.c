@@ -892,8 +892,10 @@ typedef enum { PRESERVE_CARRY, UPDATE_CARRY } should_preserve_carry;
 
 void LogicFlagsA(State8085 *state, uint8_t ac)
 {
-	state->cc.cy = 0; // Verify this
-	state->cc.ac = 0; // Verify this
+    // Verified in OpenSimH code, that both
+    // carry and aux carry are reset.
+	state->cc.cy = 0;
+	state->cc.ac = 0;
 	state->cc.z = (state->a == 0);
 	state->cc.s = (0x80 == (state->a & 0x80));
 	state->cc.p = parity(state->a, 8);
@@ -1387,18 +1389,18 @@ int Emulate8085Op(State8085 *state, uint16_t offset)
 	case 0x50:
 		state->d = state->b;
 		break; // MOV D, B
-	case 0x51:
+	case 0x51: // MOV D, C
 		state->d = state->c;
-		break; // MOV D, B
-	case 0x52:
+		break;
+	case 0x52: // MOV D, D
 		state->d = state->d;
-		break; // MOV D, B
-	case 0x53:
+		break;
+	case 0x53: // MOV D, E
 		state->d = state->e;
-		break; // MOV D, B
+		break;
 	case 0x54:
 		state->d = state->h;
-		break; // MOV D, B
+		break; // MOV D, H
 	case 0x55:
 		state->d = state->l;
 		break; // MOV D, B
@@ -1828,11 +1830,7 @@ int Emulate8085Op(State8085 *state, uint16_t offset)
 	case 0xc4: // CNZ Addr
 		if (0 == state->cc.z)
 		{
-			uint16_t pc = state->pc;
-			state->memory[state->sp - 1] = (pc >> 8) & 0xff;
-			state->memory[state->sp - 2] = (pc & 0xff);
-			state->sp = state->sp - 2;
-			state->pc = (opcode[2] << 8) | opcode[1];
+			call(state, offset, (opcode[2] << 8) | opcode[1]);
 		}
 		else
 			state->pc += 2;
@@ -1966,7 +1964,7 @@ int Emulate8085Op(State8085 *state, uint16_t offset)
 		UnimplementedInstruction(state);
 		break;
 	case 0xe0: // RPO
-		if (0 == state->cc.cy)
+		if (0 == state->cc.p)
 			returnToCaller(state, offset);
 		break;
 	case 0xe1: // POP H
@@ -2016,7 +2014,7 @@ int Emulate8085Op(State8085 *state, uint16_t offset)
 		UnimplementedInstruction(state);
 		break;
 	case 0xe8: // RPE
-		if (0 == state->cc.cy)
+		if (1 == state->cc.p)
 			returnToCaller(state, offset);
 		break;
 	case 0xe9: // PCHL
@@ -2162,6 +2160,7 @@ int Emulate8085Op(State8085 *state, uint16_t offset)
 		state->cc.s = (0x80 == (x & 0x80));
 		state->cc.p = parity(x, 8);
 		state->cc.cy = (state->a < opcode[1]);
+        state->cc.ac = 0;
 		state->pc++;
 	}
 	break;

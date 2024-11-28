@@ -324,7 +324,7 @@ machineCode = prg:program {
     for (i = 0; i < lines; i += 1) {
         line = prg[i];
 
-        console.log("line", line);
+        // console.log("line", line);
 
         if (line == null) continue;
 
@@ -988,7 +988,7 @@ directAddressingInstructions = op:(op_sta / op_lda / op_shld / op_lhld) {
     }
 }
 
-jumpInstructions = op:(op_pchl / op_jmp / op_jc / op_jnc / op_jz / op_jnz / op_jp / op_jm / op_jpe / op_jpo) {
+jumpInstructions = op:(op_pchl / op_jmp / op_jc / op_jnc / op_jz / op_jnz / op_jpe / op_jpo / op_jp / op_jm) {
     var name,
         params,
         paramTypes;
@@ -1010,7 +1010,7 @@ jumpInstructions = op:(op_pchl / op_jmp / op_jc / op_jnc / op_jz / op_jnz / op_j
     };
 }
 
-callInstructions = op:(op_call / op_cc / op_cnc / op_cz / op_cnz / op_cp / op_cm / op_cpe / op_cpo) {
+callInstructions = op:(op_call / op_cc / op_cnc / op_cz / op_cnz / op_cpe / op_cpo / op_cp / op_cm) {
     return {
         name: op[0],
         params: [op[2]],
@@ -1018,7 +1018,7 @@ callInstructions = op:(op_call / op_cc / op_cnc / op_cz / op_cnz / op_cp / op_cm
     };
 }
 
-returnInstructions = op:(op_ret / op_rc / op_rnc / op_rz / op_rnz / op_rm / op_rp / op_rpe / op_rpo) {
+returnInstructions = op:(op_ret / op_rc / op_rnc / op_rz / op_rnz / op_rm / op_rpe / op_rpo / op_rp) {
     return {
         name: op,
         params: [],
@@ -1069,7 +1069,6 @@ orgDirective = dir:(dir_org) {
 }
 
 endDirective = dir:(dir_end) {
-    console.log(dir);
     return {
         name: dir,
         // Whitespace and value together in a single array
