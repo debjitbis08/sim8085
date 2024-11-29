@@ -13,9 +13,12 @@ jobs:
       - name: Checkout the repository
         uses: actions/checkout@v4
         with:
+          ssh-key: "${{ secrets.COMMIT_KEY }}"
           fetch-depth: 0 # Fetch all history for tags and branches
 
       - name: Update release branch
+        with:
+          ssh-key: "${{ secrets.COMMIT_KEY }}"
         run: |
           # Get the latest tag
           LATEST_TAG=$(git describe --tags --abbrev=0)
