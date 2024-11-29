@@ -1,3 +1,17 @@
+# [2.5.0](https://github.com/debjitbis08/sim8085/compare/v2.4.7...v2.5.0) (2024-11-29)
+
+
+### Bug Fixes
+
+* Fix height of assembled section ([4f94610](https://github.com/debjitbis08/sim8085/commit/4f946105e9cfa52c004a8069d63bc9f4922ee1f5))
+* Fix highlight for labels starting with @ or ? ([c3a0ef1](https://github.com/debjitbis08/sim8085/commit/c3a0ef1d5f6ac28e3e648f40c3bdd4ab3d7843bb))
+* Give more space to machine code columns ([2908056](https://github.com/debjitbis08/sim8085/commit/290805693f2d1bceb68acef964f52ccdecf809ab))
+
+
+### Features
+
+* Add SP and PC register display ([a793484](https://github.com/debjitbis08/sim8085/commit/a793484a2579153c308b992ddfbbc06640dc9ec7))
+
 ## [2.4.7](https://github.com/debjitbis08/sim8085/compare/v2.4.6...v2.4.7) (2024-11-29)
 
 
