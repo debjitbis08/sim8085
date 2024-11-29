@@ -127,14 +127,13 @@ export function Assembled() {
                 </div>
                 <div
                     class={`flex flex-col ${expanded() ? "block" : "hidden"}`}
-                    style={{ height: "calc(100vh - 5.5rem)" }}
+                    style={{ height: "calc(100% - 2.75rem)" }}
                 >
-                    <div style={{ height: "calc(100% - 0rem)" }}>
+                    <div class="h-full">
                         <div
-                            class={`${store.assembled.length ? "" : "hidden"} w-full overflow-x-auto text-[0.7rem] md:text-sm`}
-                            style={{ height: "calc(100% - 3.75rem)" }}
+                            class={`${store.assembled.length ? "" : "hidden"} w-full h-full overflow-x-auto text-[0.7rem] md:text-sm`}
                         >
-                            <table class={`font-mono table ${styles.machineCodeTable}`}>
+                            <table class={`font-mono table ${styles.machineCodeTable} mb-8`}>
                                 <thead>
                                     <tr class="border-t-0 border-t-main-border hidden md:table-row">
                                         <td class="px-2 py-2">Line</td>
