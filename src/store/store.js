@@ -1,7 +1,6 @@
-import {createStore} from "solid-js/store";
+import { createStore } from "solid-js/store";
 
-export const INITIAL_CODE =
-    `;<Program title>
+export const INITIAL_CODE = `;<Program title>
 
 JMP START
 
@@ -13,43 +12,46 @@ START: NOP
 ;Start writing your code here
 
 HLT
-`
+`;
 
-export const REGISTER_KEYS = ['bc', 'de', 'hl'];
+export const REGISTER_KEYS = ["bc", "de", "hl"];
 
 const initialRegisterState = () => {
-    return REGISTER_KEYS.reduce((o, registerId) => ({
-        ...o,
-        [registerId]: {high: 0, low: 0, isEditing: false}
-    }), {});
+    return REGISTER_KEYS.reduce(
+        (o, registerId) => ({
+            ...o,
+            [registerId]: { high: 0, low: 0, isEditing: false },
+        }),
+        {},
+    );
 };
 
 export const DEFAULT_SETTINGS = {
     beforeRun: {
         clearFlags: true,
         clearRegisters: true,
-        clearAllMemoryLocations: false
+        clearAllMemoryLocations: false,
     },
     alert: {
         afterSuccessfulRun: true,
         afterClearAll: true,
-        afterDebugStop: true
+        afterDebugStop: true,
     },
     editor: {
-        fontSize: 16
-    }
+        fontSize: 16,
+    },
 };
 
 export const [store, setStore] = createStore({
     code: INITIAL_CODE,
-    codeWithError: '',
-    programState: 'Idle', // Idle, Loaded, Running, Paused
+    codeWithError: "",
+    programState: "Idle", // Idle, Loaded, Running, Paused
     assembled: [],
     loadAddress: 0,
     accumulator: 0,
     isEditingAccumulator: false,
     registers: initialRegisterState(),
-    stackPointer: 0,
+    stackPointer: 0xffff,
     programCounter: 0,
     pcStartValue: 0,
     statePointer: null,
@@ -58,7 +60,7 @@ export const [store, setStore] = createStore({
         z: false,
         ac: false,
         p: false,
-        c: false
+        c: false,
     },
     memory: Array(65536).fill(0),
     io: Array(256).fill(0),
@@ -71,5 +73,5 @@ export const [store, setStore] = createStore({
         content: INITIAL_CODE,
     },
     homeFolderId: null,
-    settings: structuredClone(DEFAULT_SETTINGS)
+    settings: structuredClone(DEFAULT_SETTINGS),
 });
