@@ -29,12 +29,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-          cache: 'pnpm' # Enable pnpm cache
+          cache: "pnpm" # Enable pnpm cache
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
       # - name: Verify the integrity of provenance attestations and registry signatures for installed dependencies
       #   run: pnpm audit
       - name: Release
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.COMMIT_KEY }}
         run: pnpm semantic-release
