@@ -1,3 +1,10 @@
+## [2.4.7](https://github.com/debjitbis08/sim8085/compare/v2.4.6...v2.4.7) (2024-11-29)
+
+
+### Bug Fixes
+
+* Fix issues found in unit tests ([1a1fc0b](https://github.com/debjitbis08/sim8085/commit/1a1fc0b50e065d7f8f807668eb484ce6c626cd9f))
+
 ## [2.4.6](https://github.com/debjitbis08/sim8085/compare/v2.4.5...v2.4.6) (2024-11-26)
 
 
