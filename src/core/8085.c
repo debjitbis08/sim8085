@@ -912,7 +912,7 @@ void ArithFlagsA(State8085 *state, uint16_t res, should_preserve_carry preserveC
 
 void UnimplementedInstruction(State8085 *state)
 {
-	//pc will have advanced one, so undo that
+	// PC will have advanced one, so undo that
 	printf("Error: Unimplemented instruction\n");
 	state->pc--;
 	Disassemble8085Op(state->memory, state->pc);
@@ -1531,6 +1531,7 @@ int Emulate8085Op(State8085 *state, uint16_t offset)
 	}
 	break;
 	case 0x76:  // HLT
+        state->pc--;
 		return 1;
 		break;
 	case 0x77: // MOV M, A

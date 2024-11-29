@@ -109,8 +109,6 @@ export function unloadProgram(store) {
 export function runProgram(store) {
     var inputState = getCpuState(store);
 
-    console.log("Stack Pointer before running", inputState.sp);
-
     // TODO Check why Loaded state check is needed
     if (store.programState === "Loaded") {
         setState(simulator, store.statePointer, inputState);
@@ -119,7 +117,6 @@ export function runProgram(store) {
     // const loadAddress = Math.min(...store.assembled.map((line) => line.currentAddress));
 
     try {
-        console.log(`PC Start Value ${store.pcStartValue}`);
         const newStatePointer = execute8085Program(store.statePointer, store.pcStartValue);
         const outputState = getStateFromPtr(simulator, newStatePointer);
 
