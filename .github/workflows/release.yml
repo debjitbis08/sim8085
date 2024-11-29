@@ -36,5 +36,5 @@ jobs:
       #   run: pnpm audit
       - name: Release
         env:
-          GITHUB_TOKEN: ${{ secrets.COMMIT_KEY }}
+          GITHUB_TOKEN: ${{ secrets.PAT }}
         run: pnpm semantic-release
