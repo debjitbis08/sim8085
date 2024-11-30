@@ -47,54 +47,54 @@ const { small } = Astro.props;
                         <span class="hidden md:inline">📘</span>
                     </span>
                 </a>
-                <div class="flex gap-2">
-                    <a href="https://github.com/debjitbis08/sim8085" target="_blank" class="hover:text-gray-400 dark:hover:text-gray-400 transition-colors">
+                <div class="flex gap-2 text-inactive-foreground">
+                    <a href="https://github.com/debjitbis08/sim8085" target="_blank" class="hover:text-active-foreground transition-colors">
                         <Fragment set:html={GithubIcon} />
                     </a>
-                    <a href="https://buymeacoffee.com/sim8085" target="_blank" class="hover:text-gray-400 dark:hover:text-gray-400 transition-colors">
+                    <a href="https://buymeacoffee.com/sim8085" target="_blank" class="hover:text-active-foreground transition-colors">
                         <Fragment set:html={BMCIcon} />
                     </a>
                 </div>
             </div>
             <div class="min-w-[50%] md:min-w-[200px] mt-8 md:mt-0">
-                <h3 class="text-gray-800 dark:text-gray-200 mb-3">Product</h3>
-                <ul class="flex flex-col gap-2">
+                <h3 class="text-active-foreground mb-3">Product</h3>
+                <ul class="flex flex-col gap-2 text-inactive-foreground">
                     <li>
-                        <a href="/docs/en" target="_blank" class="hover:text-gray-400 dark:hover:text-gray-400 transition-colors">Documentation</a>
+                        <a href="/docs/en" target="_blank" class="hover:text-active-foreground transition-colors">Documentation</a>
                     </li>
                     <li>
-                        <a href="/changelog" target="_blank" class="hover:text-gray-400 dark:hover:text-gray-400 transition-colors">Changelog</a>
+                        <a href="/changelog" target="_blank" class="hover:text-active-foreground transition-colors">Changelog</a>
                     </li>
                     <li>
-                        <a href="https://www.debjitbiswas.com/tags/sim8085/" target="_blank" class="hover:text-gray-400 dark:hover:text-gray-400 transition-colors">Blog</a>
+                        <a href="https://www.debjitbiswas.com/tags/sim8085/" target="_blank" class="hover:text-active-foreground transition-colors">Blog</a>
                     </li>
                 </ul>
             </div>
             <div class="min-w-[50%] md:min-w-[200px] mt-8 md:mt-0">
-                <h3 class="text-gray-800 dark:text-gray-200 mb-3">Community</h3>
-                <ul class="flex flex-col gap-2">
+                <h3 class="text-active-foreground mb-3">Community</h3>
+                <ul class="flex flex-col gap-2 text-inactive-foreground">
                     <li>
                         <a
                             href="https://github.com/debjitbis08/sim8085/discussions/categories/q-a"
                             target="_blank"
-                            class="hover:text-gray-400 dark:hover:text-gray-400 transition-colors"
+                            class="hover:text-active-foreground transition-colors"
                         >Discussions</a>
                     </li>
                     <li>
                         <a
                             href="https://github.com/debjitbis08/sim8085/discussions/categories/ideas"
                             target="_blank"
-                            class="hover:text-gray-400 dark:hover:text-gray-400 transition-colors"
+                            class="hover:text-active-foreground transition-colors"
                         >Submit an Idea</a>
                     </li>
                 </ul>
             </div>
         </div>
-        <div class="flex items-center gap-3 mt-6">
-            <a href="/tos" target="_blank" class="hover:text-gray-400 dark:hover:text-gray-400 transition-colors">Terms & Conditions</a>
-            <a href="/privacy-policy" target="_blank" class="hover:text-gray-400 dark:hover:text-gray-400 transition-colors">Privacy Policy</a>
+        <div class="flex items-center gap-3 mt-6 text-inactive-foreground">
+            <a href="/tos" target="_blank" class="hover:text-active-foreground transition-colors">Terms & Conditions</a>
+            <a href="/privacy-policy" target="_blank" class="hover:text-active-foreground transition-colors">Privacy Policy</a>
         </div>
-        <p class="mt-4"><span class="text-base align-middle">&copy;</span> Copyright {year} — <a href="https://www.debjitbiswas.com" target="_blank" class="hover:text-gray-400 dark:hover:text-gray-400 transition-colors">Debjit Biswas</a></p>
+        <p class="mt-4"><span class="text-base align-middle">&copy;</span> Copyright {year} — <a href="https://www.debjitbiswas.com" target="_blank" class="text-inactive-foreground hover:text-active-foreground transition-colors">Debjit Biswas</a></p>
     </div>
 </footer>
 )}
