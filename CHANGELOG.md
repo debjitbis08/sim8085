@@ -1,3 +1,10 @@
+## [2.5.1](https://github.com/debjitbis08/sim8085/compare/v2.5.0...v2.5.1) (2024-11-30)
+
+
+### Bug Fixes
+
+* Fix donate page build ([71d462b](https://github.com/debjitbis08/sim8085/commit/71d462b35a9ad07b1d20d81f49ff1f465834d9b3))
+
 # [2.5.0](https://github.com/debjitbis08/sim8085/compare/v2.4.7...v2.5.0) (2024-11-29)
 
 
