@@ -1,14 +1,13 @@
 ---
 import HandHoldingHeartIcon from '../icons/hand-holding-heart.svg?raw';
+import SponsorIcon from '../icons/sponsor.svg?raw';
 import LockIcon from '../icons/lock.svg?raw';
 import MenuIcon from '../icons/menu.svg?raw';
 import RegularDockLeftIcon from '../icons/regular-dock-left.svg?raw';
 import SolidDockLeftIcon from '../icons/solid-dock-left.svg?raw';
 import RegularDockRightIcon from '../icons/regular-dock-right.svg?raw';
 import SolidDockRightIcon from '../icons/solid-dock-right.svg?raw';
-import Logo from '../icons/logo.svg?raw';
 import LogoWithBackground from '../icons/logo-with-green-background.svg?raw';
-import FAQs from './FAQs.astro';
 import ThemeSwitcher from './ThemeSwitcher.astro';
 import {Actions} from './Actions.jsx';
 import {FileActions} from './FileActions.jsx';
@@ -107,9 +106,9 @@ const avatarUrl = user?.user_metadata?.avatar_url || '/default-avatar.png'; // D
                     class="bmc-btn"
                     href="/donate"
                 >
-                    <span>
-                        <Fragment set:html={HandHoldingHeartIcon}/>
-                    </span> <span class="hidden md:inline bmc-btn-text">Donate</span>
+                    <span class="text-red-foreground">
+                        <Fragment set:html={SponsorIcon}/>
+                    </span> <span class="hidden md:inline bmc-btn-text">Contribute</span>
                 </a>
                 <button
                     x-data="unlockPlusButton"
@@ -174,7 +173,7 @@ const avatarUrl = user?.user_metadata?.avatar_url || '/default-avatar.png'; // D
 
 <style>
     .bmc-btn {
-        @apply h-8 py-4 px-4 hidden md:flex items-center gap-2 rounded-lg text-sm bg-transparent box-border text-terminal border-2 border-terminal border-opacity-20 hover:border-opacity-100;
+        @apply h-8 py-4 px-4 hidden md:flex items-center gap-2 rounded-lg text-sm bg-transparent box-border text-secondary-foreground hover:text-active-foreground border border-yellow-foreground border-opacity-20 hover:border-opacity-100;
         /* font-family: 'Inter', sans-serif !important; */
         font-weight: bold;
         position: relative;
