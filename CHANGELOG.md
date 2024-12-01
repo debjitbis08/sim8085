@@ -1,3 +1,11 @@
+## [2.5.2](https://github.com/debjitbis08/sim8085/compare/v2.5.1...v2.5.2) (2024-12-01)
+
+
+### Bug Fixes
+
+* Fix donate link in mobile header ([256773d](https://github.com/debjitbis08/sim8085/commit/256773de8e606bfbb66f18ffb66822ac739fba18))
+* New donate button ([7e4fed8](https://github.com/debjitbis08/sim8085/commit/7e4fed89b1acc775541b9a9f35fc774de2f95509))
+
 ## [2.5.1](https://github.com/debjitbis08/sim8085/compare/v2.5.0...v2.5.1) (2024-11-30)
 
 
