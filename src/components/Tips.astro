@@ -1,16 +1,16 @@
 <div x-data="tipsModal">
     <div role="dialog"
-         aria-labelledby="faq_modal_label"
+         aria-labelledby="tips_modal_label"
          aria-modal="true"
          tabindex="0"
          x-show="open"
          style="display: none"
-         @click="open = false; $refs.faq_modal_button.focus()"
-         @click.away="open = false; $refs.faq_modal_button.focus()"
+         @click="open = false;"
+         @click.away="open = false;"
          class="fixed z-[9999] top-0 left-0 w-full h-screen flex justify-center items-center backdrop-blur-sm"
     >
         <div aria-hidden="true"
-            class="absolute top-0 left-0 w-full h-screen bg-black transition duration-300"
+            class="absolute top-0 left-0 w-full h-screen bg-gray-600 transition duration-300"
             :class="{ 'opacity-60': open, 'opacity-0': !open }"
             x-show="open"
             x-transition:leave="delay-150"></div>
@@ -23,18 +23,18 @@
             x-transition:leave="transition ease-out duration-300"
             x-transition:leave-start="transform scale-100 opacity-100"
             x-transition:leave-end="transform scale-50 opacity-0"
-            class="flex flex-col rounded-md shadow-sm overflow-hidden w-2/5 h-2/5 z-10 bg-gray-100 dark:bg-gray-800"
+            class="flex flex-col rounded-md shadow-sm overflow-hidden w-2/5 h-2/5 min-w-[300px] z-10 bg-secondary-background text-secondary-foreground border border-primary-border"
         >
-          <div class="p-4 pb-4 bg-gray-100 dark:bg-gray-700 flex items-center">
-            <h2 id="faq_modal_label" class="grow">Tip of the Day</h2>
+          <div class="p-4 pb-4 flex items-center">
+            <h2 id="tips_modal_label" class="grow">Tip of the Day</h2>
             <button type="button" class="text-2xl cursor-pointer" @click="open = false">&times;</button>
           </div>
-          <div class="tip__content p-4 bg-gray-200 dark:bg-gray-800 grow overflow-y-auto" id="body" x-html="tipContent"
+          <div class="tip__content p-4 grow overflow-y-auto text-primary-foreground" id="body" x-html="tipContent"
             @mouseenter="startHoverTimer"
             @mouseleave="clearHoverTimer"
           >
           </div>
-          <div class="p-4 border-t border-t-gray-400 dark:border-t-gray-700 flex items-center">
+          <div class="p-4 border-t border-t-inactive-border flex items-center">
             <label for="dont-show-again" class="cursor-pointer">
                 <input id="dont-show-again" type="checkbox" @change="toggleDontShowAgain" />
                 <span class="text-sm ml-2">Don't show tips on startup</span>
@@ -77,12 +77,30 @@
 </style>
 
 <script>
+    import Alpine from "alpinejs";
   document.addEventListener('alpine:init', () => {
     Alpine.data('tipsModal', () => ({
       open: true,
       tipContent: '',
 
       init() {
+        const tips = ['/tips/Number.html', '/tips/Comments.html', '/tips/Labels.html'];
+        const readTips = JSON.parse(localStorage.getItem('readTips') || '[]').map(tip => `/tips/${tip}.html`);
+
+        // Filter out read tips
+        const unreadTips = tips.filter(tip => !readTips.includes(tip));
+
+                window.addEventListener("showTips", () => {
+                    const randomTip = tips[Math.floor(Math.random() * tips.length)];
+                    this.currentTip = randomTip.replace('/tips/', '').replace('.html', '');
+                    console.log(randomTip);
+                    fetch(randomTip)
+                        .then(response => response.text())
+                        .then(html => {
+                            this.tipContent = html;
+                        });
+                    this.open = true;
+                });
         // Check if "Don't show again" is set in localStorage
         const dontShowAgain = localStorage.getItem('dontShowTip');
         if (dontShowAgain === 'true') {
@@ -90,11 +108,6 @@
           return;
         }
 
-        const tips = ['/tips/Number.html', '/tips/Comments.html', '/tips/Labels.html'];
-        const readTips = JSON.parse(localStorage.getItem('readTips') || '[]').map(tip => `/tips/${tip}.html`);
-
-        // Filter out read tips
-        const unreadTips = tips.filter(tip => !readTips.includes(tip));
 
         // Check if all tips are read
         if (unreadTips.length === 0) {
@@ -111,7 +124,9 @@
           .then(html => {
             this.tipContent = html;
           });
+
       },
+
       toggleDontShowAgain(event) {
         if (event.target.checked) {
           // Store user preference in localStorage

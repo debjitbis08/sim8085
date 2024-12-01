@@ -1,9 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import Tips from '../components/Tips.astro';
-import { App } from '../components/App.jsx';
 import { RightPanel } from '../components/RightPanel.jsx';
-import { CodeMirror } from '../components/codemirror/CodeMirror.jsx';
 import { CodingArea } from '../components/CodingArea.jsx';
 import { Assembled } from '../components/Assembled.jsx';
 import { PlusDialog } from '../components/PlusDialog.jsx';
@@ -11,7 +9,7 @@ import '../components/styles.css';
 ---
 
 <Layout title="Sim8085 - A 8085 microprocessor simulator" showActions={true} fullwidth={true} smallFooter={true}>
-    <!-- <Tips /> -->
+    <Tips />
     <main class="relative">
         <div
             class="flex items-start h-[calc(100dvh-4rem)] md:h-[calc(100vh-6.2rem)]"
