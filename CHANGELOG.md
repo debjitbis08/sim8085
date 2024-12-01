@@ -1,3 +1,16 @@
+# [2.6.0](https://github.com/debjitbis08/sim8085/compare/v2.5.2...v2.6.0) (2024-12-01)
+
+
+### Bug Fixes
+
+* Give option to continue without login ([fb6f1bd](https://github.com/debjitbis08/sim8085/commit/fb6f1bd6ccce774fc0c05ec12aee38a57a511f67))
+* Improve editing of memory and registers ([8c9c504](https://github.com/debjitbis08/sim8085/commit/8c9c50460ad3809565880a714d93937610767289))
+
+
+### Features
+
+* Add tips ([007f0b0](https://github.com/debjitbis08/sim8085/commit/007f0b0c2a51ff245b9a47c4b52f7cd125da6b8d))
+
 ## [2.5.2](https://github.com/debjitbis08/sim8085/compare/v2.5.1...v2.5.2) (2024-12-01)
 
 
