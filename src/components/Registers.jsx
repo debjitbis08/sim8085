@@ -106,9 +106,13 @@ function Register(props) {
     const startEditing = (getInputRef) => {
         setEditing(true);
         setTimeout(() => {
-            const inputRef = getInputRef();
-            if (inputRef) {
-                inputRef.focus();
+            if (getInputRef) {
+                const inputRef = getInputRef();
+                if (inputRef) {
+                    inputRef.focus();
+                }
+            } else {
+                highRef.focus();
             }
         });
     };
@@ -131,12 +135,19 @@ function Register(props) {
         setEditing(false);
     };
 
+    let isFocused = false;
+
     // Handle Enter key and blur event
     const handleKeyOrBlur = (e) => {
-        if (e.key === "Enter" || e.type === "blur") {
+        if (e.key === "Enter") {
             saveValue();
         } else if (e.key === "Escape") {
             setEditing(false);
+        } else if (e.type === "blur") {
+            isFocused = false;
+            setTimeout(() => {
+                if (!isFocused) saveValue();
+            }, 100);
         }
     };
 
@@ -164,8 +175,11 @@ function Register(props) {
                     value={highValue()}
                     onInput={handleInputChange(setHighValue)}
                     onKeyDown={handleKeyOrBlur}
-                    onFocus={(e) => e.target.select()}
-                    onBlur={saveValue}
+                    onFocus={(e) => {
+                        isFocused = true;
+                        e.target.select();
+                    }}
+                    onBlur={handleKeyOrBlur}
                     maxlength="2"
                     autofocus={true}
                     ref={highRef}
@@ -181,8 +195,11 @@ function Register(props) {
                     value={lowValue()}
                     onInput={handleInputChange(setLowValue)}
                     onKeyDown={handleKeyOrBlur}
-                    onBlur={saveValue}
-                    onFocus={(e) => e.target.select()}
+                    onBlur={handleKeyOrBlur}
+                    onFocus={(e) => {
+                        isFocused = true;
+                        e.target.select();
+                    }}
                     maxlength="2"
                     ref={lowRef}
                 />
