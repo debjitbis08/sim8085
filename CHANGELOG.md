@@ -1,3 +1,10 @@
+## [2.6.1](https://github.com/debjitbis08/sim8085/compare/v2.6.0...v2.6.1) (2024-12-02)
+
+
+### Bug Fixes
+
+* Fix tips modal height ([cbecf70](https://github.com/debjitbis08/sim8085/commit/cbecf708cff62b480ef14928dec0c2c2c2ada130))
+
 # [2.6.0](https://github.com/debjitbis08/sim8085/compare/v2.5.2...v2.6.0) (2024-12-01)
 
 
