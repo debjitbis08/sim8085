@@ -5,6 +5,7 @@ import { produce } from "solid-js/store";
 import { toByteString } from "../utils/NumberFormat";
 import { store, setStore } from "../store/store";
 import { setRegisters } from "../core/simulator";
+import { FiHelpCircle } from "solid-icons/fi";
 
 export function Registers() {
     const updateRegisterValue = (registerId, high, low) => {
@@ -48,8 +49,33 @@ export function Registers() {
             </div>
             <div>
                 <Register
-                    name="A/PSW"
-                    nameTooltip="Accumulator Or Program Status Word"
+                    name={
+                        <div class="flex items-center gap-1">
+                            <span>A/PSW</span>
+                            <span class="text-sm">
+                                <FiHelpCircle />
+                            </span>
+                        </div>
+                    }
+                    nameTooltip={
+                        <>
+                            <p class="mb-2 text-lg">Accumulator or Program Status Word</p>
+                            <p class="mb-1">
+                                The Program Status Word comprises the contents of the accumulator and the current
+                                settings of the condition flags.
+                            </p>
+                            <p class="mb-1">
+                                Since there are only 5 condition flags, the PSW is calculated by filling in bits 3, 5
+                                &amp; 1. 8080 uses 0, 0 &amp; 1 for bits 3, 5 &amp; 1, whereas for 8085 these are
+                                undefined. I have chosen to use the 8080 convention.
+                            </p>
+                            <p class="mb-1">
+                                This is the reason you see 2 in the lower byte of PSW which is the flags register when
+                                all the flags are reset. It cannot be edited. Please use the flags section for that
+                                purpose.
+                            </p>
+                        </>
+                    }
                     high={store.accumulator}
                     low={getPSW(store.flags)}
                     canEditHigh={true}
