@@ -11,7 +11,7 @@ interface Props {
 const { small } = Astro.props;
 ---
 {small && (
-<footer class="w-[100vw] h-7 bg-page-background text-secondary-foreground z-999 text-xs tracking-wider hidden md:block">
+<footer class="h-7 bg-page-background text-secondary-foreground z-999 text-xs tracking-wider hidden md:block">
     <div class={`flex items-center justify-center ${small ? "mt-2" : "my-5"}`}>
         <a href="/docs/en/" target="_blank" class="hover:text-active-foreground transition-colors">Documentation</a>
         <span class="px-2">·</span>
