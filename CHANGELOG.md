@@ -1,3 +1,10 @@
+## [2.6.2](https://github.com/debjitbis08/sim8085/compare/v2.6.1...v2.6.2) (2025-02-14)
+
+
+### Bug Fixes
+
+* Fix donate page title ([908c11d](https://github.com/debjitbis08/sim8085/commit/908c11d763aa4a370733a5536c90825b69fbfbb7))
+
 ## [2.6.1](https://github.com/debjitbis08/sim8085/compare/v2.6.0...v2.6.1) (2024-12-02)
 
 
