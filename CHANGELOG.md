@@ -1,3 +1,10 @@
+# [2.7.0](https://github.com/debjitbis08/sim8085/compare/v2.6.2...v2.7.0) (2025-02-14)
+
+
+### Features
+
+* Add video demo ([b5b5a9c](https://github.com/debjitbis08/sim8085/commit/b5b5a9cbbb4b6b6e155d8ea48a39a892f12af1fd))
+
 ## [2.6.2](https://github.com/debjitbis08/sim8085/compare/v2.6.1...v2.6.2) (2025-02-14)
 
 
