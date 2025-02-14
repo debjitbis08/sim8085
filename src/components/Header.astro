@@ -8,6 +8,7 @@ import SolidDockLeftIcon from '../icons/solid-dock-left.svg?raw';
 import RegularDockRightIcon from '../icons/regular-dock-right.svg?raw';
 import SolidDockRightIcon from '../icons/solid-dock-right.svg?raw';
 import LogoWithBackground from '../icons/logo-with-green-background.svg?raw';
+import YoutubeIcon from '../icons/youtube.svg?raw';
 import ThemeSwitcher from './ThemeSwitcher.astro';
 import {Actions} from './Actions.jsx';
 import {FileActions} from './FileActions.jsx';
@@ -101,6 +102,14 @@ const avatarUrl = user?.user_metadata?.avatar_url || '/default-avatar.png'; // D
                         </a>
                     </template>
                 </div>
+                <a href="https://youtu.be/7l-zS9RmAnM"
+                    class="bmc-btn"
+                    target="_blank"
+                >
+                    <span class="text-red-foreground">
+                        <Fragment set:html={YoutubeIcon}/>
+                    </span> <span class="hidden md:inline bmc-btn-text">Demo</span>
+                </a>
                 <link href="https://fonts.googleapis.com/css?family=Inter&amp;display=swap" rel="stylesheet">
                 <a
                     class="bmc-btn"
