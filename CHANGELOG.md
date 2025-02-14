@@ -1,3 +1,10 @@
+## [2.7.1](https://github.com/debjitbis08/sim8085/compare/v2.7.0...v2.7.1) (2025-02-14)
+
+
+### Bug Fixes
+
+* Fix build ([69f3fb9](https://github.com/debjitbis08/sim8085/commit/69f3fb97ec99a459969cc425df9611dcb1349d82))
+
 # [2.7.0](https://github.com/debjitbis08/sim8085/compare/v2.6.2...v2.7.0) (2025-02-14)
 
 
