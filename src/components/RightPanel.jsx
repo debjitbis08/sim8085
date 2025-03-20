@@ -97,12 +97,12 @@ export function RightPanel() {
                     />
                 </div>
                 <div class="h-[0.1rem] bg-secondary-foreground w-5 hidden md:block"></div>
-                {/*<PanelButton*/}
-                {/*  icon={<FiFolder />}*/}
-                {/*  isActive={isActive('workspace')}*/}
-                {/*  onClick={() => showTab('workspace')}*/}
-                {/*  title="Files & Folders"*/}
-                {/*/>*/}
+                {/* <PanelButton
+                    icon={<FiFolder />}
+                    isActive={isActive("workspace")}
+                    onClick={() => showTab("workspace")}
+                    title="Files & Folders"
+                /> */}
                 <PanelButton icon={<FiCpu />} isActive={isActive("cpu")} onClick={() => showTab("cpu")} title="CPU" />
                 <PanelButton
                     icon={<BsMemory />}
