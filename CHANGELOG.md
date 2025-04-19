@@ -1,3 +1,11 @@
+## [2.7.2](https://github.com/debjitbis08/sim8085/compare/v2.7.1...v2.7.2) (2025-04-19)
+
+
+### Bug Fixes
+
+* Improve error message for non-ASCII characters in code ([ac0c76d](https://github.com/debjitbis08/sim8085/commit/ac0c76daf6712ccc96985db20e6469296fd47fb6))
+* Minor changes ([43524c6](https://github.com/debjitbis08/sim8085/commit/43524c69c25f1006122db371067a77ea11580518))
+
 ## [2.7.1](https://github.com/debjitbis08/sim8085/compare/v2.7.0...v2.7.1) (2025-02-14)
 
 
