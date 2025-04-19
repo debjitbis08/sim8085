@@ -858,6 +858,40 @@ operation = inst:(carryBitInstructions / singleRegInstructions / nopInstruction 
         size: opcode.size,
         location: location()
     };
+} / invalidInstructionError
+
+invalidInstructionError = str:(.*) {
+    const ignoredCodes = new Set([0x09, 0x0A, 0x0D]); // tab, newline, carriage return
+
+    const spoofedChars = [...str].filter(c => {
+        const code = c.charCodeAt(0);
+        return (code < 32 || code > 126) && !ignoredCodes.has(code);
+    });
+
+    if (spoofedChars.length > 0) {
+        const examples = spoofedChars.map(c => {
+            const hex = c.charCodeAt(0).toString(16).toUpperCase().padStart(4, "0");
+            return `'${c}' (U+${hex})`;
+        });
+
+        error(JSON.stringify({
+            type: "Invalid Instruction",
+            message: "Unknown or Invalid instruction used",
+            hint: [
+                `The instruction contains non-ASCII characters: ${examples.join(", ")}`,
+                "These may look like normal letters but are not. This usually happens when copying from PDFs or websites.",
+                "Try typing the instruction manually using English keyboard layout."
+            ]
+        }));
+    } else {
+        error(JSON.stringify({
+            type: "Invalid Instruction",
+            message: "Unknown or Invalid instruction used",
+            hint: [
+                "Check if you made a typo or used an unsupported instruction."
+            ]
+        }));
+    }
 }
 
 carryBitInstructions = op:(op_stc / op_cmc) {

@@ -15,8 +15,8 @@ const { small } = Astro.props;
     <div class={`flex items-center justify-center ${small ? "mt-2" : "my-5"}`}>
         <a href="/docs/en" target="_blank" class="hover:text-active-foreground transition-colors">Documentation</a>
         <span class="px-2">·</span>
-        <a href="https://www.debjitbiswas.com/tags/sim8085/" target="_blank" class="hover:text-active-foreground transition-colors">Blog</a>
-        <span class="px-2">·</span>
+        {/* <a href="https://www.debjitbiswas.com/tags/sim8085/" target="_blank" class="hover:text-active-foreground transition-colors">Blog</a>
+        <span class="px-2">·</span> */}
         <!-- <FAQs /> -->
         <a href="/changelog" target="_blank" class="hover:text-active-foreground transition-colors">Changelog</a>
         <span class="px-2">·</span>
@@ -26,7 +26,7 @@ const { small } = Astro.props;
         <span class="px-2">·</span>
         <a href="https://github.com/debjitbis08/sim8085/discussions/categories/q-a" target="_blank" class="hover:text-active-foreground transition-colors">Discussions</a>
         <span class="px-2">·</span>
-        <p>&copy; Copyright {year} — <a href="https://www.debjitbiswas.com" target="_blank" class="hover:text-active-foreground transition-colors">Debjit Biswas</a></p>
+        <p>&copy; Copyright {year} — Debjit Biswas</p>
     </div>
 </footer>
 )}
