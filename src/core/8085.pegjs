@@ -858,7 +858,7 @@ operation = inst:(carryBitInstructions / singleRegInstructions / nopInstruction 
         size: opcode.size,
         location: location()
     };
-} / invalidInstructionError
+}
 
 invalidInstructionError = str:(.*) {
     const ignoredCodes = new Set([0x09, 0x0A, 0x0D]); // tab, newline, carriage return
