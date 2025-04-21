@@ -1,3 +1,10 @@
+## [2.7.4](https://github.com/debjitbis08/sim8085/compare/v2.7.3...v2.7.4) (2025-04-21)
+
+
+### Bug Fixes
+
+* Show errors for non-ASCII characters for line ([00b6d91](https://github.com/debjitbis08/sim8085/commit/00b6d91355aeb667140011025f1ff4fa22b8b155))
+
 ## [2.7.3](https://github.com/debjitbis08/sim8085/compare/v2.7.2...v2.7.3) (2025-04-21)
 
 
