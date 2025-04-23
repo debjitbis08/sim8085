@@ -1,3 +1,10 @@
+# [2.8.0](https://github.com/debjitbis08/sim8085/compare/v2.7.4...v2.8.0) (2025-04-23)
+
+
+### Features
+
+* Support multiple labels for single statement ([0d6d12e](https://github.com/debjitbis08/sim8085/commit/0d6d12e9079a04a5ea48aa6d88b02887d590bdf2))
+
 ## [2.7.4](https://github.com/debjitbis08/sim8085/compare/v2.7.3...v2.7.4) (2025-04-21)
 
 
