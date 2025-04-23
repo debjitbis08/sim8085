@@ -346,11 +346,12 @@ machineCode = prg:program {
             }
             if (line.opcode === "equ" || line.opcode === 'set') {
                 var data = line.data[0];
-                if (symbolTable[line.label.value] && symbolTable[line.label.value].immutable) {
-                    error("Cannot redefine symbols defined with EQU. Use SET for that purpose. Trying to redefine " + line.label.value, line.location);
+                var label = line.label;
+                if (symbolTable[label.value] && symbolTable[label.value].immutable) {
+                    error("Cannot redefine symbols defined with EQU. Use SET for that purpose. Trying to redefine " + label.value, line.location);
                 }
                 var value = typeof data === 'function' ? data() : data;
-                symbolTable[line.label.value] = {
+                symbolTable[label.value] = {
                     addr: value,
                     value: value,
                     immutable: line.opcode === 'equ'
@@ -443,24 +444,26 @@ program = __ first:line rest:(eol+ __ l:(!. / l:line { return l; }) {return l})*
     return [first].concat(rest);
 }
 
-opWithLabel = label:labelPart? op:(operation / directive) comment? {
-    if (label && label !== "") {
-        symbolTable[label.value] = {
-            addr: ilc,
-            value: op.data ?
-                    Array.isArray(op.data) ?
-                        op.data.map(function (d) {
-                            return d.value ? d.value : d;
-                        })
-                        : op.data.value ?
-                            op.data.value : op.data
-                    : ilc
-        };
+opWithLabel = labels:(labelPart)* op:(operation / directive) comment? {
+    if (labels.length) {
+        labels.forEach(function (label) {
+            symbolTable[label.value] = {
+                addr: ilc,
+                value: op.data ?
+                        Array.isArray(op.data) ?
+                            op.data.map(function (d) {
+                                return d.value ? d.value : d;
+                            })
+                            : op.data.value ?
+                                op.data.value : op.data
+                        : ilc
+            };
+        });
     }
 
     if (op !== null) {
       ilc += op.size;
-      return { ...op, label };
+      return { ...op, labels };
     }
 }
 

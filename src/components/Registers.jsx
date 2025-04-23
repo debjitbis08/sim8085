@@ -3,7 +3,7 @@ import { createSignal, createEffect } from "solid-js";
 import { Tooltip } from "@kobalte/core/tooltip";
 import { produce } from "solid-js/store";
 import { toByteString } from "../utils/NumberFormat";
-import { store, setStore } from "../store/store";
+import { store, setStore, REGISTER_KEYS } from "../store/store";
 import { setRegisters } from "../core/simulator";
 import { FiHelpCircle } from "solid-icons/fi";
 
@@ -82,9 +82,10 @@ export function Registers() {
                     canEditLow={false}
                     onSave={updateAccumulator}
                 />
-                {Object.keys(store.registers).map((registerId) => (
+                {REGISTER_KEYS.map((registerId) => (
                     <Register
                         name={registerId.toUpperCase()}
+                        nameTooltip={<p>General purpose register pair {registerId.toUpperCase()}</p>}
                         high={store.registers[registerId].high}
                         low={store.registers[registerId].low}
                         canEditHigh={true}
@@ -94,7 +95,7 @@ export function Registers() {
                 ))}
                 <Register
                     name="SP"
-                    nameTooltip="Stack Pointer"
+                    nameTooltip={<p>Stack Pointer</p>}
                     high={(store.stackPointer >> 8) & 0xff}
                     low={store.stackPointer & 0xff}
                     canEditLow={false}
@@ -103,7 +104,7 @@ export function Registers() {
                 />
                 <Register
                     name="PC"
-                    nameTooltip="Program Counter"
+                    nameTooltip={<p>Program Counter</p>}
                     high={(store.programCounter >> 8) & 0xff}
                     low={store.programCounter & 0xff}
                     canEditLow={false}
@@ -179,21 +180,17 @@ function Register(props) {
 
     return (
         <div class="flex items-center gap-1 my-2 p-1 hover:bg-active-background">
-            {props.nameTooltip ? (
-                <Tooltip placement="top">
-                    <Tooltip.Trigger class="tooltip__trigger grow text-left">
-                        <span class="font-bold">{props.name}</span>
-                    </Tooltip.Trigger>
-                    <Tooltip.Portal>
-                        <Tooltip.Content class="tooltip__content">
-                            <Tooltip.Arrow />
-                            <p>{props.nameTooltip}</p>
-                        </Tooltip.Content>
-                    </Tooltip.Portal>
-                </Tooltip>
-            ) : (
-                <span class="font-bold grow">{props.name}</span>
-            )}
+            <Tooltip placement="top">
+                <Tooltip.Trigger class="tooltip__trigger grow text-left">
+                    <span class="font-bold">{props.name}</span>
+                </Tooltip.Trigger>
+                <Tooltip.Portal class="hidden">
+                    <Tooltip.Content class="tooltip__content">
+                        <Tooltip.Arrow />
+                        {typeof props.nameTooltip === "string" ? <p>{props.nameTooltip}</p> : props.nameTooltip}
+                    </Tooltip.Content>
+                </Tooltip.Portal>
+            </Tooltip>
             <span class="font-mono text-secondary-foreground">0x</span>
             {editing() && props.canEditHigh ? (
                 <input
