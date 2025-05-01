@@ -19,12 +19,14 @@ import {
     loadProgram,
     runProgram,
     runSingleInstruction,
+    runProgramInSlices,
     setAllMemoryLocations,
     setFlags,
     setPC,
     setRegisters,
     startDebug,
     unloadProgram,
+    halt,
 } from "../core/simulator.js";
 import { AiOutlineClear } from "solid-icons/ai";
 import { Tooltip } from "@kobalte/core/tooltip";
@@ -184,12 +186,12 @@ export function Actions() {
         );
     }
 
-    function run() {
+    async function run() {
         let outputState;
         let errorStatus = 0;
         try {
             setStore("programState", "Running");
-            outputState = runProgram(store);
+            outputState = await runProgram(store);
             if (store.settings.alert.afterSuccessfulRun) {
                 showToaster("success", "Program ran successfully", "Please check the left panel for updated state.");
             }
@@ -224,11 +226,54 @@ export function Actions() {
         }
     }
 
-    function loadAndRun() {
+    async function runInSlice() {
+        let errorStatus = 0;
+        try {
+            setStore("programState", "Running");
+            await runProgramInSlices(store, (isDone, outputState) => {
+                if (isDone && store.settings.alert.afterSuccessfulRun) {
+                    showToaster(
+                        "success",
+                        "Program ran successfully",
+                        "Please check the left panel for updated state.",
+                    );
+                    setStore("programState", "Idle");
+                }
+                updateState(outputState);
+            });
+        } catch (e) {
+            if (e.status === 1)
+                showToaster("error", "Program existed with error", "Unknown instruction encountered in the program.");
+            else if (e.status === 2) {
+                showToaster(
+                    "error",
+                    "Program existed with error",
+                    <InfiniteLoopError code={store.activeFile.content} />,
+                );
+            } else showToaster("error", "Program existed with error", "We could not identify the error.");
+            errorStatus = e.status;
+            trackEvent("run failed", {
+                code: store.activeFile.content,
+                status:
+                    e.status === 1
+                        ? "UNKNONWN_INSTRUCTION_ERROR"
+                        : e.status === 2
+                          ? "INFINITE_LOOP"
+                          : "UNKNOWN_RUNTIME_ERROR",
+            });
+            console.error(e);
+        }
+    }
+
+    async function loadAndRun() {
         beforeRun();
         load();
         if (store.errors.length === 0) {
-            run();
+            if (store.settings.run.enableTiming) {
+                await runInSlice();
+            } else {
+                await run();
+            }
         }
     }
 
@@ -336,6 +381,12 @@ export function Actions() {
             return;
         }
 
+        if (store.programState === "Running") {
+            halt(store);
+            setStore("programState", "Loaded");
+            return;
+        }
+
         clearFlags();
         clearRegisters();
         resetAllLocations();
@@ -384,7 +435,9 @@ export function Actions() {
         md:flex-row md:w-auto
     "
         >
-            <div class="flex items-center gap-1 text-sm pl-2 rounded border border-active-border">
+            <div
+                class={`flex items-center gap-1 text-sm pl-2 rounded border border-active-border ${store.settings.run.enableTiming && store.programState === "Running" ? "hidden" : ""}`}
+            >
                 <div class="flex items-center gap-1 border-b-0 border-b-gray-300 min-w-0">
                     <span class="font-mono text-gray-400">0x</span>
                     <input
@@ -431,6 +484,7 @@ export function Actions() {
                     shortcut="Ctrl + F5"
                     onClick={loadAndRun}
                     disabled={false}
+                    isHidden={store.settings.run.enableTiming && store.programState === "Running"}
                 />
             </div>
             <ActionButton
@@ -443,6 +497,7 @@ export function Actions() {
                 }
                 onClick={loadOrUnload}
                 disabled={false}
+                isHidden={store.settings.run.enableTiming && store.programState === "Running"}
                 title={store.programState === "Idle" ? "Assemble & Load" : "Unload program from memory"}
                 shortcut={store.programState === "Idle" ? "Ctrl + Shift + B" : "Ctrl + Shift + U"}
             />
@@ -463,6 +518,7 @@ export function Actions() {
                 }
                 onClick={runOne}
                 disabled={false}
+                isHidden={store.settings.run.enableTiming && store.programState === "Running"}
                 title={
                     store.programState === "Loaded"
                         ? "Step Through"
@@ -476,16 +532,28 @@ export function Actions() {
             />
             <ActionButton
                 icon={
-                    store.programState === "Paused" ? (
-                        <HiSolidStop class="text-red-foreground" />
+                    store.programState === "Paused" || store.programState === "Running" ? (
+                        <>
+                            <HiSolidStop class="text-red-foreground" />
+                            {store.programState === "Running" ? (
+                                <span class="text-gray-300">Stop Execution</span>
+                            ) : null}
+                        </>
                     ) : (
                         <AiOutlineClear class="text-red-foreground" />
                     )
                 }
-                title={store.programState === "Paused" ? "Stop Debugging" : "Clear All Data"}
+                title={
+                    store.programState === "Paused"
+                        ? "Stop Debugging"
+                        : store.programState === "Running"
+                          ? "Stop Execution"
+                          : "Clear All Data"
+                }
                 shortcut={store.programState === "Paused" ? "Shift + F5" : ""}
                 onClick={clearAllDataOrStop}
                 disabled={false}
+                isHidden={false}
             />
             <Portal>
                 <Toast.Region>
@@ -500,9 +568,9 @@ function ActionButton(props) {
     return (
         <Tooltip>
             <Tooltip.Trigger
-                class="tooltip__trigger rounded hover:bg-active-background border border-transparent hover:border-active-border"
+                class={`${props.isHidden ? "hidden" : ""} tooltip__trigger rounded hover:bg-active-background border border-transparent hover:border-active-border`}
                 onClick={props.onClick}
-                disabled={props.disabled}
+                disabled={props.disabled || props.isHidden}
             >
                 <div class="px-2 py-2 flex items-center gap-2 text-gray-600 text-xl md:text-base">{props.icon}</div>
             </Tooltip.Trigger>

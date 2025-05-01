@@ -27,6 +27,10 @@ const initialRegisterState = () => {
 };
 
 export const DEFAULT_SETTINGS = {
+    run: {
+        enableTiming: false,
+        clockFrequency: "3072000",
+    },
     beforeRun: {
         clearFlags: true,
         clearRegisters: true,

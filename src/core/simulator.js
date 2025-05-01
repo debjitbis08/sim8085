@@ -4,23 +4,29 @@ import { parse } from "../core/8085.pegjs";
 
 let simulator = null;
 let execute8085Program = null;
+let execute8085ProgramSlice = null;
 let load8085Program = null;
 let unload8085Program = null;
 let execute8085ProgramUntil = null;
+let interruptToHalt = null;
 let statePointer = null;
 
 // Initialize the simulator asynchronously
 export async function initSimulator() {
     simulator = await Module();
-    execute8085Program = simulator.cwrap("ExecuteProgram", "number", ["number", "number"]);
-    execute8085ProgramUntil = simulator.cwrap("ExecuteProgramUntil", "number", [
+    execute8085Program = simulator.cwrap("ExecuteProgram", "number", ["number", "number"], { async: true });
+    execute8085ProgramSlice = simulator.cwrap("ExecuteProgramSlice", "number", ["number", "number", "number"], {
+        async: true,
+    });
+    execute8085ProgramUntil = simulator.cwrap(
+        "ExecuteProgramUntil",
         "number",
-        "number",
-        "number",
-        "number",
-    ]);
+        ["number", "number", "number", "number"],
+        { async: true },
+    );
     load8085Program = simulator.cwrap("LoadProgram", "number", ["number", "array", "number", "number"]);
     unload8085Program = simulator.cwrap("UnloadProgram", "number", ["number", "array", "number", "number"]);
+    interruptToHalt = simulator.cwrap("InterruptToHalt", "number", ["number"]);
 
     // Initialize the state pointer
     statePointer = simulator._Init8085();
@@ -106,7 +112,7 @@ export function unloadProgram(store) {
 }
 
 // Run the program on the simulator
-export function runProgram(store) {
+export async function runProgram(store) {
     var inputState = getCpuState(store);
 
     // TODO Check why Loaded state check is needed
@@ -116,8 +122,20 @@ export function runProgram(store) {
 
     // const loadAddress = Math.min(...store.assembled.map((line) => line.currentAddress));
 
+    if (store.settings.run.enableTiming) {
+        simulator.ccall("set_timing_enabled", "void", ["number"], [1]);
+    } else {
+        simulator.ccall("set_timing_enabled", "void", ["number"], [0]);
+    }
+
+    const clockFrequency = Number.parseInt(store.settings.run.clockFrequency);
+    simulator.ccall("set_clock_frequency", "void", ["number"], [clockFrequency]);
+
     try {
-        const newStatePointer = execute8085Program(store.statePointer, store.pcStartValue);
+        const start = performance.now();
+        const newStatePointer = await execute8085Program(store.statePointer, store.pcStartValue);
+        const end = performance.now();
+        console.log("Execution Time", end - start);
         const outputState = getStateFromPtr(simulator, newStatePointer);
 
         return {
@@ -146,17 +164,74 @@ export function runProgram(store) {
     }
 }
 
+export async function runProgramInSlices(store, onStateUpdate) {
+    var inputState = getCpuState(store);
+
+    // TODO Check why Loaded state check is needed
+    if (store.programState === "Loaded") {
+        setState(simulator, store.statePointer, inputState);
+    }
+
+    // const loadAddress = Math.min(...store.assembled.map((line) => line.currentAddress));
+
+    // Always enable timing when running in slice mode.
+    simulator.ccall("set_timing_enabled", "void", ["number"], [1]);
+
+    const clockFrequency = Number.parseInt(store.settings.run.clockFrequency);
+    simulator.ccall("set_clock_frequency", "void", ["number"], [clockFrequency]);
+
+    async function step(isFirst) {
+        try {
+            const start = performance.now();
+            const isDone = await execute8085ProgramSlice(store.statePointer, isFirst ? store.pcStartValue : -1, 10);
+            const end = performance.now();
+            console.log("Execution Time", end - start);
+            const outputState = getStateFromPtr(simulator, store.statePointer);
+            console.log(outputState.io.slice(0, 5));
+
+            onStateUpdate(isDone, {
+                accumulator: outputState.a,
+                registers: {
+                    bc: { high: outputState.b, low: outputState.c },
+                    de: { high: outputState.d, low: outputState.e },
+                    hl: { high: outputState.h, low: outputState.l },
+                },
+                flags: {
+                    z: outputState.flags.z || false,
+                    s: outputState.flags.s || false,
+                    p: outputState.flags.p || false,
+                    c: outputState.flags.cy || false,
+                    ac: outputState.flags.ac || false,
+                },
+                stackPointer: outputState.sp,
+                programCounter: outputState.pc,
+                memory: outputState.memory,
+                io: outputState.io,
+                statePointer: store.statePointer,
+            });
+
+            if (!isDone) {
+                setTimeout(async function () {
+                    await step(false);
+                }, 0);
+            }
+        } catch (e) {
+            console.error("Execution failed:", e);
+            throw e;
+        }
+    }
+
+    await step(true);
+}
+
 export function runSingleInstruction(store) {
     var inputState = getCpuState(store);
 
     // const loadAddress = Math.min(...store.assembled.map((line) => line.currentAddress));
 
     try {
-        console.log(`Emulating instruction at ${store.pcStartValue.toString(16)}`);
         const status = simulator._Emulate8085Op(inputState.ptr, store.pcStartValue);
         const outputState = getStateFromPtr(simulator, inputState.ptr);
-
-        console.log("status", status);
 
         return [
             status,
@@ -257,4 +332,8 @@ export function setRegisters(store) {
 
 export function setFlags(store) {
     setFlagState(simulator, store.statePointer, getCpuState(store));
+}
+
+export function halt(store) {
+    interruptToHalt(store.statePointer);
 }
