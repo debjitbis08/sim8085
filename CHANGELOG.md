@@ -1,3 +1,10 @@
+## [2.9.1](https://github.com/debjitbis08/sim8085/compare/v2.9.0...v2.9.1) (2025-05-03)
+
+
+### Bug Fixes
+
+* Fix posthog ([9fefa74](https://github.com/debjitbis08/sim8085/commit/9fefa748bb7381c0be50860ca64a47e1a0f447fa))
+
 # [2.9.0](https://github.com/debjitbis08/sim8085/compare/v2.8.0...v2.9.0) (2025-05-03)
 
 

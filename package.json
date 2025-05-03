@@ -2,7 +2,7 @@
     "name": "sim8085",
     "description": "Development environment for Intel 8085 microprocessor.",
     "type": "module",
-    "version": "2.9.0",
+    "version": "2.9.1",
     "private": true,
     "license": "BSD-3-Clause",
     "author": "Debjit Biswas",
