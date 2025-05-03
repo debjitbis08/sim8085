@@ -1,25 +1,35 @@
 <script>
     import posthog from 'posthog-js';
     import {supabase} from '../../lib/supabase.js';
+    import { getFingerprint } from '@thumbmarkjs/thumbmarkjs';
 
     const apiKey = import.meta.env.PUBLIC_POSTHOG_API_KEY;
     const useTracking = import.meta.env.PUBLIC_USE_TRACKING === 'true';
+    const cookieConsent = localStorage.getItem('cookie_consent');
 
     if (useTracking && apiKey && !window.location.host.includes('127.0.0.1') && !window.location.host.includes('localhost')) {
         posthog.init(apiKey, {
             api_host: 'https://us.i.posthog.com',
-            persistence: localStorage.getItem('cookie_consent') === 'yes' ? 'localStorage+cookie' : 'memory',
+            persistence: cookieConsent === 'yes' ? 'localStorage+cookie' : 'memory',
         });
 
-        supabase.auth.getSession().then(({data, error}) => {
-            if (error || data == null || data.session == null || data.session.user == null) return;
+        supabase.auth.getSession().then(async ({data, error}) => {
+            const session = data?.session;
 
-            const name = data.session.user?.user_metadata?.name || "";
+            if (!error && session?.user) {
+                const name = data.session.user?.user_metadata?.name || "";
 
-            posthog.identify(
-                data.session.user.id,
-                {email: data.session.user.email, name}
-            );
+                posthog.identify(
+                    data.session.user.id,
+                    {email: data.session.user.email, name}
+                );
+            } else if (cookieConsent === "no") {
+                const fingerprint = await getFingerprint();
+                posthog.identify(
+                    fingerprint,
+                    { anon: true }
+                );
+            }
         });
     }
 </script>
