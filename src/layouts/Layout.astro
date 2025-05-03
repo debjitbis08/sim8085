@@ -46,10 +46,10 @@ const { title, showActions, fullwidth, smallFooter, noHeader, noFooter } = Astro
               if (theme === 'system') {
                   // Detect system preference (dark or light)
                   const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                  document.documentElement.classList.toggle('dark', isDarkMode);
+                  document.documentElement.setAttribute("data-theme", isDarkMode ? 'dark' : 'light');
               } else {
                   // Apply the manually selected theme ('light' or 'dark')
-                  document.documentElement.classList.toggle('dark', theme === 'dark');
+                  document.documentElement.setAttribute('data-theme', theme === 'dark' ? 'dark' : 'light');
               }
           }());
         </script>

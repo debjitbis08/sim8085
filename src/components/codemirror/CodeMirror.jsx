@@ -96,7 +96,6 @@ export function CodeMirror(props) {
                     lines = Decoration.none;
                     lines = lines.update({ add: [lineHighlightMark.range(e.value)] });
                 } else if (e.is(removeLineHighlight)) {
-                    console.log("Remove line highlight");
                     lines = Decoration.none;
                 }
             }

@@ -82,7 +82,7 @@ export function Settings() {
                                         lens={createLens(["run", "enableTiming"])}
                                     />
                                 </div>
-                                <div class="mb-2 w-full">
+                                <div class={`mb-2 w-full ${store.settings.run.enableTiming ? "" : "hidden"}`}>
                                     <SettingSelect
                                         label="CPU Clock Frequency"
                                         lens={createLens(["run", "clockFrequency"])}
@@ -209,7 +209,10 @@ function SettingSelect(props) {
                 optionTextValue="label"
                 defaultValue={options[0]}
                 itemComponent={(props) => (
-                    <Select.Item item={props.item}>
+                    <Select.Item
+                        item={props.item}
+                        class="px-2 py-1 flex items-center gap-2 cursor-pointer hover:bg-active-background"
+                    >
                         <Select.ItemLabel>{props.item.rawValue.label}</Select.ItemLabel>
                         <Select.ItemIndicator>
                             <FaSolidCheck />
@@ -229,7 +232,7 @@ function SettingSelect(props) {
                 </Select.Trigger>
                 {/* Portal uses z-index from the content */}
                 <Select.Portal>
-                    <Select.Content class="select__content z-[9999]">
+                    <Select.Content class="select__content z-[9999] bg-page-background">
                         <Select.Listbox class="select__listbox" />
                     </Select.Content>
                 </Select.Portal>

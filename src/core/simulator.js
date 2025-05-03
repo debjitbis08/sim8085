@@ -11,19 +11,31 @@ let execute8085ProgramUntil = null;
 let interruptToHalt = null;
 let statePointer = null;
 
+export const setIOWriteCallback = (function () {
+    let callback = null;
+
+    globalThis.io_write = function (address, value) {
+        if (callback) {
+            callback(address, value);
+        }
+    };
+
+    return function (fn) {
+        callback = fn;
+    };
+})();
+
 // Initialize the simulator asynchronously
 export async function initSimulator() {
     simulator = await Module();
-    execute8085Program = simulator.cwrap("ExecuteProgram", "number", ["number", "number"], { async: true });
-    execute8085ProgramSlice = simulator.cwrap("ExecuteProgramSlice", "number", ["number", "number", "number"], {
-        async: true,
-    });
-    execute8085ProgramUntil = simulator.cwrap(
-        "ExecuteProgramUntil",
+    execute8085Program = simulator.cwrap("ExecuteProgram", "number", ["number", "number"]);
+    execute8085ProgramSlice = simulator.cwrap("ExecuteProgramSlice", null, ["number", "number", "number", "number"]);
+    execute8085ProgramUntil = simulator.cwrap("ExecuteProgramUntil", "number", [
         "number",
-        ["number", "number", "number", "number"],
-        { async: true },
-    );
+        "number",
+        "number",
+        "number",
+    ]);
     load8085Program = simulator.cwrap("LoadProgram", "number", ["number", "array", "number", "number"]);
     unload8085Program = simulator.cwrap("UnloadProgram", "number", ["number", "array", "number", "number"]);
     interruptToHalt = simulator.cwrap("InterruptToHalt", "number", ["number"]);
@@ -112,7 +124,7 @@ export function unloadProgram(store) {
 }
 
 // Run the program on the simulator
-export async function runProgram(store) {
+export function runProgram(store) {
     var inputState = getCpuState(store);
 
     // TODO Check why Loaded state check is needed
@@ -133,7 +145,7 @@ export async function runProgram(store) {
 
     try {
         const start = performance.now();
-        const newStatePointer = await execute8085Program(store.statePointer, store.pcStartValue);
+        const newStatePointer = execute8085Program(store.statePointer, store.pcStartValue);
         const end = performance.now();
         console.log("Execution Time", end - start);
         const outputState = getStateFromPtr(simulator, newStatePointer);
@@ -164,7 +176,7 @@ export async function runProgram(store) {
     }
 }
 
-export async function runProgramInSlices(store, onStateUpdate) {
+export function runProgramInSlices(store, onStateUpdate) {
     var inputState = getCpuState(store);
 
     // TODO Check why Loaded state check is needed
@@ -180,16 +192,26 @@ export async function runProgramInSlices(store, onStateUpdate) {
     const clockFrequency = Number.parseInt(store.settings.run.clockFrequency);
     simulator.ccall("set_clock_frequency", "void", ["number"], [clockFrequency]);
 
-    async function step(isFirst) {
-        try {
-            const start = performance.now();
-            const isDone = await execute8085ProgramSlice(store.statePointer, isFirst ? store.pcStartValue : -1, 10);
-            const end = performance.now();
-            console.log("Execution Time", end - start);
-            const outputState = getStateFromPtr(simulator, store.statePointer);
-            console.log(outputState.io.slice(0, 5));
+    const resultPtr = simulator._malloc(8);
 
-            onStateUpdate(isDone, {
+    let lastSliceMs = 200;
+
+    function step(isFirst) {
+        const start = performance.now();
+        try {
+            execute8085ProgramSlice(
+                store.statePointer,
+                isFirst ? store.pcStartValue : -1,
+                // How many T-States required for lastSliceMs
+                Math.floor(clockFrequency * (lastSliceMs / 1000)),
+                resultPtr,
+            );
+            const outputState = getStateFromPtr(simulator, store.statePointer);
+
+            const halted = simulator.getValue(resultPtr, "i32");
+            const tstates = simulator.getValue(resultPtr + 4, "i32");
+
+            onStateUpdate(halted, {
                 accumulator: outputState.a,
                 registers: {
                     bc: { high: outputState.b, low: outputState.c },
@@ -210,18 +232,29 @@ export async function runProgramInSlices(store, onStateUpdate) {
                 statePointer: store.statePointer,
             });
 
-            if (!isDone) {
-                setTimeout(async function () {
-                    await step(false);
-                }, 0);
+            if (!halted) {
+                const end = performance.now();
+                const actualTimeTaken = end - start;
+                const delayMs = (1000 * tstates) / clockFrequency;
+                const remainingDelay = Math.max(0, delayMs - actualTimeTaken);
+                lastSliceMs = 0.75 * lastSliceMs + 0.25 * actualTimeTaken;
+                console.log(
+                    `Used ${tstates} T-states in ${actualTimeTaken.toFixed(2)}ms; next sliceMs = ${lastSliceMs.toFixed(2)}`,
+                );
+                setTimeout(function () {
+                    step(false);
+                }, remainingDelay);
+            } else {
+                simulator._free(resultPtr);
             }
         } catch (e) {
             console.error("Execution failed:", e);
+            simulator._free(resultPtr);
             throw e;
         }
     }
 
-    await step(true);
+    step(true);
 }
 
 export function runSingleInstruction(store) {

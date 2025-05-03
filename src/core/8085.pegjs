@@ -866,7 +866,7 @@ defineDirective = dir:(defineSymbol / setSymbol) whitespace* {
 operation = inst:(carryBitInstructions / singleRegInstructions / nopInstruction /
     dataTransferInstructions / regOrMemToAccInstructions / rotateAccInstructions /
     regPairInstructions / immediateInstructions / ioInstructions / directAddressingInstructions /
-    jumpInstructions / callInstructions / returnInstructions / haltInstruction) whitespace* {
+    jumpInstructions / callInstructions / returnInstructions / interruptInstruction / haltInstruction) whitespace* {
 
     var paramTypes = inst.paramTypes,
         data,
@@ -1099,6 +1099,14 @@ resetInstruction = op:(op_rst) {
 */
 
 haltInstruction = op:(op_hlt) {
+    return {
+        name: op,
+        params: [],
+        paramTypes: []
+    };
+}
+
+interruptInstruction = op:(op_ei / op_di) {
     return {
         name: op,
         params: [],

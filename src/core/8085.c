@@ -1030,6 +1030,8 @@ void returnToCaller(State8085 *state, uint16_t offset)
 	state->sp += 2;
 }
 
+extern void io_write(int address, int value);
+
 int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
 {
 	if (offset == state->pc) {
@@ -2172,6 +2174,7 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
         state->io[opcode[1]] = state->a;
         state->pc += 1;
         states = 10;
+        io_write(opcode[1], state->a);
         break;
 	case 0xd4: // CNC Addr
 		if (0 == state->cc.cy) {
@@ -2595,12 +2598,12 @@ int ExecuteProgramUntil(State8085 *state, uint16_t offset, uint16_t startAt, uin
 		done = Emulate8085Op(state, offset, &stats);
 		printf("PC in C %d", state->pc);
 	}
-    if (sim_options.timing_enabled) {
-        float t_state_duration_ms = 1000.0f / sim_options.clock_frequency_hz;
-        float delay_ms = stats.total_tstates * t_state_duration_ms;
-        printf("\nSleeping for %f, states = %llu, clock = %f", delay_ms, stats.total_tstates, sim_options.clock_frequency_hz);
-        emscripten_sleep((int)delay_ms);
-    }
+    // if (sim_options.timing_enabled) {
+    //     float t_state_duration_ms = 1000.0f / sim_options.clock_frequency_hz;
+    //     float delay_ms = stats.total_tstates * t_state_duration_ms;
+    //     printf("\nSleeping for %f, states = %llu, clock = %f", delay_ms, stats.total_tstates, sim_options.clock_frequency_hz);
+    //     emscripten_sleep((int)delay_ms);
+    // }
 	printf("%c", state->cc.z ? 'z' : '.');
 	printf("%c", state->cc.s ? 's' : '.');
 	printf("%c", state->cc.p ? 'p' : '.');
@@ -2632,11 +2635,11 @@ State8085 *ExecuteProgram(State8085 *state, uint16_t offset)
 		cycles++;
 	}
 
-    if (sim_options.timing_enabled) {
-        float t_state_duration_ms = 1000.0f / sim_options.clock_frequency_hz;
-        float delay_ms = stats.total_tstates * t_state_duration_ms;
-        emscripten_sleep((int)delay_ms);
-    }
+    // if (sim_options.timing_enabled) {
+    //     float t_state_duration_ms = 1000.0f / sim_options.clock_frequency_hz;
+    //     float delay_ms = stats.total_tstates * t_state_duration_ms;
+    //     emscripten_sleep((int)delay_ms);
+    // }
 
 	printf("%c", state->cc.z ? 'z' : '.');
 	printf("%c", state->cc.s ? 's' : '.');
@@ -2648,19 +2651,20 @@ State8085 *ExecuteProgram(State8085 *state, uint16_t offset)
 	return state;
 }
 
-int ExecuteProgramSlice(State8085 *state, int offset, uint16_t sliceSize)
+typedef struct {
+    int halted;
+    int total_tstates;
+} SliceResult;
+
+void ExecuteProgramSlice(State8085 *state, int offset, uint16_t sliceSize, SliceResult* resultOut)
 {
 	int done = 0;
     ExecutionStats8085 stats = {0};
 
-	printf("State Ptr: %p, SP Ptr: %p\n", state, &state->sp);
-	printf("Offset %u\n", offset);
     if (offset >= 0) {
         state->pc = offset;
         state->sp = 0xFFFF;
     }
-	printf("Memory at offset %u\n", state->memory[offset]);
-	printf("Memory at offset + 1 %u\n", state->memory[offset + 1]);
 
 	while (done == 0 && stats.total_tstates < sliceSize)
 	{
@@ -2672,11 +2676,11 @@ int ExecuteProgramSlice(State8085 *state, int offset, uint16_t sliceSize)
         }
 	}
 
-    if (sim_options.timing_enabled) {
-        float t_state_duration_ms = 1000.0f / sim_options.clock_frequency_hz;
-        float delay_ms = stats.total_tstates * t_state_duration_ms;
-        emscripten_sleep((int)delay_ms);
-    }
+    // if (sim_options.timing_enabled) {
+    //     float t_state_duration_ms = 1000.0f / sim_options.clock_frequency_hz;
+    //     float delay_ms = stats.total_tstates * t_state_duration_ms;
+    //     emscripten_sleep((int)delay_ms);
+    // }
 
 	printf("%c", state->cc.z ? 'z' : '.');
 	printf("%c", state->cc.s ? 's' : '.');
@@ -2685,7 +2689,9 @@ int ExecuteProgramSlice(State8085 *state, int offset, uint16_t sliceSize)
 	printf("%c  ", state->cc.ac ? 'a' : '.');
 	printf("A $%02x B $%02x C $%02x D $%02x E $%02x H $%02x L $%02x SP %04x PC %04x\n", state->a, state->b, state->c,
 		   state->d, state->e, state->h, state->l, state->sp, state->pc);
-	return done;
+	// return done;
+    resultOut->halted = done;
+    resultOut->total_tstates = stats.total_tstates;
 }
 
 int InterruptToHalt(State8085 *state) {

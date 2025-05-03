@@ -27,6 +27,7 @@ import {
     startDebug,
     unloadProgram,
     halt,
+    setIOWriteCallback,
 } from "../core/simulator.js";
 import { AiOutlineClear } from "solid-icons/ai";
 import { Tooltip } from "@kobalte/core/tooltip";
@@ -44,6 +45,15 @@ export function Actions() {
         const statePointer = await initSimulator();
         setStore("statePointer", statePointer);
         setIsReady(true);
+
+        setIOWriteCallback((address, value) => {
+            console.log("IO Write to", address, value);
+            setStore(
+                produce((draftStore) => {
+                    draftStore.io[address] = value;
+                }),
+            );
+        });
     });
 
     function beforeRun() {
@@ -186,12 +196,12 @@ export function Actions() {
         );
     }
 
-    async function run() {
+    function run() {
         let outputState;
         let errorStatus = 0;
         try {
             setStore("programState", "Running");
-            outputState = await runProgram(store);
+            outputState = runProgram(store);
             if (store.settings.alert.afterSuccessfulRun) {
                 showToaster("success", "Program ran successfully", "Please check the left panel for updated state.");
             }
@@ -226,11 +236,11 @@ export function Actions() {
         }
     }
 
-    async function runInSlice() {
+    function runInSlice() {
         let errorStatus = 0;
         try {
             setStore("programState", "Running");
-            await runProgramInSlices(store, (isDone, outputState) => {
+            runProgramInSlices(store, (isDone, outputState) => {
                 if (isDone && store.settings.alert.afterSuccessfulRun) {
                     showToaster(
                         "success",
@@ -270,9 +280,9 @@ export function Actions() {
         load();
         if (store.errors.length === 0) {
             if (store.settings.run.enableTiming) {
-                await runInSlice();
+                runInSlice();
             } else {
-                await run();
+                run();
             }
         }
     }

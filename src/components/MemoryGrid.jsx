@@ -29,7 +29,7 @@ export function MemoryGrid() {
     };
 
     const scrollToCell = (location) => {
-        rowVirtualizer.scrollToIndex(Math.floor(location / 16));
+        rowVirtualizer.scrollToIndex(Math.floor(location / 16), { align: "start", behavior: "smooth" });
     };
 
     const handleKey = (e) => {
