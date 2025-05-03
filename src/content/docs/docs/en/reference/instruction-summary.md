@@ -260,7 +260,7 @@ The following is a summary of the instruction set:
   <div class="instruction">
     <span class="opcode">20</span>
     <span class="mnemonic">
-      <span class="operation">NOP</span>
+      <span class="operation">RIM</span>
     </span>
   </div>
 
@@ -384,7 +384,7 @@ The following is a summary of the instruction set:
   <div class="instruction">
     <span class="opcode">30</span>
     <span class="mnemonic">
-      <span class="operation">NOP</span>
+      <span class="operation">SIM</span>
     </span>
   </div>
 

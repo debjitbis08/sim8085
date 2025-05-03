@@ -230,6 +230,7 @@ const avatarUrl = user?.user_metadata?.avatar_url || '/default-avatar.png'; // D
 </style>
 <script>
     import Alpine from 'alpinejs';
+    import posthog from 'posthog-js';
     import {supabase} from '../lib/supabase.js';
 
     document.addEventListener('alpine:init', () => {
@@ -253,6 +254,7 @@ const avatarUrl = user?.user_metadata?.avatar_url || '/default-avatar.png'; // D
             async logout() {
                 await supabase.auth.signOut();
                 localStorage.removeItem("activeFile");
+                posthog.reset();
                 window.location.reload(); // Refresh the page after logout
             },
 
