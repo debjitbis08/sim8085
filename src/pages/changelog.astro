@@ -90,4 +90,12 @@ const entries = await Promise.all(
 :global(.changelog-entry img) {
     @apply my-3;
 }
+
+:global(.changelog-entry blockquote) {
+    @apply pl-2 border-l-4 border-l-main-border;
+}
+
+:global(.changelog-entry ul) {
+    @apply list-inside list-disc;
+}
 </style>
