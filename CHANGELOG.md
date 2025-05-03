@@ -1,3 +1,11 @@
+# [2.9.0](https://github.com/debjitbis08/sim8085/compare/v2.8.0...v2.9.0) (2025-05-03)
+
+
+### Features
+
+* Add support to run programs with real instruction timing ([b52ba8f](https://github.com/debjitbis08/sim8085/commit/b52ba8fa32b4ee706032bcd03b75d80d80063302))
+* Support long running programs ([2cbd6c2](https://github.com/debjitbis08/sim8085/commit/2cbd6c2448d8884299bd26895f152321f1547cfe))
+
 # [2.8.0](https://github.com/debjitbis08/sim8085/compare/v2.7.4...v2.8.0) (2025-04-23)
 
 
