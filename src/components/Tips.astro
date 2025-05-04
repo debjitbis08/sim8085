@@ -84,23 +84,33 @@
       tipContent: '',
 
       init() {
+        // Don't show modal when offline
+        if (!navigator.onLine) {
+            this.open = false;
+            return;
+        }
+
         const tips = ['/tips/Number.html', '/tips/Comments.html', '/tips/Labels.html'];
         const readTips = JSON.parse(localStorage.getItem('readTips') || '[]').map(tip => `/tips/${tip}.html`);
 
         // Filter out read tips
         const unreadTips = tips.filter(tip => !readTips.includes(tip));
 
-                window.addEventListener("showTips", () => {
-                    const randomTip = tips[Math.floor(Math.random() * tips.length)];
-                    this.currentTip = randomTip.replace('/tips/', '').replace('.html', '');
-                    console.log(randomTip);
-                    fetch(randomTip)
-                        .then(response => response.text())
-                        .then(html => {
-                            this.tipContent = html;
-                        });
-                    this.open = true;
+        window.addEventListener("showTips", () => {
+            if (!navigator.onLine) {
+                this.open = false;
+                return;
+            }
+            const randomTip = tips[Math.floor(Math.random() * tips.length)];
+            this.currentTip = randomTip.replace('/tips/', '').replace('.html', '');
+            fetch(randomTip)
+                .then(response => response.text())
+                .then(html => {
+                    this.tipContent = html;
                 });
+            this.open = true;
+        });
+
         // Check if "Don't show again" is set in localStorage
         const dontShowAgain = localStorage.getItem('dontShowTip');
         if (dontShowAgain === 'true') {

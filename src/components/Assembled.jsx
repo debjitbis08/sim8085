@@ -12,91 +12,17 @@ import { BiRegularDockLeft, BiRegularDockRight, BiSolidDockLeft, BiSolidDockRigh
 
 export function Assembled() {
     let [lines, setLines] = createSignal([]);
-    let [expanded, setExpanded] = createSignal(true);
-    const [width, setWidth] = createSignal(300);
 
     createEffect(() => {
         setLines(zipAssembledSource(store.assembled, store.activeFile.content));
     });
 
-    const toggleExpanded = () => {
-        if (width() <= 32) setWidth(window.innerWidth * (window.innerWidth > 768 ? 0.3 : 0.8));
-        setExpanded((expanded) => !expanded);
-    };
-
-    onMount(() => {
-        setWidth(window.innerWidth * (window.innerWidth > 768 ? 0.3 : 1));
-        const handleResize = () => {
-            const isMd = window.matchMedia("(min-width: 768px)").matches;
-            setExpanded(isMd);
-        };
-
-        // Initial check
-        handleResize();
-
-        const isMd = window.matchMedia("(min-width: 768px)").matches;
-
-        if (isMd) {
-            // Listen for resize events
-            window.addEventListener("resize", handleResize);
-        }
-
-        window.addEventListener("showRightPanel", () => {
-            setExpanded(true);
-        });
-
-        // Cleanup listener on component unmount
-        return () => {
-            window.removeEventListener("resize", handleResize);
-        };
-    });
-
-    const startResize = (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        const onMouseMove = (e) =>
-            setWidth((prev) => {
-                e.preventDefault();
-                e.stopPropagation();
-                let newW = prev - e.movementX;
-                if (newW <= 32) {
-                    newW = 32;
-                    setExpanded(false);
-                } else {
-                    setExpanded(true);
-                }
-                return newW;
-            });
-        const onMouseUp = () => {
-            window.removeEventListener("mousemove", onMouseMove);
-            window.removeEventListener("mouseup", onMouseUp);
-        };
-        window.addEventListener("mousemove", onMouseMove);
-        window.addEventListener("mouseup", onMouseUp);
-        onCleanup(() => onMouseUp()); // Cleanup when SolidJS destroys the component
-    };
-
     return (
-        <div
-            class={`${expanded() ? "w-svw md:w-full" : "w-8"} flex border-y-0 md:border-y border-y-main-border ${expanded() ? "md:border-l" : "border-l-0"} border-l-main-border bg-page-background md:bg-main-background h-[calc(100svh-5.6rem)] md:h-[calc(100vh-6.2rem)] absolute top-0 right-0 md:static ${expanded() ? "shadow-xl" : ""} md:shadow-none`}
-            style={{ width: `${expanded() ? `${width()}px` : "auto"}` }}
-        >
-            <button
-                type="button"
-                class="w-0 md:min-w-[3px] md:w-[3px] h-[calc(100svh-5.5rem)] md:h-[calc(100vh-6.2rem)] cursor-col-resize hover:bg-terminal active:bg-terminal"
-                onMouseDown={startResize}
-                style={{
-                    display: expanded() ? "block" : "none",
-                }}
-            ></button>
-            <div class={`${expanded() ? "p-2 md:p-4 pt-2 md:pt-2" : "p-1 pt-2 pr-4"} w-full`}>
+        <div class={`bg-page-background md:bg-main-background p-4`}>
+            <div class="">
                 <div class="flex items-start gap-2">
-                    <h2 class={`md:text-xl pb-4 ${expanded() ? "block" : "hidden"}`}>
-                        {store.errors.length ? "Assembler Errors" : "Machine Code"}
-                    </h2>
-                    <div
-                        class={`${store.assembled.length && store.errors.length === 0 ? "" : "hidden"} pt-1 ${expanded() ? "block" : "hidden"}`}
-                    >
+                    <h2 class={`md:text-xl pb-4`}>{store.errors.length ? "Assembler Errors" : "Machine Code"}</h2>
+                    <div class={`${store.assembled.length && store.errors.length === 0 ? "" : "hidden"} pt-1`}>
                         <Tooltip placement="right">
                             <Tooltip.Trigger class="tooltip__trigger">
                                 <CopyComponent getTextToCopy={() => copyOutputAsText(lines())} />
@@ -109,30 +35,10 @@ export function Assembled() {
                             </Tooltip.Portal>
                         </Tooltip>
                     </div>
-                    <div class="flex-grow"></div>
-                    <Tooltip placement="left">
-                        <Tooltip.Trigger
-                            class="tooltip__trigger relative py-1 hidden md:block"
-                            onClick={toggleExpanded}
-                        >
-                            {expanded() ? <BiSolidDockRight /> : <BiRegularDockRight />}
-                        </Tooltip.Trigger>
-                        <Tooltip.Portal>
-                            <Tooltip.Content class="tooltip__content">
-                                <Tooltip.Arrow />
-                                <p>{expanded() ? "Collapse Panel" : "Expand Machine Code Panel"}</p>
-                            </Tooltip.Content>
-                        </Tooltip.Portal>
-                    </Tooltip>
                 </div>
-                <div
-                    class={`flex flex-col ${expanded() ? "block" : "hidden"}`}
-                    style={{ height: "calc(100% - 2.75rem)" }}
-                >
+                <div class={`flex flex-col h-full`}>
                     <div class="h-full">
-                        <div
-                            class={`${store.assembled.length ? "" : "hidden"} w-full h-full overflow-x-auto text-[0.7rem] md:text-sm`}
-                        >
+                        <div class={`${store.assembled.length ? "" : "hidden"} h-full text-[0.7rem] md:text-sm`}>
                             <table class={`font-mono table ${styles.machineCodeTable} mb-8`}>
                                 <thead>
                                     <tr class="border-t-0 border-t-main-border hidden md:table-row">
