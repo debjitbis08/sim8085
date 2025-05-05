@@ -77,7 +77,7 @@ const avatarUrl = user?.user_metadata?.avatar_url || '/default-avatar.png'; // D
             <div class="flex-grow"></div>
             <div class="flex items-center gap-2">
                 <ThemeSwitcher />
-                <link href="https://fonts.googleapis.com/css?family=Cookie&amp;display=swap" rel="stylesheet">
+                <!-- <link href="https://fonts.googleapis.com/css?family=Cookie&amp;display=swap" rel="stylesheet"> -->
                 <!-- Profile Icon and Logout Button -->
                 <div x-data="userProfile" class="relative hidden md:block">
                     <template x-if="isLoggedIn">
@@ -110,7 +110,7 @@ const avatarUrl = user?.user_metadata?.avatar_url || '/default-avatar.png'; // D
                         <Fragment set:html={YoutubeIcon}/>
                     </span> <span class="hidden md:inline bmc-btn-text">Demo</span>
                 </a>
-                <link href="https://fonts.googleapis.com/css?family=Inter&amp;display=swap" rel="stylesheet">
+                <!-- <link href="https://fonts.googleapis.com/css?family=Inter&amp;display=swap" rel="stylesheet"> -->
                 <a
                     class="bmc-btn"
                     href="/donate/"
