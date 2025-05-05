@@ -1,3 +1,10 @@
+## [2.10.3](https://github.com/debjitbis08/sim8085/compare/v2.10.2...v2.10.3) (2025-05-05)
+
+
+### Performance Improvements
+
+* Improve loading performance ([ea888ff](https://github.com/debjitbis08/sim8085/commit/ea888ff82fb99b9605dc6b28db6ab3998a75653c))
+
 ## [2.10.2](https://github.com/debjitbis08/sim8085/compare/v2.10.1...v2.10.2) (2025-05-05)
 
 
