@@ -19,24 +19,31 @@
 </div>
 
 <script>
-  import Alpine from 'alpinejs';
-  import posthog from 'posthog-js';
+    import Alpine from 'alpinejs';
+    import posthog from 'posthog-js';
 
-  const useTracking = import.meta.env.PUBLIC_USE_TRACKING === 'true';
-  document.addEventListener('alpine:init', () => {
-    Alpine.data('cookieBanner', () => ({
-      showBanner: useTracking && localStorage.getItem('cookie_consent') !== 'yes' && localStorage.getItem('cookie_consent') !== 'no',
-      acceptCookies() {
-        localStorage.setItem('cookie_consent', 'yes');
-        this.showBanner = false;
-        posthog.set_config({ persistence: 'localStorage+cookie' });
-      },
-      declineCookies() {
-        localStorage.setItem('cookie_consent', 'no');
-        this.showBanner = false;
-      }
-    }));
-  });
+    const useTracking = import.meta.env.PUBLIC_USE_TRACKING === 'true';
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('cookieBanner', () => ({
+            showBanner: false,
+            init() {
+                requestIdleCallback(() => {
+                    setTimeout(() => {
+                        this.showBanner = useTracking && localStorage.getItem('cookie_consent') !== 'yes' && localStorage.getItem('cookie_consent') !== 'no';
+                    }, 1500);
+                });
+            },
+            acceptCookies() {
+                localStorage.setItem('cookie_consent', 'yes');
+                this.showBanner = false;
+                posthog.set_config({ persistence: 'localStorage+cookie' });
+            },
+            declineCookies() {
+                localStorage.setItem('cookie_consent', 'no');
+                this.showBanner = false;
+            }
+        }));
+    });
 </script>
 <style>
   .consent-button {
