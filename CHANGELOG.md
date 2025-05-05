@@ -1,3 +1,18 @@
+## [2.11.2](https://github.com/debjitbis08/sim8085/compare/v2.11.1...v2.11.2) (2025-05-05)
+
+
+### Bug Fixes
+
+* Fix changelog styling for smaller screens ([1cc7be0](https://github.com/debjitbis08/sim8085/commit/1cc7be0b3e1ca7648470d0a8f50c2ba5f305e01d))
+* Fix icon order in Actions ([9ab4727](https://github.com/debjitbis08/sim8085/commit/9ab4727db0d2954a02bcf5bd25837cdb78703501))
+* Fix login page logo on iPhone Safari ([f16fca1](https://github.com/debjitbis08/sim8085/commit/f16fca1f4d24cc500252a727ac599fbc9f9c20cc))
+* Fix styling for tips ([dd48d40](https://github.com/debjitbis08/sim8085/commit/dd48d40c1b6313907b7596f5169dcfca33750b44))
+
+
+### Performance Improvements
+
+* Remove unused Google fonts ([af0227d](https://github.com/debjitbis08/sim8085/commit/af0227dced0b87c2d1dd16ac7b4238a5ae15dcee))
+
 ## [2.11.1](https://github.com/debjitbis08/sim8085/compare/v2.11.0...v2.11.1) (2025-05-05)
 
 
