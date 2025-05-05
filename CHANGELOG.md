@@ -1,3 +1,10 @@
+# [2.11.0](https://github.com/debjitbis08/sim8085/compare/v2.10.3...v2.11.0) (2025-05-05)
+
+
+### Features
+
+* Add toolbox panel ([4a6b51d](https://github.com/debjitbis08/sim8085/commit/4a6b51d6f9f2340a7ebd118e95ed8d8c1d2850b7))
+
 ## [2.10.3](https://github.com/debjitbis08/sim8085/compare/v2.10.2...v2.10.3) (2025-05-05)
 
 
