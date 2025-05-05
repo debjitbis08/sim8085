@@ -1,3 +1,10 @@
+## [2.11.1](https://github.com/debjitbis08/sim8085/compare/v2.11.0...v2.11.1) (2025-05-05)
+
+
+### Bug Fixes
+
+* Fix actions layout on mobile ([026ed60](https://github.com/debjitbis08/sim8085/commit/026ed60e0a751cec61e80091e68a8a7c707dda77))
+
 # [2.11.0](https://github.com/debjitbis08/sim8085/compare/v2.10.3...v2.11.0) (2025-05-05)
 
 
