@@ -61,9 +61,10 @@ const avatarUrl = user?.user_metadata?.avatar_url || '/default-avatar.png'; // D
                     <span class="regular-icon"><Fragment set:html={RegularDockLeftIcon} /></span>
                     <span class="solid-icon"><Fragment set:html={SolidDockLeftIcon} /></span>
                 </button>
-                <div class="flex-grow hidden lg:block"></div>
-                {showActions ?
-                    <ActionsLoader client:idle /> : null}
+                <div class="flex-grow lg:block">
+                    {showActions ?
+                        <ActionsLoader client:idle /> : null}
+                </div>
                 <button type="button" id="right-panel-btn" class="md:hidden">
                     <span class="regular-icon"><Fragment set:html={RegularDockRightIcon} /></span>
                     <span class="solid-icon"><Fragment set:html={SolidDockRightIcon} /></span>

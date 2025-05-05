@@ -429,8 +429,9 @@ export default function Actions() {
     return (
         <div
             class="flex items-center md:gap-2 border-l-0 border-t-0 border-b-0 rounded-sm
-        flex-row-reverse max-w-sm mx-auto justify-between
+        max-w-sm mx-auto md:mr-0 
         md:flex-row md:w-auto
+            justify-center md:justify-end
     "
         >
             <div
