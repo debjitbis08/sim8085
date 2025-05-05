@@ -1,18 +1,20 @@
-import { BsArrowBarLeft, BsArrowBarRight, BsMemory } from "solid-icons/bs";
-import MemoryList from "./MemoryList.jsx";
+import { BsMemory } from "solid-icons/bs";
 import { Registers } from "./Registers.jsx";
 import { Flags } from "./Flags.jsx";
-import { createSignal, onMount, onCleanup, Show } from "solid-js";
+import { createSignal, onMount, onCleanup, Show, Suspense, lazy } from "solid-js";
 import { FiCpu, FiFolder } from "solid-icons/fi";
 import { AiOutlineQuestionCircle } from "solid-icons/ai";
-import { IOPorts } from "./IOPorts.jsx";
-import { Settings } from "./Settings.jsx";
-import { KeyboardShortcuts } from "./KeyboardShortcuts.jsx";
 import { Tooltip } from "@kobalte/core/tooltip";
-import { Workspace } from "./Workspace.jsx";
 import { BiRegularDockLeft, BiSolidDockLeft } from "solid-icons/bi";
-import { HiSolidLightBulb } from "solid-icons/hi";
 import { FaRegularLightbulb, FaSolidLightbulb } from "solid-icons/fa";
+import { VsLoading } from "solid-icons/vs";
+import DelayedComponent from "./generic/DelayedComponent.jsx";
+
+const Workspace = lazy(() => import("./Workspace.jsx"));
+const Settings = lazy(() => import("./Settings.jsx"));
+const KeyboardShortcuts = lazy(() => import("./KeyboardShortcuts.jsx"));
+const IOPorts = lazy(() => import("./IOPorts.jsx"));
+const MemoryList = lazy(() => import("./MemoryList.jsx"));
 
 export function LeftPanel() {
     const [activeTab, setActiveTab] = createSignal("cpu");
@@ -151,10 +153,18 @@ export function LeftPanel() {
                     />
                 </Show>
                 <div class="py-1 md:py-2">
-                    <KeyboardShortcuts />
+                    <DelayedComponent
+                        delayInMs={4000}
+                        fn={() => import("./KeyboardShortcuts.jsx")}
+                        fallback={<VsLoading class="animate-spin" />}
+                    />
                 </div>
                 <div class="py-1 md:py-2">
-                    <Settings />
+                    <DelayedComponent
+                        delayInMs={4000}
+                        fn={() => import("./Settings.jsx")}
+                        fallback={<VsLoading class="animate-spin" />}
+                    />
                 </div>
                 <button type="button" class="hidden">
                     <AiOutlineQuestionCircle class="text-xl" />
@@ -168,22 +178,29 @@ export function LeftPanel() {
                     display: expanded() ? "block" : "none",
                 }}
             >
-                <div class={`w-full ${activeTab() === "workspace" ? "" : "hidden"}`}>
-                    <Workspace />
-                </div>
-                <div class={`w-full max-h-full ${activeTab() === "cpu" ? "" : "hidden"} px-2 md:px-4`}>
-                    <div>
-                        <Registers />
-                    </div>
-                    <div class="mt-10">
-                        <Flags />
-                    </div>
-                </div>
-                <div class={`w-full ${activeTab() === "memory" ? "" : "hidden"} px-2 md:px-4`}>
-                    <MemoryList />
-                </div>
-                <div class={`w-full ${activeTab() === "io" ? "" : "hidden"} px-2 md:px-4`}>
-                    <IOPorts />
+                <div class={`w-full max-h-full px-2 md:px-4`}>
+                    {activeTab() === "cpu" ? (
+                        <>
+                            <div>
+                                <Registers />
+                            </div>
+                            <div class="mt-10">
+                                <Flags />
+                            </div>
+                        </>
+                    ) : activeTab() === "memory" ? (
+                        <Suspense fallback={<PanelLoader />}>
+                            <MemoryList />
+                        </Suspense>
+                    ) : activeTab() === "io" ? (
+                        <Suspense fallback={<PanelLoader />}>
+                            <IOPorts />
+                        </Suspense>
+                    ) : activeTab() === "workspace" ? (
+                        <Suspense fallback={<PanelLoader />}>
+                            <Workspace />
+                        </Suspense>
+                    ) : null}
                 </div>
                 <div class="grow"></div>
             </div>
@@ -217,5 +234,16 @@ export function PanelButton(props) {
                 </Tooltip.Content>
             </Tooltip.Portal>
         </Tooltip>
+    );
+}
+
+function PanelLoader() {
+    return (
+        <div class="h-24 text-center pt-10">
+            <div class="w-full flex items-center justify-center mx-auto mb-2">
+                <VsLoading class="animate-spin" />
+            </div>
+            Loading Panel...
+        </div>
     );
 }

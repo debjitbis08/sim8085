@@ -1,14 +1,10 @@
-import { createEffect, createSignal, onMount, onCleanup } from "solid-js";
+import { createEffect, createSignal } from "solid-js";
 import { store } from "../store/store.js";
 import { toByteString } from "../utils/NumberFormat.js";
-import { HiSolidWrench } from "solid-icons/hi";
-import { VsCopy, VsError } from "solid-icons/vs";
-import { FiAlertCircle, FiAlertTriangle } from "solid-icons/fi";
+import { FiAlertTriangle } from "solid-icons/fi";
 import CopyComponent from "./CopyComponent.jsx";
 import { Tooltip } from "@kobalte/core/tooltip";
-import { BsArrowBarLeft, BsArrowBarRight } from "solid-icons/bs";
 import styles from "./Assembled.module.css";
-import { BiRegularDockLeft, BiRegularDockRight, BiSolidDockLeft, BiSolidDockRight } from "solid-icons/bi";
 
 export function Assembled() {
     let [lines, setLines] = createSignal([]);

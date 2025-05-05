@@ -1,5 +1,4 @@
 ---
-import HandHoldingHeartIcon from '../icons/hand-holding-heart.svg?raw';
 import SponsorIcon from '../icons/sponsor.svg?raw';
 import LockIcon from '../icons/lock.svg?raw';
 import MenuIcon from '../icons/menu.svg?raw';
@@ -10,7 +9,7 @@ import SolidDockRightIcon from '../icons/solid-dock-right.svg?raw';
 import LogoWithBackground from '../icons/logo-with-green-background.svg?raw';
 import YoutubeIcon from '../icons/youtube.svg?raw';
 import ThemeSwitcher from './ThemeSwitcher.astro';
-import {Actions} from './Actions.jsx';
+import ActionsLoader from './ActionsLoader.jsx';
 import {FileActions} from './FileActions.jsx';
 import {supabase} from '../lib/supabase.js';
 
@@ -64,7 +63,7 @@ const avatarUrl = user?.user_metadata?.avatar_url || '/default-avatar.png'; // D
                 </button>
                 <div class="flex-grow hidden lg:block"></div>
                 {showActions ?
-                    <Actions client:idle/> : null}
+                    <ActionsLoader client:idle /> : null}
                 <button type="button" id="right-panel-btn" class="md:hidden">
                     <span class="regular-icon"><Fragment set:html={RegularDockRightIcon} /></span>
                     <span class="solid-icon"><Fragment set:html={SolidDockRightIcon} /></span>
@@ -76,7 +75,7 @@ const avatarUrl = user?.user_metadata?.avatar_url || '/default-avatar.png'; // D
             <!-- <div class="pl-2 border-r border-r-gray-500 dark:border-r-gray-600 h-4"></div> -->
             <div class="flex-grow"></div>
             <div class="flex items-center gap-2">
-                <ThemeSwitcher/>
+                <ThemeSwitcher />
                 <link href="https://fonts.googleapis.com/css?family=Cookie&amp;display=swap" rel="stylesheet">
                 <!-- Profile Icon and Logout Button -->
                 <div x-data="userProfile" class="relative hidden md:block">
@@ -96,7 +95,7 @@ const avatarUrl = user?.user_metadata?.avatar_url || '/default-avatar.png'; // D
                         </div>
                     </template>
                     <template x-if="!isLoggedIn">
-                        <a href="/login"
+                        <a href="/login/"
                            class="inline-block text-secondary-foreground px-4 py-1 box-border rounded-md border border-inactive-border bg-secondary-background hover:bg-main-background">
                             Login
                         </a>
@@ -113,7 +112,7 @@ const avatarUrl = user?.user_metadata?.avatar_url || '/default-avatar.png'; // D
                 <link href="https://fonts.googleapis.com/css?family=Inter&amp;display=swap" rel="stylesheet">
                 <a
                     class="bmc-btn"
-                    href="/donate"
+                    href="/donate/"
                 >
                     <span class="text-red-foreground">
                         <Fragment set:html={SponsorIcon}/>

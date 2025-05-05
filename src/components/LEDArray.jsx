@@ -1,9 +1,9 @@
 import { For, createSignal } from "solid-js";
-import { Select } from "@kobalte/core/select";
+import { Select } from "./generic/Select";
 import { FaSolidCheck, FaSolidCaretDown } from "solid-icons/fa";
 import { store, setStore } from "../store/store.js";
 
-export function LEDArray() {
+export default function LEDArray() {
     const J3Pins = [
         { pin: 1, port: 1, bit: 6 },
         { pin: 2, port: 1, bit: 7 },

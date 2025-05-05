@@ -6,7 +6,7 @@ import { MemoryGrid } from "./MemoryGrid";
 import { CodeMirror } from "./codemirror/CodeMirror";
 import { HiOutlineCpuChip } from "solid-icons/hi";
 import { BsMemory } from "solid-icons/bs";
-import { Actions } from "./Actions";
+import Actions from "./Actions";
 import MemoryList from "./MemoryList";
 import { LeftPanel } from "./LeftPanel";
 import "./styles.css";

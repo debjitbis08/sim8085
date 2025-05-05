@@ -1,6 +1,6 @@
 import { Dialog } from "@kobalte/core/dialog";
-import { Switch } from "@kobalte/core/switch";
-import { Select } from "@kobalte/core/select";
+import { Switch } from "./generic/Switch";
+import { Select } from "./generic/Select";
 import { FaSolidAngleDown, FaSolidXmark } from "solid-icons/fa";
 import { VsSettingsGear } from "solid-icons/vs";
 import { DEFAULT_SETTINGS, setStore, store } from "../store/store.js";
@@ -12,7 +12,7 @@ import { createShortcut } from "@solid-primitives/keyboard";
 import { createSignal } from "solid-js";
 import { FaSolidCheck } from "solid-icons/fa";
 
-export function Settings() {
+export default function Settings() {
     const [open, setOpen] = createSignal(false);
 
     onMount(() => {

@@ -1,16 +1,16 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import LogoWithBackground from '../icons/logo-with-green-background.svg?raw';
 ---
 
 <Layout title="Sim8085 - Login" showActions={false} fullwidth noHeader noFooter>
     <div class="bg-main-background" x-data="authForm">
         <div class="flex min-h-[100vh] flex-col justify-center py-12 sm:px-6 lg:px-8">
-            <div class="mb-8 text-center">
-                <img src="/favicon-dark.svg" alt="Sim8085" class="w-8 h-8 hidden dark:inline">
-                <img src="/favicon.svg" alt="Sim8085" class="w-8 h-8 dark:hidden">
+            <div class="mb-8 mx-auto text-center flex items-center w-16 h-16">
+                <Fragment set:html={LogoWithBackground} />
             </div>
             <div class="text-center sm:mx-auto sm:w-full sm:max-w-md">
-                <h1 class="text-3xl font-extrabold text-gray-900 dark:text-white">
+                <h1 class="text-3xl font-extrabold text-active-foreground">
                     Login to Sim8085
                 </h1>
                 <p class="mt-4 hidden">

@@ -1,18 +1,6 @@
-import { createSignal, onCleanup, onMount, useContext } from "solid-js";
-import {
-    VsClearAll,
-    VsDebug,
-    VsDebugLineByLine,
-    VsDebugStart,
-    VsDebugStepInto,
-    VsDebugStepOver,
-    VsDebugStop,
-    VsInfo,
-    VsPlay,
-    VsQuestion,
-} from "solid-icons/vs";
-import { HiOutlineWrench, HiSolidArrowRight, HiSolidPlay, HiSolidStop, HiSolidWrench } from "solid-icons/hi";
-import Module from "../core/8085.js";
+import { createSignal, onMount } from "solid-js";
+import { VsDebug, VsDebugStepOver, VsQuestion } from "solid-icons/vs";
+import { HiSolidPlay, HiSolidStop, HiSolidWrench } from "solid-icons/hi";
 import { produce } from "solid-js/store";
 import {
     initSimulator,
@@ -38,7 +26,7 @@ import { showToaster } from "./toaster.jsx";
 import { FaSolidEject } from "solid-icons/fa";
 import { createShortcut } from "@solid-primitives/keyboard";
 
-export function Actions() {
+export default function Actions() {
     const [isReady, setIsReady] = createSignal(false);
 
     onMount(async () => {

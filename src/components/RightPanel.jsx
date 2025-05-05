@@ -1,9 +1,11 @@
-import { createEffect, createSignal, onMount, onCleanup } from "solid-js";
-import { Tabs } from "@kobalte/core/tabs";
+import { createEffect, createSignal, onMount, onCleanup, lazy, Suspense } from "solid-js";
+import { Tabs } from "./generic/Tabs";
 import { Tooltip } from "@kobalte/core/tooltip";
 import { Assembled } from "./Assembled";
-import { BiRegularDockLeft, BiRegularDockRight, BiSolidDockLeft, BiSolidDockRight } from "solid-icons/bi";
-import { LEDArray } from "./LEDArray";
+import { BiRegularDockRight, BiSolidDockRight } from "solid-icons/bi";
+import { VsLoading } from "solid-icons/vs";
+
+const LEDArray = lazy(() => import("./LEDArray.jsx"));
 
 export function RightPanel() {
     let [expanded, setExpanded] = createSignal(true);
@@ -92,7 +94,9 @@ export function RightPanel() {
                     <Assembled />
                 </Tabs.Content>
                 <Tabs.Content class="tabs__content" value="led-array">
-                    <LEDArray />
+                    <Suspense fallback={<VsLoading class="animate-spin" />}>
+                        <LEDArray />
+                    </Suspense>
                 </Tabs.Content>
             </Tabs>
             <Tooltip placement="left">
