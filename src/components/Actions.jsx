@@ -432,6 +432,7 @@ export default function Actions() {
         max-w-sm mx-auto md:mr-0 
         md:flex-row md:w-auto
             justify-center md:justify-end
+            flex-row-reverse
     "
         >
             <div
