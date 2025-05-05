@@ -1,3 +1,15 @@
+# [2.10.0](https://github.com/debjitbis08/sim8085/compare/v2.9.1...v2.10.0) (2025-05-05)
+
+
+### Bug Fixes
+
+* Fix documentation path ([7fa4b69](https://github.com/debjitbis08/sim8085/commit/7fa4b69cc207cd5649f17761ae02a820a813f238))
+
+
+### Features
+
+* Add LED Array connected to J3 ([b9bf783](https://github.com/debjitbis08/sim8085/commit/b9bf783b304b4c043af30338dddb4e4464f7c311))
+
 ## [2.9.1](https://github.com/debjitbis08/sim8085/compare/v2.9.0...v2.9.1) (2025-05-03)
 
 
