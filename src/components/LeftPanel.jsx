@@ -6,15 +6,14 @@ import { FiCpu, FiFolder } from "solid-icons/fi";
 import { AiOutlineQuestionCircle } from "solid-icons/ai";
 import { Tooltip } from "@kobalte/core/tooltip";
 import { BiRegularDockLeft, BiSolidDockLeft } from "solid-icons/bi";
-import { FaRegularLightbulb, FaSolidLightbulb } from "solid-icons/fa";
+import { FaRegularLightbulb, FaSolidLightbulb, FaSolidWrench } from "solid-icons/fa";
 import { VsLoading } from "solid-icons/vs";
 import DelayedComponent from "./generic/DelayedComponent.jsx";
 
 const Workspace = lazy(() => import("./Workspace.jsx"));
-const Settings = lazy(() => import("./Settings.jsx"));
-const KeyboardShortcuts = lazy(() => import("./KeyboardShortcuts.jsx"));
 const IOPorts = lazy(() => import("./IOPorts.jsx"));
 const MemoryList = lazy(() => import("./MemoryList.jsx"));
+const Toolbox = lazy(() => import("./Toolbox.jsx"));
 
 export function LeftPanel() {
     const [activeTab, setActiveTab] = createSignal("cpu");
@@ -130,6 +129,12 @@ export function LeftPanel() {
                     onClick={() => showTab("io")}
                     title="Input Output Ports"
                 />
+                <PanelButton
+                    icon={<FaSolidWrench class="text-sm" />}
+                    isActive={isActive("toolbox")}
+                    onClick={() => showTab("toolbox")}
+                    title="Toolbox"
+                />
                 <div class="grow"></div>
                 <Show when={isOnline()}>
                     <PanelButton
@@ -199,6 +204,10 @@ export function LeftPanel() {
                     ) : activeTab() === "workspace" ? (
                         <Suspense fallback={<PanelLoader />}>
                             <Workspace />
+                        </Suspense>
+                    ) : activeTab() === "toolbox" ? (
+                        <Suspense fallback={<PanelLoader />}>
+                            <Toolbox />
                         </Suspense>
                     ) : null}
                 </div>
