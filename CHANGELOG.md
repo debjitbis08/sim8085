@@ -1,3 +1,10 @@
+## [2.10.1](https://github.com/debjitbis08/sim8085/compare/v2.10.0...v2.10.1) (2025-05-05)
+
+
+### Bug Fixes
+
+* Fix CSS build ([9c3d122](https://github.com/debjitbis08/sim8085/commit/9c3d122f4950edaae10a08310e5d3415df1da131))
+
 # [2.10.0](https://github.com/debjitbis08/sim8085/compare/v2.9.1...v2.10.0) (2025-05-05)
 
 
