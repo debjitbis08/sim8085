@@ -37,6 +37,7 @@
         "@thumbmarkjs/thumbmarkjs": "^0.20.2",
         "alpinejs": "^3.14.1",
         "codemirror": "^6.0.1",
+        "debounce": "^2.2.0",
         "posthog-js": "^1.239.1",
         "solid-devtools": "^0.30.1",
         "solid-icons": "^1.1.0",

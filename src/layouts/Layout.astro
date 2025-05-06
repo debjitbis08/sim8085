@@ -56,9 +56,9 @@ const { title, showActions, fullwidth, smallFooter, noHeader, noFooter } = Astro
         <PostHogInit />
     </head>
 	<body class={`bg-page-background text-primary-foreground min-h-dvh`}>
-	    <main class={`${!fullwidth ? "max-w-4xl mx-auto" : ""}`}>
+	    <main class={`${!fullwidth ? "max-w-4xl mx-auto" : ""} h-full`}>
 			{!noHeader && <Header showActions={showActions} fullwidth={fullwidth} />}
-            <div>
+            <div class="h-[calc(100svh-8rem)] md:h-[calc(100svh-6.2rem)]">
                 <slot />
             </div>
     	</main>

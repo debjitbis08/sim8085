@@ -4,6 +4,7 @@ import { Tooltip } from "@kobalte/core/tooltip";
 import { Assembled } from "./Assembled";
 import { BiRegularDockRight, BiSolidDockRight } from "solid-icons/bi";
 import { VsLoading } from "solid-icons/vs";
+import debounce from "debounce";
 
 const LEDArray = lazy(() => import("./LEDArray.jsx"));
 
@@ -12,16 +13,18 @@ export function RightPanel() {
     const [width, setWidth] = createSignal(300);
 
     const toggleExpanded = () => {
-        if (width() <= 32) setWidth(window.innerWidth * (window.innerWidth > 768 ? 0.3 : 0.8));
+        if (window.innerWidth <= 768) {
+            setWidth(window.innerWidth * (window.innerWidth > 768 ? 0.3 : 1));
+        }
         setExpanded((expanded) => !expanded);
     };
 
     onMount(() => {
         setWidth(window.innerWidth * (window.innerWidth > 768 ? 0.3 : 1));
-        const handleResize = () => {
+        const handleResize = debounce(() => {
             const isMd = window.matchMedia("(min-width: 768px)").matches;
             setExpanded(isMd);
-        };
+        });
 
         // Initial check
         handleResize();
@@ -34,7 +37,14 @@ export function RightPanel() {
         }
 
         window.addEventListener("showRightPanel", () => {
+            if (window.innerWidth <= 768) {
+                setWidth(window.innerWidth * (window.innerWidth > 768 ? 0.3 : 1));
+            }
             setExpanded(true);
+        });
+
+        window.addEventListener("showLeftPanel", () => {
+            setExpanded(false);
         });
 
         // Cleanup listener on component unmount
@@ -69,7 +79,7 @@ export function RightPanel() {
     };
     return (
         <div
-            class={`relative overflow-y-auto ${expanded() ? "w-svw md:w-full" : "w-8"} flex border-y-0 md:border-y border-y-main-border ${expanded() ? "md:border-l" : "border-l-0"} border-l-main-border bg-page-background md:bg-main-background h-[calc(100svh-5.6rem)] md:h-[calc(100vh-6.2rem)] absolute top-0 right-0 md:static ${expanded() ? "shadow-xl" : ""} md:shadow-none`}
+            class={`relative top-0 right-0 ${expanded() ? "w-svw md:auto" : ""} flex border-y-0 md:border-y border-y-main-border ${expanded() ? "md:border-l" : "border-l-0"} border-l-main-border bg-page-background md:bg-main-background h-[calc(100svh-5.6rem)] md:h-[calc(100vh-6.2rem)] ${expanded() ? "shadow-xl" : ""} md:shadow-none`}
             style={{ width: `${expanded() ? `${width()}px` : "auto"}` }}
         >
             <button
@@ -80,7 +90,7 @@ export function RightPanel() {
                     display: expanded() ? "block" : "none",
                 }}
             ></button>
-            <Tabs aria-label="right panel navigation" class={`tabs ${expanded() ? "" : "hidden"}`}>
+            <Tabs aria-label="right panel navigation" class={`tabs ${expanded() ? "" : "hidden"} flex flex-col`}>
                 <Tabs.List class="tabs__list">
                     <Tabs.Trigger class={`tabs__trigger ${expanded() ? "" : "hidden"}`} value="machine-code">
                         Machine Code
@@ -90,10 +100,10 @@ export function RightPanel() {
                     </Tabs.Trigger>
                     <Tabs.Indicator class="tabs__indicator" />
                 </Tabs.List>
-                <Tabs.Content class="tabs__content" value="machine-code">
+                <Tabs.Content class="tabs__content flex-grow overflow-y-auto overflow-x-auto" value="machine-code">
                     <Assembled />
                 </Tabs.Content>
-                <Tabs.Content class="tabs__content" value="led-array">
+                <Tabs.Content class="tabs__content flex-grow overflow-y-auto overflow-x-auto" value="led-array">
                     <Suspense fallback={<VsLoading class="animate-spin" />}>
                         <LEDArray />
                     </Suspense>
@@ -101,7 +111,7 @@ export function RightPanel() {
             </Tabs>
             <Tooltip placement="left">
                 <Tooltip.Trigger
-                    class="tooltip__trigger absolute top-2 right-2 py-1 hidden md:block ml-auto mr-4"
+                    class={`tooltip__trigger ${expanded() ? "absolute top-2" : "fixed top-[calc(5rem-7px)]"} right-2 py-1 hidden md:block ml-auto mr-4`}
                     onClick={toggleExpanded}
                 >
                     {expanded() ? <BiSolidDockRight /> : <BiRegularDockRight />}

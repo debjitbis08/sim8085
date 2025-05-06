@@ -32,11 +32,8 @@ export function CodingArea() {
     };
 
     return (
-        <div class="py-4 bg-main-background">
-            <CodeMirror
-                value={store.activeFile.content}
-                onChange={handleContentChange}
-            />
+        <div class="py-4 bg-main-background h-full">
+            <CodeMirror value={store.activeFile.content} onChange={handleContentChange} />
         </div>
     );
 }

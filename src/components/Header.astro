@@ -55,6 +55,7 @@ const avatarUrl = user?.user_metadata?.avatar_url; // Default avatar if none exi
                 fixed bottom-0 left-0 z-50 bg-page-background w-full py-2 px-4
                 pb-10 md:pb-2 text-xl md:text-base
                 md:static
+                border-r border-r-secondary-border
             ">
                 <button type="button" id="left-panel-btn" class="md:hidden">
                     <span class="regular-icon"><Fragment set:html={RegularDockLeftIcon} /></span>
@@ -70,7 +71,7 @@ const avatarUrl = user?.user_metadata?.avatar_url; // Default avatar if none exi
                 </button>
             </div>
         ) : null}
-        <div class={`${fullwidth ? "w-[30vw]" : ""} flex-grow flex-shrink-0 flex items-start pr-2 md:pr-4`}>
+        <div class={`flex-grow flex-shrink-0 flex items-start pr-2 md:pr-4`}>
             <!-- <div class="flex flex-grow items-center gap-2 space-x-2"> -->
             <!-- <div class="pl-2 border-r border-r-gray-500 dark:border-r-gray-600 h-4"></div> -->
             <div class="flex-grow"></div>
@@ -323,11 +324,9 @@ const avatarUrl = user?.user_metadata?.avatar_url; // Default avatar if none exi
                 detail: {},
             })
         );
-        if (this.classList.contains("solid")) {
-            this.classList.remove("solid");
-        } else {
-            this.classList.add("solid");
-        }
+        this.classList.toggle("solid");
+        const rightPanelBtn = document.getElementById("right-panel-btn");
+        rightPanelBtn?.classList.remove("solid");
     });
 
     document.getElementById("right-panel-btn")?.addEventListener("click", function () {
@@ -336,11 +335,9 @@ const avatarUrl = user?.user_metadata?.avatar_url; // Default avatar if none exi
                 detail: {},
             })
         );
-        if (this.classList.contains("solid")) {
-            this.classList.remove("solid");
-        } else {
-            this.classList.add("solid");
-        }
+        this.classList.toggle("solid");
+        const leftPanelBtn = document.getElementById("left-panel-btn");
+        leftPanelBtn?.classList.remove("solid");
     });
 </script>
 

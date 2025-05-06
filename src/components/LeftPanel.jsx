@@ -37,6 +37,10 @@ export function LeftPanel() {
             setExpanded(true);
         });
 
+        window.addEventListener("showRightPanel", () => {
+            setExpanded(false);
+        });
+
         setIsOnline(navigator.onLine);
         const updateOnlineStatus = () => setIsOnline(navigator.onLine);
         window.addEventListener("online", updateOnlineStatus);

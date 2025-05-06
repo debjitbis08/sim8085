@@ -10,7 +10,7 @@ export default function ActionsLoader() {
             delayInMs={3000}
             fn={() => import("./Actions.jsx")}
             fallback={
-                <div class="flex items-center gap-2">
+                <div class="flex items-center justify-center md:justify-end gap-2">
                     <VsLoading class="animate-spin" />
                     <span class="text-sm text-inactive-foreground">Loading Action Buttons...</span>
                 </div>
