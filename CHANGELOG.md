@@ -1,3 +1,10 @@
+## [2.11.3](https://github.com/debjitbis08/sim8085/compare/v2.11.2...v2.11.3) (2025-05-06)
+
+
+### Bug Fixes
+
+* Remove supabase requirement ([a21d2be](https://github.com/debjitbis08/sim8085/commit/a21d2be304ce9d6da2a95177f7de0d437d224194))
+
 ## [2.11.2](https://github.com/debjitbis08/sim8085/compare/v2.11.1...v2.11.2) (2025-05-05)
 
 
