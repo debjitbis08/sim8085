@@ -66,7 +66,7 @@ import '../components/styles.css';
             const access_token = params.get('access_token');
             const refresh_token = params.get('refresh_token');
 
-            if (access_token && refresh_token) {
+            if (supabase && access_token && refresh_token) {
                 // Set the session in Supabase
                 await supabase.auth.setSession({
                     access_token,

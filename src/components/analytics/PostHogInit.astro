@@ -1,6 +1,6 @@
 <script>
     import posthog from 'posthog-js';
-    import {supabase} from '../../lib/supabase.js';
+    import {supabase, getSession} from '../../lib/supabase.js';
     import { getFingerprint } from '@thumbmarkjs/thumbmarkjs';
 
     const apiKey = import.meta.env.PUBLIC_POSTHOG_API_KEY;
@@ -13,15 +13,13 @@
             persistence: cookieConsent === 'yes' ? 'localStorage+cookie' : 'memory',
         });
 
-        supabase.auth.getSession().then(async ({data, error}) => {
-            const session = data?.session;
-
+        getSession().then(async ({session, error}) => {
             if (!error && session?.user) {
-                const name = data.session.user?.user_metadata?.name || "";
+                const name = session.user?.user_metadata?.name || "";
 
                 posthog.identify(
-                    data.session.user.id,
-                    {email: data.session.user.email, name}
+                    session.user.id,
+                    {email: session.user.email, name}
                 );
             } else if (cookieConsent === "no") {
                 const fingerprint = await getFingerprint();

@@ -71,18 +71,19 @@ import Alpine from 'alpinejs';
 import { supabase } from '../lib/supabase.js';
 
 document.addEventListener('alpine:init', () => {
-  Alpine.data('authForm', () => ({
-    errorMessage: null,
+    if (!supabase) window.location.href = "/";
+    Alpine.data('authForm', () => ({
+        errorMessage: null,
 
-    async signInWithGoogle() {
-        try {
-            console.log("Logging in with Google");
-            const { error } = await supabase.auth.signInWithOAuth({ provider: 'google' });
-            if (error) throw error;
-        } catch (error) {
-            this.errorMessage = error.message;
+        async signInWithGoogle() {
+            try {
+                console.log("Logging in with Google");
+                const { error } = await supabase.auth.signInWithOAuth({ provider: 'google' });
+                if (error) throw error;
+            } catch (error) {
+                this.errorMessage = error.message;
+            }
         }
-    }
-  }));
+    }));
 });
 </script>

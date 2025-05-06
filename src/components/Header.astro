@@ -11,7 +11,7 @@ import YoutubeIcon from '../icons/youtube.svg?raw';
 import ThemeSwitcher from './ThemeSwitcher.astro';
 import ActionsLoader from './ActionsLoader.jsx';
 import {FileActions} from './FileActions.jsx';
-import {supabase} from '../lib/supabase.js';
+import {getUserFromSession} from '../lib/supabase.js';
 
 interface Props {
     showActions: boolean;
@@ -21,10 +21,9 @@ interface Props {
 const {showActions, fullwidth} = Astro.props;
 
 // Get user session if logged in
-const {data: {session}} = await supabase.auth.getSession();
-const user = session?.user;
+const { user } = await getUserFromSession();
 const isLoggedIn = !!user;
-const avatarUrl = user?.user_metadata?.avatar_url || '/default-avatar.png'; // Default avatar if none exists
+const avatarUrl = user?.user_metadata?.avatar_url; // Default avatar if none exists
 ---
 <header class="w-full py-0 md:py-4 justify-start md:justify-between items-center h-auto md:h-16 md:flex">
     <div class="flex items-center gap-2 w-full">
@@ -83,8 +82,11 @@ const avatarUrl = user?.user_metadata?.avatar_url || '/default-avatar.png'; // D
                     <template x-if="isLoggedIn">
                         <div class="relative">
                             <button @click="toggleMenu" class="flex items-center focus:outline-none">
-                                <img :src="avatarUrl || '/default-avatar.png'" alt="User Avatar"
-                                     class="w-8 h-8 rounded-full">
+                                <img :src="avatarUrl" alt="User Avatar"
+                                    class="w-8 h-8 rounded-full" :class="{ 'hidden': !avatarUrl }">
+                                <div class="w-8 h-8 rounded-full text-primary-foreground flex items-center mx-auto" :class="{ 'hidden': !!avatarUrl }">
+                                    <svg style="margin: 0 auto;" fill="currentColor" stroke-width="0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" style="overflow: visible; color: currentcolor;" height="1em" width="1em"><path d="M224 256a128 128 0 1 0 0-256 128 128 0 1 0 0 256zm-45.7 48C79.8 304 0 383.8 0 482.3 0 498.7 13.3 512 29.7 512h388.6c16.4 0 29.7-13.3 29.7-29.7 0-98.5-79.8-178.3-178.3-178.3h-91.4z"></path></svg>
+                                </div>
                             </button>
                             <div x-show="menuOpen" @click.away="menuOpen = false"
                                  class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-700 rounded-md shadow-lg overflow-hidden z-10">
@@ -231,20 +233,19 @@ const avatarUrl = user?.user_metadata?.avatar_url || '/default-avatar.png'; // D
 <script>
     import Alpine from 'alpinejs';
     import posthog from 'posthog-js';
-    import {supabase} from '../lib/supabase.js';
+    import {supabase, getUserFromSession, signOut, getUser} from '../lib/supabase.js';
 
     document.addEventListener('alpine:init', () => {
         Alpine.data('userProfile', () => ({
             isLoggedIn: false,
             user: null,
-            avatarUrl: '/default-avatar.png',
+            avatarUrl: null,
             menuOpen: false,
 
             async init() {
-                const {data: {session}} = await supabase.auth.getSession();
-                this.user = session?.user;
+                this.user = await getUserFromSession().user;
                 this.isLoggedIn = !!this.user;
-                this.avatarUrl = this.user?.user_metadata?.avatar_url || '/default-avatar.png'; // Default avatar if none exists
+                this.avatarUrl = this.user?.user_metadata?.avatar_url;
             },
 
             toggleMenu() {
@@ -252,7 +253,7 @@ const avatarUrl = user?.user_metadata?.avatar_url || '/default-avatar.png'; // D
             },
 
             async logout() {
-                await supabase.auth.signOut();
+                await signOut();
                 localStorage.removeItem("activeFile");
                 posthog.reset();
                 window.location.reload(); // Refresh the page after logout
@@ -265,13 +266,12 @@ const avatarUrl = user?.user_metadata?.avatar_url || '/default-avatar.png'; // D
             menuOpen: false,
 
             async init() {
-                const {data: {session}} = await supabase.auth.getSession();
-                const user = session?.user;
+                const user = await getUserFromSession().user;
                 this.isLoggedIn = !!user;
             },
 
             async logout() {
-                await supabase.auth.signOut();
+                await signOut();
                 localStorage.removeItem("activeFile");
                 window.location.reload(); // Refresh the page after logout
             },
@@ -286,7 +286,9 @@ const avatarUrl = user?.user_metadata?.avatar_url || '/default-avatar.png'; // D
             },
 
             async fetchUserId() {
-                const {data: {user}, error} = await supabase.auth.getUser();
+                if (!supabase) return;
+
+                const {user, error} = await getUser();
 
                 if (error && error.name === 'AuthSessionMissingError') {
                     return null;
