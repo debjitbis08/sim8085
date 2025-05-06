@@ -1106,7 +1106,7 @@ haltInstruction = op:(op_hlt) {
     };
 }
 
-interruptInstruction = op:(op_ei / op_di) {
+interruptInstruction = op:(op_ei / op_di / op_rim / op_sim) {
     return {
         name: op,
         params: [],
@@ -1181,6 +1181,8 @@ op_xchg = "XCHG"i
 op_xthl = "XTHL"i
 op_ei   = "EI"i
 op_di   = "DI"i
+op_rim   = "RIM"i
+op_sim   = "SIM"i
 op_nop  = "NOP"i
 
 op_inr  = op:"INR"i operands:singleRegisterOperand { return [op].concat(operands); }

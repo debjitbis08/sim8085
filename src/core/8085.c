@@ -75,6 +75,9 @@ typedef struct State8085
 	uint8_t *memory;
 	uint8_t *io;
     uint8_t hlt_enable;
+    uint8_t r5_mask, r6_mask, r7_mask;
+    uint8_t pending_r5, pending_r6, pending_r7;
+    uint8_t sod_line;
 } State8085;
 
 typedef struct ExecutionStats8085 {
@@ -1225,9 +1228,21 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
 	}
 	break;
 	case 0x20: // RIM
-		UnimplementedInstruction(state);
+    {
+        uint8_t result = 0;
+
+        result |= (state->int_enable ? 1 : 0) << 7;
+        result |= (state->r7_mask ? 1 : 0) << 6;
+        result |= (state->r6_mask ? 1 : 0) << 5;
+        result |= (state->r5_mask ? 1 : 0) << 4;
+        result |= (state->pending_r7 ? 1 : 0) << 2;
+        result |= (state->pending_r6 ? 1 : 0) << 1;
+        result |= (state->pending_r5 ? 1 : 0) << 0;
+
+        state->a = result;
         states = 4;
-		break;
+    }
+    break;
 	case 0x21: // LXI H,word
 		state->l = opcode[1];
 		state->h = opcode[2];
@@ -1349,9 +1364,24 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
         states = 4;
 		break;
 	case 0x30:  // SIM
-        UnimplementedInstruction(state);
+    {
+        uint8_t acc = state->a;
+        // SOD and SDE
+        if ((acc & 0x40) != 0) { // SDE bit set
+            uint8_t sod = (acc & 0x80) ? 1 : 0;
+            // TODO Notify on SOD line
+        }
+
+        // Mask Set Enable
+        if (acc & 0x08) {
+            state->r5_mask = (acc & 0x04) >> 2;
+            state->r6_mask = (acc & 0x02) >> 1;
+            state->r7_mask = (acc & 0x01);
+        }
+
         states = 4;
-		break;
+    }
+    break;
 	case 0x31: // LXI SP, word
 		state->sp = (opcode[2] << 8) | opcode[1];
 		state->pc += 2;
