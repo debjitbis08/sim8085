@@ -1,3 +1,11 @@
+## [2.12.1](https://github.com/debjitbis08/sim8085/compare/v2.12.0...v2.12.1) (2025-05-06)
+
+
+### Bug Fixes
+
+* Fix horizontal scroll issue caused by footer ([8918dd3](https://github.com/debjitbis08/sim8085/commit/8918dd3fcfc39bb9dd511597decb8d44bafc56e9))
+* Fix the page scroll issue caused by the right panel when a code line is long ([f26032a](https://github.com/debjitbis08/sim8085/commit/f26032a2a582ab5b94b8339c0e93e2a03e62a118))
+
 # [2.12.0](https://github.com/debjitbis08/sim8085/compare/v2.11.3...v2.12.0) (2025-05-06)
 
 
