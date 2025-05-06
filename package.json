@@ -1,6 +1,6 @@
 {
     "name": "sim8085",
-    "description": "Development environment for Intel 8085 microprocessor.",
+    "description": "Fast, accurate, and offline-capable Intel 8085 simulator with assembler and debugger. Works on desktop and mobile, no installation needed.",
     "type": "module",
     "version": "2.11.2",
     "private": true,
