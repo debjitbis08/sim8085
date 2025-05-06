@@ -84,3 +84,19 @@ If you make changes in `src/core/8085.c`:
     ```
 
 3. Final output will be in the `dist/` directory.
+
+---
+
+## 💖 Support Sim8085
+
+Sim8085 is a free and open-source project built with care to help students and educators learn 8085 programming with ease. If you find it useful and would like to support its continued development, consider donating:
+
+- 🙌 [GitHub Sponsors](https://github.com/sponsors/debjitbis08)
+- ☕ [Buy Me a Coffee](https://buymeacoffee.com/debjit.biswas)
+- 💙 [Ko-fi](https://ko-fi.com/debjitbiswas)
+
+Your support helps cover hosting, development time, and the addition of new features. Every little bit counts!
+
+---
+
+&copy; 2013-present [Debjit Biswas](https://www.debjitbiswas.com). BSD-3-Clause License.
