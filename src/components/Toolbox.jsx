@@ -1,6 +1,5 @@
 import { FaSolidArrowRightArrowLeft } from "solid-icons/fa";
 import { createSignal, createEffect } from "solid-js";
-import { Select } from "./generic/Select.jsx";
 
 export default function Toolbox() {
     return (
@@ -9,6 +8,8 @@ export default function Toolbox() {
             <HexDecimalConverter />
             <div class="border-b border-dashed border-b-secondary-border my-4"></div>
             <BinaryConverter />
+            <div class="border-b border-dashed border-b-secondary-border my-4"></div>
+            <RimSimRegisterEditor />
         </div>
     );
 }
@@ -157,6 +158,123 @@ function BinaryConverter() {
                 </div>
                 <select
                     class="ml-auto p-1 rounded-md bg-secondary-background text-secondary-foreground text-sm"
+                    value={outputMode()}
+                    onInput={(e) => setOutputMode(e.target.value)}
+                >
+                    <option value="dec">Decimal</option>
+                    <option value="hex">Hex</option>
+                </select>
+            </div>
+        </div>
+    );
+}
+
+const SIM_BIT_LABELS = [
+    { short: "M5.5", long: "Mask RST5.5" },
+    { short: "M6.5", long: "Mask RST6.5" },
+    { short: "M7.5", long: "Mask RST7.5" },
+    { short: "MSE", long: "Mask Set Enable" },
+    { short: "R7.5", long: "Reset RST7.5" },
+    { short: "XXX", long: "Ignored" },
+    { short: "SDE", long: "Serial Data Enable" },
+    { short: "SOD", long: "Serial Out Data" },
+];
+
+const RIM_BIT_LABELS = [
+    { short: "M5.5", long: " Interrupt Mask" },
+    { short: "M6.5", long: " Interrupt Mask" },
+    { short: "M7.5", long: " Interrupt Mask" },
+    { short: "IE", long: " Interrupt Enable" },
+    { short: "P5.5", long: "Pending RST5.5" },
+    { short: "P6.5", long: "Pending RST6.5" },
+    { short: "P7.5", long: "Pending RST7.5" },
+    { short: "SID", long: "Serial Input" },
+];
+
+function RimSimRegisterEditor() {
+    const [mode, setMode] = createSignal("SIM"); // or "RIM"
+    const [bits, setBits] = createSignal(Array(8).fill(0));
+    const [textValue, setTextValue] = createSignal("0");
+    const [outputMode, setOutputMode] = createSignal("hex");
+
+    const labels = () => (mode() === "SIM" ? SIM_BIT_LABELS : RIM_BIT_LABELS);
+
+    const getValue = () => parseInt(bits().join(""), 2);
+
+    const updateBitsFromValue = (value) => {
+        const clamped = Math.max(0, Math.min(0xff, value));
+        const binStr = clamped.toString(2).padStart(8, "0");
+        setBits(binStr.split("").map((b) => +b));
+    };
+
+    createEffect(() => {
+        const value = getValue();
+        setTextValue(outputMode() === "dec" ? value.toString(10) : value.toString(16).toUpperCase());
+    });
+
+    const handleInputChange = (e) => {
+        const val = e.target.value.trim();
+        setTextValue(val);
+        const parsed = outputMode() === "dec" ? parseInt(val, 10) : parseInt(val, 16);
+        if (!isNaN(parsed)) updateBitsFromValue(parsed);
+    };
+
+    const toggleBit = (index) => {
+        setBits((prev) => {
+            const copy = [...prev];
+            copy[index] = copy[index] ? 0 : 1;
+            return copy;
+        });
+    };
+
+    return (
+        <div class="space-y-4">
+            <h2 class="text-lg mb-2 flex items-center gap-2">
+                {mode()} <FaSolidArrowRightArrowLeft class="text-secondary-foreground text-sm" />
+                {outputMode() === "dec" ? "Decimal" : "Hex"}
+            </h2>
+            <div class="flex items-center gap-4">
+                <label class="text-sm font-medium">Mode:</label>
+                <select
+                    class="p-2 rounded-md bg-secondary-background text-primary-foreground text-sm border"
+                    value={mode()}
+                    onInput={(e) => setMode(e.target.value)}
+                >
+                    <option value="SIM">SIM</option>
+                    <option value="RIM">RIM</option>
+                </select>
+            </div>
+
+            <div class="grid grid-cols-4 sm:grid-cols-8 gap-2 text-center">
+                {bits()
+                    .map((bit, i) => (
+                        <div>
+                            <input
+                                type="text"
+                                value={bit}
+                                readonly
+                                class="text-sm w-4 p-1 bg-transparent outline-none placeholder:text-inactive-foreground border-b border-b-gray-300 cursor-pointer"
+                                onClick={() => toggleBit(i)}
+                                title={`${labels()[i].short} (${labels()[i].long})`}
+                            />
+                            <div class="mt-1 text-[11px] text-secondary-foreground" title={labels()[i].long}>
+                                {labels()[i].short}
+                            </div>
+                        </div>
+                    ))
+                    .reverse()}
+            </div>
+
+            <div class="flex items-end gap-2 border-b pb-2">
+                <input
+                    type="text"
+                    class="w-full bg-transparent outline-none font-mono"
+                    value={textValue()}
+                    onInput={handleInputChange}
+                    placeholder={outputMode() === "dec" ? "Decimal" : "Hex"}
+                />
+                <select
+                    class="p-1 rounded-md bg-secondary-background text-secondary-foreground text-sm"
                     value={outputMode()}
                     onInput={(e) => setOutputMode(e.target.value)}
                 >

@@ -6,7 +6,7 @@ import { FiCpu, FiFolder } from "solid-icons/fi";
 import { AiOutlineQuestionCircle } from "solid-icons/ai";
 import { Tooltip } from "@kobalte/core/tooltip";
 import { BiRegularDockLeft, BiSolidDockLeft } from "solid-icons/bi";
-import { FaRegularLightbulb, FaSolidLightbulb, FaSolidWrench } from "solid-icons/fa";
+import { FaRegularLightbulb, FaSolidLightbulb, FaSolidScrewdriverWrench, FaSolidWrench } from "solid-icons/fa";
 import { VsLoading } from "solid-icons/vs";
 import DelayedComponent from "./generic/DelayedComponent.jsx";
 
@@ -130,7 +130,7 @@ export function LeftPanel() {
                     title="Input Output Ports"
                 />
                 <PanelButton
-                    icon={<FaSolidWrench class="text-sm" />}
+                    icon={<FaSolidScrewdriverWrench class="text-[18px]" />}
                     isActive={isActive("toolbox")}
                     onClick={() => showTab("toolbox")}
                     title="Toolbox"
