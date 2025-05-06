@@ -1,34 +1,84 @@
-Sim8085
-=======
+# Sim8085
 
-Sim8085 is a online development environment for Intel 8085 microprocessor. It is
-hosted at https://www.sim8085.com.
+Sim8085 is a modern web-based development environment for the Intel 8085 microprocessor. It includes a graphical editor, assembler, and debugger designed to help students, educators, and enthusiasts explore 8085 assembly programming.
 
-## Features
+🖥️ Try it now at [sim8085.com](https://www.sim8085.com)
 
-1. Editor with syntax highlighting.
-2. Viewing and editing of registers, flags and memory.
-3. Line by line execution.
-4. Opcode listing view.
+---
 
-## Screenshot
+## ✨ Features
 
-<img src="public/images/screen.png" width="60%"/>
+- 📝 **Syntax-highlighted editor** for writing 8085 assembly code.
+- 🐞 **Interactive debugger** with:
+    - Step-by-step execution
+    - Flag and register updates
+    - Visual memory inspection
+- ⚙️ **Assembler with smart error messages**, help fix common problems quickly.
+- 🚄 **Near-native performance**, powered by a C-based simulator compiled to highly optimized JavaScript via Emscripten.
+- ⏱️ **Instruction Timing Mode** to simulate real-time delays.
+- ♾️ **Supports long-running programs** (e.g., waveform generators or infinite loops), safely handled in-browser.
+- 📱 **Mobile-friendly** and works great in modern mobile browsers.
+- 💾 **Offline support**: Once loaded, Sim8085 continues to work even without an internet connection thanks to full PWA support.
+- 📦 **Installable as an app**: Add Sim8085 to your home screen or desktop like a native app—no App Store needed.
 
-## Development
+---
 
-### Steps
+## 🖼️ Screenshot
 
-1. Follow the instructions on the Emscripten [Download and install](https://emscripten.org/docs/getting_started/downloads.html) page.
-2. Do `pnpm install`.
-3. Do `pnpm dev` to start the development server.
+<img src="public/images/screen.png" width="60%" alt="Sim8085 Screenshot" />
 
-### Building Assembler and Simulator changes
-4. Do `pnpm build-emulator` to build the simulator.
-5. Commit the changed files.
+---
 
-### Production Build
+## 🛠️ Development Setup
 
-1. Build assembler and simulator code.
-2. Do `pnpm build` to build the UI.
-3. Built code should be available in `dist`.
+### 📦 Requirements
+
+- [Emscripten SDK](https://emscripten.org/docs/getting_started/downloads.html)
+- Node.js ≥ 22.x and [pnpm](https://pnpm.io)
+
+### 🚧 Steps
+
+1. **Install Emscripten** (follow [official instructions](https://emscripten.org/docs/getting_started/downloads.html)). You need this only if you are working on the instruction simulator code (`src/core/8085.c`).
+2. Clone this repo and install dependencies:
+
+    ```bash
+    pnpm install
+    ```
+
+3. Start the development server:
+
+    ```bash
+    pnpm dev
+    ```
+
+---
+
+### 🔧 Building the Emulator (C to JS)
+
+If you make changes in `src/core/8085.c`:
+
+1. Build the updated simulator:
+
+    ```bash
+    pnpm build-emulator
+    ```
+
+2. Commit the newly generated JS file.
+
+---
+
+### 🚀 Production Build
+
+1. Make sure the emulator is built:
+
+    ```bash
+    pnpm build-emulator
+    ```
+
+2. Build the frontend:
+
+    ```bash
+    pnpm build
+    ```
+
+3. Final output will be in the `dist/` directory.
