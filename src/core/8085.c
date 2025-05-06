@@ -76,7 +76,7 @@ typedef struct State8085
 	uint8_t *io;
     uint8_t hlt_enable;
     uint8_t r5_mask, r6_mask, r7_mask;
-    uint8_t pending_r5, pending_r6, pending_r7;
+    uint8_t pending_trap, pending_r5, pending_r6, pending_r7;
     uint8_t sod_line;
 } State8085;
 
@@ -1033,6 +1033,50 @@ void returnToCaller(State8085 *state, uint16_t offset)
 	state->sp += 2;
 }
 
+void rst(State8085 *state, uint8_t rst_number, uint8_t half)
+{
+    uint16_t pc = state->pc;  // PC has already been incremented by Emulate8085Op
+    state->memory[state->sp - 1] = (pc >> 8) & 0xff;
+    state->memory[state->sp - 2] = (pc & 0xff);
+    state->sp = state->sp - 2;
+    state->pc = rst_number * 8 + half * 4;
+}
+
+void checkInterrupts(State8085 *state)
+{
+    if (state->int_enable == 0)
+        return;
+
+    // Highest priority first
+    if (state->pending_trap) {
+        state->pending_trap = 0;
+        state->int_enable = 0;
+        rst(state, 4, 1); // RST 4.5 = 0x24
+        return;
+    }
+
+    if (state->pending_r5 && !state->r5_mask) {
+        state->pending_r5 = 0;
+        state->int_enable = 0;
+        rst(state, 5, 1); // RST 5.5 = 0x2C
+        return;
+    }
+
+    if (state->pending_r6 && !state->r6_mask) {
+        state->pending_r6 = 0;
+        state->int_enable = 0;
+        rst(state, 6, 1); // RST 6.5 = 0x34
+        return;
+    }
+
+    if (state->pending_r7 && !state->r7_mask) {
+        state->pending_r7 = 0;
+        state->int_enable = 0;
+        rst(state, 7, 1); // RST 7.5 = 0x3C
+        return;
+    }
+}
+
 extern void io_write(int address, int value);
 
 int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
@@ -1040,6 +1084,8 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
 	if (offset == state->pc) {
 		state->sp = 0xFFFF;
     }
+
+    checkInterrupts();
 
     unsigned char *opcode = &state->memory[state->pc];
     uint8_t current_opcode = *opcode;
@@ -1052,8 +1098,8 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
 
 	switch (current_opcode)
 	{
-	case 0x00:
-		break; // NOP
+	case 0x00: // NOP
+		break;
 	case 0x01: // LXI B,word
 		state->c = opcode[1];
 		state->b = opcode[2];
@@ -2125,7 +2171,7 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
 	}
 	break;
 	case 0xc7: // RST 0
-		UnimplementedInstruction(state);
+        rst(state, 0, 0);
         states = 12;
 		break;
 	case 0xc8: // RZ
@@ -2172,7 +2218,7 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
         states = 7;
 		break;
 	case 0xcf: // RST 1
-		UnimplementedInstruction(state);
+        rst(state, 1, 0);
         states = 12;
 		break;
 	case 0xd0: // RNC
@@ -2230,7 +2276,7 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
         states = 7;
 		break;
 	case 0xd7: // RST 2
-		UnimplementedInstruction(state);
+        rst(state, 2, 0);
         states = 12;
 		break;
 	case 0xd8: // RC
@@ -2277,7 +2323,7 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
         states = 7;
 		break;
 	case 0xdf: // RST 3
-		UnimplementedInstruction(state);
+        rst(state, 3, 0);
         states = 12;
 		break;
 	case 0xe0: // RPO
@@ -2343,7 +2389,7 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
 	}
 	break;
 	case 0xe7: // RST 4
-		UnimplementedInstruction(state);
+        rst(state, 4, 0);
         states = 12;
 		break;
 	case 0xe8: // RPE
@@ -2398,7 +2444,7 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
         states = 7;
 		break;
 	case 0xef: // RST 5
-		UnimplementedInstruction(state);
+        rst(state, 5, 0);
         states = 12;
 		break;
 	case 0xf0: // RP
@@ -2490,7 +2536,7 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
         states = 7;
 		break;
 	case 0xf7: // RST 6
-		UnimplementedInstruction(state);
+        rst(state, 6, 0);
         states = 12;
 		break;
 	case 0xf8: // RM
@@ -2545,7 +2591,7 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
 	}
 	break;
 	case 0xff: // RST 7
-		UnimplementedInstruction(state);
+        rst(state, 7, 0);
         states = 12;
 		break;
 	}

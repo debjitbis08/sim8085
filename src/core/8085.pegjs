@@ -866,7 +866,7 @@ defineDirective = dir:(defineSymbol / setSymbol) whitespace* {
 operation = inst:(carryBitInstructions / singleRegInstructions / nopInstruction /
     dataTransferInstructions / regOrMemToAccInstructions / rotateAccInstructions /
     regPairInstructions / immediateInstructions / ioInstructions / directAddressingInstructions /
-    jumpInstructions / callInstructions / returnInstructions / interruptInstruction / haltInstruction) whitespace* {
+    jumpInstructions / callInstructions / returnInstructions / interruptInstruction / resetInstruction / haltInstruction) whitespace* {
 
     var paramTypes = inst.paramTypes,
         data,
@@ -1093,10 +1093,14 @@ returnInstructions = op:(op_ret / op_rc / op_rnc / op_rz / op_rnz / op_rm / op_r
     };
 }
 
-/*
 resetInstruction = op:(op_rst) {
+    console.log(op);
+    return {
+        name: op[0],
+        params: [op[2].value],
+        paramTypes: [op[2].value]
+    };
 }
-*/
 
 haltInstruction = op:(op_hlt) {
     return {
@@ -1181,9 +1185,26 @@ op_xchg = "XCHG"i
 op_xthl = "XTHL"i
 op_ei   = "EI"i
 op_di   = "DI"i
-op_rim   = "RIM"i
-op_sim   = "SIM"i
+op_rim  = "RIM"i
+op_sim  = "SIM"i
 op_nop  = "NOP"i
+
+op_rst  = op:"RST"i operands:rstOperand { return [op].concat(operands); }
+
+rstOperand = w:whitespace+ code:rstCode { return [w, code]; } / rstOperandError
+
+rstCode "Code" = n:(expressionImmediate / data8) {
+    console.log(n);
+    return n;
+}
+
+rstOperandError = .* {
+    error(`{
+        "type": "Invalid Operands",
+        "message": "Invalid operand for RST",
+        "hint": ["The address code must be a number or expression within the range 000B through 111B."]
+    }`);
+}
 
 op_inr  = op:"INR"i operands:singleRegisterOperand { return [op].concat(operands); }
 op_dcr  = op:"DCR"i operands:singleRegisterOperand { return [op].concat(operands); }
