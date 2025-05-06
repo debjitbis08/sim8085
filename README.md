@@ -63,7 +63,7 @@ If you make changes in `src/core/8085.c`:
     pnpm build-emulator
     ```
 
-2. Commit the newly generated JS file.
+2. Commit the modified JS file.
 
 ---
 
