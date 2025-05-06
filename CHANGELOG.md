@@ -1,3 +1,12 @@
+# [2.12.0](https://github.com/debjitbis08/sim8085/compare/v2.11.3...v2.12.0) (2025-05-06)
+
+
+### Features
+
+* Add RIM/SIM instruction support ([e89e0df](https://github.com/debjitbis08/sim8085/commit/e89e0df08157f426e7c4f47e2b5ae21dd20815b4))
+* Add RST instruction and interrupts ([bda3395](https://github.com/debjitbis08/sim8085/commit/bda339597f86747dec451e6d1d889bf7532b3b7d))
+* Add SIM/RIM to number converter tool ([6015f86](https://github.com/debjitbis08/sim8085/commit/6015f86d5e00c1b4cc9c34378f81e00682b11818))
+
 ## [2.11.3](https://github.com/debjitbis08/sim8085/compare/v2.11.2...v2.11.3) (2025-05-06)
 
 
