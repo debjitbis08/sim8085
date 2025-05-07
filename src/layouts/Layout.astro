@@ -13,12 +13,13 @@ interface Props {
 	title: string;
 	showActions: boolean;
 	fullwidth: boolean;
+    fullHeight: boolean;
 	smallFooter?: boolean;
 	noHeader?: boolean;
 	noFooter?: boolean;
 }
 
-const { title, showActions, fullwidth, smallFooter, noHeader, noFooter } = Astro.props;
+const { title, showActions, fullwidth, fullHeight, smallFooter, noHeader, noFooter } = Astro.props;
 ---
 
 <!doctype html>
@@ -56,9 +57,9 @@ const { title, showActions, fullwidth, smallFooter, noHeader, noFooter } = Astro
         <PostHogInit />
     </head>
 	<body class={`bg-page-background text-primary-foreground min-h-dvh`}>
-	    <main class={`${!fullwidth ? "max-w-4xl mx-auto" : ""} h-full`}>
+        <main class={`${!fullwidth ? "max-w-4xl mx-auto" : ""} ${fullHeight ? "h-full" : ""}`}>
 			{!noHeader && <Header showActions={showActions} fullwidth={fullwidth} />}
-            <div class="h-[calc(100svh-8rem)] md:h-[calc(100svh-6.2rem)]">
+            <div class={`${fullHeight ? "h-[calc(100svh-8rem)] md:h-[calc(100svh-6.2rem)]" : ""}`}>
                 <slot />
             </div>
     	</main>

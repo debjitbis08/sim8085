@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   fill="none"
+   stroke-width="2"
+   stroke="currentColor"
+   stroke-linecap="round"
+   stroke-linejoin="round"
+   viewBox="0 0 24 24"
+   style="overflow: visible; color: currentcolor;"
+   height="100%"
+   width="100%"
+   version="1.1"
+   id="svg22"
+   sodipodi:docname="logo-with-green-background.svg"
+   inkscape:version="1.1.2 (0a00cf5339, 2022-02-04)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs26" />
+  <sodipodi:namedview
+     id="namedview24"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     showgrid="false"
+     inkscape:zoom="16"
+     inkscape:cx="31.59375"
+     inkscape:cy="4.9375"
+     inkscape:window-width="2560"
+     inkscape:window-height="1371"
+     inkscape:window-x="0"
+     inkscape:window-y="32"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer2" />
+  <g
+     inkscape:groupmode="layer"
+     id="layer1"
+     inkscape:label="Background"
+     style="display:inline">
+    <rect
+       style="display:inline;overflow:visible;fill:#26a269;fill-opacity:1;fill-rule:evenodd;stroke-width:0;stroke-miterlimit:4;stroke-dasharray:none"
+       id="rect51"
+       width="24.001001"
+       height="23.987556"
+       x="0.033053406"
+       y="0.029661493"
+       ry="3.9405496" />
+  </g>
+  <g
+     inkscape:groupmode="layer"
+     id="layer2"
+     inkscape:label="Foreground">
+    <g
+       id="g1071"
+       transform="matrix(0.85929289,0,0,0.8959015,1.5802546,2.0397637)">
+      <rect
+         width="12.496663"
+         height="11.838866"
+         x="5.8776217"
+         y="5.1981239"
+         rx="1.5620829"
+         ry="1.4798583"
+         id="rect2"
+         style="overflow:visible;stroke:#ffffff;stroke-width:1.52;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+      <path
+         d="m 9.7828288,8.89777 h 4.6862482 v 4.439575 H 9.7828288 Z"
+         id="path4"
+         style="overflow:visible;stroke:#ffffff;stroke-width:1.52041;stroke-opacity:1" />
+      <path
+         d="M 9.7828288,2.9783366 V 5.1981242"
+         id="path6"
+         style="overflow:visible;stroke:#ffffff;stroke-width:1.52041;stroke-opacity:1" />
+      <path
+         d="M 14.469077,2.9783366 V 5.1981242"
+         id="path8"
+         style="overflow:visible;stroke:#ffffff;stroke-width:1.52041;stroke-opacity:1" />
+      <path
+         d="m 9.7828288,17.03699 v 2.219788"
+         id="path10"
+         style="overflow:visible;stroke:#ffffff;stroke-width:1.52041;stroke-opacity:1" />
+      <path
+         d="m 14.469077,17.03699 v 2.219788"
+         id="path12"
+         style="overflow:visible;stroke:#ffffff;stroke-width:1.52041;stroke-opacity:1" />
+      <path
+         d="m 18.374285,8.89777 h 2.343124"
+         id="path14"
+         style="overflow:visible;stroke:#ffffff;stroke-width:1.52041;stroke-opacity:1" />
+      <path
+         d="m 18.374285,12.597415 h 2.343124"
+         id="path16"
+         style="overflow:visible;stroke:#ffffff;stroke-width:1.52041;stroke-opacity:1" />
+      <path
+         d="M 3.5344974,8.89777 H 5.8776217"
+         id="path18"
+         style="overflow:visible;stroke:#ffffff;stroke-width:1.52041;stroke-opacity:1" />
+      <path
+         d="M 3.5344974,12.597415 H 5.8776217"
+         id="path20"
+         style="overflow:visible;stroke:#ffffff;stroke-width:1.52041;stroke-opacity:1" />
+    </g>
+  </g>
+</svg>
