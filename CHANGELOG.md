@@ -1,3 +1,10 @@
+## [2.12.3](https://github.com/debjitbis08/sim8085/compare/v2.12.2...v2.12.3) (2025-05-07)
+
+
+### Bug Fixes
+
+* Make memory & IO access more reliable ([2efa5ec](https://github.com/debjitbis08/sim8085/commit/2efa5ece6df59cfd468c03da9bb3f52399043dcf))
+
 ## [2.12.2](https://github.com/debjitbis08/sim8085/compare/v2.12.1...v2.12.2) (2025-05-07)
 
 
