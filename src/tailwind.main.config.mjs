@@ -34,7 +34,7 @@ export default {
     future: {
         hoverOnlyWhenSupported: true,
     },
-    darkMode: "selector",
+    darkMode: ["class", '[data-theme="dark"]'],
     theme: {
         extend: {
             screens: {
@@ -116,4 +116,5 @@ export default {
             pattern: /(bg|text|border)-editor-.+/,
         },
     ],
+    plugins: [require("@tailwindcss/typography")],
 };

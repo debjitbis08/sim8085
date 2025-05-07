@@ -23,7 +23,7 @@ const entries = await Promise.all(
 );
 ---
 
-<Layout title="Changelog - Sim8085" showActions={false} fullwidth={false}>
+<Layout title="Changelog - Sim8085" showActions={false} fullwidth={false} fullHeight={false}>
     <main class="privacy-policy max-w-4xl mx-auto py-8 px-4 md:px-6">
         <section>
             <div class="lg:max-w-[1024px] flex flex-col sm:flex-col md:flex-row items-start gap-3 mt-8 mb-8 md:mb-16 pb-16 border-b border-b-gray-800">
@@ -47,7 +47,9 @@ const entries = await Promise.all(
                         </p>
                     </div>
                     <div class="changelog-entry lg:w-[588px]">
-                        <entry.Content />
+                        <div class="prose dark:prose-invert">
+                            <entry.Content />
+                        </div>
                         <div>
                             <h3 class="mt-4">Detailed Changelogs</h3>
                             <ul>
@@ -66,36 +68,3 @@ const entries = await Promise.all(
     </main>
 </Layout>
 
-<style>
-:global(.changelog-entry p) {
-    @apply mb-4;
-}
-
-:global(.changelog-entry li) {
-    @apply mb-2;
-}
-
-:global(.changelog-entry h3) {
-    @apply text-2xl font-bold mb-4;
-}
-
-:global(.changelog-entry h3:not(:first-child)) {
-    @apply mt-8;
-}
-
-:global(.changelog-entry a) {
-    @apply text-blue-600 dark:text-blue-400;
-}
-
-:global(.changelog-entry img) {
-    @apply my-3;
-}
-
-:global(.changelog-entry blockquote) {
-    @apply pl-2 border-l-4 border-gray-500;
-}
-
-:global(.changelog-entry ul) {
-    @apply list-inside list-disc;
-}
-</style>

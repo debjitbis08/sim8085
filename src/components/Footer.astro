@@ -1,7 +1,9 @@
 ---
 import GithubIcon from '../icons/github.svg?raw';
 import BMCIcon from '../icons/bmc.svg?raw';
-import FAQs from './FAQs.astro';
+import PayPalIcon from '../icons/paypal.svg?raw';
+import KoFiIcon from '../icons/kofi.svg?raw';
+import RazorPayIcon from '../icons/razorpay.svg?raw';
 const year = new Date().getFullYear();
 
 interface Props {
@@ -37,8 +39,7 @@ const { small } = Astro.props;
         <div class="flex flex-wrap items-start justify-between md:justify-start">
             <div class="flex flex-row md:flex-col items-center md:items-start md:gap-8 w-full md:w-[50%] md:h-full">
                 <a href="/" class="flex-grow flex items-center gap-2">
-                    <img src="/favicon-dark.svg" alt="Sim8085" class="w-6 h-6 hidden dark:inline">
-                    <img src="/logo-with-green-background.svg" alt="Sim8085" class="w-6 h-6 dark:hidden">
+                    <img src="/logo-with-green-background.svg" alt="Sim8085" class="w-6 h-6">
                     <span class="flex gap-2 text-secondary-foreground">
                         <span>Sim8085</span>
                         <span class="hidden md:inline">—</span>
@@ -47,12 +48,21 @@ const { small } = Astro.props;
                         <span class="hidden md:inline">📘</span>
                     </span>
                 </a>
-                <div class="flex gap-2 text-inactive-foreground">
-                    <a href="https://github.com/debjitbis08/sim8085" target="_blank" class="hover:text-active-foreground transition-colors">
+                <div class="flex gap-3 text-inactive-foreground">
+                    <a href="https://github.com/debjitbis08/sim8085" target="_blank" class="text-lg hover:text-active-foreground transition-colors">
                         <Fragment set:html={GithubIcon} />
                     </a>
-                    <a href="https://buymeacoffee.com/sim8085" target="_blank" class="hover:text-active-foreground transition-colors">
+                    <a href="https://www.buymeacoffee.com/debjit.biswas" target="_blank" class="text-lg hover:text-active-foreground transition-colors">
                         <Fragment set:html={BMCIcon} />
+                    </a>
+                    <a href="https://ko-fi.com/O4O8170QHN" target="_blank" class="text-lg hover:text-active-foreground transition-colors">
+                        <Fragment set:html={KoFiIcon} />
+                    </a>
+                    <a href="https://www.paypal.com/ncp/payment/9W3T973GRR7LN" target="_blank" class="text-lg hover:text-active-foreground transition-colors">
+                        <Fragment set:html={PayPalIcon} />
+                    </a>
+                    <a href="https://razorpay.com/payment-button/pl_PRRyue1p9GnvTp/view/?utm_source=payment_button&utm_medium=button&utm_campaign=payment_button" target="_blank" class="text-lg hover:text-active-foreground transition-colors">
+                        <Fragment set:html={RazorPayIcon} />
                     </a>
                 </div>
             </div>
@@ -60,10 +70,10 @@ const { small } = Astro.props;
                 <h3 class="text-active-foreground mb-3">Product</h3>
                 <ul class="flex flex-col gap-2 text-inactive-foreground">
                     <li>
-                        <a href="/docs/en" target="_blank" class="hover:text-active-foreground transition-colors">Documentation</a>
+                        <a href="/docs/en/" target="_blank" class="hover:text-active-foreground transition-colors">Documentation</a>
                     </li>
                     <li>
-                        <a href="/changelog" target="_blank" class="hover:text-active-foreground transition-colors">Changelog</a>
+                        <a href="/changelog/" target="_blank" class="hover:text-active-foreground transition-colors">Changelog</a>
                     </li>
                     <li>
                         <a href="https://www.debjitbiswas.com/tags/sim8085/" target="_blank" class="hover:text-active-foreground transition-colors">Blog</a>
