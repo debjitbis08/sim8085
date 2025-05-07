@@ -43,6 +43,10 @@ export async function initSimulator() {
     // Initialize the state pointer
     statePointer = simulator._Init8085();
 
+    console.log("State Pointer", statePointer);
+    console.log("Memory Pointer", simulator._getMemory(statePointer));
+    console.log("IO Pointer", simulator._getIO(statePointer));
+
     // Added because on first run, the address 0x16c4 was set with
     // value 0x28, which I have no idea why.
     setAllMemoryLocations({
@@ -333,12 +337,12 @@ export function setPC(store, value) {
 }
 
 export function setMemoryLocation(store, location, value) {
-    const memoryPointer = store.statePointer + 32;
+    const memoryPointer = simulator._getMemory(store.statePointer);
     simulator.setValue(memoryPointer + location, value, "i8", 0);
 }
 
 export function setAllMemoryLocations(store) {
-    const memoryPtr = store.statePointer + 32;
+    const memoryPtr = simulator._getMemory(store.statePointer);
     let i = 0;
     while (i < 65536) {
         simulator.setValue(memoryPtr + i, store.memory[i], "i8", 0);
@@ -347,7 +351,7 @@ export function setAllMemoryLocations(store) {
 }
 
 export function setIOPort(store, location, value) {
-    const ioPointer = store.statePointer + 65576;
+    const ioPointer = simulator._getIO(store.statePointer);
     simulator.setValue(ioPointer + location, value, "i8", 0);
 }
 

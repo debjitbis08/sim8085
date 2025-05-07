@@ -1085,7 +1085,7 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
 		state->sp = 0xFFFF;
     }
 
-    checkInterrupts();
+    // checkInterrupts(state);
 
     unsigned char *opcode = &state->memory[state->pc];
     uint8_t current_opcode = *opcode;
@@ -1436,6 +1436,7 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
 	case 0x32: // STA word
 	{
 		uint16_t offset = (opcode[2] << 8) | (opcode[1]);
+        printf("offset %02x", offset);
 		state->memory[offset] = state->a;
 		state->pc += 2;
         states = 13;
@@ -2774,3 +2775,6 @@ int InterruptToHalt(State8085 *state) {
     state->hlt_enable = 1;
     return 1;
 }
+
+uint8_t *getMemory(State8085 *state) { return state->memory; }
+uint8_t *getIO(State8085 *state) { return state->io; }
