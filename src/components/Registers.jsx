@@ -4,10 +4,20 @@ import { Tooltip } from "@kobalte/core/tooltip";
 import { produce } from "solid-js/store";
 import { toByteString } from "../utils/NumberFormat";
 import { store, setStore, REGISTER_KEYS } from "../store/store";
-import { setRegisters } from "../core/simulator";
+// import { setRegisters } from "../core/simulator";
 import { FiHelpCircle } from "solid-icons/fi";
 
 export function Registers() {
+    let lazySetRegisters;
+
+    const callSetRegisters = async () => {
+        if (!lazySetRegisters) {
+            const module = await import("../core/simulator");
+            lazySetRegisters = module.setRegisters;
+        }
+        lazySetRegisters(store);
+    };
+
     const updateRegisterValue = (registerId, high, low) => {
         setStore(
             "registers",
@@ -17,12 +27,12 @@ export function Registers() {
                 register.low = low;
             }),
         );
-        setRegisters(store);
+        callSetRegisters(store);
     };
 
     const updateAccumulator = (value) => {
         setStore("accumulator", value);
-        setRegisters(store);
+        callSetRegisters(store);
     };
 
     const clearRegisters = () => {
@@ -36,7 +46,7 @@ export function Registers() {
                 }
             }),
         );
-        setRegisters(store);
+        callSetRegisters(store);
     };
 
     return (
