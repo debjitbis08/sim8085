@@ -468,7 +468,7 @@ export default function Actions() {
                                 </p>
                                 <p class="mt-2">
                                     This can be also manipulated using the{" "}
-                                    <a class="text-blue-foreground" href="/docs/en/directives/end">
+                                    <a class="text-blue-foreground" href="/docs/en/directives/end/">
                                         END directive
                                     </a>
                                     .

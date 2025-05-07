@@ -125,20 +125,21 @@
                     return;
                 }
 
+                // Removed to improve LCP.
                 // Load random unread tip
-                const randomTip = unreadTips[Math.floor(Math.random() * unreadTips.length)];
-                this.currentTip = randomTip.replace('/tips/', '').replace('.html', '');
+                // const randomTip = unreadTips[Math.floor(Math.random() * unreadTips.length)];
+                // this.currentTip = randomTip.replace('/tips/', '').replace('.html', '');
 
-                requestIdleCallback(() => {
-                    setTimeout(() => {
-                        fetch(randomTip)
-                            .then(response => response.text())
-                            .then(html => {
-                                this.tipContent = html;
-                                this.open = true;
-                            });
-                    }, 500);
-                });
+                // requestIdleCallback(() => {
+                //     setTimeout(() => {
+                //         fetch(randomTip)
+                //             .then(response => response.text())
+                //             .then(html => {
+                //                 this.tipContent = html;
+                //                 this.open = true;
+                //             });
+                //     }, 500);
+                // });
             },
 
             toggleDontShowAgain(event) {
