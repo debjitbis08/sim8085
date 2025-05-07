@@ -42,6 +42,7 @@ export function runTestProgram(state) {
             c: false,
         },
         loadAddress: 0,
+        settings: { run: { enableTiming: false } },
     };
 
     // Merge the provided state with the default state

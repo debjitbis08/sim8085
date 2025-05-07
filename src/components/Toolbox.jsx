@@ -199,12 +199,17 @@ function RimSimRegisterEditor() {
 
     const labels = () => (mode() === "SIM" ? SIM_BIT_LABELS : RIM_BIT_LABELS);
 
-    const getValue = () => parseInt(bits().join(""), 2);
+    const getValue = () => parseInt(bits().toReversed().join(""), 2);
 
     const updateBitsFromValue = (value) => {
         const clamped = Math.max(0, Math.min(0xff, value));
         const binStr = clamped.toString(2).padStart(8, "0");
-        setBits(binStr.split("").map((b) => +b));
+        setBits(
+            binStr
+                .split("")
+                .map((b) => +b)
+                .reverse(),
+        );
     };
 
     createEffect(() => {
@@ -245,24 +250,22 @@ function RimSimRegisterEditor() {
                 </select>
             </div>
 
-            <div class="grid grid-cols-4 sm:grid-cols-8 gap-2 text-center">
-                {bits()
-                    .map((bit, i) => (
-                        <div>
-                            <input
-                                type="text"
-                                value={bit}
-                                readonly
-                                class="text-sm w-4 p-1 bg-transparent outline-none placeholder:text-inactive-foreground border-b border-b-gray-300 cursor-pointer"
-                                onClick={() => toggleBit(i)}
-                                title={`${labels()[i].short} (${labels()[i].long})`}
-                            />
-                            <div class="mt-1 text-[11px] text-secondary-foreground" title={labels()[i].long}>
-                                {labels()[i].short}
-                            </div>
+            <div class="flex items-center flex-row-reverse gap-2 justify-center text-center">
+                {bits().map((bit, i) => (
+                    <div>
+                        <input
+                            type="text"
+                            value={bit}
+                            readonly
+                            class="text-sm w-4 p-1 bg-transparent outline-none placeholder:text-inactive-foreground border-b border-b-gray-300 cursor-pointer"
+                            onClick={() => toggleBit(i)}
+                            title={`${labels()[i].short} (${labels()[i].long})`}
+                        />
+                        <div class="mt-1 text-[11px] text-secondary-foreground" title={labels()[i].long}>
+                            {labels()[i].short}
                         </div>
-                    ))
-                    .reverse()}
+                    </div>
+                ))}
             </div>
 
             <div class="flex items-end gap-2 border-b pb-2">

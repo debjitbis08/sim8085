@@ -4,8 +4,9 @@ import { Tooltip } from "./generic/Tooltip.jsx";
 import { produce } from "solid-js/store";
 import { toByteString } from "../utils/NumberFormat";
 import { store, setStore, REGISTER_KEYS } from "../store/store";
-// import { setRegisters } from "../core/simulator";
 import { FiHelpCircle } from "solid-icons/fi";
+import { FaSolidCircleInfo } from "solid-icons/fa";
+import { VsInfo } from "solid-icons/vs";
 
 export function Registers() {
     let lazySetRegisters;
@@ -51,9 +52,24 @@ export function Registers() {
 
     return (
         <div>
-            <div class="flex border-b border-b-inactive-border px-1">
-                <h2 class="text-xl grow pb-1">Registers</h2>
-                <button title="Clear Registers" class="text-red-foreground" onClick={clearRegisters}>
+            <div class="flex items-center gap-2 border-b border-b-inactive-border px-1">
+                <h2 class="text-xl pb-1">Registers</h2>
+                <Tooltip placement="top">
+                    <Tooltip.Trigger class="tooltip__trigger text-left">
+                        <span class="font-bold text-sm">
+                            <VsInfo />
+                        </span>
+                    </Tooltip.Trigger>
+                    <Tooltip.Portal class="hidden">
+                        <Tooltip.Content class="tooltip__content">
+                            <Tooltip.Arrow />
+                            <p>Double click the row to edit the values Double click the row to edit the values.</p>
+                            <p>Values of PSW, SP and PC are non-editable.</p>
+                            <p>After editing press Enter to store the values.</p>
+                        </Tooltip.Content>
+                    </Tooltip.Portal>
+                </Tooltip>
+                <button title="Clear Registers" class="ml-auto text-red-foreground" onClick={clearRegisters}>
                     <AiOutlineClear />
                 </button>
             </div>
@@ -95,7 +111,7 @@ export function Registers() {
                 {REGISTER_KEYS.map((registerId) => (
                     <Register
                         name={registerId.toUpperCase()}
-                        nameTooltip={<p>General purpose register pair {registerId.toUpperCase()}</p>}
+                        nameTooltip={<p>General purpose register pair {registerId.toUpperCase()}.</p>}
                         high={store.registers[registerId].high}
                         low={store.registers[registerId].low}
                         canEditHigh={true}
@@ -189,7 +205,10 @@ function Register(props) {
     };
 
     return (
-        <div class="flex items-center gap-1 my-2 p-1 hover:bg-active-background">
+        <div
+            class="flex items-center gap-1 my-2 p-1 hover:bg-active-background group relative"
+            onDblClick={() => startEditing(() => highRef)}
+        >
             <Tooltip placement="top">
                 <Tooltip.Trigger class="tooltip__trigger grow text-left">
                     <span class="font-bold">{props.name}</span>
@@ -197,7 +216,17 @@ function Register(props) {
                 <Tooltip.Portal class="hidden">
                     <Tooltip.Content class="tooltip__content">
                         <Tooltip.Arrow />
-                        {typeof props.nameTooltip === "string" ? <p>{props.nameTooltip}</p> : props.nameTooltip}
+                        {typeof props.nameTooltip === "string" ? (
+                            <p>
+                                {props.nameTooltip}
+                                {props.canEditHigh || props.canEditLow ? "Double click to edit." : ""}
+                            </p>
+                        ) : (
+                            <>
+                                {props.nameTooltip}
+                                <p>{props.canEditHigh || props.canEditLow ? "Double click to edit." : ""}</p>
+                            </>
+                        )}
                     </Tooltip.Content>
                 </Tooltip.Portal>
             </Tooltip>
@@ -218,7 +247,10 @@ function Register(props) {
                     ref={highRef}
                 />
             ) : (
-                <span class="font-mono cursor-pointer" onDblClick={() => startEditing(() => highRef)}>
+                <span
+                    class={`font-mono cursor-pointer ${props.high > 0 && props.canEditHigh ? "text-yellow-foreground font-bold" : ""}`}
+                    onDblClick={() => startEditing(() => highRef)}
+                >
                     {toByteString(props.high)}
                 </span>
             )}
@@ -237,16 +269,24 @@ function Register(props) {
                     ref={lowRef}
                 />
             ) : (
-                <span class="font-mono cursor-pointer" onDblClick={() => startEditing(() => lowRef)}>
+                <span
+                    class={`font-mono cursor-pointer ${props.low > 0 && props.canEditLow ? "text-yellow-foreground font-bold" : ""}`}
+                    onDblClick={() => startEditing(() => lowRef)}
+                >
                     {toByteString(props.low)}
                 </span>
             )}
             {props.canEditHigh || props.canEditLow ? (
-                <button type="button" onClick={() => (editing() ? saveValue() : startEditing())}>
+                <button
+                    type="button"
+                    class="visible md:invisible md:group-hover:visible static md:absolute -right-5 bg-none md:bg-active-background py-2 px-1"
+                    title="Edit"
+                    onClick={() => (editing() ? saveValue() : startEditing())}
+                >
                     {editing() ? <AiOutlineSave /> : <AiOutlineEdit />}
                 </button>
             ) : (
-                <span class="opacity-0 pointer-events-none">
+                <span class="invisible md:hidden p-1">
                     <AiOutlineEdit />
                 </span>
             )}

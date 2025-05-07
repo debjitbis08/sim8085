@@ -6,9 +6,15 @@ import { FiCpu, FiFolder } from "solid-icons/fi";
 import { AiOutlineQuestionCircle } from "solid-icons/ai";
 import { Tooltip } from "./generic/Tooltip.jsx";
 import { BiRegularDockLeft, BiSolidDockLeft } from "solid-icons/bi";
-import { FaRegularLightbulb, FaSolidLightbulb, FaSolidScrewdriverWrench, FaSolidWrench } from "solid-icons/fa";
+import {
+    FaRegularLightbulb,
+    FaSolidLightbulb,
+    FaSolidScrewdriverWrench,
+    FaSolidTriangleExclamation,
+} from "solid-icons/fa";
 import { VsLoading } from "solid-icons/vs";
 import DelayedComponent from "./generic/DelayedComponent.jsx";
+import InterruptState from "./InterruptState.jsx";
 
 const Workspace = lazy(() => import("./Workspace.jsx"));
 const IOPorts = lazy(() => import("./IOPorts.jsx"));
@@ -195,6 +201,9 @@ export function LeftPanel() {
                             </div>
                             <div class="mt-10">
                                 <Flags />
+                            </div>
+                            <div class="mt-10">
+                                <InterruptState />
                             </div>
                         </>
                     ) : activeTab() === "memory" ? (

@@ -68,6 +68,18 @@ export const [store, setStore] = createStore({
     },
     memory: Array(65536).fill(0),
     io: Array(256).fill(0),
+    interruptsEnabled: false,
+    interruptMasks: {
+        rst55: false,
+        rst65: false,
+        rst75: false,
+    },
+    pendingInterrupts: {
+        trap: false,
+        rst55: false,
+        rst65: false,
+        rst75: false,
+    },
     breakpoints: [],
     errors: [],
     activeFile: {

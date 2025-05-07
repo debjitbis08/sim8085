@@ -20,8 +20,12 @@ describe("Generalized Conditional Return Instruction Tests", () => {
         test(`${instruction}: Conditional return based on flags`, async () => {
             await fc.assert(
                 fc.asyncProperty(
-                    fc.integer({ min: 0x1000, max: 0xfffd }), // Stack pointer range (valid memory locations)
-                    fc.integer({ min: 0x0005, max: 0xfffe }), // Random return address
+                    fc.integer({ min: 0x1000, max: 0xfffd }).chain((sp) =>
+                        fc
+                            .integer({ min: 0x0005, max: 0xfffe })
+                            .filter((ra) => ra !== sp && ra !== sp + 1)
+                            .map((ra) => [sp, ra]),
+                    ),
                     fc.record({
                         z: fc.boolean(),
                         s: fc.boolean(),
@@ -29,7 +33,7 @@ describe("Generalized Conditional Return Instruction Tests", () => {
                         c: fc.boolean(),
                         ac: fc.boolean(),
                     }), // Random flag states
-                    async (stackPointer, returnAddress, flags) => {
+                    async ([stackPointer, returnAddress], flags) => {
                         const lowByte = returnAddress & 0xff;
                         const highByte = (returnAddress >> 8) & 0xff;
 

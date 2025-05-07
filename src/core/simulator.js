@@ -1,5 +1,12 @@
 import Module from "./8085.js";
-import { getStateFromPtr, setFlagState, setPCValue, setRegisterState, setState } from "./cpuState.js";
+import {
+    getInterruptStateFromPtr,
+    getStateFromPtr,
+    setFlagState,
+    setPCValue,
+    setRegisterState,
+    setState,
+} from "./cpuState.js";
 import { parse } from "../core/8085.pegjs";
 
 let simulator = null;
@@ -149,10 +156,12 @@ export function runProgram(store) {
 
     try {
         const start = performance.now();
-        const newStatePointer = execute8085Program(store.statePointer, store.pcStartValue);
+        const newStatePointer = execute8085Program(store.statePointer, inputState.pc);
         const end = performance.now();
         console.log("Execution Time", end - start);
         const outputState = getStateFromPtr(simulator, newStatePointer);
+
+        console.log("outputState.interruptsEnabled", outputState.interruptsEnabled);
 
         return {
             accumulator: outputState.a,
@@ -168,6 +177,9 @@ export function runProgram(store) {
                 c: outputState.flags.cy || false,
                 ac: outputState.flags.ac || false,
             },
+            interruptsEnabled: outputState.interruptsEnabled,
+            interruptMasks: outputState.interruptMasks,
+            pendingInterrupts: outputState.pendingInterrupts,
             stackPointer: outputState.sp,
             programCounter: outputState.pc,
             memory: outputState.memory,
@@ -205,7 +217,7 @@ export function runProgramInSlices(store, onStateUpdate) {
         try {
             execute8085ProgramSlice(
                 store.statePointer,
-                isFirst ? store.pcStartValue : -1,
+                isFirst ? store.pc : -1,
                 // How many T-States required for lastSliceMs
                 Math.floor(clockFrequency * (lastSliceMs / 1000)),
                 resultPtr,
@@ -229,6 +241,9 @@ export function runProgramInSlices(store, onStateUpdate) {
                     c: outputState.flags.cy || false,
                     ac: outputState.flags.ac || false,
                 },
+                interruptsEnabled: outputState.interruptsEnabled,
+                interruptMasks: outputState.interruptMasks,
+                pendingInterrupts: outputState.pendingInterrupts,
                 stackPointer: outputState.sp,
                 programCounter: outputState.pc,
                 memory: outputState.memory,
@@ -286,6 +301,9 @@ export function runSingleInstruction(store) {
                     c: outputState.flags.cy,
                     ac: outputState.flags.ac,
                 },
+                interruptsEnabled: outputState.interruptsEnabled,
+                interruptMasks: outputState.interruptMasks,
+                pendingInterrupts: outputState.pendingInterrupts,
                 stackPointer: outputState.sp,
                 programCounter: outputState.pc,
                 memory: outputState.memory,
@@ -373,4 +391,24 @@ export function setFlags(store) {
 
 export function halt(store) {
     interruptToHalt(store.statePointer);
+}
+
+export function setInterruptLine(name, active) {
+    switch (name) {
+        case "trap":
+            return simulator._triggerInterrupt(statePointer, 45, active);
+        case "rst5.5":
+            return simulator._triggerInterrupt(statePointer, 55, active);
+        case "rst6.5":
+            return simulator._triggerInterrupt(statePointer, 65, active);
+        case "rst7.5":
+            return simulator._triggerInterrupt(statePointer, 75, active);
+        default:
+            console.warn("Unknown Interrupt", name);
+            return 0;
+    }
+}
+
+export function getInterruptState(store) {
+    return getInterruptStateFromPtr(simulator, store.statePointer);
 }

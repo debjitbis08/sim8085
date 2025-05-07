@@ -14,6 +14,7 @@ function readUint16(simulator, pointer, def) {
 }
 
 export function getStateFromPtr(simulator, statePtr) {
+    const getBool = (offset) => !!simulator.getValue(statePtr + offset, "i8", 0);
     var flags = simulator.getValue(statePtr + 12, "i8", 0).toString(2);
     var state = {
         a: readUint8(simulator, statePtr + 0, 0),
@@ -32,6 +33,18 @@ export function getStateFromPtr(simulator, statePtr) {
             cy: getFlagValue(flags, 3),
             ac: getFlagValue(flags, 4),
         },
+        interruptsEnabled: getBool(13),
+        interruptMasks: {
+            rst55: getBool(14),
+            rst65: getBool(15),
+            rst75: getBool(16),
+        },
+        pendingInterrupts: {
+            trap: getBool(17),
+            rst55: getBool(18),
+            rst65: getBool(19),
+            rst75: getBool(20),
+        },
         memory: (function () {
             var memoryPtr = simulator._getMemory(statePtr);
             var arr = [];
@@ -46,7 +59,6 @@ export function getStateFromPtr(simulator, statePtr) {
         })(),
         io: (function () {
             const ioPointer = simulator._getIO(statePtr);
-            // console.log(`ioPointer: ${ioPointer}`);
             const arr = [];
             let i = 0;
             let n = 0;
@@ -69,6 +81,26 @@ function boolToBin(v) {
     }
 
     return 0;
+}
+
+export function getInterruptStateFromPtr(simulator, statePtr) {
+    const getBool = (offset) => !!simulator.getValue(statePtr + offset, "i8", 0);
+    var state = {
+        interruptsEnabled: getBool(13),
+        interruptMasks: {
+            rst55: getBool(14),
+            rst65: getBool(15),
+            rst75: getBool(16),
+        },
+        pendingInterrupts: {
+            trap: getBool(17),
+            rst55: getBool(18),
+            rst65: getBool(19),
+            rst75: getBool(20),
+        },
+    };
+
+    return state;
 }
 
 export function setState(simulator, statePtr, state) {

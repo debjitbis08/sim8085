@@ -72,12 +72,12 @@ typedef struct State8085
 	uint16_t pc;
 	struct Flags cc;
 	uint8_t int_enable;
+    uint8_t r5_mask, r6_mask, r7_mask;
+    uint8_t pending_trap, pending_r5, pending_r6, r7_latch;
+    uint8_t sod_line;
+    uint8_t hlt_enable;
 	uint8_t *memory;
 	uint8_t *io;
-    uint8_t hlt_enable;
-    uint8_t r5_mask, r6_mask, r7_mask;
-    uint8_t pending_trap, pending_r5, pending_r6, pending_r7;
-    uint8_t sod_line;
 } State8085;
 
 typedef struct ExecutionStats8085 {
@@ -938,6 +938,7 @@ int Disassemble8085Op(unsigned char *codebuffer, int pc)
 		printf("RST    7");
 		break;
 	}
+    printf("\n");
 
 	return opbytes;
 }
@@ -1069,8 +1070,8 @@ void checkInterrupts(State8085 *state)
         return;
     }
 
-    if (state->pending_r7 && !state->r7_mask) {
-        state->pending_r7 = 0;
+    if (state->r7_latch && !state->r7_mask) {
+        state->r7_latch = 0;
         state->int_enable = 0;
         rst(state, 7, 1); // RST 7.5 = 0x3C
         return;
@@ -1085,7 +1086,7 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
 		state->sp = 0xFFFF;
     }
 
-    // checkInterrupts(state);
+    checkInterrupts(state);
 
     unsigned char *opcode = &state->memory[state->pc];
     uint8_t current_opcode = *opcode;
@@ -1281,7 +1282,7 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
         result |= (state->r7_mask ? 1 : 0) << 6;
         result |= (state->r6_mask ? 1 : 0) << 5;
         result |= (state->r5_mask ? 1 : 0) << 4;
-        result |= (state->pending_r7 ? 1 : 0) << 2;
+        result |= (state->r7_latch ? 1 : 0) << 2;
         result |= (state->pending_r6 ? 1 : 0) << 1;
         result |= (state->pending_r5 ? 1 : 0) << 0;
 
@@ -1412,17 +1413,25 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
 	case 0x30:  // SIM
     {
         uint8_t acc = state->a;
-        // SOD and SDE
+
+        // Bit 6: SDE (Serial Data Enable)
+        // Bit 7: SOD (Serial Output Data)
         if ((acc & 0x40) != 0) { // SDE bit set
             uint8_t sod = (acc & 0x80) ? 1 : 0;
+            state->sod_line = sod;
             // TODO Notify on SOD line
         }
 
-        // Mask Set Enable
+        // Bit 4: Reset RST 7.5 latch (edge-triggered flip-flop)
+        if (acc & 0x10) {
+            state->r7_latch = 0; // Clear the latched interrupt
+        }
+
+        // Bit 3: MSE (Mask Set Enable)
         if (acc & 0x08) {
-            state->r5_mask = (acc & 0x04) >> 2;
-            state->r6_mask = (acc & 0x02) >> 1;
-            state->r7_mask = (acc & 0x01);
+            state->r7_mask = (acc >> 2) & 1; // Bit 2 → RST 7.5
+            state->r6_mask = (acc >> 1) & 1; // Bit 1 → RST 6.5
+            state->r5_mask = (acc >> 0) & 1; // Bit 0 → RST 5.5
         }
 
         states = 4;
@@ -1436,7 +1445,6 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
 	case 0x32: // STA word
 	{
 		uint16_t offset = (opcode[2] << 8) | (opcode[1]);
-        printf("offset %02x", offset);
 		state->memory[offset] = state->a;
 		state->pc += 2;
         states = 13;
@@ -1773,7 +1781,6 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
 	}
 	break;
 	case 0x76:  // HLT
-        state->pc--;
         states = 5;
         // TODO Add delay right here.
 		return 1;
@@ -2562,10 +2569,10 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
         }
 		break;
 
-	case 0xfb:
+	case 0xfb: // EI
 		state->int_enable = 1;
         states = 4;
-		break; // EI
+		break;
 	case 0xfc: // CM Addr
 		if (1 == state->cc.s) {
 			call(state, offset, (opcode[2] << 8) | opcode[1]);
@@ -2607,6 +2614,9 @@ State8085 *Init8085(void)
 	State8085 *state = calloc(1, sizeof(State8085));
 	state->memory = malloc(0x10000); // 64K
 	state->io = malloc(0x100);
+    state->pending_r5 = 0;
+    state->pending_r6 = 0;
+    state->r7_latch = 0;
 	printf("State Ptr: %p\n", state);
 	printf("Memory Ptr: %p\n", state->memory);
 	printf("IO Ptr: %p\n", state->io);
@@ -2778,3 +2788,27 @@ int InterruptToHalt(State8085 *state) {
 
 uint8_t *getMemory(State8085 *state) { return state->memory; }
 uint8_t *getIO(State8085 *state) { return state->io; }
+
+int triggerInterrupt(State8085 *state, int code, int active)
+{
+    switch (code) {
+        case 45:
+            state->pending_trap = active;
+            break;
+        case 55:
+            state->pending_r5 = active;
+            break;
+        case 65:
+            state->pending_r6 = active;
+            break;
+        case 75:
+            if (active == 1) {
+                state->r7_latch = 1; // only on rising edge
+            }
+            break;
+        default:
+            printf("Unknown interrupt code: %d\n", code);
+            break;
+    }
+    return state->int_enable;
+}

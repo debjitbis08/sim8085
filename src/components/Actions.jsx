@@ -1,4 +1,4 @@
-import { createSignal, onMount } from "solid-js";
+import { createSignal, onMount, Show } from "solid-js";
 import { VsDebug, VsDebugStepOver, VsQuestion } from "solid-icons/vs";
 import { HiSolidPlay, HiSolidStop, HiSolidWrench } from "solid-icons/hi";
 import { produce } from "solid-js/store";
@@ -16,6 +16,8 @@ import {
     unloadProgram,
     halt,
     setIOWriteCallback,
+    setInterruptLine,
+    getInterruptState,
 } from "../core/simulator.js";
 import { AiOutlineClear } from "solid-icons/ai";
 import { Tooltip } from "./generic/Tooltip.jsx";
@@ -23,8 +25,9 @@ import { store, setStore } from "../store/store.js";
 import { Toast } from "./generic/Toast.jsx";
 import { trackEvent } from "./analytics/tracker.js";
 import { showToaster } from "./toaster.jsx";
-import { FaSolidEject } from "solid-icons/fa";
+import { FaRegularSquare, FaSolidAngleDown, FaSolidBoltLightning, FaSolidCheck, FaSolidEject } from "solid-icons/fa";
 import { createShortcut } from "@solid-primitives/keyboard";
+import { DropdownMenu } from "./generic/DropdownMenu.jsx";
 
 export default function Actions() {
     const [isReady, setIsReady] = createSignal(false);
@@ -178,6 +181,9 @@ export default function Actions() {
                 draftStore.stackPointer = outputState.stackPointer;
                 draftStore.programCounter = outputState.programCounter;
                 draftStore.statePointer = outputState.statePointer;
+                draftStore.interruptsEnabled = outputState.interruptsEnabled;
+                draftStore.interruptMasks = outputState.interruptMasks;
+                draftStore.pendingInterrupts = outputState.pendingInterrupts;
                 draftStore.memory = outputState.memory;
                 draftStore.io = outputState.io;
             }),
@@ -189,7 +195,9 @@ export default function Actions() {
         let errorStatus = 0;
         try {
             setStore("programState", "Running");
+            console.log("Running program from", store.programCounter);
             outputState = runProgram(store);
+            console.log("outputState.interruptsEnabled", outputState.interruptsEnabled);
             if (store.settings.alert.afterSuccessfulRun) {
                 showToaster("success", "Program ran successfully", "Please check the left panel for updated state.");
             }
@@ -267,6 +275,7 @@ export default function Actions() {
         beforeRun();
         load();
         if (store.errors.length === 0) {
+            setStore("pc", store.pcStartValue);
             if (store.settings.run.enableTiming) {
                 runInSlice();
             } else {
@@ -394,6 +403,25 @@ export default function Actions() {
         }
     };
 
+    const handleInterrupt = (name, active = true) => {
+        const isInterruptEnabled = setInterruptLine(name, active ? 1 : 0);
+
+        const outputState = getInterruptState(store);
+        setStore(
+            produce((draftStore) => {
+                draftStore.interruptsEnabled = outputState.interruptsEnabled;
+                draftStore.interruptMasks = outputState.interruptMasks;
+                draftStore.pendingInterrupts = outputState.pendingInterrupts;
+            }),
+        );
+
+        const shouldResume = store.programState === "Idle" && (name === "trap" || isInterruptEnabled);
+
+        if (shouldResume) {
+            run();
+        }
+    };
+
     const setPCStartValue = (value) => {
         setStore("pcStartValue", parseInt(value || "0", 16) % 65536);
     };
@@ -487,6 +515,56 @@ export default function Actions() {
                     isHidden={store.settings.run.enableTiming && store.programState === "Running"}
                 />
             </div>
+            <DropdownMenu>
+                <DropdownMenu.Trigger class="dropdown-menu__trigger">
+                    <span>
+                        <FaSolidBoltLightning class="text-sm text-yellow-foreground" />
+                    </span>
+                    <DropdownMenu.Icon class="dropdown-menu__trigger-icon text-secondary-foreground">
+                        <FaSolidAngleDown />
+                    </DropdownMenu.Icon>
+                </DropdownMenu.Trigger>
+                <DropdownMenu.Portal>
+                    <DropdownMenu.Content class="dropdown-menu__content z-[99]">
+                        <DropdownMenu.CheckboxItem
+                            class="dropdown-menu__checkbox-item pl-2"
+                            checked={store.pendingInterrupts.trap}
+                            onChange={(value) => handleInterrupt("trap", value)}
+                        >
+                            <span class="flex items-center gap-2">
+                                <span>{store.pendingInterrupts.trap ? <FaSolidCheck /> : <FaRegularSquare />}</span>
+                                <span>TRAP</span>
+                            </span>
+                        </DropdownMenu.CheckboxItem>
+                        <DropdownMenu.CheckboxItem
+                            class="dropdown-menu__checkbox-item pl-2"
+                            checked={store.pendingInterrupts.rst55}
+                            onChange={(value) => handleInterrupt("rst5.5", value)}
+                        >
+                            <span class="flex items-center gap-2">
+                                <span>{store.pendingInterrupts.rst55 ? <FaSolidCheck /> : <FaRegularSquare />}</span>
+                                <span>RST 5.5</span>
+                            </span>
+                        </DropdownMenu.CheckboxItem>
+                        <DropdownMenu.CheckboxItem
+                            class="dropdown-menu__checkbox-item pl-2"
+                            checked={store.pendingInterrupts.rst65}
+                            onChange={(value) => handleInterrupt("rst6.5", value)}
+                        >
+                            <span class="flex items-center gap-2">
+                                <span>{store.pendingInterrupts.rst65 ? <FaSolidCheck /> : <FaRegularSquare />}</span>
+                                <span>RST 6.5</span>
+                            </span>
+                        </DropdownMenu.CheckboxItem>
+                        <DropdownMenu.Item
+                            class="dropdown-menu__item pl-8"
+                            onClick={() => handleInterrupt("rst7.5", true)}
+                        >
+                            RST 7.5
+                        </DropdownMenu.Item>
+                    </DropdownMenu.Content>
+                </DropdownMenu.Portal>
+            </DropdownMenu>
             <ActionButton
                 icon={
                     store.programState === "Idle" ? (
