@@ -11,12 +11,11 @@ import {
     AiFillEye,
     AiFillEdit,
 } from "solid-icons/ai";
-import { Tooltip } from "@kobalte/core/tooltip";
-import { Dialog } from "@kobalte/core/dialog";
+import { Tooltip } from "./generic/Tooltip.jsx";
+import { Dialog } from "./generic/Dialog.jsx";
 import { toByteString } from "../utils/NumberFormat";
 import { MemoryGrid } from "./MemoryGrid";
-import { TextTooltip } from "./TextTooltip";
-import { VsEmptyWindow, VsInfo } from "solid-icons/vs";
+import { VsInfo } from "solid-icons/vs";
 import { HiSolidTrash } from "solid-icons/hi";
 import { store, setStore } from "../store/store.js";
 import { setAllMemoryLocations, setMemoryLocation } from "../core/simulator.js";
@@ -186,7 +185,7 @@ export default function MemoryList({ threshold = 4 }) {
                         <Dialog.Portal>
                             <Dialog.Overlay class="dialog__overlay fixed z-50 inset-0 backdrop-blur-sm" />
                             <div class="dialog__positioner fixed z-50 inset-0 flex items-center justify-center">
-                                <Dialog.Content class="dialog__content p-4 bg-gray-100 dark:bg-gray-800 min-w-[600px] border border-gray-400 dark:border-gray-600 rounded">
+                                <Dialog.Content class="dialog__content p-4 bg-main-background min-w-[600px] border border-main-border rounded">
                                     <div class="dialog__header flex items-center">
                                         <Dialog.Title class="dialog__title grow">Full Memory View</Dialog.Title>
                                         <Dialog.CloseButton class="dialog__close-button">

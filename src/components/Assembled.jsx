@@ -3,7 +3,7 @@ import { store } from "../store/store.js";
 import { toByteString } from "../utils/NumberFormat.js";
 import { FiAlertTriangle } from "solid-icons/fi";
 import CopyComponent from "./CopyComponent.jsx";
-import { Tooltip } from "@kobalte/core/tooltip";
+import { Tooltip } from "./generic/Tooltip.jsx";
 import styles from "./Assembled.module.css";
 
 export function Assembled() {

@@ -1,4 +1,4 @@
-import { Dialog } from "@kobalte/core/dialog";
+import { Dialog } from "./generic/Dialog.jsx";
 import { Switch } from "./generic/Switch";
 import { Select } from "./generic/Select";
 import { FaSolidAngleDown, FaSolidXmark } from "solid-icons/fa";

@@ -7,6 +7,7 @@ import { pwaAssetsHead } from 'virtual:pwa-assets/head';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import PostHogInit from '../components/analytics/PostHogInit.astro';
+import PostHogInitialize from '../components/analytics/PostHogInitialize.astro';
 import CookieBanner from '../components/analytics/CookieBanner.astro';
 
 interface Props {
@@ -54,7 +55,8 @@ const { title, showActions, fullwidth, fullHeight, smallFooter, noHeader, noFoot
               }
           }());
         </script>
-        <PostHogInit />
+        <!-- <PostHogInit /> -->
+        <PostHogInitialize useTracking={import.meta.env.PUBLIC_USE_TRACKING === 'true'} apiKey={import.meta.env.PUBLIC_POSTHOG_API_KEY}/>
     </head>
 	<body class={`bg-page-background text-primary-foreground min-h-dvh`}>
         <main class={`${!fullwidth ? "max-w-4xl mx-auto" : ""} ${fullHeight ? "h-full" : ""}`}>
@@ -67,8 +69,6 @@ const { title, showActions, fullwidth, fullHeight, smallFooter, noHeader, noFoot
         <CookieBanner />
 	</body>
 </html>
-<style is:global>
-</style>
 
 <script>
 import Alpine from 'alpinejs';
@@ -116,4 +116,48 @@ document.addEventListener('alpine:init', () => {
       }
   });
 });
+</script>
+
+<script>
+    const cookieConsent = localStorage.getItem('cookie_consent');
+    const useTracking = import.meta.env.PUBLIC_USE_TRACKING === 'true';
+
+    async function identify() {
+        const { getSession } = await import('../lib/supabase.js');
+        console.log("Identifying user");
+        getSession().then(async ({session, error}) => {
+            if (!error && session?.user) {
+                const name = session.user?.user_metadata?.name || "";
+
+                posthog.identify(
+                    session.user.id,
+                    {email: session.user.email, name}
+                );
+            } else if (cookieConsent === "no") {
+                const { getFingerprint } = await import('@thumbmarkjs/thumbmarkjs');
+                const fingerprint = await getFingerprint();
+                posthog.identify(
+                    fingerprint,
+                    { anon: true }
+                );
+            }
+        });
+    }
+
+    const waitForPostHog = (cb) => {
+        const check = () => {
+        if (window.posthog?.__loaded) {
+            cb();
+        } else {
+            setTimeout(check, 100); // poll until ready
+        }
+        };
+        check();
+    };
+
+    if (useTracking && !window.location.host.includes('127.0.0.1') && !window.location.host.includes('localhost')) {
+        waitForPostHog(async () => {
+            await identify();
+        })
+    }
 </script>

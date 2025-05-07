@@ -1,2 +1,2 @@
 export { Switch } from "@kobalte/core/switch";
-import "./switch.css";
+import "./Switch.css";

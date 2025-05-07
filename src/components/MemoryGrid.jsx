@@ -1,5 +1,4 @@
 import { createEffect, createMemo, createSignal, useContext } from "solid-js";
-import { StoreContext } from "./StoreContext";
 import { AiOutlineClear, AiOutlineSearch } from "solid-icons/ai";
 import { toByteString } from "../utils/NumberFormat";
 import { createVirtualizer } from "@tanstack/solid-virtual";

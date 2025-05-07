@@ -4,7 +4,7 @@ import { Flags } from "./Flags.jsx";
 import { createSignal, onMount, onCleanup, Show, Suspense, lazy } from "solid-js";
 import { FiCpu, FiFolder } from "solid-icons/fi";
 import { AiOutlineQuestionCircle } from "solid-icons/ai";
-import { Tooltip } from "@kobalte/core/tooltip";
+import { Tooltip } from "./generic/Tooltip.jsx";
 import { BiRegularDockLeft, BiSolidDockLeft } from "solid-icons/bi";
 import { FaRegularLightbulb, FaSolidLightbulb, FaSolidScrewdriverWrench, FaSolidWrench } from "solid-icons/fa";
 import { VsLoading } from "solid-icons/vs";

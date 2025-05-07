@@ -1,4 +1,4 @@
-import { Dialog } from "@kobalte/core/dialog";
+import { Dialog } from "./generic/Dialog.jsx";
 import { createSignal, onMount } from "solid-js";
 import { FaSolidFolder, FaSolidGraduationCap, FaBrandsGithub } from "solid-icons/fa";
 import { VsBook } from "solid-icons/vs";

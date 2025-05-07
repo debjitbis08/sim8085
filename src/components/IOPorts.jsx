@@ -1,17 +1,5 @@
-import { For, createEffect, createMemo, createSignal, useContext } from "solid-js";
-import {
-    AiOutlineClear,
-    AiOutlineExpand,
-    AiOutlineExpandAlt,
-    AiOutlineFullscreen,
-    AiOutlinePlus,
-    AiOutlineEdit,
-    AiOutlineSave,
-    AiFillEye,
-    AiFillEdit,
-} from "solid-icons/ai";
-import { Tooltip } from "@kobalte/core/tooltip";
-import { Dialog } from "@kobalte/core/dialog";
+import { For, createSignal } from "solid-js";
+import { AiOutlineEdit, AiOutlineSave } from "solid-icons/ai";
 import { toByteString } from "../utils/NumberFormat";
 import { store, setStore } from "../store/store.js";
 import { setIOPort } from "../core/simulator.js";

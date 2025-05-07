@@ -18,9 +18,9 @@ import {
     setIOWriteCallback,
 } from "../core/simulator.js";
 import { AiOutlineClear } from "solid-icons/ai";
-import { Tooltip } from "@kobalte/core/tooltip";
+import { Tooltip } from "./generic/Tooltip.jsx";
 import { store, setStore } from "../store/store.js";
-import { Toast, toaster } from "@kobalte/core/toast";
+import { Toast } from "./generic/Toast.jsx";
 import { trackEvent } from "./analytics/tracker.js";
 import { showToaster } from "./toaster.jsx";
 import { FaSolidEject } from "solid-icons/fa";

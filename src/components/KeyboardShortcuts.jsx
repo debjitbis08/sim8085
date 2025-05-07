@@ -1,4 +1,4 @@
-import { Dialog } from "@kobalte/core/dialog";
+import { Dialog } from "./generic/Dialog.jsx";
 import { createShortcut } from "@solid-primitives/keyboard";
 import { FaSolidXmark, FaSolidKeyboard } from "solid-icons/fa";
 import { createSignal } from "solid-js";

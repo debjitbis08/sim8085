@@ -1,6 +1,6 @@
 import { AiOutlineClear, AiOutlineEdit, AiOutlineSave } from "solid-icons/ai";
 import { createSignal, createEffect } from "solid-js";
-import { Tooltip } from "@kobalte/core/tooltip";
+import { Tooltip } from "./generic/Tooltip.jsx";
 import { produce } from "solid-js/store";
 import { toByteString } from "../utils/NumberFormat";
 import { store, setStore, REGISTER_KEYS } from "../store/store";

@@ -20,7 +20,6 @@
 
 <script>
     import Alpine from 'alpinejs';
-    import posthog from 'posthog-js';
 
     const useTracking = import.meta.env.PUBLIC_USE_TRACKING === 'true';
     document.addEventListener('alpine:init', () => {
@@ -36,7 +35,9 @@
             acceptCookies() {
                 localStorage.setItem('cookie_consent', 'yes');
                 this.showBanner = false;
-                posthog.set_config({ persistence: 'localStorage+cookie' });
+                if (window.posthog) {
+                    posthog.set_config({ persistence: 'localStorage+cookie' });
+                }
             },
             declineCookies() {
                 localStorage.setItem('cookie_consent', 'no');

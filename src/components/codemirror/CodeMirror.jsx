@@ -5,7 +5,7 @@ import { defaultKeymap, indentWithTab } from "@codemirror/commands";
 import { basicSetup } from "codemirror";
 import { Syntax8085 } from "./8085";
 import "./CodeMirror.css";
-import { Tooltip } from "@kobalte/core/tooltip";
+import { Tooltip } from "../generic/Tooltip.jsx";
 import { FiHelpCircle } from "solid-icons/fi";
 import { store, setStore } from "../../store/store";
 

@@ -1,6 +1,6 @@
 import { createEffect, createSignal, onMount, onCleanup, lazy, Suspense } from "solid-js";
 import { Tabs } from "./generic/Tabs";
-import { Tooltip } from "@kobalte/core/tooltip";
+import { Tooltip } from "./generic/Tooltip.jsx";
 import { Assembled } from "./Assembled";
 import { BiRegularDockRight, BiSolidDockRight } from "solid-icons/bi";
 import { VsLoading } from "solid-icons/vs";
