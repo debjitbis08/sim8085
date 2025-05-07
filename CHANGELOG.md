@@ -1,3 +1,18 @@
+## [2.12.2](https://github.com/debjitbis08/sim8085/compare/v2.12.1...v2.12.2) (2025-05-07)
+
+
+### Bug Fixes
+
+* Fix changelog styling ([38cae87](https://github.com/debjitbis08/sim8085/commit/38cae877c6911d8d93d0512d0f1dd30885156a27))
+* Fix large footer styling ([f1d81d2](https://github.com/debjitbis08/sim8085/commit/f1d81d2e9dfa90909a9cd0efcbc01881724e83be))
+* Fix styling for left and right panels ([eb4ff2c](https://github.com/debjitbis08/sim8085/commit/eb4ff2c329bafe05dc575f24c27ea341b970ef8b))
+
+
+### Performance Improvements
+
+* Further improve initial load time ([64ec766](https://github.com/debjitbis08/sim8085/commit/64ec766e3a2341a90e4eb95db9e13460ff8d3150))
+* Load simulator only when required ([2da35b3](https://github.com/debjitbis08/sim8085/commit/2da35b3a19f8dec3839d4a6023449e02abcde5b4))
+
 ## [2.12.1](https://github.com/debjitbis08/sim8085/compare/v2.12.0...v2.12.1) (2025-05-06)
 
 
