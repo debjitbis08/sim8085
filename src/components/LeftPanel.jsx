@@ -65,12 +65,7 @@ export function LeftPanel() {
     };
 
     const showTab = (tab) => {
-        if (tab === activeTab()) {
-            toggleExpanded();
-        } else {
-            setExpanded(true);
-        }
-
+        setExpanded(true);
         setActiveTab(tab);
     };
 
