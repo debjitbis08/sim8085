@@ -1,6 +1,18 @@
 # [2.13.0](https://github.com/debjitbis08/sim8085/compare/v2.12.3...v2.13.0) (2025-05-08)
 
 
+### Bug Fixes
+
+* Simplify panel expansion ([3c22dd1](https://github.com/debjitbis08/sim8085/commit/3c22dd1fc1e6afbf5a915f1d903b8edb25bbf0b4))
+
+
+### Features
+
+* Add interrupt trigger control ([e83c064](https://github.com/debjitbis08/sim8085/commit/e83c06453b36dcf3e889944c6efcc712e7cc16c9))
+
+# [2.13.0](https://github.com/debjitbis08/sim8085/compare/v2.12.3...v2.13.0) (2025-05-08)
+
+
 ### Features
 
 * Add interrupt trigger control ([e83c064](https://github.com/debjitbis08/sim8085/commit/e83c06453b36dcf3e889944c6efcc712e7cc16c9))
