@@ -14,6 +14,9 @@ export function NatoryAd() {
             onIdle: () => {
                 if (!localStorage.getItem(LOCAL_KEY)) {
                     setVisible(true);
+                    if (window.posthog) {
+                        posthog.capture("ad impression");
+                    }
                 }
             },
             onActive: () => {
@@ -25,6 +28,9 @@ export function NatoryAd() {
     const dismissForever = () => {
         localStorage.setItem(LOCAL_KEY, "true");
         setVisible(false);
+        if (window.posthog) {
+            posthog.capture("ad clickthrough");
+        }
     };
 
     return (
@@ -58,30 +64,61 @@ export function NatoryAd() {
     );
 }
 
-function useInactivityTimer({ onIdle, onActive, delay = 60000 }) {
+export function useInactivityTimer({ onIdle, onActive, delay = 5 * 60000 }) {
     let timer;
     let isIdle = false;
+    let lastActivity = Date.now();
+    let pendingIdle = false;
 
     const goIdle = () => {
-        if (!isIdle && document.visibilityState === "visible") {
-            isIdle = true;
-            onIdle?.();
+        const elapsed = Date.now() - lastActivity;
+        if (elapsed >= delay && !isIdle) {
+            if (document.visibilityState === "visible") {
+                isIdle = true;
+                pendingIdle = false;
+                onIdle?.();
+            } else {
+                pendingIdle = true;
+            }
         }
     };
 
     const reset = () => {
-        if (timer) {
-            clearTimeout(timer);
-        }
+        clearTimeout(timer);
+        lastActivity = Date.now();
+
         if (isIdle) {
             isIdle = false;
             onActive?.();
         }
+
+        pendingIdle = false;
+        timer = setTimeout(goIdle, delay);
+    };
+
+    const handleVisibilityChange = () => {
         if (document.visibilityState === "visible") {
-            timer = setTimeout(goIdle, delay);
+            const elapsed = Date.now() - lastActivity;
+            if (pendingIdle && !isIdle && elapsed >= delay) {
+                isIdle = true;
+                pendingIdle = false;
+                onIdle?.();
+            } else {
+                reset();
+            }
+        } else {
+            clearTimeout(timer);
         }
     };
 
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    onCleanup(() => {
+        clearTimeout(timer);
+        document.removeEventListener("visibilitychange", handleVisibilityChange);
+    });
+
+    // Reactively trigger on any meaningful state change
     createEffect(() => {
         store.activeFile.content;
         store.programState;
@@ -102,5 +139,6 @@ function useInactivityTimer({ onIdle, onActive, delay = 60000 }) {
         reset();
     });
 
+    // Start timer immediately
     reset();
 }
