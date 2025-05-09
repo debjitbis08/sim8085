@@ -1,3 +1,10 @@
+# [2.14.0](https://github.com/debjitbis08/sim8085/compare/v2.13.3...v2.14.0) (2025-05-09)
+
+
+### Features
+
+* Place natory banner ([7934d5f](https://github.com/debjitbis08/sim8085/commit/7934d5f97902cd1bd65232b3edfbc4a95bc7024e))
+
 ## [2.13.3](https://github.com/debjitbis08/sim8085/compare/v2.13.2...v2.13.3) (2025-05-09)
 
 
