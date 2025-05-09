@@ -6,6 +6,7 @@ import { RightPanel } from '../components/RightPanel.jsx';
 import { CodingArea } from '../components/CodingArea.jsx';
 import { PlusDialog } from '../components/PlusDialog.jsx';
 import { DonationPlea } from '../components/DonationPlea.jsx';
+import { NatoryAd } from '../components/NatoryAd.jsx';
 ---
 
 <Layout title="Sim8085 - A 8085 microprocessor simulator" showActions={true} fullwidth={true} fullHeight={true} smallFooter={true}>
@@ -44,6 +45,8 @@ import { DonationPlea } from '../components/DonationPlea.jsx';
         <PlusDialog client:idle />
 
         <DonationPlea client:idle />
+
+        <NatoryAd client:idle />
 
         <!-- Mobile warning message -->
         <!-- <div class="flex md:hidden justify-center items-start bg-gray-100 dark:bg-gray-900" style="height: calc(100vh - 6rem);">
