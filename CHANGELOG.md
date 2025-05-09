@@ -1,3 +1,10 @@
+## [2.14.4](https://github.com/debjitbis08/sim8085/compare/v2.14.3...v2.14.4) (2025-05-09)
+
+
+### Bug Fixes
+
+* Fix styling ([65c7710](https://github.com/debjitbis08/sim8085/commit/65c77103acd26a9decc1c889ba65a661ae61f716))
+
 ## [2.14.3](https://github.com/debjitbis08/sim8085/compare/v2.14.2...v2.14.3) (2025-05-09)
 
 
