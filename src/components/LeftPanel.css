@@ -1,0 +1,22 @@
+.scroll-shadow {
+    --bg-color: rgb(32, 35, 39);
+    --bg-color-transparent: rgba(32, 35, 39, 1);
+    --shadow-color: rgba(0, 0, 0, 0.6);
+    --shadow-fade: rgba(0, 0, 0, 0);
+
+    background:
+        /* Shadow Cover TOP */
+        linear-gradient(var(--bg-color) 30%, var(--bg-color-transparent)) center top,
+        /* Shadow Cover BOTTOM */ linear-gradient(var(--bg-color-transparent), var(--bg-color) 70%) center bottom,
+        /* Shadow TOP */ radial-gradient(farthest-side at 50% 0, var(--shadow-color), var(--shadow-fade)) center top,
+        /* Shadow BOTTOM */ radial-gradient(farthest-side at 50% 100%, var(--shadow-color), var(--shadow-fade)) center
+            bottom rgb(var(--sm-secondary-background));
+
+    background-repeat: no-repeat;
+    background-size:
+        100% 40px,
+        100% 40px,
+        100% 14px,
+        100% 14px;
+    background-attachment: local, local, scroll, scroll;
+}

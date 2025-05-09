@@ -456,7 +456,7 @@ export default function Actions() {
 
     return (
         <div
-            class="flex items-center md:gap-2 border-l-0 border-t-0 border-b-0 rounded-sm
+            class="flex items-center gap-1 md:gap-2 border-l-0 border-t-0 border-b-0 rounded-sm
         max-w-sm mx-auto md:mr-0 
         md:flex-row md:w-auto
             justify-center md:justify-end
@@ -470,13 +470,13 @@ export default function Actions() {
                     <span class="font-mono text-gray-400">0x</span>
                     <input
                         type="text"
-                        class="p-1 w-12 font-mono bg-transparent outline-none placeholder:text-gray-300"
+                        class="px-1 w-12 font-mono bg-transparent outline-none placeholder:text-gray-300"
                         placeholder="Start PC Value"
                         value={store.pcStartValue.toString(16)}
                         onInput={(e) => setPCStartValue(e.target.value)}
                     />
                     <Tooltip>
-                        <Tooltip.Trigger class="tooltip__trigger">
+                        <Tooltip.Trigger class="tooltip__trigger hidden md:block">
                             <VsQuestion />
                         </Tooltip.Trigger>
                         <Tooltip.Portal>
@@ -507,6 +507,7 @@ export default function Actions() {
                     </Tooltip>
                 </div>
                 <ActionButton
+                    class="border-0 rounded-none"
                     icon={<HiSolidPlay class="text-terminal" />}
                     title="Load &amp; Run"
                     shortcut="Ctrl + F5"
@@ -646,11 +647,11 @@ function ActionButton(props) {
     return (
         <Tooltip>
             <Tooltip.Trigger
-                class={`${props.isHidden ? "hidden" : ""} tooltip__trigger rounded hover:bg-active-background border border-transparent hover:border-active-border`}
+                class={`${props.isHidden ? "hidden" : ""} tooltip__trigger rounded hover:bg-active-background border border-transparent hover:border-active-border ${props.class}`}
                 onClick={props.onClick}
                 disabled={props.disabled || props.isHidden}
             >
-                <div class="px-2 py-2 flex items-center gap-2 text-gray-600 text-xl md:text-base">{props.icon}</div>
+                <div class="px-2 py-2 flex items-center gap-2 text-gray-600 text-lg md:text-base">{props.icon}</div>
             </Tooltip.Trigger>
             <Tooltip.Portal>
                 <Tooltip.Content class="tooltip__content">

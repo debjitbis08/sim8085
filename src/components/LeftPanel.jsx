@@ -15,6 +15,7 @@ import {
 import { VsLoading } from "solid-icons/vs";
 import DelayedComponent from "./generic/DelayedComponent.jsx";
 import InterruptState from "./InterruptState.jsx";
+import "./LeftPanel.css";
 
 const Workspace = lazy(() => import("./Workspace.jsx"));
 const IOPorts = lazy(() => import("./IOPorts.jsx"));
@@ -190,17 +191,17 @@ export function LeftPanel() {
             >
                 <div class={`w-full max-h-full px-2 md:px-4`}>
                     {activeTab() === "cpu" ? (
-                        <>
-                            <div>
+                        <div class="flex flex-col items-center justify-start gap-6">
+                            <div class="w-full">
                                 <Registers />
                             </div>
-                            <div class="mt-10">
+                            <div class="w-full">
                                 <Flags />
                             </div>
-                            <div class="mt-10">
+                            <div class="w-full">
                                 <InterruptState />
                             </div>
-                        </>
+                        </div>
                     ) : activeTab() === "memory" ? (
                         <Suspense fallback={<PanelLoader />}>
                             <MemoryList />

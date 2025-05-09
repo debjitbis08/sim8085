@@ -1,7 +1,7 @@
 .dropdown-menu__trigger {
     line-height: 0;
     transition: 250ms background-color;
-    @apply appearance-none inline-flex items-center justify-center gap-2 bg-page-background w-auto outline-none px-2 py-2 rounded border border-active-border;
+    @apply appearance-none inline-flex items-center justify-center gap-2 bg-page-background w-auto outline-none px-2 pr-1 py-2 rounded border border-active-border;
 }
 .dropdown-menu__trigger:hover {
     @apply bg-active-background;
