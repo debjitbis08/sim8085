@@ -19,6 +19,7 @@ Sim8085 is a modern web-based development environment for the Intel 8085 micropr
 - 🚄 **Near-native performance**, powered by a C-based simulator compiled to highly optimized JavaScript via Emscripten.
 - ⏱️ **Instruction Timing Mode** to simulate real-time delays.
 - ♾️ **Supports long-running programs** (e.g., waveform generators or infinite loops), safely handled in-browser.
+- 🧠 **Interrupt system** that closely matches how the 8085 handles interrupts.
 - 📱 **Mobile-friendly** and works great in modern mobile browsers.
 - 💾 **Offline support**: Once loaded, Sim8085 continues to work even without an internet connection thanks to full PWA support.
 - 📦 **Installable as an app**: Add Sim8085 to your home screen or desktop like a native app—no App Store needed.

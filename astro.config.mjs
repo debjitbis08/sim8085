@@ -32,6 +32,7 @@ export default defineConfig({
                 { slug: "docs/en" },
                 { slug: "docs/en/assembly" },
                 { slug: "docs/en/unsupported" },
+                { slug: "docs/en/interrupts" },
                 /*
         {
           label: 'Instructions',
