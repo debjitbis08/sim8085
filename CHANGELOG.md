@@ -1,3 +1,10 @@
+## [2.14.2](https://github.com/debjitbis08/sim8085/compare/v2.14.1...v2.14.2) (2025-05-09)
+
+
+### Bug Fixes
+
+* Fix natory image import ([cb2c561](https://github.com/debjitbis08/sim8085/commit/cb2c561d5bdda02d60691138196f7f20157662a1))
+
 ## [2.14.1](https://github.com/debjitbis08/sim8085/compare/v2.14.0...v2.14.1) (2025-05-09)
 
 
