@@ -1,5 +1,7 @@
 import { createSignal, createEffect, onMount, onCleanup } from "solid-js";
 import { store } from "../store/store.js";
+import NatoryDarkImg from "../images/natory.png";
+import NatoryLightImg from "../images/natory-light.png";
 
 const LOCAL_KEY = "natoryDismissed";
 
@@ -43,12 +45,12 @@ export function NatoryAd() {
                 math.
             </p>
             <img
-                src="./src/images/natory.png"
+                src={NatoryDarkImg.src}
                 alt="Natory game interface showing puzzle 2672"
                 class="rounded border border-gray-700 dark:block hidden"
             />
             <img
-                src="./src/images/natory-light.png"
+                src={NatoryLightImg.src}
                 alt="Natory game interface showing puzzle 2672"
                 class="rounded border border-gray-700 dark:hidden"
             />
