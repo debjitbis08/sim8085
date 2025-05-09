@@ -1,3 +1,11 @@
+## [2.13.1](https://github.com/debjitbis08/sim8085/compare/v2.13.0...v2.13.1) (2025-05-09)
+
+
+### Bug Fixes
+
+* Fix interrupt priority order ([709a5e5](https://github.com/debjitbis08/sim8085/commit/709a5e54ac240d8c0c8e17f3e7f93a4638f2e4fd))
+* Fix some styles for mobile ([e82b430](https://github.com/debjitbis08/sim8085/commit/e82b4302b3f2b2ca59122d41e76659610b3f3d9e))
+
 # [2.13.0](https://github.com/debjitbis08/sim8085/compare/v2.12.3...v2.13.0) (2025-05-08)
 
 
