@@ -1,3 +1,10 @@
+## [2.13.2](https://github.com/debjitbis08/sim8085/compare/v2.13.1...v2.13.2) (2025-05-09)
+
+
+### Bug Fixes
+
+* Minor UX improvements ([79fc251](https://github.com/debjitbis08/sim8085/commit/79fc251ec04510381502689560fc5959b552b3a5))
+
 ## [2.13.1](https://github.com/debjitbis08/sim8085/compare/v2.13.0...v2.13.1) (2025-05-09)
 
 
