@@ -39,6 +39,7 @@ export default {
         extend: {
             screens: {
                 "h-sm": { raw: "(max-height: 400px)" },
+                "h-md": { raw: "(max-height: 700px)" },
             },
             colors: {
                 terminal: primaryColors,

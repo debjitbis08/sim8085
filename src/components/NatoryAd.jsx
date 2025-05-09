@@ -6,7 +6,7 @@ import NatoryLightImg from "../images/natory-light.png";
 const LOCAL_KEY = "natoryDismissed";
 
 export function NatoryAd() {
-    const [visible, setVisible] = createSignal(false);
+    const [visible, setVisible] = createSignal(true);
 
     onMount(() => {
         if (localStorage.getItem(LOCAL_KEY) === "true") return;
@@ -37,28 +37,30 @@ export function NatoryAd() {
 
     return (
         <div
-            class={`${store.assembled.length || store.errors.length || !visible() ? "hidden" : "hidden lg:block"} bg-secondary-background rounded-lg shadow-lg p-4 space-y-3 border border-secondary-border fixed right-4 bottom-14 max-w-[400px]`}
+            class={`${store.assembled.length || store.errors.length || !visible() ? "hidden" : "hidden lg:flex"} h-sm:max-h-[30vh] h-md:max-h-[50vh] bg-secondary-background rounded-lg shadow-lg p-4 space-y-3 border border-secondary-border fixed right-4 bottom-14 max-w-[400px] flex-col gap-2`}
         >
             <h3 class="text-lg font-semibold">🧠 Bored with 8085 programming?</h3>
             <p class="text-sm text-muted-foreground">
                 Try <strong>ℕatory</strong> — a puzzle game where you create numbers using only their own digits and
                 math.
             </p>
-            <img
-                src={NatoryDarkImg.src}
-                alt="Natory game interface showing puzzle 2672"
-                class="rounded border border-gray-700 dark:block hidden"
-            />
-            <img
-                src={NatoryLightImg.src}
-                alt="Natory game interface showing puzzle 2672"
-                class="rounded border border-gray-700 dark:hidden"
-            />
+            <div class="max-h-[40%] overflow-hidden h-md:hidden">
+                <img
+                    src={NatoryDarkImg.src}
+                    alt="Natory game interface showing puzzle 2672"
+                    class="rounded border border-gray-700 dark:block hidden h-full object-contain"
+                />
+                <img
+                    src={NatoryLightImg.src}
+                    alt="Natory game interface showing puzzle 2672"
+                    class="rounded border border-gray-700 dark:hidden object-contain"
+                />
+            </div>
             <a
                 href="https://playnatory.com/game"
                 target="_blank"
                 onClick={dismissForever}
-                class="inline-block mt-2 px-4 py-2 dark:bg-terminal-700 bg-terminal-500 text-white rounded hover:bg-terminal-600 dark:hover:bg-terminal-600"
+                class="self-start inline-block mt-2 px-4 py-2 dark:bg-terminal-700 bg-terminal-500 text-white rounded hover:bg-terminal-600 dark:hover:bg-terminal-600"
             >
                 👉 Play ℕatory
             </a>
