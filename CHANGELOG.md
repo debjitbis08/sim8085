@@ -1,3 +1,10 @@
+## [2.14.3](https://github.com/debjitbis08/sim8085/compare/v2.14.2...v2.14.3) (2025-05-09)
+
+
+### Bug Fixes
+
+* Fix styling for natory popup on smaller screens ([03ca9f6](https://github.com/debjitbis08/sim8085/commit/03ca9f6d6906a9b47d563d82caf5e6637eeaed6d))
+
 ## [2.14.2](https://github.com/debjitbis08/sim8085/compare/v2.14.1...v2.14.2) (2025-05-09)
 
 
