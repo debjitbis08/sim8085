@@ -504,7 +504,7 @@ export default function Actions() {
                     </Tooltip>
                 </div>
                 <ActionButton
-                    class="border-0 rounded-none"
+                    class="border-0 rounded-none rounded-r"
                     icon={<HiSolidPlay class="text-terminal" />}
                     title="Load &amp; Run"
                     shortcut="Ctrl + F5"

@@ -6,7 +6,7 @@ import NatoryLightImg from "../images/natory-light.png";
 const LOCAL_KEY = "natoryDismissed";
 
 export function NatoryAd() {
-    const [visible, setVisible] = createSignal(true);
+    const [visible, setVisible] = createSignal(false);
 
     onMount(() => {
         if (localStorage.getItem(LOCAL_KEY) === "true") return;
@@ -115,10 +115,14 @@ export function useInactivityTimer({ onIdle, onActive, delay = 5 * 60000 }) {
         }
     };
 
+    const handleActivity = () => reset();
+    const activityEvents = ["keydown", "click"];
+    activityEvents.forEach((event) => document.addEventListener(event, handleActivity));
     document.addEventListener("visibilitychange", handleVisibilityChange);
 
     onCleanup(() => {
         clearTimeout(timer);
+        activityEvents.forEach((event) => document.removeEventListener(event, handleActivity));
         document.removeEventListener("visibilitychange", handleVisibilityChange);
     });
 
