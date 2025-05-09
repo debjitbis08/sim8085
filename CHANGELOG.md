@@ -1,3 +1,10 @@
+## [2.14.1](https://github.com/debjitbis08/sim8085/compare/v2.14.0...v2.14.1) (2025-05-09)
+
+
+### Bug Fixes
+
+* Improve activity tracking ([07565dc](https://github.com/debjitbis08/sim8085/commit/07565dc8111692f21fef475000b4f2c9caa9d69a))
+
 # [2.14.0](https://github.com/debjitbis08/sim8085/compare/v2.13.3...v2.14.0) (2025-05-09)
 
 
