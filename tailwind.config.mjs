@@ -1,4 +1,4 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-	darkMode: 'selector',
-}
+    darkMode: ["class", '[data-theme="dark"]'],
+};

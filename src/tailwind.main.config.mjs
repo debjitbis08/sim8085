@@ -107,13 +107,13 @@ export default {
     },
     safelist: [
         {
-            pattern: /(bg|text|border)-primary/,
+            pattern: /(bg|text|border)-(primary|page)/,
         },
         {
-            pattern: /(bg|text|border)-secondary-.+/,
+            pattern: /(bg|text|border)-(secondary|page)-.+/,
         },
         {
-            pattern: /(bg|text|border)-editor-.+/,
+            pattern: /(bg|text|border)-(editor|page)-.+/,
         },
     ],
     plugins: [require("@tailwindcss/typography")],

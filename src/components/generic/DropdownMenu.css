@@ -1,17 +1,19 @@
 .dropdown-menu__trigger {
     line-height: 0;
     transition: 250ms background-color;
-    @apply appearance-none inline-flex items-center justify-center gap-2 bg-page-background w-auto outline-none px-2 pr-1 py-2 rounded border border-active-border;
+    background-color: rgb(var(--sm-page-background));
+    border-color: rgb(var(--sm-active-border));
+    @apply appearance-none inline-flex items-center justify-center gap-2 w-auto outline-none px-2 pr-1 py-2 rounded border;
 }
 .dropdown-menu__trigger:hover {
-    @apply bg-active-background;
+    background-color: rgb(var(--sm-active-background));
 }
 .dropdown-menu__trigger:focus-visible {
     outline: 2px solid hsl(200 98% 39%);
     outline-offset: 2px;
 }
 .dropdown-menu__trigger:active {
-    @apply bg-active-background;
+    background-color: rgb(var(--sm-active-background));
 }
 .dropdown-menu__trigger-icon {
     flex: 0 0 20px;
@@ -32,7 +34,10 @@
     outline: none;
     transform-origin: var(--kb-menu-content-transform-origin);
     animation: contentHide 250ms ease-in forwards;
-    @apply bg-main-background border border-active-border text-primary-foreground;
+    background-color: rgb(var(--sm-main-background));
+    border-color: rgb(var(--sm-active-border));
+    color: rgb(var(--sm-primary-foreground));
+    @apply border;
 }
 .dropdown-menu__content[data-expanded],
 .dropdown-menu__sub-content[data-expanded] {
@@ -51,7 +56,8 @@
     position: relative;
     user-select: none;
     outline: none;
-    @apply cursor-pointer text-primary-foreground pr-2;
+    color: rgb(var(--sm-primary-foreground));
+    @apply cursor-pointer pr-2;
 }
 .dropdown-menu__sub-trigger[data-expanded] {
     background-color: hsl(204 94% 94%);
@@ -70,9 +76,8 @@
 .dropdown-menu__radio-item[data-highlighted],
 .dropdown-menu__sub-trigger[data-highlighted] {
     outline: none;
-    background-color: hsl(200 98% 39%);
-    color: white;
-    @apply bg-active-background text-active-foreground;
+    background-color: rgb(var(--sm-active-background));
+    color: rgb(var(--sm-active-foreground));
 }
 .dropdown-menu__group-label {
     padding: 0 24px;
