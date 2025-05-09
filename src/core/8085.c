@@ -1056,24 +1056,22 @@ void checkInterrupts(State8085 *state)
         return;
     }
 
-    if (state->pending_r5 && !state->r5_mask) {
-        state->pending_r5 = 0;
+    if (state->r7_latch && !state->r7_mask) {
+        state->r7_latch = 0;
         state->int_enable = 0;
-        rst(state, 5, 1); // RST 5.5 = 0x2C
+        rst(state, 7, 1); // RST 7.5 = 0x3C
         return;
     }
 
     if (state->pending_r6 && !state->r6_mask) {
-        state->pending_r6 = 0;
         state->int_enable = 0;
         rst(state, 6, 1); // RST 6.5 = 0x34
         return;
     }
 
-    if (state->r7_latch && !state->r7_mask) {
-        state->r7_latch = 0;
+    if (state->pending_r5 && !state->r5_mask) {
         state->int_enable = 0;
-        rst(state, 7, 1); // RST 7.5 = 0x3C
+        rst(state, 5, 1); // RST 5.5 = 0x2C
         return;
     }
 }
