@@ -415,6 +415,7 @@ function MemoryLocationRow(props) {
             key={props.value}
             class="flex justify-between items-center py-1 px-1 hover:bg-active-background"
             ref={containerRef}
+            onDblClick={startEditing}
         >
             <span class="font-mono">0x{props.location.toString(16).padStart(4, "0").toUpperCase()}</span>
             <span class="flex items-center gap-2">

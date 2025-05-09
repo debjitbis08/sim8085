@@ -161,8 +161,6 @@ export function runProgram(store) {
         console.log("Execution Time", end - start);
         const outputState = getStateFromPtr(simulator, newStatePointer);
 
-        console.log("outputState.interruptsEnabled", outputState.interruptsEnabled);
-
         return {
             accumulator: outputState.a,
             registers: {

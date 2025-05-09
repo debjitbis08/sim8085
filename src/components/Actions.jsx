@@ -38,7 +38,6 @@ export default function Actions() {
         setIsReady(true);
 
         setIOWriteCallback((address, value) => {
-            console.log("IO Write to", address, value);
             setStore(
                 produce((draftStore) => {
                     draftStore.io[address] = value;
@@ -195,9 +194,7 @@ export default function Actions() {
         let errorStatus = 0;
         try {
             setStore("programState", "Running");
-            console.log("Running program from", store.programCounter);
             outputState = runProgram(store);
-            console.log("outputState.interruptsEnabled", outputState.interruptsEnabled);
             if (store.settings.alert.afterSuccessfulRun) {
                 showToaster("success", "Program ran successfully", "Please check the left panel for updated state.");
             }

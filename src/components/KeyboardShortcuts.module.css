@@ -1,28 +1,17 @@
 .sectionHeader {
-  @apply text-lg font-bold mt-6 mb-3 pb-1 border-b border-gray-300;
-  @apply text-gray-500;
-}
-
-:global(.dark) .sectionHeader {
-  @apply border-gray-700 text-gray-500;
+    @apply text-lg font-bold mt-6 mb-3 pb-1 border-b border-gray-300;
+    @apply text-gray-500;
+    @apply dark:border-gray-700 dark:text-gray-500;
 }
 
 .shortcutsGrid {
-  @apply grid grid-cols-2 gap-y-3 text-sm;
+    @apply grid grid-cols-2 gap-y-3 text-sm;
 }
 
 .keyCombination {
-  @apply text-right space-x-1 text-gray-900;
-}
-
-:global(.dark) .keyCombination {
-  @apply text-gray-200;
+    @apply text-right space-x-1 text-gray-900 dark:text-gray-200;
 }
 
 .key {
-  @apply inline-block px-2 py-1 rounded bg-gray-200 text-gray-900;
-}
-
-:global(.dark) .key {
-    @apply bg-gray-600 text-gray-200;
+    @apply inline-block px-2 py-1 rounded bg-gray-200 text-gray-900 dark:bg-gray-600 dark:text-gray-200;
 }

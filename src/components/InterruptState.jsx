@@ -10,7 +10,7 @@ export default function InterruptState() {
     return (
         <div>
             <div class="flex items-center border-b border-b-inactive-border px-1">
-                <h2 class="text-xl grow pb-2">Interrupts</h2>
+                <h2 class="text-lg grow pb-2">Interrupts</h2>
 
                 <div class={`text-sm ml-auto`}>
                     <Indicator isEnabled={store.interruptsEnabled} />

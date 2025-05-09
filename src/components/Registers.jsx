@@ -53,7 +53,7 @@ export function Registers() {
     return (
         <div>
             <div class="flex items-center gap-2 border-b border-b-inactive-border px-1">
-                <h2 class="text-xl pb-1">Registers</h2>
+                <h2 class="text-lg pb-1">Registers</h2>
                 <Tooltip placement="top">
                     <Tooltip.Trigger class="tooltip__trigger text-left">
                         <span class="font-bold text-sm">

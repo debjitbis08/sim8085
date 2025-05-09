@@ -34,7 +34,7 @@ export function Flags() {
     return (
         <div>
             <div class="flex border-b border-b-inactive-border px-1">
-                <h2 class="text-xl grow pb-1">Flags</h2>
+                <h2 class="text-lg grow pb-1">Flags</h2>
                 <button title="Reset Flags" class="text-red-foreground" onClick={clearFlags}>
                     <AiOutlineClear />
                 </button>
