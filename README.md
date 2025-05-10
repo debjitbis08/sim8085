@@ -1,6 +1,6 @@
 # Sim8085
 
-[![License](https://img.shields.io/github/license/debjitbis08/sim8085)](https://github.com/debjitbis08/sim8085/blob/main/LICENSE) [![Website](https://img.shields.io/website?url=https%3A%2F%2Fwww.sim8085.com)](https://www.sim8085.com) [![Stars](https://img.shields.io/github/stars/debjitbis08/sim8085?style=social)](https://github.com/debjitbis08/sim8085/stargazers)
+[![License](https://img.shields.io/github/license/debjitbis08/sim8085)](https://github.com/debjitbis08/sim8085/blob/master/LICENSE) [![Website](https://img.shields.io/website?url=https%3A%2F%2Fwww.sim8085.com)](https://www.sim8085.com) [![Stars](https://img.shields.io/github/stars/debjitbis08/sim8085?style=social)](https://github.com/debjitbis08/sim8085/stargazers)
 
 Sim8085 is a modern web-based development environment for the Intel 8085 microprocessor. It includes a graphical editor, assembler, and debugger designed to help students, educators, and enthusiasts explore 8085 assembly programming.
 
