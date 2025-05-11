@@ -1,3 +1,10 @@
+## [2.14.5](https://github.com/debjitbis08/sim8085/compare/v2.14.4...v2.14.5) (2025-05-11)
+
+
+### Bug Fixes
+
+* Fix natory popup timeout ([e86a5ab](https://github.com/debjitbis08/sim8085/commit/e86a5ab8f720cd25aec028f4345a08e8ab558c8d))
+
 ## [2.14.4](https://github.com/debjitbis08/sim8085/compare/v2.14.3...v2.14.4) (2025-05-09)
 
 
