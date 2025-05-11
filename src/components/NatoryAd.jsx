@@ -12,7 +12,7 @@ export function NatoryAd() {
         if (localStorage.getItem(LOCAL_KEY) === "true") return;
 
         useInactivityTimer({
-            delay: 60000,
+            delay: 5 * 60000,
             onIdle: () => {
                 if (!localStorage.getItem(LOCAL_KEY)) {
                     setVisible(true);
