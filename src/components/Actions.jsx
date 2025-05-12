@@ -706,6 +706,10 @@ function InfiniteLoopError(props) {
             ) : (
                 <p>Please check your program for logic errors.</p>
             )}
+            <p class="mt-2">
+                If you are trying to write a program with explicit infinite loop, enable the Simulate Intruction Timing
+                option in Settings.
+            </p>
         </>
     );
 }
