@@ -11,6 +11,7 @@ import YoutubeIcon from '../icons/youtube.svg?raw';
 import ThemeSwitcher from './ThemeSwitcher.astro';
 import ActionsLoader from './ActionsLoader.jsx';
 import {FileActions} from './FileActions.jsx';
+import CodeFormatter from "./CodeFormatter.jsx";
 import {getUserFromSession} from '../lib/supabase.js';
 
 interface Props {
@@ -34,28 +35,34 @@ const avatarUrl = user?.user_metadata?.avatar_url; // Default avatar if none exi
         <div class="md:block">
             <a
                 href="/"
-                class="inline-flex items-center gap-2 ml-1 pl-1 lg:ml-2 lg:pl-2 pr-2 py-2 rounded group hover:bg-terminal-200 relative"
+                class="inline-flex items-center gap-2 ml-1 pl-1 lg:ml-2 lg:pl-2 pr-2 py-2 rounded group lg:hover:bg-terminal-200 relative"
             >
                 <span class="w-6 h-6 text-terminal z-10 relative">
                     <Fragment set:html={LogoWithBackground} />
                 </span>
                 <span
-                    class="lg:absolute left-8 opacity-0 transform translate-x-2 transition-all duration-300 group-hover:opacity-100 group-hover:translate-x-0 group-hover:static text-gray-800"
+                    class="hidden lg:block lg:absolute left-8 opacity-0 transform translate-x-2 transition-all duration-300 group-hover:opacity-100 group-hover:translate-x-0 group-hover:static text-gray-800"
                 >
                     Sim8085
                 </span>
             </a>
         </div>
-        {showActions ? <div class="pl-4 hidden">
+        <div class="flex items-center gap-2 flex-grow flex-shrink ml-auto">
+        {showActions ? <div class="pl-4">
             <FileActions client:idle/>
         </div> : null}
         {showActions ? (
+            <div class="ml-auto hidden md:block">
+                <CodeFormatter client:idle />
+            </div>
+        ) : null}
+            <div class="h-6 border-r border-r-secondary-border hidden md:block"></div>
+        {showActions ? (
             <div class="
-                md:pl-0 flex flex-grow flex-shrink lg:min-w-[300px] md:gap-2 md:justify-end
-                fixed bottom-0 left-0 z-50 bg-page-background w-full py-2 px-4
+                flex w-full md:w-auto lg:min-w-[300px] md:gap-2 md:justify-end
+                fixed bottom-0 left-0 z-50 bg-page-background py-2 px-2
                 pb-10 md:pb-2 text-xl md:text-base
                 md:static
-                border-r border-r-secondary-border
             ">
                 <button type="button" id="left-panel-btn" class="md:hidden">
                     <span class="regular-icon"><Fragment set:html={RegularDockLeftIcon} /></span>
@@ -71,7 +78,9 @@ const avatarUrl = user?.user_metadata?.avatar_url; // Default avatar if none exi
                 </button>
             </div>
         ) : null}
-        <div class={`flex-grow flex-shrink-0 flex items-start pr-2 md:pr-4`}>
+            <div class="h-6 border-r border-r-secondary-border hidden md:block"></div>
+        </div>
+        <div class={`flex items-start pr-2 md:pr-4`}>
             <!-- <div class="flex flex-grow items-center gap-2 space-x-2"> -->
             <!-- <div class="pl-2 border-r border-r-gray-500 dark:border-r-gray-600 h-4"></div> -->
             <div class="flex-grow"></div>

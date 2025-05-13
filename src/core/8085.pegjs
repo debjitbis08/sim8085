@@ -434,7 +434,7 @@ machineCode = prg:program {
         }
     }
 
-    return { pcStartValue, assembled: objCode };
+    return { pcStartValue, assembled: objCode, lines: prg };
 }
 
 /**
@@ -463,12 +463,12 @@ opWithLabel = labels:(labelPart)* op:(operation / directive) comment? {
 
     if (op !== null) {
       ilc += op.size;
-      return { ...op, labels };
+      return { ...op, labels, text: text() };
     }
 }
 
 defineSymbolWithLabel = label:labelPartWithOptionalColon op:defineDirective comment? {
-    return { ...op, label };
+    return { ...op, label, text: text() };
 }
 
 line = op:(defineSymbolWithLabel / opWithLabel) / (comment:comment) / w:((whitespace / eol)+) {
@@ -562,11 +562,13 @@ stackPointer "Stack Pointer (written as, SP or sp)" =
     l:("SP" / "sp") !identLetter { return l.toLowerCase(); }
 
 expression_list "comma separated expression" = d:expressionImmediate ds:("," __ expressionImmediate)* {
-    return { value: [typeof d.value === 'function' ? d.value() : d.value].concat(ds.map(function (d_) { return d_[2].value; }).flat()).flat(), location: location() };
+    console.log(d, ds)
+    return { value: [typeof d.value === 'function' ? d.value() : d.value].concat(ds.map(function (d_) { return d_[2].value; }).flat()).flat(), location: location(), text: [d.text].concat(ds.map(d => d.text)) };
 }
 
 data8_list "comma separated byte values" = d:data8 ds:("," __ data8)* {
-    return { value: d.value.concat(ds.map(function (d_) { return d_[2].value; }).flat()).flat(), location: location() };
+    return { value: d.value.concat(ds.map(function (d_) { return d_[2].value; }).flat()).flat(), location: location(),
+    text: d.concat(ds) };
 }
 
 data16_list "comma separated byte values" = d:data16 ds:("," __ data16)* {
@@ -578,14 +580,14 @@ data8 "byte" = n:(numLiteral / stringLiteral) {
         if (n.value > 0xFF) {
             error("8-bit data expected.");
         } else {
-            return { value: [n.value], location: n.location };
+            return { value: [n.value], location: n.location, text: n };
         }
     } else if (Array.isArray(n.value)) {
         // Handle string literal where n.value is an array of ASCII values
         if (n.value[0] > 0xFF) {
             error("8-bit data expected for string.");
         } else {
-            return { value: n.value, location: n.location }; // Return the ASCII value of the single character
+            return { value: n.value, location: n.location, text: n }; // Return the ASCII value of the single character
         }
     }
 }
@@ -641,7 +643,7 @@ binLiteral "binary literal" = bits:bit+ "B"i {
 }
 
 stringLiteral "string literal" = "'" chars:char* "'" {
-    return { value: chars, location: location() };
+    return { value: chars.map(c => c.value), location: location(), text: "'" + chars.map(c => c.text).join("") + "'" };
 }
 
 char =
@@ -649,11 +651,11 @@ char =
     asciiChar // Match any printable ASCII character except single quote
 
 asciiChar = [\x20-\x26\x28-\x7E] {
-    return text().charCodeAt(0); // Return the ASCII value of the matched character
+    return { value: text().charCodeAt(0), text: text() }; // Return the ASCII value of the matched character
 }
 
 escapedChar = "\\" ch:[\\'"] {
-    return ch.charCodeAt(0); // Return the ASCII value of the escaped character
+    return { value: ch.charCodeAt(0), text: text() }; // Return the ASCII value of the escaped character
 }
 
 
@@ -678,7 +680,7 @@ additionImmediate "Addition"
         var l = getSymbolValueOrValue(left.value, 'immediate', 8, location());
         var r = getSymbolValueOrValue(right.value, 'immediate', 8, location());
         return l + r;
-    }, location: location() };
+    }, location: location(), text: left + " + " + right };
   }
   / subtractionImmediate
 
@@ -688,7 +690,7 @@ subtractionImmediate "Subtraction"
         var l = getSymbolValueOrValue(left.value, 'immediate', 8, location());
         var r = getSymbolValueOrValue(right.value, 'immediate', 8, location());
         return l - r;
-    }, location: location() };
+    }, location: location(), text: left + " - " + right };
   }
   / multiplicationImmediate
 
@@ -698,7 +700,7 @@ multiplicationImmediate "Multiplication"
         var l = getSymbolValueOrValue(left.value, 'immediate', 8, location());
         var r = getSymbolValueOrValue(right.value, 'immediate', 8, location());
         return l * r;
-    }, location: location() };
+    }, location: location(), text: left + " * " + right };
   }
   / divisionImmediate
 
@@ -708,7 +710,7 @@ divisionImmediate "Division"
         var l = getSymbolValueOrValue(left.value, 'immediate', 8, location());
         var r = getSymbolValueOrValue(right.value, 'immediate', 8, location());
         return l / r;
-    }, location: location() };
+    }, location: location(), text: left + " / " + right };
   }
   / moduloImmediate
 
@@ -718,7 +720,7 @@ moduloImmediate "Modulo"
         var l = getSymbolValueOrValue(left.value, 'immediate', 8, location());
         var r = getSymbolValueOrValue(right.value, 'immediate', 8, location());
         return l % r;
-    }, location: location() };
+    }, location: location(), text: left + " / " + right };
   }
   / labelImmediate
   / numLiteral
@@ -835,7 +837,7 @@ shiftLeftDirect "Shift Left"
   / numLiteral
   / "(" shr:shiftDirect ")" { return shr; }
 
-comment "comment" = ";" c:[^\n\r\n\u2028\u2029]* {return c.join("");}
+comment "comment" = ";" c:[^\n\r\n\u2028\u2029]* { return { text: ";" + c.join(""), comment: c.join("") }; }
 
 __ = (whitespace / eol )*
 
@@ -849,7 +851,8 @@ directive = dir:(dataDefinition / orgDirective / endDirective) whitespace* {
         opcode: opcode,
         data: dir.params,
         size: opcode === "org" || opcode === 'equ' || opcode === 'end' ? 0 : dir.params.length,
-        location: location()
+        location: location(),
+        dir
     };
 }
 
@@ -889,7 +892,8 @@ operation = inst:(carryBitInstructions / singleRegInstructions / nopInstruction 
         opcode: opcode.code,
         data: data,
         size: opcode.size,
-        location: location()
+        location: location(),
+        inst
     };
 }
 
