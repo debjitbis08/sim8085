@@ -54,18 +54,24 @@ export function Registers() {
         <div>
             <div class="flex items-center gap-2 border-b border-b-inactive-border px-1">
                 <h2 class="text-lg pb-1">Registers</h2>
-                <Tooltip placement="top">
+                <Tooltip placement="bottom">
                     <Tooltip.Trigger class="tooltip__trigger text-left">
                         <span class="font-bold text-sm">
                             <VsInfo />
                         </span>
                     </Tooltip.Trigger>
-                    <Tooltip.Portal class="hidden">
+                    <Tooltip.Portal>
                         <Tooltip.Content class="tooltip__content">
                             <Tooltip.Arrow />
-                            <p>Double click the row to edit the values Double click the row to edit the values.</p>
-                            <p>Values of PSW, SP and PC are non-editable.</p>
-                            <p>After editing press Enter to store the values.</p>
+                            <ul class="list-disc list-inside">
+                                <li>Double click the row to edit the values.</li>
+                                <li>Values of PSW, SP and PC are non-editable.</li>
+                                <li>
+                                    After editing press{" "}
+                                    <span class="text-xs bg-secondary-background py-1 px-2 rounded-sm">Enter</span> to
+                                    store the values.
+                                </li>
+                            </ul>
                         </Tooltip.Content>
                     </Tooltip.Portal>
                 </Tooltip>
