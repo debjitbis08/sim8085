@@ -22,19 +22,19 @@ export default function CodeFormatter() {
                     <>
                         <p>Format Code</p>
                         <p class="mt-2 text-secondary-foreground">
-                            This feature is still in testing. If the formatter does unintended changes please undo the
+                            This feature is still in testing. If the formatter does unintended changes, please undo the
                             changes using{" "}
                             <span class="text-xs bg-secondary-background py-1 px-2 rounded-sm">Ctrl + Z</span> shortcut
                             after clicking on the code editor.
                         </p>
                         <p class="mt-2 text-secondary-foreground">
-                            If you find any bugs please report them on{" "}
+                            If you notice any formatting issues or edge cases, please{" "}
                             <a
                                 href="https://github.com/debjitbis08/sim8085/issues"
                                 class="text-blue-foreground"
                                 target="_blank"
                             >
-                                GitHub
+                                report them on GitHub
                             </a>
                             .
                         </p>
