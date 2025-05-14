@@ -324,8 +324,6 @@ machineCode = prg:program {
     for (i = 0; i < lines; i += 1) {
         line = prg[i];
 
-        // console.log("line", line);
-
         if (line == null) continue;
 
         if (line.opcode == null || typeof line.opcode === "string") {
@@ -440,9 +438,18 @@ machineCode = prg:program {
 /**
  * Create intermediate object code with symbol strings.
  */
+/*
 program = __ first:line rest:(eol+ __ l:(!. / l:line { return l; }) {return l})* {
     return [first].concat(rest);
 }
+*/
+
+program
+  = __ first:line rest:(
+      eols:eol+ __ l:(!. / l:line { return l; })  { return [...Array(eols.length - 1).fill("")].concat([l]); }
+    )* {
+      return [first].concat(rest).flat().map(l => l === undefined ? "" : l);
+    }
 
 opWithLabel = labels:(labelPart)* op:(operation / directive) comment? {
     if (labels.length) {
@@ -468,14 +475,12 @@ opWithLabel = labels:(labelPart)* op:(operation / directive) comment? {
 }
 
 defineSymbolWithLabel = label:labelPartWithOptionalColon op:defineDirective comment? {
-    return { ...op, label, text: text() };
+    return { ...op, label };
 }
 
-line = op:(defineSymbolWithLabel / opWithLabel) / (comment:comment) / w:((whitespace / eol)+) {
-    if (typeof op !== "undefined") return op;
-} / lineError
+line = op:(defineSymbolWithLabel / opWithLabel) / (comment:comment) / w:((whitespace / eol)+) / lineError
 
-lineError "Error in this line" = lineWithError:.* {
+lineError "Error in this line now" = lineWithError:.* {
     var content = lineWithError.join("");
 
     const ignoredCodes = new Set([0x09, 0x0A, 0x0D]); // tab, newline, carriage return
@@ -522,7 +527,7 @@ labelPart = label:label ":" label_opcode_separator {
 }
 
 labelPartWithOptionalColon = label:label ":"? label_opcode_separator {
-    return { value: label.value, location: label.location, type: "definition" }
+    return { value: label.value, location: label.location, type: "definition", text: text() }
 } / label whitespace* ":"  label_opcode_separator {
     error("There should not be space between the label the ':' symbol");
 }
@@ -562,7 +567,6 @@ stackPointer "Stack Pointer (written as, SP or sp)" =
     l:("SP" / "sp") !identLetter { return l.toLowerCase(); }
 
 expression_list "comma separated expression" = d:expressionImmediate ds:("," __ expressionImmediate)* {
-    console.log(d, ds)
     return { value: [typeof d.value === 'function' ? d.value() : d.value].concat(ds.map(function (d_) { return d_[2].value; }).flat()).flat(), location: location(), text: [d.text].concat(ds.map(d => d.text)) };
 }
 
@@ -765,7 +769,7 @@ additionDirect "Addition"
         var l = getSymbolValueOrValue(left.value, 'direct', 8, location());
         var r = getSymbolValueOrValue(right.value, 'direct', 8, location());
         return l + r;
-    }, location: location() };
+    }, location: location(), text: (left.text || left.value) + " + " + (right.text || right.value) };
   }
   / subtractionDirect
 
@@ -862,14 +866,15 @@ defineDirective = dir:(defineSymbol / setSymbol) whitespace* {
         opcode: opcode,
         data: dir.params,
         size: 0,
-        location: location()
+        location: location(),
+        dir
     };
 }
 
 operation = inst:(carryBitInstructions / singleRegInstructions / nopInstruction /
     dataTransferInstructions / regOrMemToAccInstructions / rotateAccInstructions /
     regPairInstructions / immediateInstructions / ioInstructions / directAddressingInstructions /
-    jumpInstructions / callInstructions / returnInstructions / interruptInstruction / resetInstruction / haltInstruction) whitespace* {
+    jumpInstructions / callInstructions / returnInstructions / interruptInstruction / resetInstruction / haltInstruction) w:(whitespace*) {
 
     var paramTypes = inst.paramTypes,
         data,
@@ -1098,7 +1103,6 @@ returnInstructions = op:(op_ret / op_rc / op_rnc / op_rz / op_rnz / op_rm / op_r
 }
 
 resetInstruction = op:(op_rst) {
-    console.log(op);
     return {
         name: op[0],
         params: [op[2].value],
@@ -1125,14 +1129,15 @@ interruptInstruction = op:(op_ei / op_di / op_rim / op_sim) {
 defineSymbol = dir:(dir_equ) {
     return {
         name: dir,
-        params: [dir[2].value]
+        params: [dir[2].value],
+        text: "EQU"
     }
 }
 
 setSymbol = dir:(dir_set) {
     return {
         name: dir,
-        params: [dir[2].value]
+        params: [dir[2].value],
     }
 }
 
@@ -1198,7 +1203,6 @@ op_rst  = op:"RST"i operands:rstOperand { return [op].concat(operands); }
 rstOperand = w:whitespace+ code:rstCode { return [w, code]; } / rstOperandError
 
 rstCode "Code" = n:(expressionImmediate / data8) {
-    console.log(n);
     return n;
 }
 
@@ -1305,7 +1309,7 @@ op_lda  = op:"LDA"i operands:loadStoreOperands { return [op].concat(operands); }
 op_shld = op:"SHLD"i operands:loadStoreOperands { return [op].concat(operands); }
 op_lhld = op:"LHLD"i operands:loadStoreOperands { return [op].concat(operands); }
 
-loadStoreOperands = w:whitespace+ operand:(data16 / labelDirect) {
+loadStoreOperands = w:whitespace+ operand:(expressionDirect / data16 / labelDirect) {
     return [w, operand];
 } / loadStoreOperandError
 

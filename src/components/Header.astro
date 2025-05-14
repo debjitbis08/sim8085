@@ -48,7 +48,7 @@ const avatarUrl = user?.user_metadata?.avatar_url; // Default avatar if none exi
             </a>
         </div>
         <div class="flex items-center gap-2 flex-grow flex-shrink ml-auto">
-        {showActions ? <div class="pl-4">
+        {showActions ? <div class="pl-4 hidden">
             <FileActions client:idle/>
         </div> : null}
         {showActions ? (
