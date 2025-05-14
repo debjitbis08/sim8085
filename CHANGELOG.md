@@ -1,3 +1,16 @@
+# [2.15.0](https://github.com/debjitbis08/sim8085/compare/v2.14.5...v2.15.0) (2025-05-14)
+
+
+### Bug Fixes
+
+* Fix losing state in memory panel after tab inactive ([0e5da31](https://github.com/debjitbis08/sim8085/commit/0e5da316b295dff9ed79cdfcc8d4194789bd5dc3))
+* Support more types of code in formatter ([d097133](https://github.com/debjitbis08/sim8085/commit/d097133b4fcd02026ccc9484c765119238f47a94))
+
+
+### Features
+
+* Add code formatter ([29b7db7](https://github.com/debjitbis08/sim8085/commit/29b7db777d38da9231a33b6629bd6b256b726081))
+
 ## [2.14.5](https://github.com/debjitbis08/sim8085/compare/v2.14.4...v2.14.5) (2025-05-11)
 
 
