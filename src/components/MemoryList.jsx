@@ -19,14 +19,14 @@ import { VsInfo } from "solid-icons/vs";
 import { HiSolidTrash } from "solid-icons/hi";
 import { store, setStore } from "../store/store.js";
 import { setAllMemoryLocations, setMemoryLocation } from "../core/simulator.js";
-import { FiInfo } from "solid-icons/fi";
+
+const [customRanges, setCustomRanges] = createSignal([]);
+const [inputRange, setInputRange] = createSignal({ start: "", end: "" });
+const [currentRange, setCurrentRange] = createSignal({ start: null, end: null });
+const [editingCustom, setEditingCustom] = createSignal({ start: null, end: null });
+const [isAddingCustom, setIsAddingCustom] = createSignal(false);
 
 export default function MemoryList({ threshold = 4 }) {
-    const [customRanges, setCustomRanges] = createSignal([]);
-    const [inputRange, setInputRange] = createSignal({ start: "", end: "" });
-    const [currentRange, setCurrentRange] = createSignal({ start: null, end: null });
-    const [editingCustom, setEditingCustom] = createSignal({ start: null, end: null });
-    const [isAddingCustom, setIsAddingCustom] = createSignal(false);
     const [tabPressed, setTabPressed] = createSignal({
         group: null,
         location: null,
