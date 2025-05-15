@@ -119,45 +119,7 @@ document.addEventListener('alpine:init', () => {
 </script>
 
 <script>
-    const cookieConsent = localStorage.getItem('cookie_consent');
     const useTracking = import.meta.env.PUBLIC_USE_TRACKING === 'true';
-
-    async function identify() {
-        const { getSession } = await import('../lib/supabase.js');
-        getSession().then(async ({session, error}) => {
-            if (!error && session?.user) {
-                const name = session.user?.user_metadata?.name || "";
-
-                posthog.identify(
-                    session.user.id,
-                    {email: session.user.email, name}
-                );
-            } else if (cookieConsent === "no") {
-                const { getFingerprint } = await import('@thumbmarkjs/thumbmarkjs');
-                const fingerprint = await getFingerprint();
-                posthog.identify(
-                    fingerprint,
-                    { anon: true }
-                );
-            } else if (cookieConsent === "yes") {
-                // Try to get existing ID from localStorage
-                let id = localStorage.getItem('anon_id');
-
-                // Generate new 32-char hex ID if not present
-                if (!id) {
-                    const bytes = new Uint8Array(16); // 16 bytes = 32 hex chars
-                    crypto.getRandomValues(bytes);
-                    id = [...bytes].map(b => b.toString(16).padStart(2, '0')).join('');
-                    localStorage.setItem('anon_id', id);
-                }
-
-                posthog.identify(
-                    id,
-                    { anon: true }
-                );
-            }
-        });
-    }
 
     const waitForPostHog = (cb) => {
         const check = () => {
@@ -172,7 +134,11 @@ document.addEventListener('alpine:init', () => {
 
     if (useTracking && !window.location.host.includes('127.0.0.1') && !window.location.host.includes('localhost')) {
         waitForPostHog(async () => {
-            await identify();
+            const cookieConsent = localStorage.getItem('cookie_consent');
+            if (cookieConsent === "yes" || cookieConsent === "no") {
+                const { identifyUser } = await import('../components/analytics/identify.js');
+                identifyUser();
+            }
         })
     }
 </script>

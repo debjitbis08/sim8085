@@ -35,11 +35,13 @@
                 this.showBanner = false;
                 if (window.posthog) {
                     posthog.set_config({ persistence: 'localStorage+cookie' });
+                    import('./identify.js').then(mod => mod.identifyUser());
                 }
             },
             declineCookies() {
                 localStorage.setItem('cookie_consent', 'no');
                 this.showBanner = false;
+                import('./identify.js').then(mod => mod.identifyUser());
             }
         }));
     });
