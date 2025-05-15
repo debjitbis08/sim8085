@@ -1,3 +1,10 @@
+## [2.15.1](https://github.com/debjitbis08/sim8085/compare/v2.15.0...v2.15.1) (2025-05-15)
+
+
+### Bug Fixes
+
+* Fix session detection ([a7b4181](https://github.com/debjitbis08/sim8085/commit/a7b4181b0f0d507c27048104a2507a3492bdd486))
+
 # [2.15.0](https://github.com/debjitbis08/sim8085/compare/v2.14.5...v2.15.0) (2025-05-14)
 
 
