@@ -2,6 +2,8 @@ import ActionButton from "./ActionButton.jsx";
 import { FaSolidWandMagicSparkles } from "solid-icons/fa";
 import { parse } from "../core/8085.pegjs";
 import { store, setStore } from "../store/store.js";
+import { showToaster } from "./toaster.jsx";
+import { trackEvent } from "./analytics/tracker.js";
 
 export default function CodeFormatter() {
     const format = () => {
@@ -9,15 +11,69 @@ export default function CodeFormatter() {
             const parsed = parse(store.activeFile.content);
             const formatted = formatLines(parsed.lines);
             setStore("activeFile", "content", formatted);
+            setStore("errors", []);
         } catch (e) {
-            console.log("Failed to format code:", e);
-            throw e;
+            if (e.name && e.message && e.location) {
+                showToaster(
+                    "error",
+                    "Program has errors",
+                    'Check the "Assembler Errors" section on the right for details.',
+                );
+                const message = e.message.startsWith("{") ? JSON.parse(e.message) : e.message;
+                if (typeof message === "string") {
+                    setStore("errors", [
+                        {
+                            name: e.name,
+                            msg: message,
+                            hint: e.hint || [],
+                            type: "",
+                            location: e.location,
+                            line: e.location.start.line,
+                            column: e.location.start.column,
+                        },
+                    ]);
+                } else {
+                    setStore("errors", [
+                        {
+                            name: e.name,
+                            msg: message.message,
+                            hint: message.hint || [],
+                            type: message.type || "",
+                            location: e.location,
+                            line: e.location.start.line,
+                            column: e.location.start.column,
+                        },
+                    ]);
+                }
+                setStore("assembled", []);
+                setStore("codeWithError", store.activeFile.content);
+                trackEvent("assemble failed", {
+                    code: store.activeFile.content,
+                    name: e.name,
+                    msg: e.message,
+                    line: e.location.start.line,
+                    column: e.location.start.column,
+                });
+                return;
+            } else {
+                setStore("assembled", []);
+                trackEvent("assemble exception", {
+                    code: store.activeFile.content,
+                });
+                showToaster(
+                    "error",
+                    "Assemble Failed",
+                    "Assemble failed with unknown errors. Please check the syntax of your program.",
+                );
+                return;
+            }
         }
     };
     return (
         <div class="">
             <ActionButton
                 icon={<FaSolidWandMagicSparkles class="text-blue-foreground" />}
+                titlePlacement="left"
                 title={
                     <>
                         <p>Format Code</p>

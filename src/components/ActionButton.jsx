@@ -2,7 +2,7 @@ import { Tooltip } from "./generic/Tooltip.jsx";
 
 export default function ActionButton(props) {
     return (
-        <Tooltip>
+        <Tooltip placement={props.titlePlacement || "bottom"}>
             <Tooltip.Trigger
                 class={`${props.isHidden ? "hidden" : ""} tooltip__trigger rounded hover:bg-active-background border border-transparent hover:border-active-border ${props.class || ""}`}
                 onClick={props.onClick}
