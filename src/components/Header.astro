@@ -11,7 +11,7 @@ import YoutubeIcon from '../icons/youtube.svg?raw';
 import ThemeSwitcher from './ThemeSwitcher.astro';
 import ActionsLoader from './ActionsLoader.jsx';
 import {FileActions} from './FileActions.jsx';
-import CodeFormatter from "./CodeFormatter.jsx";
+import CodeFormatterLoader from "./CodeFormatterLoader.jsx";
 import {getUserFromSession} from '../lib/supabase.js';
 
 interface Props {
@@ -53,7 +53,7 @@ const avatarUrl = user?.user_metadata?.avatar_url; // Default avatar if none exi
         </div> : null}
         {showActions ? (
             <div class="ml-auto hidden md:block">
-                <CodeFormatter client:idle />
+                <CodeFormatterLoader client:idle />
             </div>
         ) : null}
             {showActions ? (<div class="h-6 border-r border-r-secondary-border hidden md:block"></div>) : null}

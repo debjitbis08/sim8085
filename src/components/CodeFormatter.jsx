@@ -1,5 +1,5 @@
 import ActionButton from "./ActionButton.jsx";
-import { FaSolidFileLines, FaSolidWandMagicSparkles } from "solid-icons/fa";
+import { FaSolidWandMagicSparkles } from "solid-icons/fa";
 import { parse } from "../core/8085.pegjs";
 import { store, setStore } from "../store/store.js";
 
@@ -148,7 +148,6 @@ function formatLines(lines) {
               : line.opcode.toUpperCase();
 
         const operands = extractOperands(line);
-        const mnemonicCol = mnemonic.padEnd(8);
         let operandCol = operands;
 
         // Extract comment from .text if available
@@ -168,6 +167,8 @@ function formatLines(lines) {
             const indented = " ".repeat(LABEL_WIDTH) + mnemonicCol + operandCol + comment;
             return `${label}\n${indented}`;
         }
+
+        const mnemonicCol = mnemonic.padEnd(operandCol.length || comment.length ? 8 : 0);
 
         // 🧱 Assemble the line
         if (hasLabels) {
