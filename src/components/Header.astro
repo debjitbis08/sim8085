@@ -253,7 +253,7 @@ const avatarUrl = user?.user_metadata?.avatar_url; // Default avatar if none exi
             menuOpen: false,
 
             async init() {
-                this.user = await getUserFromSession().user;
+                this.user = (await getUserFromSession()).user;
                 this.isLoggedIn = !!this.user;
                 this.avatarUrl = this.user?.user_metadata?.avatar_url;
             },
@@ -276,7 +276,7 @@ const avatarUrl = user?.user_metadata?.avatar_url; // Default avatar if none exi
             menuOpen: false,
 
             async init() {
-                const user = await getUserFromSession().user;
+                const user = (await getUserFromSession()).user;
                 this.isLoggedIn = !!user;
             },
 
