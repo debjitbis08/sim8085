@@ -1,3 +1,12 @@
+## [2.15.3](https://github.com/debjitbis08/sim8085/compare/v2.15.2...v2.15.3) (2025-05-15)
+
+
+### Bug Fixes
+
+* Reduce cookie banner space ([7cd2b2e](https://github.com/debjitbis08/sim8085/commit/7cd2b2e98ec361451d6523b04b2accfd94f57612))
+* Remove ending space in formatted code ([0b9d97c](https://github.com/debjitbis08/sim8085/commit/0b9d97c04ee1d067afe3dc040b27751f5c480ef4))
+* Show errors on format failure ([b448317](https://github.com/debjitbis08/sim8085/commit/b448317b1fd895a7dd9b71c1fef131e714da1aa6))
+
 ## [2.15.2](https://github.com/debjitbis08/sim8085/compare/v2.15.1...v2.15.2) (2025-05-15)
 
 
