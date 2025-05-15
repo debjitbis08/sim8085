@@ -4,17 +4,15 @@
     class="z-[9999] fixed bottom-20 md:bottom-0 right-0 w-[80vw] md:w-[30vw] max-w-[500px] text-sm md:text-base p-4 m-4 rounded-md bg-secondary-background border border-secondary-border shadow-lg"
     style="display: none;"
 >
-    <p class="mb-2">
-        We use tracking cookies to understand how you use
-        the product and help us improve it. We do not collect any personal
-        information because we can't.
+    <p class="mb-2 text-sm">
+        This site uses cookies to ensure the best experience for our users.
     </p>
-    <p class="mb-4">
-        <span class="italic">Please</span> accept cookies to help us improve.
+    <p class="mb-4 text-sm">
+        By continuing, you agree to the use of cookies.
     </p>
-    <div class="flex items-center gap-2">
-        <button @click="acceptCookies()" title="Thank You" class="consent-button text-white rounded border border-green-foreground text-primary-foreground bg-terminal-700 hover:bg-terminal">Accept cookies</button>
-        <button @click="declineCookies()" title="Really?" class="consent-button rounded border border-secondary-border hover:bg-active-background">Decline cookies</button>
+    <div class="flex items-center gap-4">
+        <button @click="acceptCookies()" title="Thank You" class="consent-button text-sm text-white rounded border border-green-foreground text-primary-foreground bg-terminal-700 hover:bg-terminal">Got it</button>
+        <button @click="declineCookies()" title="Really?" class="text-secondary-foreground text-sm hover:text-active-foreground">Skip</button>
     </div>
 </div>
 
@@ -51,6 +49,6 @@
       @apply px-4;
       @apply py-2;
       @apply cursor-pointer;
-      @apply rounded-sm;
+      @apply rounded;
   }
 </style>

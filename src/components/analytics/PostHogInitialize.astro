@@ -8,9 +8,6 @@ const { useTracking, apiKey } = Astro.props;
         apiKey,
         {
             api_host:'https://us.i.posthog.com',
-            loaded: function(posthog) {
-                console.log("Posthog loaded");
-            }
         }
     )
 </script>

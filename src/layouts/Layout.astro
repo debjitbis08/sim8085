@@ -124,7 +124,6 @@ document.addEventListener('alpine:init', () => {
 
     async function identify() {
         const { getSession } = await import('../lib/supabase.js');
-        console.log("Identifying user");
         getSession().then(async ({session, error}) => {
             if (!error && session?.user) {
                 const name = session.user?.user_metadata?.name || "";
@@ -140,17 +139,33 @@ document.addEventListener('alpine:init', () => {
                     fingerprint,
                     { anon: true }
                 );
+            } else if (cookieConsent === "yes") {
+                // Try to get existing ID from localStorage
+                let id = localStorage.getItem('anon_id');
+
+                // Generate new 32-char hex ID if not present
+                if (!id) {
+                    const bytes = new Uint8Array(16); // 16 bytes = 32 hex chars
+                    crypto.getRandomValues(bytes);
+                    id = [...bytes].map(b => b.toString(16).padStart(2, '0')).join('');
+                    localStorage.setItem('anon_id', id);
+                }
+
+                posthog.identify(
+                    id,
+                    { anon: true }
+                );
             }
         });
     }
 
     const waitForPostHog = (cb) => {
         const check = () => {
-        if (window.posthog?.__loaded) {
-            cb();
-        } else {
-            setTimeout(check, 100); // poll until ready
-        }
+            if (window.posthog?.__loaded) {
+                cb();
+            } else {
+                setTimeout(check, 100); // poll until ready
+            }
         };
         check();
     };
