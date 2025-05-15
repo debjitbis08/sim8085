@@ -1,3 +1,10 @@
+## [2.15.2](https://github.com/debjitbis08/sim8085/compare/v2.15.1...v2.15.2) (2025-05-15)
+
+
+### Bug Fixes
+
+* Fix formatting of numbers ([b788046](https://github.com/debjitbis08/sim8085/commit/b78804601df4259af10453096f94032a79504c93))
+
 ## [2.15.1](https://github.com/debjitbis08/sim8085/compare/v2.15.0...v2.15.1) (2025-05-15)
 
 
