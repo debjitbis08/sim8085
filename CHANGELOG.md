@@ -1,3 +1,10 @@
+## [2.15.4](https://github.com/debjitbis08/sim8085/compare/v2.15.3...v2.15.4) (2025-05-15)
+
+
+### Bug Fixes
+
+* Fix build ([2a4ef5a](https://github.com/debjitbis08/sim8085/commit/2a4ef5a2eca8c7f957b3515a956d44d5028e7c65))
+
 ## [2.15.3](https://github.com/debjitbis08/sim8085/compare/v2.15.2...v2.15.3) (2025-05-15)
 
 
