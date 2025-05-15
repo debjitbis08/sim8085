@@ -567,7 +567,11 @@ stackPointer "Stack Pointer (written as, SP or sp)" =
     l:("SP" / "sp") !identLetter { return l.toLowerCase(); }
 
 expression_list "comma separated expression" = d:expressionImmediate ds:("," __ expressionImmediate)* {
-    return { value: [typeof d.value === 'function' ? d.value() : d.value].concat(ds.map(function (d_) { return d_[2].value; }).flat()).flat(), location: location(), text: [d.text].concat(ds.map(d => d.text)) };
+    return {
+        value: [typeof d.value === 'function' ? d.value() : d.value].concat(ds.map(function (d_) { return d_[2].value; }).flat()).flat(),
+        location: location(),
+        text: [d.text].concat(ds.map(function (d_) { return d_[2].text; }))
+    };
 }
 
 data8_list "comma separated byte values" = d:data8 ds:("," __ data8)* {
@@ -621,29 +625,29 @@ numLiteral "numeric literal" =  hexLiteral / binLiteral / octalLiteral / decLite
 decLiteral "decimal literal" = decForm2 / decForm1
 
 decForm1 = neg:[-]? digits:digit+ {
-    return { value: parseInt((!neg ? "":"-") + digits.join(""), 10), location: location() };
+    return { value: parseInt((!neg ? "":"-") + digits.join(""), 10), location: location(), text: (neg || "") + digits.join("") };
 }
 
-decForm2 = neg:[-]? digits:digit+ "D"i {
-    return { value: parseInt((!neg ? "":"-") + digits.join(""), 10), location: location() };
+decForm2 = neg:[-]? digits:digit+ s:"D"i {
+    return { value: parseInt((!neg ? "":"-") + digits.join(""), 10), location: location(), text: (neg || "") + digits.join("") + s };
 }
 
 hexLiteral "hex literal" = hexForm1 / hexForm2
 
-hexForm1 = '0x' hexits:hexit+ {
-    return { value: parseInt(hexits.join(""), 16), location: location() };
+hexForm1 = p:'0x' hexits:hexit+ {
+    return { value: parseInt(hexits.join(""), 16), location: location(), text: p + hexits.join("") };
 }
 
-hexForm2 = hexits:hexit+ "H"i {
-    return { value: parseInt(hexits.join(""), 16), location: location() };
+hexForm2 = hexits:hexit+ s:"H"i {
+    return { value: parseInt(hexits.join(""), 16), location: location(), text: hexits.join("") + s };
 }
 
-octalLiteral "Octal Literal" = octits:octit+ ("O" / "Q" / "o" / "q") {
-    return { value: parseInt(octits.join(""), 8), location: location() };
+octalLiteral "Octal Literal" = octits:octit+ s:("O" / "Q" / "o" / "q") {
+    return { value: parseInt(octits.join(""), 8), location: location(), text: octits.join("") + s };
 }
 
-binLiteral "binary literal" = bits:bit+ "B"i {
-    return { value: parseInt(bits.join(""), 2), location: location() };
+binLiteral "binary literal" = bits:bit+ s:"B"i {
+    return { value: parseInt(bits.join(""), 2), location: location(), text: bits.join("") + s };
 }
 
 stringLiteral "string literal" = "'" chars:char* "'" {

@@ -46,14 +46,51 @@ export default function CodeFormatter() {
     );
 }
 
-const formatHex = (n) => {
-    if (typeof n !== "number") return n;
-    let hex = n.toString(16).toUpperCase();
-    if (/^[A-F]/.test(hex)) {
-        hex = "0" + hex;
+function formatNumber(value, originalText) {
+    if (typeof value !== "number" && typeof originalText === "string") {
+        return originalText;
     }
-    return `${hex}H`;
-};
+
+    if (typeof value !== "number" || typeof originalText !== "string") {
+        return value;
+    }
+
+    const upper = originalText.toUpperCase().trim();
+
+    if (upper.endsWith("H") || upper.startsWith("0X")) {
+        // Hexadecimal
+        let hex = value.toString(16).toUpperCase();
+        if (/^[A-F]/.test(hex)) hex = "0" + hex;
+        return `${hex}H`;
+    }
+
+    if (upper.endsWith("B")) {
+        // Binary
+        return value.toString(2).toUpperCase() + "B";
+    }
+
+    if (upper.endsWith("O") || upper.endsWith("Q")) {
+        // Octal
+        return value.toString(8).toUpperCase() + upper.slice(-1);
+    }
+
+    if (upper.endsWith("D")) {
+        // Decimal with D suffix
+        return value.toString(10) + "D";
+    }
+
+    // Plain decimal (no suffix)
+    return value.toString(10);
+}
+
+function zip(a, b) {
+    var l = Math.min(a.length, b.length),
+        r = [];
+    for (var i = 0; i < l; i += 1) {
+        r.push([a[i], b[i]]);
+    }
+    return r;
+}
 
 function formatLines(lines) {
     const LABEL_WIDTH = 10;
@@ -73,9 +110,15 @@ function formatLines(lines) {
                 )
                 .join(", ");
         } else if (line.dir) {
-            const strLit = line.dir.name?.[2]?.text?.[0];
-            if (strLit) return strLit;
-            return (line.dir.params || []).map(formatHex).join(", ");
+            const value = line.dir.name[2].value;
+            const text = line.dir.name[2].text;
+            const zipped =
+                Array.isArray(value) && Array.isArray(text) && value.length === text.length
+                    ? zip(value, text)
+                    : Array.isArray(value) && Array.isArray(text) && text.length === 1
+                      ? [[value, text[0]]]
+                      : [[value, text]];
+            return zipped.map((param) => formatNumber(param[0], param[1])).join(", ");
         }
         return "";
     };
