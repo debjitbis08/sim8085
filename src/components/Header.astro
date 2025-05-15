@@ -115,7 +115,7 @@ const avatarUrl = user?.user_metadata?.avatar_url; // Default avatar if none exi
                     </template>
                 </div>
                 <a href="https://youtu.be/7l-zS9RmAnM"
-                    class="bmc-btn"
+                    class="transition-colors font-bold relative z-[1] h-8 py-4 px-4 hidden md:flex items-center gap-2 rounded-lg text-sm bg-transparent box-border text-secondary-foreground hover:text-active-foreground border border-inactive-border hover:border-secondary-border"
                     target="_blank"
                 >
                     <span class="text-red-foreground">
@@ -124,7 +124,7 @@ const avatarUrl = user?.user_metadata?.avatar_url; // Default avatar if none exi
                 </a>
                 <!-- <link href="https://fonts.googleapis.com/css?family=Inter&amp;display=swap" rel="stylesheet"> -->
                 <a
-                    class="bmc-btn"
+                    class="transition-colors font-bold relative z-[1] h-8 py-4 px-4 hidden md:flex items-center gap-2 rounded-lg text-sm bg-transparent box-border text-secondary-foreground hover:text-active-foreground border border-inactive-border hover:border-secondary-border"
                     href="/donate/"
                 >
                     <span class="text-red-foreground">
@@ -193,37 +193,6 @@ const avatarUrl = user?.user_metadata?.avatar_url; // Default avatar if none exi
 </header>
 
 <style>
-    .bmc-btn {
-        @apply h-8 py-4 px-4 hidden md:flex items-center gap-2 rounded-lg text-sm bg-transparent box-border text-secondary-foreground hover:text-active-foreground border border-inactive-border hover:border-secondary-border;
-        /* font-family: 'Inter', sans-serif !important; */
-        font-weight: bold;
-        position: relative;
-        z-index: 1;
-        transition: transform 0.2s ease, box-shadow 0.5s ease;
-        /* box-shadow: 0 0 10px rgba(0, 204, 255, 0.2); */
-        /* animation: subtle-glow 3s infinite; */
-    }
-
-    /* Glow animation */
-    @keyframes subtle-glow {
-        0% {
-            box-shadow: 0 0 8px rgba(0, 204, 255, 0.2), 0 0 15px rgba(0, 204, 255, 0.15);
-        }
-        50% {
-            box-shadow: 0 0 12px rgba(0, 204, 255, 0.3), 0 0 20px rgba(0, 204, 255, 0.2);
-        }
-        100% {
-            box-shadow: 0 0 8px rgba(0, 204, 255, 0.2), 0 0 15px rgba(0, 204, 255, 0.15);
-        }
-    }
-
-    /* Hover effect */
-    .bmc-btn:hover {
-        /* transform: scale(1.05); */
-        animation: none;
-        box-shadow: none;
-    }
-
     .regular-icon {
         display: block;
     }
