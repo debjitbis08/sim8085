@@ -33,6 +33,7 @@ export default defineConfig({
                 { slug: "docs/en/assembly" },
                 { slug: "docs/en/unsupported" },
                 { slug: "docs/en/interrupts" },
+                { slug: "docs/en/infinite-loop-reasons" },
                 { slug: "docs/en/app-install" },
                 /*
         {

@@ -25,7 +25,14 @@ import { store, setStore } from "../store/store.js";
 import { Toast } from "./generic/Toast.jsx";
 import { trackEvent } from "./analytics/tracker.js";
 import { showToaster } from "./toaster.jsx";
-import { FaRegularSquare, FaSolidAngleDown, FaSolidBoltLightning, FaSolidCheck, FaSolidEject } from "solid-icons/fa";
+import {
+    FaRegularSquare,
+    FaSolidAngleDown,
+    FaSolidArrowUpRightFromSquare,
+    FaSolidBoltLightning,
+    FaSolidCheck,
+    FaSolidEject,
+} from "solid-icons/fa";
 import { createShortcut } from "@solid-primitives/keyboard";
 import { DropdownMenu } from "./generic/DropdownMenu.jsx";
 
@@ -707,9 +714,21 @@ function InfiniteLoopError(props) {
                 <p>Please check your program for logic errors.</p>
             )}
             <p class="mt-2">
-                If you are trying to write a program with explicit infinite loop, enable the Simulate Intruction Timing
+                If you are trying to write a program with explicit infinite loop, enable the Simulate Instruction Timing
                 option in Settings.
             </p>
+            <div class="mt-2">
+                <a
+                    href="/docs/en/infinite-loop-reasons/"
+                    target="_blank"
+                    class="flex items-center gap-2 text-blue-foreground"
+                >
+                    <span>Read docs</span>
+                    <span class="text-sm">
+                        <FaSolidArrowUpRightFromSquare />
+                    </span>
+                </a>
+            </div>
         </>
     );
 }

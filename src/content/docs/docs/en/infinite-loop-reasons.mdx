@@ -1,0 +1,102 @@
+---
+title: Reasons for Infinite Loops
+description: 🌀 Common Causes of Infinite Loops in 8085 Assembly Programs.
+---
+
+When working with 8085 Assembly Language, programs may occasionally run into infinite loops — some intended, some accidental. This guide lists common reasons for such behavior, helping you debug and fix your code effectively.
+
+## 🔁 1. Missing `HLT` Instruction
+
+If your program lacks the `HLT` instruction, the processor will continue executing subsequent memory contents, which may contain garbage values or wrap around to earlier code — resulting in an unintentional infinite loop.
+
+✅ **Fix:** Always terminate programs that are not meant to run indefinitely with a `HLT` instruction.
+
+```asm
+MVI A, 05H
+OUT 01H
+HLT   ; Make sure to halt execution
+```
+
+---
+
+## ⏱️ 2. Intentional Infinite Loop, But "Instruction Timing" Not Enabled
+
+Some programs use infinite loops by design (e.g., waveform generators, LED blinkers). However, if **Instruction Timing Mode** is not enabled in Sim8085, such loops may appear to do nothing because they execute instantly.
+
+✅ **Fix:** Enable the **"Simulate Instruction Timing"** option to make infinite loops behave as expected (e.g., generate visible delay or blinking).
+
+```asm
+LOOP:
+  CALL DELAY
+  JMP LOOP
+```
+
+---
+
+## 📥 3. Expected Data Not Present in Memory
+
+Programs that rely on certain memory locations (e.g., inputs or flags) may loop endlessly while waiting for expected values. If the memory is uninitialized or not set correctly, the loop condition never breaks.
+
+**Example:**
+
+```asm
+LOOP:
+  LDA 2000H
+  CPI 01H
+  JNZ LOOP
+```
+
+✅ **Fix:** Manually initialize memory location `2000H` with the expected value (e.g., `01H`) before running the program.
+
+---
+
+## 🧠 4. Logical Errors in Code
+
+Bugs in the logic — such as using the wrong jump condition, forgetting to decrement a counter, or using incorrect register pairs — can create unintended infinite loops.
+
+**Example:**
+
+```asm
+MVI C, 05H
+LOOP:
+  ; Forgot to decrement C
+  MOV A, C
+  CPI 00H
+  JNZ LOOP   ; This will never break
+```
+
+✅ **Fix:** Carefully check all loop logic and conditions. Use the Sim8085 debugger to step through the program and observe register/flag changes.
+
+---
+
+## ❌ 5. Wrong Run Address with ORG Directive
+
+When you use the `ORG` directive to set the program’s starting address, Sim8085 places your code at that location in memory. However, Sim8085 doesn't automatically *run* from that location unless you specify it.
+
+**Example:**
+
+```asm
+ORG 3000H
+MVI A, 01H
+OUT 01H
+HLT
+```
+
+If you assemble this code but click **Run** with the default start address (`0000H`), the processor will start executing from address `0000H`, which may contain nothing useful — causing an immediate infinite loop or garbage execution.
+
+✅ **Fix**: If your program uses `ORG 3000H`, make sure to enter **3000** in the Run address field before clicking **Run**.
+
+## 🚧 Other Potential Issues
+
+* **Stack Overwrites Return Address:** Improper `PUSH/POP` sequences can corrupt the return address, making a `RET` jump to the wrong location.
+* **Interrupts Enabled Without ISR:** Enabling interrupts without proper interrupt service routines can cause unexpected jumps.
+* **Corrupted PC or Jump Target:** Writing to code areas from the program or modifying jump targets incorrectly can lead to looping behavior.
+
+---
+
+## 🧰 Tips for Debugging
+
+* Use the **Step Execution** feature in Sim8085 to run the program instruction-by-instruction.
+* Check the **Program Counter (PC)** — if it keeps jumping between the same addresses, it's likely an infinite loop.
+* Verify your **flags, registers, and memory** state after each instruction.
+* Use **Breakpoints** and **Memory Watch** to monitor loop conditions.
