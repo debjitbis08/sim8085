@@ -213,7 +213,7 @@ export function Assembled() {
                         </div>
                     </div>
                 </div>
-                <LambdaClassesPoster isHidden={store.assembled.length > 0} />
+                <LambdaClassesPoster isHidden={store.assembled.length > 0 || store.errors.length > 0} />
             </div>
         </div>
     );
