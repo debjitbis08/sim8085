@@ -4,7 +4,6 @@ import tailwind from "@astrojs/tailwind";
 import peggy from "vite-plugin-peggy-loader";
 import AstroPWA from "@vite-pwa/astro";
 import starlight from "@astrojs/starlight";
-
 import alpinejs from "@astrojs/alpinejs";
 
 // https://astro.build/config

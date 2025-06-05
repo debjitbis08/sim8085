@@ -15,7 +15,7 @@ export function NatoryAd() {
             delay: 5 * 60000,
             onIdle: () => {
                 if (!localStorage.getItem(LOCAL_KEY)) {
-                    setVisible(true);
+                    // setVisible(true);
                     if (window.posthog) {
                         posthog.capture("ad impression");
                     }

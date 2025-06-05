@@ -1,10 +1,11 @@
-import { createEffect, createSignal } from "solid-js";
+import { createEffect, createSignal, onMount } from "solid-js";
 import { store } from "../store/store.js";
 import { toByteString } from "../utils/NumberFormat.js";
 import { FiAlertTriangle } from "solid-icons/fi";
 import CopyComponent from "./CopyComponent.jsx";
 import { Tooltip } from "./generic/Tooltip.jsx";
 import styles from "./Assembled.module.css";
+import LambdaClassesPoster from "./LambdaClassesPoster.jsx";
 
 export function Assembled() {
     let [lines, setLines] = createSignal([]);
@@ -14,8 +15,8 @@ export function Assembled() {
     });
 
     return (
-        <div class={`bg-page-background md:bg-main-background p-4`}>
-            <div class="">
+        <div class={`bg-page-background md:bg-main-background p-4 h-full`}>
+            <div class="flex flex-col h-full">
                 <div class="flex items-start gap-2">
                     <h2 class={`md:text-xl pb-4`}>{store.errors.length ? "Assembler Errors" : "Machine Code"}</h2>
                     <div class={`${store.assembled.length && store.errors.length === 0 ? "" : "hidden"} pt-1`}>
@@ -212,6 +213,7 @@ export function Assembled() {
                         </div>
                     </div>
                 </div>
+                <LambdaClassesPoster isHidden={store.assembled.length > 0} />
             </div>
         </div>
     );
