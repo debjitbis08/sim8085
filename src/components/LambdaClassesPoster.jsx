@@ -1,4 +1,5 @@
 import LambdaClassesPoster from "../images/lambda-classes-poster.png";
+import ProjectTrackPoster from "../images/project-track-poster.jpg";
 import { createEffect, createSignal, onMount } from "solid-js";
 
 export default function lambdaClassesPoster(props) {
@@ -42,7 +43,7 @@ export default function lambdaClassesPoster(props) {
     return (
         <div class={`mt-auto relative ${isHidden() ? "hidden" : ""}`} ref={(el) => (lambdaClassesPoster = el)}>
             <a href="https://www.lambda-classes.com" target="_blank" onClick={onClickthrough}>
-                <img src={LambdaClassesPoster.src} alt="" />
+                <img src={Math.random() < 0.5 ? LambdaClassesPoster.src : ProjectTrackPoster.src} alt="" />
             </a>
             <div
                 title="Hide"
