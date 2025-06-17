@@ -42,9 +42,15 @@ export default function lambdaClassesPoster(props) {
 
     return (
         <div class={`mt-auto relative ${isHidden() ? "hidden" : ""}`} ref={(el) => (lambdaClassesPoster = el)}>
-            <a href="https://www.lambda-classes.com" target="_blank" onClick={onClickthrough}>
-                <img src={Math.random() < 0.5 ? LambdaClassesPoster.src : ProjectTrackPoster.src} alt="" />
-            </a>
+            {Math.random() < 0.5 ? (
+                <a href="https://www.lambda-classes.com/abc-course" target="_blank" onClick={onClickthrough}>
+                    <img src={LambdaClassesPoster.src} alt="" />
+                </a>
+            ) : (
+                <a href="https://www.lambda-classes.com/projects" target="_blank" onClick={onClickthrough}>
+                    <img src={ProjectTrackPoster.src} alt="" />
+                </a>
+            )}
             <div
                 title="Hide"
                 class="absolute top-[-10px] right-[-5px] border border-inactive-border hover:border-active-border bg-secondary-background hover:bg-main-background text-secondary-foreground hover:text-active-foreground px-2 py-0 rounded-full cursor-pointer"
