@@ -8,6 +8,7 @@ export function CodingArea() {
 
         if (savedFileStr) {
             const savedFile = JSON.parse(savedFileStr);
+            console.log(savedFile);
             setStore("activeFile", savedFile);
         } else {
             const mainAsmCode = localStorage.getItem("main.asm");
@@ -33,6 +34,7 @@ export function CodingArea() {
 
     return (
         <div class="py-4 bg-main-background h-full">
+            {store.activeFile.name}
             <CodeMirror value={store.activeFile.content} onChange={handleContentChange} />
         </div>
     );

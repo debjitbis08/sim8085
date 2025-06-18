@@ -48,36 +48,38 @@ const avatarUrl = user?.user_metadata?.avatar_url; // Default avatar if none exi
             </a>
         </div>
         <div class="flex items-center gap-2 flex-grow flex-shrink ml-auto">
-        {showActions ? <div class="pl-4 hidden">
-            <FileActions client:idle/>
-        </div> : null}
-        {showActions ? (
-            <div class="ml-auto hidden md:block">
-                <CodeFormatterLoader client:idle />
-            </div>
-        ) : null}
-            {showActions ? (<div class="h-6 border-r border-r-secondary-border hidden md:block"></div>) : null}
-        {showActions ? (
-            <div class="
-                flex w-full md:w-auto lg:min-w-[300px] md:gap-2 md:justify-end
-                fixed bottom-0 left-0 z-50 bg-page-background py-2 px-2
-                pb-10 md:pb-2 text-xl md:text-base
-                md:static
-            ">
-                <button type="button" id="left-panel-btn" class="md:hidden">
-                    <span class="regular-icon"><Fragment set:html={RegularDockLeftIcon} /></span>
-                    <span class="solid-icon"><Fragment set:html={SolidDockLeftIcon} /></span>
-                </button>
-                <div class="flex-grow lg:block">
-                    {showActions ?
-                        <ActionsLoader client:idle /> : null}
+            {showActions ? (
+                <div x-data="workspace" x-show="workspaceEnabled" class="pl-4">
+                    <FileActions client:idle />
                 </div>
-                <button type="button" id="right-panel-btn" class="md:hidden">
-                    <span class="regular-icon"><Fragment set:html={RegularDockRightIcon} /></span>
-                    <span class="solid-icon"><Fragment set:html={SolidDockRightIcon} /></span>
-                </button>
-            </div>
-        ) : null}
+            ) : null}
+            {showActions ? (
+                <div class="ml-auto hidden md:block">
+                    <CodeFormatterLoader client:idle />
+                </div>
+            ) : null}
+            {showActions ? (<div class="h-6 border-r border-r-secondary-border hidden md:block"></div>) : null}
+            {showActions ? (
+                <div class="
+                    flex w-full md:w-auto lg:min-w-[300px] md:gap-2 md:justify-end
+                    fixed bottom-0 left-0 z-50 bg-page-background py-2 px-2
+                    pb-10 md:pb-2 text-xl md:text-base
+                    md:static
+                ">
+                    <button type="button" id="left-panel-btn" class="md:hidden">
+                        <span class="regular-icon"><Fragment set:html={RegularDockLeftIcon} /></span>
+                        <span class="solid-icon"><Fragment set:html={SolidDockLeftIcon} /></span>
+                    </button>
+                    <div class="flex-grow lg:block">
+                        {showActions ?
+                            <ActionsLoader client:idle /> : null}
+                    </div>
+                    <button type="button" id="right-panel-btn" class="md:hidden">
+                        <span class="regular-icon"><Fragment set:html={RegularDockRightIcon} /></span>
+                        <span class="solid-icon"><Fragment set:html={SolidDockRightIcon} /></span>
+                    </button>
+                </div>
+            ) : null}
             {showActions ? (<div class="h-6 border-r border-r-secondary-border hidden md:block"></div>) : null}
         </div>
         <div class={`flex items-start pr-2 md:pr-4`}>
@@ -215,6 +217,14 @@ const avatarUrl = user?.user_metadata?.avatar_url; // Default avatar if none exi
     import {supabase, getUserFromSession, signOut, getUser} from '../lib/supabase.js';
 
     document.addEventListener('alpine:init', () => {
+        Alpine.data('workspace', () => ({
+            workspaceEnabled: false,
+
+            init() {
+                this.workspaceEnabled = localStorage.getItem('feature:workspace') === 'true';
+            }
+        }));
+
         Alpine.data('userProfile', () => ({
             isLoggedIn: false,
             user: null,

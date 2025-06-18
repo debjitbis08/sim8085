@@ -1,6 +1,6 @@
 import { Dialog } from "./generic/Dialog.jsx";
 import { createSignal, onMount } from "solid-js";
-import { FaSolidFolder, FaSolidGraduationCap } from "solid-icons/fa";
+import { FaSolidFolder, FaSolidGraduationCap, FaSolidShareNodes, FaSolidRobot } from "solid-icons/fa";
 import { VsBook } from "solid-icons/vs";
 
 export function PlusDialog() {
@@ -32,10 +32,35 @@ export function PlusDialog() {
                                         <div>
                                             <h3 class={"mb-1"}>Save and Organize Files</h3>
                                             <p class="text-sm text-secondary-foreground">
-                                                Easily save and organize your 8085 programs in one place.
+                                                Save up to 5 files on the free plan. Go Plus for unlimited saves and
+                                                better workspace management.
                                             </p>
                                         </div>
                                     </div>
+                                    <div class="flex items-center gap-4 pb-8">
+                                        <div class="text-2xl text-blue-600 bg-blue-200 w-12 h-12 rounded flex items-center justify-center">
+                                            <FaSolidShareNodes />
+                                        </div>
+                                        <div>
+                                            <h3 class="mb-1">Public Share Links</h3>
+                                            <p class="text-sm text-secondary-foreground">
+                                                Share your 8085 programs with anyone using a simple link.
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center gap-4 pb-8">
+                                        <div class="text-2xl text-purple-600 bg-purple-200 w-12 h-12 rounded flex items-center justify-center">
+                                            <FaSolidRobot />
+                                        </div>
+                                        <div>
+                                            <h3 class="mb-1">AI Help for Assembler Errors</h3>
+                                            <p class="text-sm text-secondary-foreground">
+                                                Confused by assembler errors? Let AI explain what went wrong and how to
+                                                fix it.
+                                            </p>
+                                        </div>
+                                    </div>
+                                    {/*
                                     <div class="flex items-center gap-4 pb-8">
                                         <div class="text-3xl text-blue-600 bg-blue-200 w-12 h-12 rounded flex items-center justify-center">
                                             <FaSolidGraduationCap />
@@ -52,6 +77,7 @@ export function PlusDialog() {
                                             </p>
                                         </div>
                                     </div>
+                                    */}
                                 </div>
                                 <div>
                                     <div class="flex items-center justify-start gap-4">
@@ -76,6 +102,7 @@ export function PlusDialog() {
                                         limited time!
                                     </p>
                                 </div>
+                                {/*
                                 <span class="flex items-center my-4">
                                     <span class="pr-6 text-secondary-foreground">OR</span>
                                     <span class="h-px flex-1 bg-main-border"></span>
@@ -83,6 +110,7 @@ export function PlusDialog() {
                                 <button class="border border-terminal text-terminal rounded-lg px-8 py-4 font-bold text-base">
                                     Make a one-time Donation of $2
                                 </button>
+                                */}
                             </div>
                         </Dialog.Description>
                     </Dialog.Content>

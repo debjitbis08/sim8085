@@ -3,7 +3,7 @@ import Layout from '../layouts/Layout.astro';
 import LogoWithBackground from '../icons/logo-with-green-background.svg?raw';
 ---
 
-<Layout title="Sim8085 - Login" showActions={false} fullwidth noHeader noFooter>
+<Layout title="Sim8085 - Login" showActions={false} fullwidth noHeader noFooter fullHeight>
     <div class="bg-main-background" x-data="authForm">
         <div class="flex min-h-[100vh] flex-col justify-center py-12 sm:px-6 lg:px-8">
             <div class="mb-8 mx-auto text-center flex items-center w-16 h-16">
@@ -78,7 +78,10 @@ document.addEventListener('alpine:init', () => {
         async signInWithGoogle() {
             try {
                 console.log("Logging in with Google");
-                const { error } = await supabase.auth.signInWithOAuth({ provider: 'google' });
+                const { error } = await supabase.auth.signInWithOAuth({ provider: 'google', 
+                  options: {
+                    redirectTo: window.location.origin
+                    }});
                 if (error) throw error;
             } catch (error) {
                 this.errorMessage = error.message;

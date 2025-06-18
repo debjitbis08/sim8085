@@ -15,6 +15,7 @@ import {
 import { VsLoading } from "solid-icons/vs";
 import DelayedComponent from "./generic/DelayedComponent.jsx";
 import InterruptState from "./InterruptState.jsx";
+import { onInit, getUser } from "../lib/supabase.js";
 import "./LeftPanel.css";
 
 const Workspace = lazy(() => import("./Workspace.jsx"));
@@ -27,8 +28,24 @@ export function LeftPanel() {
     const [expanded, setExpanded] = createSignal(true);
     const [width, setWidth] = createSignal(300);
     const [isOnline, setIsOnline] = createSignal(false);
+    const [workspaceEnabled, setWorkspaceEnabled] = createSignal(false);
+    const [noSession, setNoSession] = createSignal(true);
 
     onMount(() => {
+        setWorkspaceEnabled(localStorage.getItem("feature:workspace") === "true");
+
+        onInit(async () => {
+            const result = await getUser();
+
+            const error = result.error;
+
+            if (error && error.name === "AuthSessionMissingError") {
+                setNoSession(true);
+            } else {
+                setNoSession(false);
+            }
+        });
+
         const handleResize = () => {
             const isMd = window.matchMedia("(min-width: 768px)").matches;
             setExpanded(isMd);
@@ -112,12 +129,15 @@ export function LeftPanel() {
                     />
                 </div>
                 <div class="h-[0.1rem] bg-secondary-foreground w-5 hidden md:block"></div>
-                {/* <PanelButton
-                    icon={<FiFolder />}
-                    isActive={isActive("workspace")}
-                    onClick={() => showTab("workspace")}
-                    title="Files & Folders"
-                /> */}
+
+                <div class={workspaceEnabled() && noSession() === false ? "" : "hidden"}>
+                    <PanelButton
+                        icon={<FiFolder />}
+                        isActive={isActive("workspace")}
+                        onClick={() => showTab("workspace")}
+                        title="Files & Folders"
+                    />
+                </div>
                 <PanelButton icon={<FiCpu />} isActive={isActive("cpu")} onClick={() => showTab("cpu")} title="CPU" />
                 <PanelButton
                     icon={<BsMemory />}

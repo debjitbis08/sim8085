@@ -5,12 +5,25 @@ const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
 
 export let supabase = null;
 
+const initCallbacks = [];
+
 if (supabaseUrl && supabaseAnonKey) {
     supabase = createClient(supabaseUrl, supabaseAnonKey);
+    initCallbacks.forEach((cb) => {
+        cb();
+    });
 }
 
+export const onInit = (fn) => {
+    if (!supabase) {
+        initCallbacks.push(fn);
+    } else {
+        fn();
+    }
+};
+
 export const getUser = async () => {
-    if (!supabase) return { user: null, error: new Error("Supabse is not initialized") };
+    if (!supabase) return { user: null, error: new Error("Supabase is not initialized") };
 
     const {
         data: { user },

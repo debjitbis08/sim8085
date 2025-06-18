@@ -1,31 +1,37 @@
 import { store, setStore } from "../store/store.js";
 import { Tooltip } from "./generic/Tooltip.jsx";
 import { FiSave } from "solid-icons/fi";
-import { supabase } from "../lib/supabase.js";
+import { supabase, getUser, onInit } from "../lib/supabase.js";
 import { v7 as uuidv7 } from "uuid";
 import { createSignal, onMount } from "solid-js";
 import { produce } from "solid-js/store";
 import { Dialog } from "./generic/Dialog.jsx";
 
 export function FileActions() {
-    const [noSession, setNoSession] = createSignal(false);
+    const [noSession, setNoSession] = createSignal(true);
     const [isDialogOpen, setIsDialogOpen] = createSignal(false);
     const [newFileName, setNewFileName] = createSignal(store.activeFile.name);
     const [isSaving, setIsSaving] = createSignal(false);
 
-    onMount(() => {
-        const savedFileStr = localStorage.getItem("activeFile");
+    onMount(async () => {
+        onInit(async () => {
+            const result = await getUser();
 
-        if (savedFileStr) {
-            const savedFile = JSON.parse(savedFileStr);
-        }
+            const error = result.error;
+
+            if (error && error.name === "AuthSessionMissingError") {
+                setNoSession(true);
+            } else {
+                setNoSession(false);
+            }
+        });
     });
 
     async function fetchUserId() {
-        const {
-            data: { user },
-            error,
-        } = await supabase.auth.getUser();
+        const result = await getUser();
+
+        const user = result.user;
+        const error = result.error;
 
         if (error && error.name === "AuthSessionMissingError") {
             setNoSession(true);
@@ -186,7 +192,7 @@ export function FileActions() {
 
     return (
         <>
-            <div class="flex items-center gap-2">
+            <div class={`flex items-center gap-2 ${noSession() ? "hidden" : ""}`}>
                 <div>{store.activeFile.name}</div>
                 <div class="flex">
                     <ActionButton
