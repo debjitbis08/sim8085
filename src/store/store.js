@@ -26,6 +26,49 @@ const initialRegisterState = () => {
     );
 };
 
+function getInitialActiveFile() {
+    if (typeof window === "undefined") {
+        return {
+            name: "untitled-1.asm",
+            workspaceItemId: null,
+            currentVersionId: null,
+            content: INITIAL_CODE,
+        };
+    }
+
+    const savedFileStr = localStorage.getItem("activeFile");
+    if (savedFileStr) {
+        try {
+            const savedFile = JSON.parse(savedFileStr);
+            console.log(savedFile);
+            return {
+                name: savedFile.name ?? "untitled-1.asm",
+                workspaceItemId: savedFile.workspaceItemId ?? null,
+                currentVersionId: savedFile.currentVersionId ?? null,
+                content: savedFile.content ?? INITIAL_CODE,
+            };
+        } catch (_) {
+            // Fall through to create default file
+        }
+    }
+
+    const mainAsmCode = typeof window !== "undefined" && localStorage.getItem("main.asm");
+
+    const file = {
+        name: "untitled-1.asm",
+        workspaceItemId: null,
+        currentVersionId: null,
+        content: mainAsmCode || INITIAL_CODE,
+    };
+
+    if (typeof window !== "undefined") {
+        localStorage.setItem("activeFile", JSON.stringify(file));
+        if (mainAsmCode) localStorage.removeItem("main.asm");
+    }
+
+    return file;
+}
+
 export const DEFAULT_SETTINGS = {
     run: {
         enableTiming: false,
@@ -82,12 +125,7 @@ export const [store, setStore] = createStore({
     },
     breakpoints: [],
     errors: [],
-    activeFile: {
-        name: "untitled-1.asm",
-        workspaceItemId: null,
-        currentVersionId: null,
-        content: INITIAL_CODE,
-    },
+    activeFile: getInitialActiveFile(),
     homeFolderId: null,
     settings: structuredClone(DEFAULT_SETTINGS),
 });

@@ -1,25 +1,16 @@
-import { onMount } from "solid-js";
-import { INITIAL_CODE, setStore, store } from "../store/store.js";
+import { createSignal, onMount, createMemo } from "solid-js";
+import { setStore, store } from "../store/store.js";
 import { CodeMirror } from "./codemirror/CodeMirror.jsx";
 
 export function CodingArea() {
     onMount(() => {
         const savedFileStr = localStorage.getItem("activeFile");
-
         if (savedFileStr) {
-            const savedFile = JSON.parse(savedFileStr);
-            console.log(savedFile);
-            setStore("activeFile", savedFile);
-        } else {
-            const mainAsmCode = localStorage.getItem("main.asm");
-            setStore("activeFile", {
-                name: "untitled-1.asm",
-                workspaceItemId: null,
-                content: mainAsmCode || INITIAL_CODE,
-            });
-            localStorage.setItem("activeFile", JSON.stringify(store.activeFile));
-            if (mainAsmCode) {
-                localStorage.removeItem("main.asm");
+            try {
+                const savedFile = JSON.parse(savedFileStr);
+                setStore("activeFile", "name", savedFile.name);
+            } catch {
+                /* ignore */
             }
         }
     });
@@ -34,7 +25,6 @@ export function CodingArea() {
 
     return (
         <div class="py-4 bg-main-background h-full">
-            {store.activeFile.name}
             <CodeMirror value={store.activeFile.content} onChange={handleContentChange} />
         </div>
     );

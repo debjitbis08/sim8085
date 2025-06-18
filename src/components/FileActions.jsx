@@ -3,7 +3,7 @@ import { Tooltip } from "./generic/Tooltip.jsx";
 import { FiSave } from "solid-icons/fi";
 import { supabase, getUser, onInit } from "../lib/supabase.js";
 import { v7 as uuidv7 } from "uuid";
-import { createSignal, onMount } from "solid-js";
+import { createSignal, onMount, createEffect } from "solid-js";
 import { produce } from "solid-js/store";
 import { Dialog } from "./generic/Dialog.jsx";
 
@@ -190,10 +190,16 @@ export function FileActions() {
         setIsDialogOpen(false);
     };
 
+    const [fileName, setFileName] = createSignal("");
+
+    createEffect(() => {
+        setFileName(store.activeFile.name);
+    });
+
     return (
         <>
             <div class={`flex items-center gap-2 ${noSession() ? "hidden" : ""}`}>
-                <div>{store.activeFile.name}</div>
+                <div>{fileName()}</div>
                 <div class="flex">
                     <ActionButton
                         icon={<FiSave class="text-terminal" />}
