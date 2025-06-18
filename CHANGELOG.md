@@ -1,3 +1,10 @@
+## [2.15.5](https://github.com/debjitbis08/sim8085/compare/v2.15.4...v2.15.5) (2025-06-18)
+
+
+### Bug Fixes
+
+* Fix showing file name on initial load ([1025d55](https://github.com/debjitbis08/sim8085/commit/1025d555fc5353b3230440824144b2f6eb54b48f))
+
 ## [2.15.4](https://github.com/debjitbis08/sim8085/compare/v2.15.3...v2.15.4) (2025-05-15)
 
 
