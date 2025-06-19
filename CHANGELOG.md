@@ -1,3 +1,10 @@
+# [2.16.0](https://github.com/debjitbis08/sim8085/compare/v2.15.5...v2.16.0) (2025-06-19)
+
+
+### Features
+
+* Allow fixed number of files in free tier ([0f97ea5](https://github.com/debjitbis08/sim8085/commit/0f97ea564eb258cec822b58391aff7b0fea6673e))
+
 ## [2.15.5](https://github.com/debjitbis08/sim8085/compare/v2.15.4...v2.15.5) (2025-06-18)
 
 
