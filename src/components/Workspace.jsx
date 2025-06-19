@@ -136,10 +136,10 @@ export default function Workspace() {
     };
 
     return (
-        <div class="px-1 md:px-2">
+        <div class="">
             {loading() && <p>Loading...</p>}
             {error() && !noSession() && <p>Error: {error()}</p>}
-            {!loading() && (noSession() || tier() === "FREE") && (
+            {!loading() && noSession() && (
                 <div class="workspace-placeholder p-2">
                     <h2 class="flex items-center gap-2">
                         <FaSolidLock class="text-yellow-foreground stroke-2 text-xl" />
@@ -163,10 +163,11 @@ export default function Workspace() {
                     </div>
                 </div>
             )}
-            {!loading() && !error() && !noSession() && tier() !== "FREE" && (
+            {!loading() && !error() && !noSession() && (
                 <WorkspaceTree
                     folder={{ id: store.homeFolderId, parentFolderId: null, name: "Home", status_id: "ACTIVE" }}
                     userId={userId()}
+                    tier={tier()}
                 />
             )}
         </div>

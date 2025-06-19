@@ -6,6 +6,7 @@ import { v7 as uuidv7 } from "uuid";
 import { createSignal, onMount, createEffect } from "solid-js";
 import { produce } from "solid-js/store";
 import { Dialog } from "./generic/Dialog.jsx";
+import { canCreateFile } from "../utils/fileSaveLimit.js";
 
 export function FileActions() {
     const [noSession, setNoSession] = createSignal(true);
@@ -60,7 +61,17 @@ export function FileActions() {
         }
 
         const { id: userId, tier } = (await fetchUserId()) || { id: null, tier: "FREE" };
-        if (!userId || tier === "FREE") {
+        if (!userId) {
+            window.dispatchEvent(
+                new CustomEvent("showPlusDialog", {
+                    detail: {},
+                }),
+            );
+            return;
+        }
+
+        const allowed = await canCreateFile(userId, tier);
+        if (!allowed) {
             window.dispatchEvent(
                 new CustomEvent("showPlusDialog", {
                     detail: {},
@@ -176,7 +187,17 @@ export function FileActions() {
         }
 
         const { userId, tier } = await fetchUserId();
-        if (!userId || tier === "FREE") {
+        if (!userId) {
+            window.dispatchEvent(
+                new CustomEvent("showPlusDialog", {
+                    detail: {},
+                }),
+            );
+            return;
+        }
+
+        const allowed = await canCreateFile(userId, tier);
+        if (!allowed) {
             window.dispatchEvent(
                 new CustomEvent("showPlusDialog", {
                     detail: {},

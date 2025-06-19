@@ -1,12 +1,13 @@
-import {createSignal, onMount} from "solid-js";
-import {supabase} from "../lib/supabase.js";
-import {FolderNode} from "./FolderNode.jsx";
-import {FileNode} from "./FileNode.jsx";
-import {FiEdit, FiFile, FiFilePlus, FiFolder, FiFolderPlus, FiTrash2} from "solid-icons/fi";
-import {INITIAL_CODE, setStore, store} from "../store/store.js";
-import {v7 as uuidv7, version} from "uuid";
-import {FaRegularFolder, FaRegularFolderOpen} from "solid-icons/fa";
-import {VsChevronDown, VsChevronRight, VsLoading} from "solid-icons/vs";
+import { createSignal, onMount } from "solid-js";
+import { supabase } from "../lib/supabase.js";
+import { FolderNode } from "./FolderNode.jsx";
+import { FileNode } from "./FileNode.jsx";
+import { FiEdit, FiFile, FiFilePlus, FiFolder, FiFolderPlus, FiTrash2 } from "solid-icons/fi";
+import { INITIAL_CODE, setStore, store } from "../store/store.js";
+import { v7 as uuidv7, version } from "uuid";
+import { FaRegularFolder, FaRegularFolderOpen } from "solid-icons/fa";
+import { VsChevronDown, VsChevronRight, VsLoading } from "solid-icons/vs";
+import { canCreateFile } from "../utils/fileSaveLimit.js";
 
 export function WorkspaceTree(props) {
     const [folders, setFolders] = createSignal([]);
@@ -40,9 +41,10 @@ export function WorkspaceTree(props) {
         try {
             setLoading(true);
 
-            const { data: folders, error: folderError} = await supabase
+            const { data: folders, error: folderError } = await supabase
                 .from("folders")
-                .select(`
+                .select(
+                    `
                     id,
                     workspace_items:workspace_items!inner!folders_id_fkey (
                       name,
@@ -50,7 +52,8 @@ export function WorkspaceTree(props) {
                       created_at,
                       updated_at
                     )
-                `)
+                `,
+                )
                 .eq("workspace_items.parent_folder_id", folderId)
                 .eq("workspace_items.status_id", "ACTIVE")
                 .eq("workspace_items.user_id", props.userId);
@@ -58,17 +61,20 @@ export function WorkspaceTree(props) {
             if (folderError) throw folderError;
 
             console.log(folders);
-            setFolders(folders.map((folder) => {
-                return {
-                    id: folder.id,
-                    name: folder.workspace_items.name,
-                    parentFolderId: folder.workspace_items.parent_folder_id,
-                };
-            }));
+            setFolders(
+                folders.map((folder) => {
+                    return {
+                        id: folder.id,
+                        name: folder.workspace_items.name,
+                        parentFolderId: folder.workspace_items.parent_folder_id,
+                    };
+                }),
+            );
 
             const { data: files, error: fileError } = await supabase
                 .from("files")
-                .select(`
+                .select(
+                    `
                     id,
                     workspace_items:workspace_items!inner!files_id_fkey (
                       name,
@@ -80,7 +86,8 @@ export function WorkspaceTree(props) {
                       id,
                       content
                     )
-                `)
+                `,
+                )
                 .eq("workspace_items.parent_folder_id", folderId)
                 .eq("workspace_items.status_id", "ACTIVE")
                 .eq("workspace_items.user_id", props.userId)
@@ -89,13 +96,15 @@ export function WorkspaceTree(props) {
             if (fileError) throw fileError;
 
             console.log(files);
-            setFiles(files.map((file) => ({
-                id: file.id,
-                name: file.workspace_items.name,
-                parentFolderId: file.workspace_items.parent_folder_id,
-                content: file.file_versions[0].content,
-                currentVersionId: file.file_versions[0].id,
-            })));
+            setFiles(
+                files.map((file) => ({
+                    id: file.id,
+                    name: file.workspace_items.name,
+                    parentFolderId: file.workspace_items.parent_folder_id,
+                    content: file.file_versions[0].content,
+                    currentVersionId: file.file_versions[0].id,
+                })),
+            );
         } catch (err) {
             console.error(err);
             setError(err.message);
@@ -110,11 +119,12 @@ export function WorkspaceTree(props) {
             setLoading(true);
             await supabase
                 .from("workspace_items")
-                .update({ status_id: "DELETED"})
+                .update({ status_id: "DELETED" })
                 .eq("id", fileId)
                 .eq("user_id", props.userId);
 
             setFiles((files) => files.filter((file) => file.id !== fileId));
+            setFolders((folders) => folders.filter((folder) => folder.id !== fileId));
         } catch (err) {
             console.error(err);
             // TODO Show alert
@@ -132,15 +142,27 @@ export function WorkspaceTree(props) {
                 .eq("id", itemId)
                 .eq("user_id", props.userId);
 
-            setFiles((files) => files.map((file) => file.id === itemId ? {
-                ...file,
-                name: newName
-            } : file));
+            setFiles((files) =>
+                files.map((file) =>
+                    file.id === itemId
+                        ? {
+                              ...file,
+                              name: newName,
+                          }
+                        : file,
+                ),
+            );
 
-            setFolders((folders) => folders.map((folder) => folder.id === itemId ? {
-                ...folder,
-                name: newName
-            } : folder));
+            setFolders((folders) =>
+                folders.map((folder) =>
+                    folder.id === itemId
+                        ? {
+                              ...folder,
+                              name: newName,
+                          }
+                        : folder,
+                ),
+            );
 
             if (store.activeFile.workspaceItemId === itemId) {
                 setStore("activeFile", "name", newName);
@@ -161,13 +183,12 @@ export function WorkspaceTree(props) {
 
     const createNewFolder = async () => {
         const workspaceItemId = uuidv7();
-        const { error: folderCreateError } = await supabase
-            .rpc("create_new_folder", {
-                workspace_item_id: workspaceItemId,
-                folder_name: newFolderName(),
-                user_id: props.userId,
-                parent_folder_id: props.folder.id || null,
-            });
+        const { error: folderCreateError } = await supabase.rpc("create_new_folder", {
+            workspace_item_id: workspaceItemId,
+            folder_name: newFolderName(),
+            user_id: props.userId,
+            parent_folder_id: props.folder.id || null,
+        });
 
         if (folderCreateError) {
             throw new Error(`Error adding folder: ${folderCreateError.message}`);
@@ -177,24 +198,33 @@ export function WorkspaceTree(props) {
             return folders.concat({
                 id: workspaceItemId,
                 name: newFolderName(),
-                parent_folder_id: props.folder.id
+                parent_folder_id: props.folder.id,
             });
         });
         setIsCreatingFolder(false);
     };
 
     const createNewFile = async () => {
+        const allowed = await canCreateFile(props.userId, props.tier);
+        if (!allowed) {
+            window.dispatchEvent(
+                new CustomEvent("showPlusDialog", {
+                    detail: {},
+                }),
+            );
+            return;
+        }
+
         const workspaceItemId = uuidv7();
         const versionId = uuidv7();
-        const { error: fileCreateError } = await supabase
-            .rpc("create_new_file", {
-                workspace_item_id: workspaceItemId,
-                version_id: versionId,
-                file_name: newFileName(),
-                user_id: props.userId,
-                parent_folder_id: props.folder.id || null,
-                initial_content: INITIAL_CODE,
-            });
+        const { error: fileCreateError } = await supabase.rpc("create_new_file", {
+            workspace_item_id: workspaceItemId,
+            version_id: versionId,
+            file_name: newFileName(),
+            user_id: props.userId,
+            parent_folder_id: props.folder.id || null,
+            initial_content: INITIAL_CODE,
+        });
 
         if (fileCreateError) {
             throw new Error(`Error adding folder: ${fileCreateError.message}`);
@@ -206,7 +236,7 @@ export function WorkspaceTree(props) {
                 name: newFileName(),
                 currentVersionId: versionId,
                 content: INITIAL_CODE,
-                parent_folder_id: props.folder.id
+                parent_folder_id: props.folder.id,
             });
         });
         setIsCreatingFile(false);
@@ -217,7 +247,7 @@ export function WorkspaceTree(props) {
             setIsCreatingFolder(false);
         }
 
-        if (e.key === 'Enter' || e.type === 'blur') {
+        if (e.key === "Enter" || e.type === "blur") {
             createNewFolder();
         }
     };
@@ -227,7 +257,7 @@ export function WorkspaceTree(props) {
             setIsRenaming(false);
         }
 
-        if (e.key === 'Enter' || e.type === 'blur') {
+        if (e.key === "Enter" || e.type === "blur") {
             renameItem(props.folder.id, renamedFolderName());
             setIsRenaming(false);
         }
@@ -247,7 +277,7 @@ export function WorkspaceTree(props) {
             setIsCreatingFile(false);
         }
 
-        if (e.key === 'Enter' || e.type === 'blur') {
+        if (e.key === "Enter" || e.type === "blur") {
             createNewFile();
         }
     };
@@ -258,102 +288,113 @@ export function WorkspaceTree(props) {
             {!error() && (
                 <div>
                     {!props.folder.parentFolderId && (
-                        <div class="flex items-center gap-2 mb-4 px-2 md:px-2">
+                        <div class="flex items-center gap-2 mb-4 px-2">
                             <h3 class="text-lg text-secondary-foreground flex-grow">Your Files</h3>
                             <div class="flex gap-2">
-                                <button type="button"
-                                        class="text-inactive-foreground hover:text-active-foreground"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            setIsCreatingFile(true);
-                                            setExpanded(true);
-                                            fileInputRef.focus();
-                                        }}
+                                <button
+                                    type="button"
+                                    class="text-inactive-foreground hover:text-active-foreground"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setIsCreatingFile(true);
+                                        setExpanded(true);
+                                        fileInputRef.focus();
+                                    }}
                                 >
-                                    <FiFilePlus/>
+                                    <FiFilePlus />
                                 </button>
-                                <button type="button"
-                                        class="text-inactive-foreground hover:text-active-foreground"
-                                        onClick={() => {
-                                            setIsCreatingFolder(true);
-                                            setExpanded(true);
-                                            folderInputRef.focus();
-                                        }}
+                                <button
+                                    type="button"
+                                    class="text-inactive-foreground hover:text-active-foreground"
+                                    onClick={() => {
+                                        setIsCreatingFolder(true);
+                                        setExpanded(true);
+                                        folderInputRef.focus();
+                                    }}
                                 >
-                                    <FiFolderPlus/>
+                                    <FiFolderPlus />
                                 </button>
                             </div>
                         </div>
                     )}
                     {props.folder.parentFolderId && (
-                        <div onClick={toggleExpand}
-                             class="flex items-center gap-1 cursor-pointer group hover:bg-active-background px-2 py-1">
-                              <span>
-                                  {loading() ? (<VsLoading class="animate-spin"/>) : expanded() ? (
-                                      <VsChevronDown/>
-                                  ) : (
-                                      <VsChevronRight/>
-                                  )}
-                              </span>
-                            <span class={`flex-grow overflow-hidden whitespace-nowrap text-ellipsis ${isRenaming() ? "hidden" : "inline"}`}
-                                  title={props.folder.name}
+                        <div
+                            onClick={toggleExpand}
+                            class="flex items-center gap-1 cursor-pointer group hover:bg-active-background px-2 py-1"
+                        >
+                            <span>
+                                {loading() ? (
+                                    <VsLoading class="animate-spin" />
+                                ) : expanded() ? (
+                                    <VsChevronDown />
+                                ) : (
+                                    <VsChevronRight />
+                                )}
+                            </span>
+                            <span
+                                class={`flex-grow overflow-hidden whitespace-nowrap text-ellipsis ${isRenaming() ? "hidden" : "inline"}`}
+                                title={props.folder.name}
                             >
                                 {props.folder.name}
                             </span>
-                            <div
-                                class={`${isRenaming() ? "flex" : "hidden"} items-center gap-1 text-sm px-2 py-1`}>
-                                <input type="text"
-                                       class="bg-main-background border border-main-border focus:border-primary-border rounded px-1 py-0 outline-0"
-                                       placeholder="Folder name"
-                                       value={renamedFolderName()}
-                                       ref={folderRenameInputRef}
-                                       onKeyUp={onFolderRenameInputKeyUp}
-                                       onInput={(e) => setRenamedFolderName(e.target.value)}
+                            <div class={`${isRenaming() ? "flex" : "hidden"} items-center gap-1 text-sm px-2 py-1`}>
+                                <input
+                                    type="text"
+                                    class="bg-main-background border border-main-border focus:border-primary-border rounded px-1 py-0 outline-0"
+                                    placeholder="Folder name"
+                                    value={renamedFolderName()}
+                                    ref={folderRenameInputRef}
+                                    onKeyUp={onFolderRenameInputKeyUp}
+                                    onInput={(e) => setRenamedFolderName(e.target.value)}
                                 />
                             </div>
                             <div class="flex gap-2">
-                                <button type="button"
-                                        class="opacity-0 group-hover:opacity-100 text-inactive-foreground hover:text-active-foreground"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            setIsCreatingFile(true);
-                                            if (!expanded()) {
-                                                fetchFolderContents(props.folder.id);
-                                            }
-                                            setExpanded(true);
-                                            fileInputRef.focus();
-                                        }}
+                                <button
+                                    type="button"
+                                    class="opacity-0 group-hover:opacity-100 text-inactive-foreground hover:text-active-foreground"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setIsCreatingFile(true);
+                                        if (!expanded()) {
+                                            fetchFolderContents(props.folder.id);
+                                        }
+                                        setExpanded(true);
+                                        fileInputRef.focus();
+                                    }}
                                 >
-                                    <FiFilePlus/>
+                                    <FiFilePlus />
                                 </button>
-                                <button type="button"
-                                        class="opacity-0 group-hover:opacity-100 text-inactive-foreground hover:text-active-foreground"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            setIsCreatingFolder(true);
-                                            if (!expanded()) {
-                                                fetchFolderContents(props.folder.id);
-                                            }
-                                            setExpanded(true);
-                                            folderInputRef.focus();
-                                        }}
+                                <button
+                                    type="button"
+                                    class="opacity-0 group-hover:opacity-100 text-inactive-foreground hover:text-active-foreground"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setIsCreatingFolder(true);
+                                        if (!expanded()) {
+                                            fetchFolderContents(props.folder.id);
+                                        }
+                                        setExpanded(true);
+                                        folderInputRef.focus();
+                                    }}
                                 >
-                                    <FiFolderPlus/>
+                                    <FiFolderPlus />
                                 </button>
-                                <button type="button"
-                                        class="opacity-0 group-hover:opacity-100"
-                                        onClick={() => {
-                                            setIsRenaming(true);
-                                            filenameInputRef.focus();
-                                        }}
+                                <button
+                                    type="button"
+                                    class="opacity-0 group-hover:opacity-100"
+                                    onClick={() => {
+                                        setIsRenaming(true);
+                                        filenameInputRef.focus();
+                                    }}
                                 >
-                                    <FiEdit class="text-inactive-foreground hover:text-active-foreground"/>
+                                    <FiEdit class="text-inactive-foreground hover:text-active-foreground" />
                                 </button>
-                                <button type="button"
-                                        class="opacity-0 group-hover:opacity-100"
-                                        onClick={deleteFile}
+                                <button
+                                    type="button"
+                                    class="opacity-0 group-hover:opacity-100"
+                                    onClick={() => deleteFile(props.folder.id)}
                                 >
-                                    <FiTrash2 class="text-inactive-foreground hover:text-red-foreground"/>
+                                    <FiTrash2 class="text-inactive-foreground hover:text-red-foreground" />
                                 </button>
                             </div>
                         </div>
@@ -361,37 +402,44 @@ export function WorkspaceTree(props) {
                     {expanded() && (
                         <div class={`${props.folder.parentFolderId ? "pl-4" : ""}`}>
                             <div
-                                class={`${isCreatingFolder() ? "flex" : "hidden"} items-center gap-1 text-sm px-2 py-1`}>
-                                <FiFolder/>
-                                <input type="text"
-                                       class="bg-main-background border border-main-border focus:border-primary-border rounded px-1 py-0 outline-0"
-                                       placeholder="Folder name"
-                                       value={newFolderName()}
-                                       ref={folderInputRef}
-                                       onKeyUp={onFolderInputKeyUp}
-                                       onInput={(e) => setNewFolderName(e.target.value)}
+                                class={`${isCreatingFolder() ? "flex" : "hidden"} items-center gap-1 text-sm px-2 py-1`}
+                            >
+                                <FiFolder />
+                                <input
+                                    type="text"
+                                    class="bg-main-background border border-main-border focus:border-primary-border rounded px-1 py-0 outline-0"
+                                    placeholder="Folder name"
+                                    value={newFolderName()}
+                                    ref={folderInputRef}
+                                    onKeyUp={onFolderInputKeyUp}
+                                    onInput={(e) => setNewFolderName(e.target.value)}
                                 />
                             </div>
                             <div class="text-sm">
                                 {folders().map((folder) => (
-                                    <WorkspaceTree folder={folder} userId={props.userId} key={folder.id}/>
+                                    <WorkspaceTree
+                                        folder={folder}
+                                        userId={props.userId}
+                                        tier={props.tier}
+                                        key={folder.id}
+                                    />
                                 ))}
                             </div>
-                            <div
-                                class={`${isCreatingFile() ? "flex" : "hidden"} items-center gap-1 text-sm px-2 py-1`}>
+                            <div class={`${isCreatingFile() ? "flex" : "hidden"} items-center gap-1 text-sm px-2 py-1`}>
                                 <FiFile />
-                                <input type="text"
-                                       class="bg-main-background border border-main-border focus:border-primary-border rounded px-1 py-0 outline-0"
-                                       placeholder="File name"
-                                       value={newFileName()}
-                                       ref={fileInputRef}
-                                       onKeyUp={onFileInputKeyUp}
-                                       onInput={(e) => setNewFileName(e.target.value)}
+                                <input
+                                    type="text"
+                                    class="bg-main-background border border-main-border focus:border-primary-border rounded px-1 py-0 outline-0"
+                                    placeholder="File name"
+                                    value={newFileName()}
+                                    ref={fileInputRef}
+                                    onKeyUp={onFileInputKeyUp}
+                                    onInput={(e) => setNewFileName(e.target.value)}
                                 />
                             </div>
                             <div class="text-sm">
                                 {files().map((file) => (
-                                    <FileNode key={file.id} file={file} onDelete={deleteFile} onRename={renameItem}/>
+                                    <FileNode key={file.id} file={file} onDelete={deleteFile} onRename={renameItem} />
                                 ))}
                             </div>
                         </div>
