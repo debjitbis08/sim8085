@@ -1,5 +1,6 @@
 import { createSignal, onMount, onCleanup } from "solid-js";
-import { supabase } from "../lib/supabase.js";
+import { getUser, supabase } from "../lib/supabase.js";
+import { getUserTier } from "../lib/subscription.js";
 import { v7 as uuidv7 } from "uuid";
 import { WorkspaceTree } from "./WorkspaceTree.jsx";
 import { store, setStore } from "../store/store.js";
@@ -13,29 +14,16 @@ export default function Workspace() {
     const [userId, setUserId] = createSignal(null);
 
     async function fetchUserId() {
-        const {
-            data: { user },
-            error,
-        } = await supabase.auth.getUser();
+        const { id, tier } = await getUserTier();
 
-        if (error && error.name === "AuthSessionMissingError") {
+        if (!id) {
             setNoSession(true);
             return null;
         }
 
-        if (error || user == null) throw new Error("Unable to fetch user ID");
+        setTier(tier);
 
-        const { data: tier, error: tierFetchError } = await supabase
-            .from("customers")
-            .select("subscription_tier")
-            .eq("id", user?.id)
-            .single();
-
-        if (tierFetchError) throw new Error("Unable to fetch user's subscription tier.");
-
-        setTier(tier.subscription_tier);
-
-        return { id: user?.id, tier: tier.subscription_tier };
+        return { id, tier };
     }
 
     async function createWorkspace(userId) {

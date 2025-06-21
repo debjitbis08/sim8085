@@ -1,6 +1,6 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { getCollection, getEntries } from 'astro:content';
+import { getCollection, getEntries, render } from 'astro:content';
 
 const dateFormatter = new Intl.DateTimeFormat('en-US', {
   year: 'numeric',
@@ -9,16 +9,17 @@ const dateFormatter = new Intl.DateTimeFormat('en-US', {
 })
 
 const entries = await Promise.all(
-  (await getCollection("changelog"))
+  (await getCollection("changes"))
     .sort((entryA, entryB) =>
       Number(new Date(entryB.data.date)) - Number(new Date(entryA.data.date))
     )
-    .map((entry) => {
-      return entry.render().then(({ Content }) => ({
-        ...entry,
-        Content,
-        date: dateFormatter.format(new Date(entry.data.date)),
-      })).catch((err) => console.error(err))
+    .map(async (entry) => {
+            const { Content } = await render(entry)
+            return {
+                Content,
+                data: entry.data,
+                date: dateFormatter.format(new Date(entry.data.date))
+            };
     })
 );
 ---

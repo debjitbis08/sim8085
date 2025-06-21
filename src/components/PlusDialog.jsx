@@ -1,14 +1,37 @@
 import { Dialog } from "./generic/Dialog.jsx";
-import { createSignal, onMount } from "solid-js";
+import { createSignal, onMount, onCleanup } from "solid-js";
 import { FaSolidFolder, FaSolidGraduationCap, FaSolidShareNodes, FaSolidRobot } from "solid-icons/fa";
 import { VsBook } from "solid-icons/vs";
 
+const titleMap = {
+    fileLimit: "You've reached the file limit",
+    aiExplanation: "AI Help is a Plus feature",
+    shareLink: "Sharing is for Plus users",
+    default: "Your Support Keeps Sim8085 Running — Go Plus Today!",
+};
+
+const subtitleMap = {
+    fileLimit: "Free users can save up to 5 files. Upgrade to save unlimited files and organize better.",
+    aiExplanation: "AI explanations are available only to Plus users. Get smarter debugging today.",
+    shareLink: "Share your code with a link — available for Plus users only.",
+    default: "Enjoy unlimited saves, AI help, and sharing with a one-time upgrade.",
+};
+
 export function PlusDialog() {
     const [isDialogOpen, setIsDialogOpen] = createSignal(false);
+    const [dialogReason, setDialogReason] = createSignal("default");
 
     onMount(() => {
-        window.addEventListener("showPlusDialog", () => {
+        const handler = (e) => {
+            const reason = e.detail?.reason ?? "default";
+            setDialogReason(reason);
             setIsDialogOpen(true);
+        };
+
+        window.addEventListener("showPlusDialog", handler);
+
+        onCleanup(() => {
+            window.removeEventListener("showPlusDialog", handler);
         });
     });
 
@@ -21,9 +44,8 @@ export function PlusDialog() {
                     <Dialog.Content class="dialog__content">
                         <Dialog.Description class="dialog__description">
                             <div class="p-4">
-                                <h2 class="text-2xl font-bold mb-8">
-                                    Your Support Keeps Sim8085 Running — Go Plus Today!
-                                </h2>
+                                <h2 class="text-2xl font-bold mb-4">{titleMap[dialogReason()]}</h2>
+                                <p class="mb-8 text-secondary-foreground">{subtitleMap[dialogReason()]}</p>
                                 <div class="my-4">
                                     <div class="flex items-center gap-4 pb-8">
                                         <div class="text-2xl text-green-600 bg-green-200 w-12 h-12 rounded flex items-center justify-center">
@@ -81,9 +103,12 @@ export function PlusDialog() {
                                 </div>
                                 <div>
                                     <div class="flex items-center justify-start gap-4">
-                                        <button class="bg-yellow-foreground rounded-lg px-8 py-4 font-bold text-lg text-gray-900">
+                                        <a
+                                            href="/upgrade/"
+                                            class="bg-yellow-foreground rounded-lg px-8 py-4 font-bold text-lg text-gray-900"
+                                        >
                                             Upgrade to Plus
-                                        </button>
+                                        </a>
                                         <div>
                                             <p>
                                                 Just{" "}

@@ -1,76 +1,76 @@
+@import "tailwindcss";
 @config './tailwind.main.config.mjs';
 
-@tailwind base;
-@tailwind components;
+/* @import "tailwindcss/preflight"; */
 @tailwind utilities;
 
 @layer base {
-:root {
-    --sm-primary-50: 238 251 243;
-    --sm-primary-100: 214 245 225;
-    --sm-primary-200: 177 233 200;
-    --sm-primary-300: 126 215 169;
-    --sm-primary-400: 73 190 132;
-    --sm-primary-500: 38 162 105;
-    --sm-primary-600: 24 131 84;
-    --sm-primary-700: 19 105 69;
-    --sm-primary-800: 18 83 57;
-    --sm-primary-900: 15 69 48;
-    --sm-primary-950: 8 38 27;
+    :root {
+        --sm-primary-50: 238 251 243;
+        --sm-primary-100: 214 245 225;
+        --sm-primary-200: 177 233 200;
+        --sm-primary-300: 126 215 169;
+        --sm-primary-400: 73 190 132;
+        --sm-primary-500: 38 162 105;
+        --sm-primary-600: 24 131 84;
+        --sm-primary-700: 19 105 69;
+        --sm-primary-800: 18 83 57;
+        --sm-primary-900: 15 69 48;
+        --sm-primary-950: 8 38 27;
 
-    --sm-primary: var(--sm-primary-500);
+        --sm-primary: var(--sm-primary-500);
 
-    --sm-gray-50: 251 251 251; /* #fbfbfb */
-    --sm-gray-100: 239 239 239; /* #efefef */
-    --sm-gray-200: 220 220 220; /* #dcdcdc */
-    --sm-gray-300: 189 189 189; /* #bdbdbd */
-    --sm-gray-400: 152 152 152; /* #989898 */
-    --sm-gray-500: 124 124 124; /* #7c7c7c */
-    --sm-gray-600: 101 101 101; /* #656565 */
-    --sm-gray-700: 82 82 82; /* #525252 */
-    --sm-gray-800: 70 70 70; /* #464646 */
-    --sm-gray-900: 61 61 61; /* #3d3d3d */
-    --sm-gray-950: 41 41 41; /* #292929 */
+        --sm-gray-50: 251 251 251; /* #fbfbfb */
+        --sm-gray-100: 239 239 239; /* #efefef */
+        --sm-gray-200: 220 220 220; /* #dcdcdc */
+        --sm-gray-300: 189 189 189; /* #bdbdbd */
+        --sm-gray-400: 152 152 152; /* #989898 */
+        --sm-gray-500: 124 124 124; /* #7c7c7c */
+        --sm-gray-600: 101 101 101; /* #656565 */
+        --sm-gray-700: 82 82 82; /* #525252 */
+        --sm-gray-800: 70 70 70; /* #464646 */
+        --sm-gray-900: 61 61 61; /* #3d3d3d */
+        --sm-gray-950: 41 41 41; /* #292929 */
 
-    --sm-page-background: 232 232 232; /* #e8e8e8 */
-    --sm-main-background: var(--sm-gray-50);
-    --sm-secondary-background: var(--sm-gray-100);
-    --sm-main-border: var(--sm-gray-300);
+        --sm-page-background: 232 232 232; /* #e8e8e8 */
+        --sm-main-background: var(--sm-gray-50);
+        --sm-secondary-background: var(--sm-gray-100);
+        --sm-main-border: var(--sm-gray-300);
 
-    --sm-primary-foreground: var(--sm-gray-700);
-    --sm-primary-border: var(--sm-gray-600);
+        --sm-primary-foreground: var(--sm-gray-700);
+        --sm-primary-border: var(--sm-gray-600);
 
-    --sm-secondary-foreground: var(--sm-gray-500);
-    --sm-secondary-border: var(--sm-gray-600);
+        --sm-secondary-foreground: var(--sm-gray-500);
+        --sm-secondary-border: var(--sm-gray-600);
 
-    --sm-active-foreground: var(--sm-gray-700);
-    --sm-active-background: var(--sm-gray-200);
-    --sm-active-border: var(--sm-gray-300);
+        --sm-active-foreground: var(--sm-gray-700);
+        --sm-active-background: var(--sm-gray-200);
+        --sm-active-border: var(--sm-gray-300);
 
-    --sm-inactive-foreground: var(--sm-gray-400);
-    --sm-inactive-border: var(--sm-gray-400);
+        --sm-inactive-foreground: var(--sm-gray-400);
+        --sm-inactive-border: var(--sm-gray-400);
 
-    --sm-red-foreground: 185 28 28; /* #b91c1c */
-    --sm-green-foreground: 21 128 61; /* #15803d */
-    --sm-yellow-foreground: 234 179 8; /* #eab308 */
-    --sm-blue-foreground: 37 99 235; /* #2563eb */
-    --sm-orange-foreground: 234 88 12; /* #ea580c */
+        --sm-red-foreground: 185 28 28; /* #b91c1c */
+        --sm-green-foreground: 21 128 61; /* #15803d */
+        --sm-yellow-foreground: 234 179 8; /* #eab308 */
+        --sm-blue-foreground: 37 99 235; /* #2563eb */
+        --sm-orange-foreground: 234 88 12; /* #ea580c */
 
-    /* Editor colors */
-    --sm-editor-active-line: 191 219 254; /* #bfdbfe */
-    --sm-editor-debug-line: 96 165 250; /* #60a5fa */
-    --sm-editor-active-line-gutter: 255 255 255;
-    --sm-editor-cursor: 75 85 99; /* #4b5563 */
-    --sm-editor-selection-background: 191 219 254; /* #bfdbfe */
+        /* Editor colors */
+        --sm-editor-active-line: 191 219 254; /* #bfdbfe */
+        --sm-editor-debug-line: 96 165 250; /* #60a5fa */
+        --sm-editor-active-line-gutter: 255 255 255;
+        --sm-editor-cursor: 75 85 99; /* #4b5563 */
+        --sm-editor-selection-background: 191 219 254; /* #bfdbfe */
 
-    --sm-editor-opcode: 28 128 61;
-    --sm-editor-directive: 29 78 216;
-    --sm-editor-label: 168 91 7;
-    --sm-editor-comment: 107 114 128;
-    --sm-editor-register: 185 28 28;
-    --sm-editor-number: 194 65 12;
-    --sm-editor-string: 234 88 12;
-    --sm-editor-operator: 190 24 ;
-    --sm-editor-punctuation: 156 163 175;
-}
+        --sm-editor-opcode: 28 128 61;
+        --sm-editor-directive: 29 78 216;
+        --sm-editor-label: 168 91 7;
+        --sm-editor-comment: 107 114 128;
+        --sm-editor-register: 185 28 28;
+        --sm-editor-number: 194 65 12;
+        --sm-editor-string: 234 88 12;
+        --sm-editor-operator: 190 24;
+        --sm-editor-punctuation: 156 163 175;
+    }
 }

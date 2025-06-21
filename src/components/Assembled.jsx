@@ -1,4 +1,4 @@
-import { createEffect, createSignal, onMount } from "solid-js";
+import { createEffect, createSignal, onMount, Show } from "solid-js";
 import { store } from "../store/store.js";
 import { toByteString } from "../utils/NumberFormat.js";
 import { FiAlertTriangle } from "solid-icons/fi";
@@ -6,6 +6,8 @@ import CopyComponent from "./CopyComponent.jsx";
 import { Tooltip } from "./generic/Tooltip.jsx";
 import styles from "./Assembled.module.css";
 import LambdaClassesPoster from "./LambdaClassesPoster.jsx";
+import ExplainErrorButton from "./ExplainErrorButton.jsx";
+import AdSwitcher from "./AdSwitcher.jsx";
 
 export function Assembled() {
     let [lines, setLines] = createSignal([]);
@@ -96,114 +98,124 @@ export function Assembled() {
                             class={`${store.errors.length ? "" : "hidden"} max-w-full overflow-x-auto text-sm`}
                             style={{ height: "calc(100% - 2.75rem)" }}
                         >
-                            {store.errors.map((e) => {
-                                const codeLines = store.codeWithError.split("\n");
-                                const startLine = e.location.start.line - 1;
-                                const endLine = e.location.end.line - 1;
+                            <div>
+                                {store.errors.map((e) => {
+                                    const codeLines = store.codeWithError.split("\n");
+                                    const startLine = e.location.start.line - 1;
+                                    const endLine = e.location.end.line - 1;
 
-                                const displayedLines = codeLines.slice(startLine, endLine + 1); // All lines in the range
+                                    const displayedLines = codeLines.slice(startLine, endLine + 1); // All lines in the range
 
-                                return (
-                                    <>
-                                        {e.type ? (
-                                            <h4 class="flex items-start gap-2 mb-4 text-red-foreground">
-                                                <span class="pt-1 ">
-                                                    <FiAlertTriangle />
-                                                </span>
-                                                <div>{e.type.toUpperCase()}</div>
-                                            </h4>
-                                        ) : null}
-                                        <div class="">
-                                            {e.hint.length ? null : (
-                                                <span>
-                                                    Line <span class="text-yellow-foreground">{e.line}</span>, Column:{" "}
-                                                    <span class="text-yellow-foreground">{e.column}</span>:{" "}
-                                                </span>
-                                            )}
-                                            <span class=""> {e.msg} </span>{" "}
-                                            {e.hint.length ? (
-                                                <span>
-                                                    on line <span class="text-yellow-foreground">{e.line}</span>
-                                                </span>
+                                    return (
+                                        <>
+                                            {e.type ? (
+                                                <h4 class="flex items-start gap-2 mb-4 text-red-foreground">
+                                                    <span class="pt-1 ">
+                                                        <FiAlertTriangle />
+                                                    </span>
+                                                    <div>{e.type.toUpperCase()}</div>
+                                                </h4>
                                             ) : null}
-                                        </div>
-                                        {e.hint.length ? (
-                                            <For each={e.hint}>
-                                                {(hint) => (
-                                                    <p class="pt-8">
-                                                        <span class="text-yellow-foreground font-semibold underline">
-                                                            Hint
-                                                        </span>
-                                                        : {hint}
-                                                    </p>
+                                            <div class="">
+                                                {e.hint.length ? null : (
+                                                    <span>
+                                                        Line <span class="text-yellow-foreground">{e.line}</span>,
+                                                        Column: <span class="text-yellow-foreground">{e.column}</span>
+                                                        :{" "}
+                                                    </span>
                                                 )}
-                                            </For>
-                                        ) : null}
-                                        <div class="mt-8 overflow-x-auto">
-                                            {displayedLines.map((line, index) => {
-                                                const lineNumber = startLine + index + 1;
+                                                <span class=""> {e.msg} </span>{" "}
+                                                {e.hint.length ? (
+                                                    <span>
+                                                        on line <span class="text-yellow-foreground">{e.line}</span>
+                                                    </span>
+                                                ) : null}
+                                            </div>
+                                            {e.hint.length ? (
+                                                <For each={e.hint}>
+                                                    {(hint) => (
+                                                        <p class="pt-8">
+                                                            <span class="text-yellow-foreground font-semibold underline">
+                                                                Hint
+                                                            </span>
+                                                            : {hint}
+                                                        </p>
+                                                    )}
+                                                </For>
+                                            ) : null}
+                                            <div class="mt-8 overflow-x-auto">
+                                                {displayedLines.map((line, index) => {
+                                                    const lineNumber = startLine + index + 1;
 
-                                                const startColMinusOne =
-                                                    e.location.start.column === 0 ? 1 : e.location.start.column - 1;
-                                                if (index === 0) {
-                                                    // Start Line
-                                                    const startMarker =
-                                                        " ".repeat(startColMinusOne) +
-                                                        "^".repeat(
-                                                            line.length - startColMinusOne > 0
-                                                                ? line.length - startColMinusOne
-                                                                : 0,
+                                                    const startColMinusOne =
+                                                        e.location.start.column === 0 ? 1 : e.location.start.column - 1;
+                                                    if (index === 0) {
+                                                        // Start Line
+                                                        const startMarker =
+                                                            " ".repeat(startColMinusOne) +
+                                                            "^".repeat(
+                                                                line.length - startColMinusOne > 0
+                                                                    ? line.length - startColMinusOne
+                                                                    : 0,
+                                                            );
+                                                        return (
+                                                            <div key={index}>
+                                                                <pre class="text-sm">
+                                                                    <code>
+                                                                        {lineNumber}| {line}
+                                                                    </code>
+                                                                </pre>
+                                                                <pre class="text-yellow-600 text-sm">
+                                                                    <code>
+                                                                        {" ".repeat(lineNumber.toString().length) +
+                                                                            "| "}
+                                                                        {startMarker}
+                                                                    </code>
+                                                                </pre>
+                                                            </div>
                                                         );
-                                                    return (
-                                                        <div key={index}>
-                                                            <pre class="text-sm">
-                                                                <code>
-                                                                    {lineNumber}| {line}
-                                                                </code>
-                                                            </pre>
-                                                            <pre class="text-yellow-600 text-sm">
-                                                                <code>
-                                                                    {" ".repeat(lineNumber.toString().length) + "| "}
-                                                                    {startMarker}
-                                                                </code>
-                                                            </pre>
-                                                        </div>
-                                                    );
-                                                } else if (index === displayedLines.length - 1) {
-                                                    // End Line
-                                                    const endMarker = "^".repeat(startColMinusOne);
-                                                    return (
-                                                        <div key={index}>
-                                                            <pre class="text-sm">
-                                                                <code>
-                                                                    {lineNumber}| {line}
-                                                                </code>
-                                                            </pre>
-                                                            <pre class="text-yellow-600 text-sm">
-                                                                <code>
-                                                                    {" ".repeat(lineNumber.toString().length) + "|  "}
-                                                                    {endMarker}
-                                                                </code>
-                                                            </pre>
-                                                        </div>
-                                                    );
-                                                } else {
-                                                    // Middle lines, show without any marker
-                                                    return (
-                                                        <div key={index}>
-                                                            <pre class="text-sm">
-                                                                <code>
-                                                                    {lineNumber}| {line}
-                                                                </code>
-                                                            </pre>
-                                                        </div>
-                                                    );
-                                                }
-                                            })}
-                                        </div>
-                                    </>
-                                );
-                            })}
+                                                    } else if (index === displayedLines.length - 1) {
+                                                        // End Line
+                                                        const endMarker = "^".repeat(startColMinusOne);
+                                                        return (
+                                                            <div key={index}>
+                                                                <pre class="text-sm">
+                                                                    <code>
+                                                                        {lineNumber}| {line}
+                                                                    </code>
+                                                                </pre>
+                                                                <pre class="text-yellow-600 text-sm">
+                                                                    <code>
+                                                                        {" ".repeat(lineNumber.toString().length) +
+                                                                            "|  "}
+                                                                        {endMarker}
+                                                                    </code>
+                                                                </pre>
+                                                            </div>
+                                                        );
+                                                    } else {
+                                                        // Middle lines, show without any marker
+                                                        return (
+                                                            <div key={index}>
+                                                                <pre class="text-sm">
+                                                                    <code>
+                                                                        {lineNumber}| {line}
+                                                                    </code>
+                                                                </pre>
+                                                            </div>
+                                                        );
+                                                    }
+                                                })}
+                                            </div>
+                                        </>
+                                    );
+                                })}
+                            </div>
+                            <Show when={false && store.errors.length > 0}>
+                                <div class="mt-4">
+                                    <ExplainErrorButton error={store.errors[0]} code={store.codeWithError} />
+                                </div>
+                            </Show>
                         </div>
                         <div
                             class={`${store.assembled.length || store.errors.length ? "hidden" : ""} max-w-full overflow-x-auto text-sm`}
@@ -213,7 +225,7 @@ export function Assembled() {
                         </div>
                     </div>
                 </div>
-                <LambdaClassesPoster isHidden={store.assembled.length > 0 || store.errors.length > 0} />
+                <AdSwitcher isHidden={store.assembled.length > 0 || store.errors.length > 0} />
             </div>
         </div>
     );

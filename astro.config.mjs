@@ -1,14 +1,15 @@
 import { defineConfig } from "astro/config";
 import solidJs from "@astrojs/solid-js";
-import tailwind from "@astrojs/tailwind";
 import peggy from "vite-plugin-peggy-loader";
 import AstroPWA from "@vite-pwa/astro";
 import starlight from "@astrojs/starlight";
 import alpinejs from "@astrojs/alpinejs";
+import netlify from "@astrojs/netlify";
+import tailwindcss from "@tailwindcss/vite";
 
 // https://astro.build/config
 export default defineConfig({
-    trailingSlash: "always",
+    trailingSlash: "ignore",
     integrations: [
         starlight({
             title: "Sim8085 Docs",
@@ -23,37 +24,62 @@ export default defineConfig({
                 Head: "./src/components/DocumentationHead.astro",
                 // Footer: './src/components/DocumentationFooter.astro'
             },
-            social: {
-                github: "https://github.com/debjitbis08/sim8085",
-            },
+            social: [
+                {
+                    icon: "github",
+                    label: "GitHub",
+                    href: "https://github.com/debjitbis08/sim8085",
+                },
+            ],
             disable404Route: true,
+            // favicon: "/favicon.svg",
+            head: [
+                {
+                    tag: "script",
+                    content: `window.addEventListener('load', () => { document.querySelector('.site-title').href = '/docs/en'; Array.from(document.querySelectorAll('#starlight__sidebar a')).forEach((el) => el.href = el.href.replace("/en", "/docs/en")); });`,
+                },
+                {
+                    tag: "link",
+                    attrs: {
+                        rel: "icon",
+                        href: "/favicon.svg",
+                        type: "image/svg+xml",
+                    },
+                },
+                {
+                    tag: "link",
+                    attrs: {
+                        rel: "icon",
+                        href: "/favicon-dark.svg",
+                        media: "(prefers-color-scheme: dark)",
+                        type: "image/svg+xml",
+                    },
+                },
+            ],
             sidebar: [
-                { slug: "docs/en" },
-                { slug: "docs/en/assembly" },
-                { slug: "docs/en/unsupported" },
-                { slug: "docs/en/interrupts" },
-                { slug: "docs/en/infinite-loop-reasons" },
-                { slug: "docs/en/app-install" },
-                /*
-        {
-          label: 'Instructions',
-         	items: [
-   					'docs/en/instructions/aci',
-   					'docs/en/instructions/adc',
-         	]
-        },
-        */
+                { label: "What is Sim8085?", link: "/" },
+                { label: "Assembly Language", link: "/assembly" },
+                { label: "Unsupported Features", link: "/unsupported" },
+                { label: "Interrupts in Sim8085", link: "/interrupts" },
+                { label: "Reasons for Infinite Loops", link: "/infinite-loop-reasons" },
+                { label: "Installing Sim8085", link: "/app-install" },
                 {
                     label: "References",
-                    items: ["docs/en/reference/ascii", "docs/en/reference/instruction-summary"],
+                    items: [
+                        {
+                            label: "ASCII Table",
+                            link: "/reference/ascii",
+                        },
+                        {
+                            label: "Instruction Summary",
+                            link: "/reference/instruction-summary",
+                        },
+                    ],
                 },
             ],
         }),
         solidJs({
             devtools: true,
-        }),
-        tailwind({
-            applyBaseStyles: false,
         }),
         alpinejs(),
         AstroPWA({
@@ -75,10 +101,14 @@ export default defineConfig({
         }),
     ],
     output: "static",
+    adapter: netlify({
+        edgeMiddleware: true,
+        imageCDN: false,
+    }),
     vite: {
-        plugins: [peggy()],
+        plugins: [peggy(), tailwindcss()],
         ssr: {
-            noExternal: ["nanoid"],
+            noExternal: ["nanoid", "@astrojs/starlight-tailwind"],
         },
     },
 });

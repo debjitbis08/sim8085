@@ -2,6 +2,7 @@ import { store, setStore } from "../store/store.js";
 import { Tooltip } from "./generic/Tooltip.jsx";
 import { FiSave } from "solid-icons/fi";
 import { supabase, getUser, onInit } from "../lib/supabase.js";
+import { getUserTier } from "../lib/subscription.js";
 import { v7 as uuidv7 } from "uuid";
 import { createSignal, onMount, createEffect } from "solid-js";
 import { produce } from "solid-js/store";
@@ -29,27 +30,14 @@ export function FileActions() {
     });
 
     async function fetchUserId() {
-        const result = await getUser();
+        const { id, tier } = await getUserTier();
 
-        const user = result.user;
-        const error = result.error;
-
-        if (error && error.name === "AuthSessionMissingError") {
+        if (!id) {
             setNoSession(true);
             return null;
         }
 
-        if (error || user == null) throw new Error("Unable to fetch user ID");
-
-        const { data: tier, error: tierFetchError } = await supabase
-            .from("customers")
-            .select("subscription_tier")
-            .eq("id", user?.id)
-            .single();
-
-        if (tierFetchError) throw new Error("Unable to fetch user's subscription tier.");
-
-        return { id: user?.id, tier: tier.subscription_tier };
+        return { id, tier };
     }
 
     const saveFile = async () => {

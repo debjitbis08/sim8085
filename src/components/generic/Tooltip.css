@@ -1,3 +1,5 @@
+@reference "tailwindcss";
+
 @keyframes contentShow {
     from {
         opacity: 0;

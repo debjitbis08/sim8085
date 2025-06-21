@@ -1,0 +1,77 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Upgrade to Plus" showActions={false} fullwidth={false} fullHeight={false}>
+    <main class="max-w-md mx-auto py-8 px-4" x-data="payment" x-init="init">
+        <h1 class="text-2xl mb-6 font-bold">Upgrade to Plus</h1>
+        <template x-if="!user">
+            <div class="text-center">
+                <p class="mb-4">Please login to continue.</p>
+                <a href="/login/" class="px-4 py-2 bg-yellow-foreground text-gray-900 font-bold rounded">Login</a>
+            </div>
+        </template>
+        <template x-if="user">
+            <div>
+                <div x-show="!success">
+                    <button class="bg-yellow-foreground rounded px-6 py-3 text-gray-900 font-bold" @click="pay">
+                        Pay with Razorpay
+                    </button>
+                </div>
+                <div x-show="success" class="text-center">
+                    <p class="mb-4">Payment successful! Your account has been upgraded.</p>
+                    <a href="/" class="px-4 py-2 bg-terminal-700 text-primary-foreground rounded">Back to Sim8085</a>
+                </div>
+            </div>
+        </template>
+    </main>
+</Layout>
+
+<script>
+import Alpine from 'alpinejs';
+import { supabase } from '../lib/supabase.js';
+
+document.addEventListener('alpine:init', () => {
+    Alpine.data('payment', () => ({
+        user: null,
+        success: false,
+        async init() {
+            const { data: { user } } = await supabase.auth.getUser();
+            this.user = user;
+        },
+        async pay() {
+            if (!this.user) {
+                window.location.href = '/login/';
+                return;
+            }
+            const orderRes = await fetch('/api/upgrade', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({})
+            });
+            const order = await orderRes.json();
+            const options = {
+                key: order.key_id,
+                order_id: order.order_id,
+                name: 'Sim8085 Plus',
+                description: '6 months subscription',
+                handler: async (response) => {
+                    await fetch('/api/upgrade', {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ userId: this.user.id, ...response })
+                    });
+                    this.success = true;
+                },
+                prefill: {
+                    name: this.user.user_metadata?.full_name,
+                    email: this.user.email,
+                },
+            };
+            const rzp = new window.Razorpay(options);
+            rzp.open();
+        }
+    }));
+});
+</script>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>

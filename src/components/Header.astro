@@ -215,6 +215,7 @@ const avatarUrl = user?.user_metadata?.avatar_url; // Default avatar if none exi
     import Alpine from 'alpinejs';
     import posthog from 'posthog-js';
     import {supabase, getUserFromSession, signOut, getUser} from '../lib/supabase.js';
+    import { getUserTier } from '../lib/subscription.js';
 
     document.addEventListener('alpine:init', () => {
         Alpine.data('workspace', () => ({
@@ -275,25 +276,11 @@ const avatarUrl = user?.user_metadata?.avatar_url; // Default avatar if none exi
             },
 
             async fetchUserId() {
-                if (!supabase) return;
+                const { id, tier } = await getUserTier();
 
-                const {user, error} = await getUser();
+                if (!id) return null;
 
-                if (error && error.name === 'AuthSessionMissingError') {
-                    return null;
-                }
-
-                if (error || user == null) throw new Error("Unable to fetch user ID");
-
-                const { data: tier, error: tierFetchError } = await supabase
-                    .from("customers")
-                    .select("subscription_tier")
-                    .eq("id", user?.id)
-                    .single();
-
-                if (tierFetchError) throw new Error("Unable to fetch user's subscription tier.");
-
-                return { id: user?.id, tier: tier.subscription_tier };
+                return { id, tier };
             },
 
             showPlusDialog() {

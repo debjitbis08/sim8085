@@ -1,3 +1,5 @@
+@reference "tailwindcss";
+
 .select__trigger {
     transition:
         border-color 250ms,

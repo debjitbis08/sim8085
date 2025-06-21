@@ -1,3 +1,5 @@
+@reference "tailwindcss";
+
 .dropdown-menu__trigger {
     line-height: 0;
     transition: 250ms background-color;

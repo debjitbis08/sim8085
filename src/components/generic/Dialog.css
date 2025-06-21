@@ -1,9 +1,11 @@
+@reference "tailwindcss";
+
 .dialog__overlay {
     @apply fixed;
     @apply inset-0;
     @apply z-50;
-    @apply bg-gray-600;
-    @apply bg-opacity-20;
+    @apply bg-gray-600/20;
+    /* @apply bg-opacity-20; */
     @apply backdrop-blur-sm;
     animation: overlayHide 250ms ease 100ms forwards;
 }

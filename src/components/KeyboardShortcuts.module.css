@@ -1,3 +1,5 @@
+@reference "tailwindcss";
+
 .sectionHeader {
     @apply text-lg font-bold mt-6 mb-3 pb-1 border-b border-gray-300;
     @apply text-gray-500;
