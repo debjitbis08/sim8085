@@ -17,6 +17,7 @@ import DelayedComponent from "./generic/DelayedComponent.jsx";
 import InterruptState from "./InterruptState.jsx";
 import { onInit, getUser } from "../lib/supabase.js";
 import "./LeftPanel.css";
+import { KeepAlive } from "./generic/KeepAlive.jsx";
 
 const Workspace = lazy(() => import("./Workspace.jsx"));
 const IOPorts = lazy(() => import("./IOPorts.jsx"));
@@ -130,7 +131,7 @@ export function LeftPanel() {
                 </div>
                 <div class="h-[0.1rem] bg-secondary-foreground w-5 hidden md:block"></div>
 
-                <div class={workspaceEnabled() && noSession() === false ? "" : "hidden"}>
+                <div class={workspaceEnabled() ? "" : "hidden"}>
                     <PanelButton
                         icon={<FiFolder />}
                         isActive={isActive("workspace")}
@@ -210,7 +211,7 @@ export function LeftPanel() {
                 }}
             >
                 <div class={`w-full max-h-full px-2 md:px-4`}>
-                    {activeTab() === "cpu" ? (
+                    <KeepAlive active={activeTab() === "cpu"}>
                         <div class="flex flex-col items-center justify-start gap-6">
                             <div class="w-full">
                                 <Registers />
@@ -222,23 +223,27 @@ export function LeftPanel() {
                                 <InterruptState />
                             </div>
                         </div>
-                    ) : activeTab() === "memory" ? (
-                        <Suspense fallback={<PanelLoader />}>
+                    </KeepAlive>
+                    <Suspense fallback={<PanelLoader />}>
+                        <KeepAlive active={activeTab() === "memory"}>
                             <MemoryList />
-                        </Suspense>
-                    ) : activeTab() === "io" ? (
-                        <Suspense fallback={<PanelLoader />}>
+                        </KeepAlive>
+                    </Suspense>
+                    <Suspense fallback={<PanelLoader />}>
+                        <KeepAlive active={activeTab() === "io"}>
                             <IOPorts />
-                        </Suspense>
-                    ) : activeTab() === "workspace" ? (
-                        <Suspense fallback={<PanelLoader />}>
+                        </KeepAlive>
+                    </Suspense>
+                    <Suspense fallback={<PanelLoader />}>
+                        <KeepAlive active={activeTab() === "workspace"}>
                             <Workspace />
-                        </Suspense>
-                    ) : activeTab() === "toolbox" ? (
-                        <Suspense fallback={<PanelLoader />}>
+                        </KeepAlive>
+                    </Suspense>
+                    <Suspense fallback={<PanelLoader />}>
+                        <KeepAlive active={activeTab() === "toolbox"}>
                             <Toolbox />
-                        </Suspense>
-                    ) : null}
+                        </KeepAlive>
+                    </Suspense>
                 </div>
                 <div class="grow"></div>
             </div>
