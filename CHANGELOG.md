@@ -1,3 +1,11 @@
+## [2.16.1](https://github.com/debjitbis08/sim8085/compare/v2.16.0...v2.16.1) (2025-06-21)
+
+
+### Bug Fixes
+
+* Fix issue of reloading in left panel ([c2d4832](https://github.com/debjitbis08/sim8085/commit/c2d48322bb1b171114b5b0a7791633de957d3486))
+* Remove close button from poster ([641f19a](https://github.com/debjitbis08/sim8085/commit/641f19a4ae00e663d5ea48cf4969db1fb3dd7d43))
+
 # [2.16.0](https://github.com/debjitbis08/sim8085/compare/v2.15.5...v2.16.0) (2025-06-19)
 
 
