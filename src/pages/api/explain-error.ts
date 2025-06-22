@@ -1,9 +1,11 @@
+import { OPENAI_API_KEY } from "astro:env/server";
+
 export const prerender = false;
 
 const requestCounts = new Map();
 
 export async function POST({ request }) {
-    const apiKey = process.env.OPENAI_API_KEY;
+    const apiKey = OPENAI_API_KEY;
     if (!apiKey) {
         return new Response(JSON.stringify({ error: "OpenAI key not configured" }), {
             status: 400,

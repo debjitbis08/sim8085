@@ -1,4 +1,5 @@
-import { defineConfig } from "astro/config";
+// @ts-check
+import { defineConfig, envField } from "astro/config";
 import solidJs from "@astrojs/solid-js";
 import peggy from "vite-plugin-peggy-loader";
 import AstroPWA from "@vite-pwa/astro";
@@ -102,13 +103,43 @@ export default defineConfig({
     ],
     output: "static",
     adapter: netlify({
-        edgeMiddleware: true,
+        edgeMiddleware: false,
         imageCDN: false,
     }),
     vite: {
         plugins: [peggy(), tailwindcss()],
         ssr: {
             noExternal: ["nanoid", "@astrojs/starlight-tailwind"],
+        },
+    },
+    env: {
+        schema: {
+            SUPABASE_URL: envField.string({ context: "client", access: "public", optional: true }),
+            SUPABASE_ANON_KEY: envField.string({
+                context: "client",
+                access: "public",
+                optional: true,
+            }),
+            SUPABASE_SERVICE_ROLE_KEY: envField.string({
+                context: "server",
+                access: "secret",
+                optional: true,
+            }),
+            OPENAI_API_KEY: envField.string({
+                context: "server",
+                access: "secret",
+                optional: true,
+            }),
+            RAZORPAY_KEY_ID: envField.string({
+                context: "server",
+                access: "secret",
+                optional: true,
+            }),
+            RAZORPAY_KEY_SECRET: envField.string({
+                context: "server",
+                access: "secret",
+                optional: true,
+            }),
         },
     },
 });

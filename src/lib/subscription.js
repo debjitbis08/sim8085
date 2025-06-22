@@ -1,6 +1,8 @@
 import { supabase } from "../lib/supabase.js";
 
 export async function getUserTier() {
+    if (!supabase) return { id: null, tier: "FREE" };
+
     const {
         data: { user },
         error,
