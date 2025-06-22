@@ -1,3 +1,10 @@
+## [2.16.3](https://github.com/debjitbis08/sim8085/compare/v2.16.2...v2.16.3) (2025-06-22)
+
+
+### Bug Fixes
+
+* Fix redirect of all pages ([6b524f6](https://github.com/debjitbis08/sim8085/commit/6b524f69d8d318fa76f12aa7e8be259dee2ab703))
+
 ## [2.16.2](https://github.com/debjitbis08/sim8085/compare/v2.16.1...v2.16.2) (2025-06-22)
 
 
