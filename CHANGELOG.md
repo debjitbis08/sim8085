@@ -1,3 +1,10 @@
+## [2.16.2](https://github.com/debjitbis08/sim8085/compare/v2.16.1...v2.16.2) (2025-06-22)
+
+
+### Bug Fixes
+
+* Fix issues related to APIs ([20956ff](https://github.com/debjitbis08/sim8085/commit/20956ff3645cbc4b8ced342b4580695a060563f3))
+
 ## [2.16.1](https://github.com/debjitbis08/sim8085/compare/v2.16.0...v2.16.1) (2025-06-21)
 
 
