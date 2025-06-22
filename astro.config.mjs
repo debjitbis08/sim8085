@@ -10,7 +10,7 @@ import tailwindcss from "@tailwindcss/vite";
 
 // https://astro.build/config
 export default defineConfig({
-    trailingSlash: "ignore",
+    trailingSlash: "always",
     integrations: [
         starlight({
             title: "Sim8085 Docs",
