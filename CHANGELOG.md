@@ -1,3 +1,10 @@
+## [2.16.4](https://github.com/debjitbis08/sim8085/compare/v2.16.3...v2.16.4) (2025-06-23)
+
+
+### Bug Fixes
+
+* Add tos and privacy link on homepage ([32005c5](https://github.com/debjitbis08/sim8085/commit/32005c50facd36bab47075e2f8254348092382bc))
+
 ## [2.16.3](https://github.com/debjitbis08/sim8085/compare/v2.16.2...v2.16.3) (2025-06-22)
 
 
