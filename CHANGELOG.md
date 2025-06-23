@@ -1,3 +1,10 @@
+## [2.16.5](https://github.com/debjitbis08/sim8085/compare/v2.16.4...v2.16.5) (2025-06-23)
+
+
+### Bug Fixes
+
+* Add payment operations ([e8d1ec5](https://github.com/debjitbis08/sim8085/commit/e8d1ec5a7d57039bed3d31853505d50f83282de6))
+
 ## [2.16.4](https://github.com/debjitbis08/sim8085/compare/v2.16.3...v2.16.4) (2025-06-23)
 
 
