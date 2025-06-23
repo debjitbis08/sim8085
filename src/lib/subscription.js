@@ -16,7 +16,7 @@ export async function getUserTier() {
 
     const { data, error: tierError } = await supabase
         .from("customers")
-        .select("subscription_tier, tier_expires_at")
+        .select("subscription_tier, subscription_expires_at")
         .eq("id", user.id)
         .single();
 

@@ -1,0 +1,107 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { FaSolidFolder, FaSolidShareNodes, FaSolidRobot } from "solid-icons/fa";
+import RazorPayIcon from '../icons/razorpay.svg';
+---
+
+<Layout title="Sim8085 Plus – Thank You" showActions={false} fullwidth={false} fullHeight={false}>
+    <main class="mx-auto py-8 px-4" x-data="payment" x-init="init">
+        <h1 class="text-2xl mb-6 font-bold">🎉 Thank You for Supporting Sim8085!</h1>
+        <p class="mb-6 text-secondary-foreground">
+            Your contribution helps us keep Sim8085 free, open, and growing. Let's take a quick look at what you've unlocked with Plus:
+        </p>
+
+        <div class="my-4">
+            <div class="flex items-center gap-4 pb-8">
+                <div class="text-2xl text-green-600 bg-green-200 w-12 h-12 rounded flex items-center justify-center">
+                    <FaSolidFolder />
+                </div>
+                <div>
+                    <h3 class="mb-1">Save and Organize Files</h3>
+                    <p class="text-sm text-secondary-foreground">
+                        Save unlimited files and manage them easily in your workspace.
+                    </p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-4 pb-8">
+                <div class="text-2xl text-blue-600 bg-blue-200 w-12 h-12 rounded flex items-center justify-center">
+                    <FaSolidShareNodes />
+                </div>
+                <div>
+                    <h3 class="mb-1">Public Share Links</h3>
+                    <p class="text-sm text-secondary-foreground">
+                        Share your 8085 code with friends, classmates, or teachers using simple links.
+                    </p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-4 pb-8">
+                <div class="text-2xl text-purple-600 bg-purple-200 w-12 h-12 rounded flex items-center justify-center">
+                    <FaSolidRobot />
+                </div>
+                <div>
+                    <h3 class="mb-1">AI Help for Assembler Errors</h3>
+                    <p class="text-sm text-secondary-foreground">
+                        Stuck on an error? Let AI assist you in understanding and fixing your code.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="mb-6">
+            <ul class="space-y-3 text-lg">
+                <li>✅ One-time payment</li>
+                <li>🕕 Valid for 6 months</li>
+                <li>
+                    💸 <span class="text-secondary-foreground line-through decoration-double decoration-red-500">₹699</span> ₹349 only
+                </li>
+            </ul>
+        </div>
+
+        <template x-if="!user">
+            <div class="text-left">
+                <p class="mb-4 text-red-600">Please log in to activate your Plus Plan.</p>
+                <a href="/login/" class="px-4 py-2 bg-yellow-foreground hover:bg-orange-foreground text-gray-900 font-bold rounded">Login</a>
+            </div>
+        </template>
+
+        <template x-if="user">
+            <div class="text-left mt-6 border-t pt-6">
+                <p class="mb-2 text-green-700 font-medium">
+                    ✅ Payment successful! Your Sim8085 Plus access is now active.
+                </p>
+                <p class="mb-4 text-sm text-secondary-foreground">
+                    If you don't see Plus features right away, please refresh the page or log out and log back in.
+                </p>
+                <p class="mb-4 text-sm text-secondary-foreground">
+                    If the issue persists or you used the wrong email during payment, feel free to reach out at:
+                    <br/>
+                    <a href="mailto:support@sim8085.com" class="underline text-blue-600">support@sim8085.com</a>
+                </p>
+                <a href="/" class="px-4 py-2 bg-terminal-700 text-primary-foreground rounded">Back to Sim8085</a>
+            </div>
+        </template>
+    </main>
+</Layout>
+
+<script>
+import Alpine from 'alpinejs';
+import { supabase } from '../lib/supabase.js';
+
+document.addEventListener('alpine:init', () => {
+    Alpine.data('payment', () => ({
+        user: null,
+        success: false,
+        async init() {
+            const { data: { user } } = await supabase.auth.getUser();
+            this.user = user;
+
+            // If you've integrated webhooks and can query Supabase to check payment status, do that here:
+            // const { data: profile } = await supabase.from("profiles").select("is_plus").eq("id", user.id).single();
+            // this.success = profile?.is_plus;
+        },
+    }));
+});
+</script>
+

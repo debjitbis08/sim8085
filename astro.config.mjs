@@ -114,15 +114,13 @@ export default defineConfig({
     },
     env: {
         schema: {
+            USE_TRACKING: envField.boolean({ context: "client", access: "public", optional: true, default: false }),
+            POSTHOG_API_KEY: envField.string({ context: "client", access: "public", optional: true }),
+            OPENAI_ENABLED: envField.boolean({ context: "client", access: "public", optional: true, default: false }),
             SUPABASE_URL: envField.string({ context: "client", access: "public", optional: true }),
             SUPABASE_ANON_KEY: envField.string({
                 context: "client",
                 access: "public",
-                optional: true,
-            }),
-            SUPABASE_SERVICE_ROLE_KEY: envField.string({
-                context: "server",
-                access: "secret",
                 optional: true,
             }),
             OPENAI_API_KEY: envField.string({
@@ -130,12 +128,7 @@ export default defineConfig({
                 access: "secret",
                 optional: true,
             }),
-            RAZORPAY_KEY_ID: envField.string({
-                context: "server",
-                access: "secret",
-                optional: true,
-            }),
-            RAZORPAY_KEY_SECRET: envField.string({
+            RAZORPAY_WEBHOOK_SECRET: envField.string({
                 context: "server",
                 access: "secret",
                 optional: true,

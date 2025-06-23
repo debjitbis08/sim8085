@@ -19,7 +19,7 @@
 <script>
     import Alpine from 'alpinejs';
 
-    const useTracking = import.meta.env.PUBLIC_USE_TRACKING === 'true';
+    const useTracking = document.querySelector('meta[name="posthog-use-tracking"]')?.content === "true";
     document.addEventListener('alpine:init', () => {
         Alpine.data('cookieBanner', () => ({
             showBanner: false,

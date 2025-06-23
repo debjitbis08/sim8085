@@ -1,22 +1,98 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import { FaSolidFolder, FaSolidShareNodes, FaSolidRobot } from "solid-icons/fa";
+import RazorPayIcon from '../icons/razorpay.svg';
 ---
 
-<Layout title="Upgrade to Plus" showActions={false} fullwidth={false} fullHeight={false}>
-    <main class="max-w-md mx-auto py-8 px-4" x-data="payment" x-init="init">
-        <h1 class="text-2xl mb-6 font-bold">Upgrade to Plus</h1>
+<Layout title="Upgrade to Plus | Sim8085" showActions={false} fullwidth={false} fullHeight={false}>
+    <main class="mx-auto py-8 px-4" x-data="payment" x-init="init">
+        <h1 class="text-2xl mb-6 font-bold">Upgrade to Sim8085 Plus</h1>
+        <div class="my-4">
+            <div class="flex items-center gap-4 pb-8">
+                <div class="text-2xl text-green-600 bg-green-200 w-12 h-12 rounded flex items-center justify-center">
+                    <FaSolidFolder />
+                </div>
+                <div>
+                    <h3 class={"mb-1"}>Save and Organize Files</h3>
+                    <p class="text-sm text-secondary-foreground">
+                        Save up to 5 files on the free plan. Go Plus for unlimited saves and
+                        better workspace management.
+                    </p>
+                </div>
+            </div>
+            <div class="flex items-center gap-4 pb-8">
+                <div class="text-2xl text-blue-600 bg-blue-200 w-12 h-12 rounded flex items-center justify-center">
+                    <FaSolidShareNodes />
+                </div>
+                <div>
+                    <h3 class="mb-1">Public Share Links</h3>
+                    <p class="text-sm text-secondary-foreground">
+                        Share your 8085 programs with anyone using a simple link.
+                    </p>
+                </div>
+            </div>
+            <div class="flex items-center gap-4 pb-8">
+                <div class="text-2xl text-purple-600 bg-purple-200 w-12 h-12 rounded flex items-center justify-center">
+                    <FaSolidRobot />
+                </div>
+                <div>
+                    <h3 class="mb-1">AI Help for Assembler Errors</h3>
+                    <p class="text-sm text-secondary-foreground">
+                        Confused by assembler errors? Let AI explain what went wrong and how to
+                        fix it.
+                    </p>
+                </div>
+            </div>
+            {/*
+            <div class="flex items-center gap-4 pb-8">
+                <div class="text-3xl text-blue-600 bg-blue-200 w-12 h-12 rounded flex items-center justify-center">
+                    <FaSolidGraduationCap />
+                </div>
+                <div>
+                    <h3 class="flex items-center gap-2 mb-1">
+                        <span>Step-by-Step Tutorials</span>
+                        <span class="bg-terminal-200 text-terminal rounded px-2 py-1 uppercase text-[0.6rem]">
+                            Coming Soon
+                        </span>
+                    </h3>
+                    <p class="text-sm text-secondary-foreground">
+                        Master 8085 ALP with easy, step-by-step tutorials.
+                    </p>
+                </div>
+            </div>
+            */}
+        </div>
+        <div class="mb-4">
+            <ul class="space-y-3">
+                <li>
+                    ✅ One-time payment  
+                </li>
+                <li>
+                    🕕 Valid for 6 months  
+                </li>
+                <li class="text-lg">
+                    💸 
+                    <span class="text-secondary-foreground line-through decoration-double decoration-red-500">₹699</span> ₹349 only
+                </li>
+            </ul>
+        </div>
         <template x-if="!user">
-            <div class="text-center">
+            <div class="text-left">
                 <p class="mb-4">Please login to continue.</p>
-                <a href="/login/" class="px-4 py-2 bg-yellow-foreground text-gray-900 font-bold rounded">Login</a>
+                <a href="/login/" class="px-4 py-2 bg-yellow-foreground hover:bg-orange-foreground text-gray-900 font-bold rounded">Login</a>
             </div>
         </template>
         <template x-if="user">
             <div>
                 <div x-show="!success">
-                    <button class="bg-yellow-foreground rounded px-6 py-3 text-gray-900 font-bold" @click="pay">
-                        Pay with Razorpay
-                    </button>
+                    <a class="bg-yellow-foreground hover:bg-orange-foreground rounded px-6 py-3 text-gray-900 font-bold inline-flex items-center gap-2 cursor-pointer" href="https://rzp.io/rzp/sim8085plus">
+                        <span>
+                            <RazorPayIcon width={16} height={16}/>
+                        </span>
+                        <span>
+                            Pay with Razorpay
+                        </span>
+                    </a>
                 </div>
                 <div x-show="success" class="text-center">
                     <p class="mb-4">Payment successful! Your account has been upgraded.</p>
@@ -39,39 +115,6 @@ document.addEventListener('alpine:init', () => {
             const { data: { user } } = await supabase.auth.getUser();
             this.user = user;
         },
-        async pay() {
-            if (!this.user) {
-                window.location.href = '/login/';
-                return;
-            }
-            const orderRes = await fetch('/api/upgrade', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({})
-            });
-            const order = await orderRes.json();
-            const options = {
-                key: order.key_id,
-                order_id: order.order_id,
-                name: 'Sim8085 Plus',
-                description: '6 months subscription',
-                handler: async (response) => {
-                    await fetch('/api/upgrade', {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ userId: this.user.id, ...response })
-                    });
-                    this.success = true;
-                },
-                prefill: {
-                    name: this.user.user_metadata?.full_name,
-                    email: this.user.email,
-                },
-            };
-            const rzp = new window.Razorpay(options);
-            rzp.open();
-        }
     }));
 });
 </script>
-<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
