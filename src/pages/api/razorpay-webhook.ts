@@ -1,12 +1,12 @@
 import type { APIRoute } from "astro";
 import { createHmac } from "crypto";
-import { supabase } from "../../lib/supabase.js";
+import { supabaseAdminClient } from "../../lib/supabase-admin.js";
 import { RAZORPAY_WEBHOOK_SECRET } from "astro:env/server";
 
 export const prerender = false;
 
 export const POST: APIRoute = async ({ request }) => {
-    if (!supabase) {
+    if (!supabaseAdminClient) {
         return new Response("supabase not initialized", { status: 500 });
     }
 
@@ -39,7 +39,11 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     // Lookup user by email
-    const { data: user, error: userError } = await supabase.from("auth.users").select("id").eq("email", email).single();
+    const { data: user, error: userError } = await supabaseAdminClient
+        .from("customers")
+        .select("id")
+        .eq("email", email)
+        .single();
 
     if (userError || !user) {
         console.error("User not found:", userError);
@@ -51,7 +55,7 @@ export const POST: APIRoute = async ({ request }) => {
     const expiresAt = new Date(now);
     expiresAt.setMonth(expiresAt.getMonth() + 6); // 6 months later
 
-    const { error: updateError } = await supabase
+    const { error: updateError } = await supabaseAdminClient
         .from("customers")
         .update({
             subscription_tier: "PLUS",
