@@ -1,3 +1,10 @@
+## [2.16.11](https://github.com/debjitbis08/sim8085/compare/v2.16.10...v2.16.11) (2025-06-24)
+
+
+### Bug Fixes
+
+* Fix adsense layout ([2cebf22](https://github.com/debjitbis08/sim8085/commit/2cebf226885705123a75333e0359c71b8852fe39))
+
 ## [2.16.10](https://github.com/debjitbis08/sim8085/compare/v2.16.9...v2.16.10) (2025-06-24)
 
 
