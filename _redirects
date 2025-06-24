@@ -1,3 +1,0 @@
-/ads.txt                 /ads.txt                         200
-/api/*                   /api/:splat                      200
-/*                       https://www.sim8085.com/:splat   301!
