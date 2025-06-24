@@ -1,3 +1,10 @@
+## [2.16.7](https://github.com/debjitbis08/sim8085/compare/v2.16.6...v2.16.7) (2025-06-24)
+
+
+### Bug Fixes
+
+* Fix for adsense verification ([adf8b14](https://github.com/debjitbis08/sim8085/commit/adf8b145947b9bdb2ff2475a5adf7e78c4ab60fb))
+
 ## [2.16.6](https://github.com/debjitbis08/sim8085/compare/v2.16.5...v2.16.6) (2025-06-24)
 
 
