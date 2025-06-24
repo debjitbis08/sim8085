@@ -1,3 +1,10 @@
+## [2.16.8](https://github.com/debjitbis08/sim8085/compare/v2.16.7...v2.16.8) (2025-06-24)
+
+
+### Bug Fixes
+
+* Fix ads.txt ([2e8e074](https://github.com/debjitbis08/sim8085/commit/2e8e07403ddad29d377b877a9e2bfb7bb454f38c))
+
 ## [2.16.7](https://github.com/debjitbis08/sim8085/compare/v2.16.6...v2.16.7) (2025-06-24)
 
 
