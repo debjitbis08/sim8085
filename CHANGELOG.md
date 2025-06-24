@@ -1,3 +1,11 @@
+## [2.16.12](https://github.com/debjitbis08/sim8085/compare/v2.16.11...v2.16.12) (2025-06-24)
+
+
+### Bug Fixes
+
+* Do not pay button for Plus users ([cf98cbd](https://github.com/debjitbis08/sim8085/commit/cf98cbd5c6cdfeeaa1bcac894d4a8a40bf8897d2))
+* Fix netlify redirects ([234dd5b](https://github.com/debjitbis08/sim8085/commit/234dd5b1201ac010f8dc741c631c23d086ccb98f))
+
 ## [2.16.11](https://github.com/debjitbis08/sim8085/compare/v2.16.10...v2.16.11) (2025-06-24)
 
 
