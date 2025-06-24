@@ -4,16 +4,25 @@ import AdContainer from "./AdContainer.jsx";
 const pubId = import.meta.env.PUBLIC_ADSENSE_PUB_ID ? `ca-${import.meta.env.PUBLIC_ADSENSE_PUB_ID}` : null;
 
 export default function AdSenseAd(props) {
+    let ref = null;
     onMount(() => {
         if (!pubId) return;
 
         const existingScript = document.querySelector(`script[src*="adsbygoogle.js?client=${pubId}"]`);
 
+        let retries = 0;
         function pushAd() {
-            try {
-                (window.adsbygoogle = window.adsbygoogle || []).push({});
-            } catch (e) {
-                console.error("AdsbyGoogle push error:", e);
+            if (ref && ref.offsetWidth > 0) {
+                try {
+                    (window.adsbygoogle = window.adsbygoogle || []).push({});
+                } catch (e) {
+                    console.error("AdsbyGoogle push error:", e);
+                }
+            } else if (retries < 10) {
+                retries++;
+                setTimeout(pushAd, 500);
+            } else {
+                console.warn("AdSense container never became visible.");
             }
         }
 
@@ -32,6 +41,7 @@ export default function AdSenseAd(props) {
     return pubId ? (
         <AdContainer isHidden={props.isHidden}>
             <ins
+                ref={(el) => (ref = el)}
                 class="adsbygoogle"
                 style="display:block"
                 data-ad-client={pubId}
