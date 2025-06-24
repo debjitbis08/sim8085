@@ -1,3 +1,10 @@
+## [2.16.10](https://github.com/debjitbis08/sim8085/compare/v2.16.9...v2.16.10) (2025-06-24)
+
+
+### Bug Fixes
+
+* Fix ad dimensions ([aad797a](https://github.com/debjitbis08/sim8085/commit/aad797ad42feff81570a58aec9e20109ff4a556b))
+
 ## [2.16.9](https://github.com/debjitbis08/sim8085/compare/v2.16.8...v2.16.9) (2025-06-24)
 
 
