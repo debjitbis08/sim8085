@@ -1,6 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { FaSolidFolder, FaSolidShareNodes, FaSolidRobot } from "solid-icons/fa";
+import { FaSolidFolder, FaSolidShareNodes, FaSolidRobot } from 'solid-icons/fa';
+import { VsLoading } from 'solid-icons/vs';
 import RazorPayIcon from '../icons/razorpay.svg';
 ---
 
@@ -76,15 +77,21 @@ import RazorPayIcon from '../icons/razorpay.svg';
                 </li>
             </ul>
         </div>
-        <template x-if="!user">
+        <template x-if="isLoading">
+            <div class="flex items-center gap-2">
+                <VsLoading class="animate-spin" />
+                <span class="text-sm text-inactive-foreground">Loading Plus status...</span>
+            </div>
+        </template>
+        <template x-if="!user && !isLoading">
             <div class="text-left">
                 <p class="mb-4">Please login to continue.</p>
                 <a href="/login/" class="px-4 py-2 bg-yellow-foreground hover:bg-orange-foreground text-gray-900 font-bold rounded">Login</a>
             </div>
         </template>
-        <template x-if="user">
+        <template x-if="user && !isPlus && !isLoading">
             <div>
-                <div x-show="!success">
+                <div>
                     <a class="bg-yellow-foreground hover:bg-orange-foreground rounded px-6 py-3 text-gray-900 font-bold inline-flex items-center gap-2 cursor-pointer" href="https://rzp.io/rzp/sim8085plus">
                         <span>
                             <RazorPayIcon width={16} height={16}/>
@@ -94,10 +101,15 @@ import RazorPayIcon from '../icons/razorpay.svg';
                         </span>
                     </a>
                 </div>
-                <div x-show="success" class="text-center">
-                    <p class="mb-4">Payment successful! Your account has been upgraded.</p>
-                    <a href="/" class="px-4 py-2 bg-terminal-700 text-primary-foreground rounded">Back to Sim8085</a>
-                </div>
+            </div>
+        </template>
+        <template x-if="isPlus && !isLoading">
+            <div class="text-left bg-main-background border border-terminal rounded p-4 pb-5">
+                <p class="text-green-foreground font-medium mb-2">✅ You already have Sim8085 Plus!</p>
+                <p class="text-sm text-secondary-foreground mb-4">
+                    Thank you for supporting Sim8085. Enjoy all the premium features.
+                </p>
+                <a href="/" class="px-4 py-2 bg-terminal-700 hover:bg-terminal-600 text-primary-foreground rounded transition-colors">Back to Sim8085</a>
             </div>
         </template>
     </main>
@@ -105,15 +117,30 @@ import RazorPayIcon from '../icons/razorpay.svg';
 
 <script>
 import Alpine from 'alpinejs';
-import { supabase } from '../lib/supabase.js';
+import { getUser } from '../lib/supabase.js';
+import { getUserTier } from '../lib/subscription.js';
 
 document.addEventListener('alpine:init', () => {
     Alpine.data('payment', () => ({
+        isLoading: true,
         user: null,
-        success: false,
+        isPlus: false,
+
         async init() {
-            const { data: { user } } = await supabase.auth.getUser();
+            const { user } = await getUser();
             this.user = user;
+
+            if (!user) {
+                this.isLoading = false;
+                return;
+            }
+
+            const { tier } = await getUserTier();
+
+            if (tier === "PLUS") {
+                this.isPlus = true;
+            }
+            this.isLoading = false;
         },
     }));
 });
