@@ -1,7 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { FaSolidFolder, FaSolidShareNodes, FaSolidRobot } from "solid-icons/fa";
-import RazorPayIcon from '../icons/razorpay.svg';
+import { FaSolidFolder, FaSolidShareNodes, FaSolidRobot, FaSolidCircleCheck } from "solid-icons/fa";
+import { VsLoading } from 'solid-icons/vs';
 ---
 
 <Layout title="Sim8085 Plus – Thank You" showActions={false} fullwidth={false} fullHeight={false}>
@@ -59,27 +59,45 @@ import RazorPayIcon from '../icons/razorpay.svg';
             </ul>
         </div>
 
-        <template x-if="!user">
+        <template x-if="isLoading">
+            <div class="flex items-center gap-2">
+                <VsLoading class="animate-spin" />
+                <span class="text-sm text-inactive-foreground">Validating payment status...</span>
+            </div>
+        </template>
+
+        <template x-if="!user && !isLoading">
             <div class="text-left">
                 <p class="mb-4 text-red-600">Please log in to activate your Plus Plan.</p>
                 <a href="/login/" class="px-4 py-2 bg-yellow-foreground hover:bg-orange-foreground text-gray-900 font-bold rounded">Login</a>
             </div>
         </template>
 
-        <template x-if="user">
-            <div class="text-left mt-6 border-t pt-6">
-                <p class="mb-2 text-green-700 font-medium">
-                    ✅ Payment successful! Your Sim8085 Plus access is now active.
+        <template x-if="user && isPlus && !isLoading">
+            <div class="text-left bg-secondary-background border border-terminal rounded p-4 pb-5">
+                <p class="mb-4 text-green-700 font-medium flex items-center gap-2">
+                    <FaSolidCircleCheck />
+                    <span>Payment successful! Your Sim8085 Plus access is now active.</span>
                 </p>
                 <p class="mb-4 text-sm text-secondary-foreground">
                     If you don't see Plus features right away, please refresh the page or log out and log back in.
                 </p>
-                <p class="mb-4 text-sm text-secondary-foreground">
+                <p class="mb-6 text-sm text-secondary-foreground">
                     If the issue persists or you used the wrong email during payment, feel free to reach out at:
-                    <br/>
-                    <a href="mailto:support@sim8085.com" class="underline text-blue-600">support@sim8085.com</a>
+                    <a href="mailto:support@sim8085.com" class="underline text-blue-foreground">support@sim8085.com</a>
                 </p>
-                <a href="/" class="px-4 py-2 bg-terminal-700 text-primary-foreground rounded">Back to Sim8085</a>
+                <a href="/" class="px-4 py-2 bg-terminal-700 hover:bg-terminal-600 text-gray-100 rounded">Back to Sim8085</a>
+            </div>
+        </template>
+        <template x-if="user && failed">
+            <div class="text-left mt-6 border-t pt-6">
+                <p class="mb-2 text-red-700 font-medium">
+                    ⚠️ Your payment was successful, but Plus access hasn’t activated yet.
+                </p>
+                <p class="mb-4 text-sm text-secondary-foreground">
+                    Please email <a href="mailto:support@sim8085.com" class="underline text-blue-foreground600">support@sim8085.com</a> with your Razorpay invoice so we can help you activate it manually.
+                </p>
+                <p class="mb-2 text-sm text-muted-foreground">We apologize for the inconvenience.</p>
             </div>
         </template>
     </main>
@@ -87,20 +105,52 @@ import RazorPayIcon from '../icons/razorpay.svg';
 
 <script>
 import Alpine from 'alpinejs';
-import { supabase } from '../lib/supabase.js';
+import { getUser } from '../lib/supabase.js';
+import { getUserTier } from '../lib/subscription.js';
 
 document.addEventListener('alpine:init', () => {
     Alpine.data('payment', () => ({
+        isLoading: true,
         user: null,
-        success: false,
+        isPlus: false,
+        failed: false,
+
         async init() {
-            const { data: { user } } = await supabase.auth.getUser();
+            const { user } = await getUser();
             this.user = user;
 
-            // If you've integrated webhooks and can query Supabase to check payment status, do that here:
-            // const { data: profile } = await supabase.from("profiles").select("is_plus").eq("id", user.id).single();
-            // this.success = profile?.is_plus;
+            if (!user) {
+                this.isLoading = false;
+                return;
+            }
+
+            const { tier } = await getUserTier();
+
+            if (tier === "PLUS") {
+                this.isPlus = true;
+                this.isLoading = false;
+                return;
+            }
+
+            const success = await this.validate();
+            if (success) {
+                this.isPlus = true;
+            } else {
+                this.failed = true;
+            }
+
+            this.isLoading = false;
         },
+
+        async validate(retries = 0) {
+            const { tier } = await getUserTier();
+            if (tier === "PLUS") return true;
+
+            if (retries >= 10) return false;
+
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+            return await this.validate(retries + 1);
+        }
     }));
 });
 </script>
