@@ -1,3 +1,10 @@
+## [2.16.6](https://github.com/debjitbis08/sim8085/compare/v2.16.5...v2.16.6) (2025-06-24)
+
+
+### Bug Fixes
+
+* Move adsense id to env vars ([af89879](https://github.com/debjitbis08/sim8085/commit/af89879852d4017a69648bcc5535fdaa10d0a1dd))
+
 ## [2.16.5](https://github.com/debjitbis08/sim8085/compare/v2.16.4...v2.16.5) (2025-06-23)
 
 
