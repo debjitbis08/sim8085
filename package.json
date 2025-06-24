@@ -15,7 +15,7 @@
         "test:dev": "vitest",
         "test": "vitest run",
         "start": "astro dev",
-        "build": "node scripts/generate-ads-txt.js && astro build && cp _redirects dist/",
+        "build": "node scripts/generate-ads-txt.js && astro build",
         "preview": "astro preview",
         "astro": "astro",
         "build-emulator": "./scripts/build-emulator.sh"
