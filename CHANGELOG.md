@@ -1,3 +1,10 @@
+## [2.16.13](https://github.com/debjitbis08/sim8085/compare/v2.16.12...v2.16.13) (2025-06-24)
+
+
+### Bug Fixes
+
+* Fix redirect for APIs ([de8c421](https://github.com/debjitbis08/sim8085/commit/de8c421146da71adc4a4dd380fd227d1801352fd))
+
 ## [2.16.12](https://github.com/debjitbis08/sim8085/compare/v2.16.11...v2.16.12) (2025-06-24)
 
 
