@@ -46,7 +46,7 @@ export default function AdSenseAd(props) {
                 style="display:block"
                 data-ad-client={pubId}
                 data-ad-slot="1459633275"
-                data-ad-format="rectangle"
+                data-ad-format="fluid"
                 data-full-width-responsive="false"
             ></ins>
         </AdContainer>
