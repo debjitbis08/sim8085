@@ -1,3 +1,10 @@
+## [2.16.9](https://github.com/debjitbis08/sim8085/compare/v2.16.8...v2.16.9) (2025-06-24)
+
+
+### Bug Fixes
+
+* Fix ad container width ([636861b](https://github.com/debjitbis08/sim8085/commit/636861b7336ca0c904fd7e650a6a687f6097127c))
+
 ## [2.16.8](https://github.com/debjitbis08/sim8085/compare/v2.16.7...v2.16.8) (2025-06-24)
 
 
