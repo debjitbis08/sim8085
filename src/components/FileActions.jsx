@@ -9,6 +9,7 @@ import { produce } from "solid-js/store";
 import { Dialog } from "./generic/Dialog.jsx";
 import { canCreateFile } from "../utils/fileSaveLimit.js";
 import { FaSolidAsterisk } from "solid-icons/fa";
+import { createShortcut } from "@solid-primitives/keyboard";
 
 export function FileActions() {
     const [noSession, setNoSession] = createSignal(true);
@@ -75,7 +76,7 @@ export function FileActions() {
         if (!userId) {
             window.dispatchEvent(
                 new CustomEvent("showPlusDialog", {
-                    detail: {},
+                    detail: { reason: "notLoggedIn" },
                 }),
             );
             return false;
@@ -85,7 +86,7 @@ export function FileActions() {
         if (!allowed) {
             window.dispatchEvent(
                 new CustomEvent("showPlusDialog", {
-                    detail: {},
+                    detail: { reason: "notLoggedIn" },
                 }),
             );
             return false;
@@ -295,6 +296,9 @@ export function FileActions() {
     createEffect(() => {
         setFileName(store.activeFile.name);
     });
+
+    createShortcut(["Control", "n"], createNewFile);
+    createShortcut(["Control", "s"], saveFile);
 
     return (
         <>

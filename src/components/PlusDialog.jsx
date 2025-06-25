@@ -1,12 +1,13 @@
 import { Dialog } from "./generic/Dialog.jsx";
 import { createSignal, onMount, onCleanup } from "solid-js";
-import { FaSolidFolder, FaSolidGraduationCap, FaSolidShareNodes, FaSolidRobot } from "solid-icons/fa";
+import { FaSolidFolder, FaSolidGraduationCap, FaSolidShareNodes, FaSolidRobot, FaSolidBan } from "solid-icons/fa";
 import { VsBook } from "solid-icons/vs";
 
 const titleMap = {
     fileLimit: "You've reached the file limit",
     aiExplanation: "AI Help is a Plus feature",
     shareLink: "Sharing is for Plus users",
+    notLoggedIn: "Sign in to Save Your Work",
     default: "Your Support Keeps Sim8085 Running — Go Plus Today!",
 };
 
@@ -14,6 +15,7 @@ const subtitleMap = {
     fileLimit: "Free users can save up to 5 files. Upgrade to save unlimited files and organize better.",
     aiExplanation: "AI explanations are available only to Plus users. Get smarter debugging today.",
     shareLink: "Share your code with a link — available for Plus users only.",
+    notLoggedIn: "You need to log in to save your code and access additional features.",
     default: "Enjoy unlimited saves, AI help, and sharing with a one-time upgrade.",
 };
 
@@ -79,6 +81,19 @@ export function PlusDialog() {
                                             <p class="text-sm text-secondary-foreground">
                                                 Confused by assembler errors? Let AI explain what went wrong and how to
                                                 fix it.
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex items-center gap-4 pb-8">
+                                        <div class="text-2xl text-red-600 bg-red-200 w-12 h-12 rounded flex items-center justify-center">
+                                            <FaSolidBan />
+                                        </div>
+                                        <div>
+                                            <h3 class="mb-1">No Ads, No Distractions</h3>
+                                            <p class="text-sm text-secondary-foreground">
+                                                Enjoy a clean and distraction-free experience by removing all ads from
+                                                the site.
                                             </p>
                                         </div>
                                     </div>

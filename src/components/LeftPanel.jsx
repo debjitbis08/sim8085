@@ -262,7 +262,7 @@ export function PanelButton(props) {
     return (
         <Tooltip placement="left">
             <Tooltip.Trigger
-                class={`${props.class} tooltip_trigger ${props.isActive ? "text-active-foreground" : "text-inactive-foreground"} hover:text-active-foreground transition-colors flex flex-col items-center`}
+                class={`${props.class} tooltip_trigger ${props.isActive ? "text-active-foreground" : "text-inactive-foreground"} hover:text-active-foreground transition-colors flex flex-col items-center cursor-pointer`}
                 onClick={props.onClick}
                 disabled={props.disabled}
             >
