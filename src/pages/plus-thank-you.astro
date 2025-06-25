@@ -54,7 +54,7 @@ import { VsLoading } from 'solid-icons/vs';
                 <li>✅ One-time payment</li>
                 <li>🕕 Valid for 6 months</li>
                 <li>
-                    💸 <span class="text-secondary-foreground line-through decoration-double decoration-red-500">₹699</span> ₹349 only
+                    💸 <span class="text-secondary-foreground line-through decoration-double decoration-red-foreground">₹699</span> ₹349 only
                 </li>
             </ul>
         </div>
@@ -68,7 +68,7 @@ import { VsLoading } from 'solid-icons/vs';
 
         <template x-if="!user && !isLoading">
             <div class="text-left">
-                <p class="mb-4 text-red-600">Please log in to activate your Plus Plan.</p>
+                <p class="mb-4 text-red-foreground">Please log in to activate your Plus Plan.</p>
                 <a href="/login/" class="px-4 py-2 bg-yellow-foreground hover:bg-orange-foreground text-gray-900 font-bold rounded">Login</a>
             </div>
         </template>
