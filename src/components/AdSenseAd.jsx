@@ -1,39 +1,61 @@
-import { onMount } from "solid-js";
+import { onMount, createEffect } from "solid-js";
 import AdContainer from "./AdContainer.jsx";
 
 const pubId = import.meta.env.PUBLIC_ADSENSE_PUB_ID ? `ca-${import.meta.env.PUBLIC_ADSENSE_PUB_ID}` : null;
 
 export default function AdSenseAd(props) {
     let ref = null;
+    let initialized = false;
+    let pushStatus = "NOT_STARTED";
+
+    function pushAd() {
+        if (!ref || props.isHidden || pushStatus !== "NOT_STARTED") return;
+
+        pushStatus = "STARTED";
+        let retries = 0;
+        function tryPush() {
+            if (ref.offsetWidth > 0) {
+                try {
+                    (window.adsbygoogle = window.adsbygoogle || []).push({});
+                    pushStatus = "SUCCESS";
+                } catch (e) {
+                    console.error("AdsbyGoogle push error:", e);
+                    pushStatus = "NOT_STARTED";
+                }
+            } else if (retries < 10) {
+                retries++;
+                setTimeout(tryPush, 500);
+            } else {
+                console.warn("AdSense container never became visible.");
+                pushStatus = "NOT_STARTED";
+            }
+        }
+
+        tryPush();
+    }
+
     onMount(() => {
         if (!pubId) return;
 
         const existingScript = document.querySelector(`script[src*="adsbygoogle.js?client=${pubId}"]`);
-
-        let retries = 0;
-        function pushAd() {
-            if (ref && ref.offsetWidth > 0) {
-                try {
-                    (window.adsbygoogle = window.adsbygoogle || []).push({});
-                } catch (e) {
-                    console.error("AdsbyGoogle push error:", e);
-                }
-            } else if (retries < 10) {
-                retries++;
-                setTimeout(pushAd, 500);
-            } else {
-                console.warn("AdSense container never became visible.");
-            }
-        }
-
         if (!existingScript) {
             const script = document.createElement("script");
             script.async = true;
             script.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${pubId}`;
             script.crossOrigin = "anonymous";
-            script.onload = pushAd;
+            script.onload = () => {
+                initialized = true;
+                if (!props.isHidden) pushAd();
+            };
             document.head.appendChild(script);
         } else {
+            initialized = true;
+            if (!props.isHidden) pushAd();
+        }
+    });
+
+    createEffect(() => {
+        if (!props.isHidden && initialized) {
             pushAd();
         }
     });

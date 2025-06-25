@@ -9,7 +9,7 @@ import LambdaClassesPoster from "./LambdaClassesPoster.jsx";
 import ExplainErrorButton from "./ExplainErrorButton.jsx";
 import AdSwitcher from "./AdSwitcher.jsx";
 
-export function Assembled() {
+export function Assembled(props) {
     let [lines, setLines] = createSignal([]);
 
     createEffect(() => {
@@ -225,7 +225,7 @@ export function Assembled() {
                         </div>
                     </div>
                 </div>
-                <AdSwitcher isHidden={store.assembled.length > 0 || store.errors.length > 0} />
+                <AdSwitcher isHidden={store.assembled.length > 0 || store.errors.length > 0 || props.isPanelExpanded} />
             </div>
         </div>
     );

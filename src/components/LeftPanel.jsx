@@ -205,7 +205,7 @@ export function LeftPanel() {
             </div>
             <div
                 id="content"
-                class="shadow-xl md:shadow-none text-sm md:text-base relative z-5 min-w-60 w-full bg-secondary-background border-l-0 border-t border-b border-r md:border-r-0 border-main-border rounded-tl-sm rounded-bl-sm py-4  h-[calc(100svh-10rem)] md:h-[calc(100vh-6.2rem)] flex overflow-x-hidden overflow-y-auto transform transition-transform duration-300 ease-in-out"
+                class="shadow-xl md:shadow-none text-sm md:text-base relative z-5 min-w-60 w-full bg-secondary-background border-l-0 border-t border-b border-r md:border-r-0 border-main-border rounded-tl-sm rounded-bl-sm py-4  h-[calc(100svh-10.3rem)] md:h-[calc(100vh-6.2rem)] flex overflow-x-hidden overflow-y-auto transform transition-transform duration-300 ease-in-out"
                 style={{
                     display: expanded() ? "block" : "none",
                 }}

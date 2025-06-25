@@ -79,7 +79,7 @@ export function RightPanel() {
     };
     return (
         <div
-            class={`relative top-0 right-0 ${expanded() ? "w-svw md:auto" : ""} flex border-y-0 md:border-y border-y-main-border ${expanded() ? "md:border-l" : "border-l-0"} border-l-main-border bg-page-background md:bg-main-background h-[calc(100svh-5.6rem)] md:h-[calc(100vh-6.2rem)] ${expanded() ? "shadow-xl" : ""} md:shadow-none`}
+            class={`relative top-0 right-0 ${expanded() ? "w-svw md:auto" : ""} flex border-y-0 md:border-y border-y-main-border ${expanded() ? "md:border-l" : "border-l-0"} border-l-main-border bg-page-background md:bg-main-background h-[calc(100svh-7.8rem)] md:h-[calc(100vh-6.2rem)] ${expanded() ? "shadow-xl" : ""} md:shadow-none`}
             style={{ width: `${expanded() ? `${width()}px` : "auto"}` }}
         >
             <button
@@ -101,7 +101,7 @@ export function RightPanel() {
                     <Tabs.Indicator class="tabs__indicator" />
                 </Tabs.List>
                 <Tabs.Content class="tabs__content flex-grow overflow-y-auto overflow-x-auto" value="machine-code">
-                    <Assembled />
+                    <Assembled isPanelExpanded={expanded()} />
                 </Tabs.Content>
                 <Tabs.Content class="tabs__content flex-grow overflow-y-auto overflow-x-auto" value="led-array">
                     <Suspense fallback={<VsLoading class="animate-spin" />}>
