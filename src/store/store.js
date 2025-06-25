@@ -41,7 +41,6 @@ function getInitialActiveFile() {
     if (savedFileStr) {
         try {
             const savedFile = JSON.parse(savedFileStr);
-            console.log(savedFile);
             return {
                 name: savedFile.name ?? "untitled-1.asm",
                 workspaceItemId: savedFile.workspaceItemId ?? null,

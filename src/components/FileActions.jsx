@@ -4,18 +4,28 @@ import { FiSave, FiFilePlus } from "solid-icons/fi";
 import { supabase, getUser, onInit } from "../lib/supabase.js";
 import { getUserTier } from "../lib/subscription.js";
 import { v7 as uuidv7 } from "uuid";
-import { createSignal, onMount, createEffect, onCleanup } from "solid-js";
+import { createSignal, onMount, createEffect, onCleanup, Show } from "solid-js";
 import { produce } from "solid-js/store";
 import { Dialog } from "./generic/Dialog.jsx";
 import { canCreateFile } from "../utils/fileSaveLimit.js";
-import { FaSolidAsterisk } from "solid-icons/fa";
+import { FaSolidAsterisk, FaSolidCheck, FaSolidShareNodes } from "solid-icons/fa";
 import { createShortcut } from "@solid-primitives/keyboard";
+import { customAlphabet } from "nanoid";
+
+const alphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+const nanoid = customAlphabet(alphabet, 12);
 
 export function FileActions() {
     const [noSession, setNoSession] = createSignal(true);
     const [isDialogOpen, setIsDialogOpen] = createSignal(false);
     const [newFileName, setNewFileName] = createSignal(store.activeFile.name);
     const [isSaving, setIsSaving] = createSignal(false);
+
+    const [isShareDialogOpen, setIsShareDialogOpen] = createSignal(false);
+    const [shareId, setShareId] = createSignal(null);
+    const [isShared, setIsShared] = createSignal(false);
+    const [shareLink, setShareLink] = createSignal("");
+    const [isSharing, setIsSharing] = createSignal(false);
 
     let resolveFileNamePromise = null;
 
@@ -260,41 +270,86 @@ export function FileActions() {
         resolveFileNamePromise?.(fileName);
         resolveFileNamePromise = null;
         setIsDialogOpen(false);
-        //
-        // const { id: userId, tier } = await fetchUserId();
-        // if (!userId) {
-        //     window.dispatchEvent(
-        //         new CustomEvent("showPlusDialog", {
-        //             detail: {},
-        //         }),
-        //     );
-        //     return;
-        // }
-        //
-        // const allowed = await canCreateFile(userId, tier);
-        // if (!allowed) {
-        //     window.dispatchEvent(
-        //         new CustomEvent("showPlusDialog", {
-        //             detail: {},
-        //         }),
-        //     );
-        //     return;
-        // }
-        //
-        // setIsSaving(true);
-        // await saveFileToSupabase(userId);
-        // window.dispatchEvent(
-        //     new CustomEvent("newFileCreated", {
-        //         detail: {},
-        //     }),
-        // );
-        // setIsDialogOpen(false);
+    };
+
+    const shareFile = async () => {
+        setIsSharing(true);
+        const { id: userId } = (await fetchUserId()) || { id: null };
+        if (!userId || !store.activeFile.workspaceItemId) {
+            setIsSharing(false);
+            return;
+        }
+
+        const newShareId = uuidv7();
+        const shareId = nanoid();
+        const { error } = await supabase.from("shared_files").insert([
+            {
+                id: newShareId,
+                share_id: shareId,
+                content: JSON.stringify({
+                    code: store.activeFile.content,
+                }),
+                name: store.activeFile.name,
+                is_public: true,
+                file_id: store.activeFile.workspaceItemId,
+                owner_id: userId,
+            },
+        ]);
+
+        if (!error) {
+            setIsShared(true);
+            setShareId(newShareId);
+            setShareLink(`${window.location.origin}?share=${shareId}`);
+        }
+        setIsSharing(false);
+        setIsShareDialogOpen(true);
+    };
+
+    const unshareFile = async () => {
+        if (!shareId()) return;
+        await supabase.from("shared_files").delete().eq("id", shareId());
+        setIsShared(false);
+        setShareId(null);
+        setShareLink("");
+        setIsShareDialogOpen(false);
+    };
+
+    const copyLink = async () => {
+        if (!shareLink()) return;
+        try {
+            await navigator.clipboard.writeText(shareLink());
+        } catch (err) {
+            console.error("Failed to copy", err);
+        }
     };
 
     const [fileName, setFileName] = createSignal("");
 
     createEffect(() => {
         setFileName(store.activeFile.name);
+
+        if (store.activeFile.workspaceItemId) {
+            supabase
+                .from("shared_files")
+                .select("id,share_id")
+                .eq("file_id", store.activeFile.workspaceItemId)
+                .single()
+                .then(({ data, error }) => {
+                    if (!error && data) {
+                        setIsShared(true);
+                        setShareId(data.id);
+                        setShareLink(`${window.location.origin}?share=${data.share_id}`);
+                    } else {
+                        setIsShared(false);
+                        setShareId(null);
+                        setShareLink("");
+                    }
+                });
+        } else {
+            setIsShared(false);
+            setShareId(null);
+            setShareLink("");
+        }
     });
 
     createShortcut(["Control", "n"], createNewFile);
@@ -324,6 +379,18 @@ export function FileActions() {
                         title="Save"
                         shortcut="Ctrl + S"
                         onClick={saveFile}
+                        disabled={false}
+                    />
+                    <ActionButton
+                        icon={
+                            isShared() ? (
+                                <FaSolidCheck class="text-terminal" />
+                            ) : (
+                                <FaSolidShareNodes class="text-terminal" />
+                            )
+                        }
+                        title={isShared() ? "Shared" : "Share"}
+                        onClick={() => setIsShareDialogOpen(true)}
                         disabled={false}
                     />
                 </div>
@@ -361,6 +428,65 @@ export function FileActions() {
                                     </button>
                                 </div>
                             </Dialog.Description>
+                        </Dialog.Content>
+                    </div>
+                </Dialog.Portal>
+            </Dialog>
+            <Dialog open={isShareDialogOpen()} onOpenChange={setIsShareDialogOpen}>
+                <Dialog.Trigger class="hidden" />
+                <Dialog.Portal>
+                    <Dialog.Overlay class="dialog__overlay" />
+                    <div class="dialog__positioner">
+                        <Dialog.Content class="dialog__content">
+                            <Show
+                                when={isShared()}
+                                fallback={() => (
+                                    <>
+                                        <Dialog.Title class="dialog__title text-xl">Create Share Link</Dialog.Title>
+                                        <Dialog.Description class="dialog__description">
+                                            <div class="flex gap-2 justify-end mt-4">
+                                                <button
+                                                    class="border border-secondary-border hover:bg-active-background px-4 py-2 cursor-pointer rounded"
+                                                    onClick={() => setIsShareDialogOpen(false)}
+                                                >
+                                                    Cancel
+                                                </button>
+                                                <button
+                                                    class="text-white rounded border border-green-foreground text-primary-foreground bg-terminal-700 hover:bg-terminal px-4 py-2"
+                                                    onClick={shareFile}
+                                                    disabled={isSharing()}
+                                                >
+                                                    Share
+                                                </button>
+                                            </div>
+                                        </Dialog.Description>
+                                    </>
+                                )}
+                            >
+                                <Dialog.Title class="dialog__title text-xl">Shared Link</Dialog.Title>
+                                <Dialog.Description class="dialog__description">
+                                    <input
+                                        type="text"
+                                        readonly
+                                        class="bg-main-background border border-main-border rounded px-3 py-2 w-full mt-4"
+                                        value={shareLink()}
+                                    />
+                                    <div class="flex gap-2 justify-end mt-4">
+                                        <button
+                                            class="border border-secondary-border hover:bg-active-background px-4 py-2 cursor-pointer rounded"
+                                            onClick={copyLink}
+                                        >
+                                            Copy
+                                        </button>
+                                        <button
+                                            class="text-white rounded border border-red-foreground text-primary-foreground bg-red-600 hover:bg-red-700 px-4 py-2"
+                                            onClick={unshareFile}
+                                        >
+                                            Unshare
+                                        </button>
+                                    </div>
+                                </Dialog.Description>
+                            </Show>
                         </Dialog.Content>
                     </div>
                 </Dialog.Portal>
