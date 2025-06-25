@@ -8,7 +8,14 @@ import { createSignal, onMount, createEffect, onCleanup, Show } from "solid-js";
 import { produce } from "solid-js/store";
 import { Dialog } from "./generic/Dialog.jsx";
 import { canCreateFile } from "../utils/fileSaveLimit.js";
-import { FaSolidAsterisk, FaSolidCheck, FaSolidShareNodes } from "solid-icons/fa";
+import {
+    FaSolidAsterisk,
+    FaSolidCheck,
+    FaSolidShareNodes,
+    FaSolidShareFromSquare,
+    FaSolidFileCirclePlus,
+    FaSolidFloppyDisk,
+} from "solid-icons/fa";
 import { createShortcut } from "@solid-primitives/keyboard";
 import { customAlphabet } from "nanoid";
 
@@ -368,28 +375,22 @@ export function FileActions() {
                 </div>
                 <div class="flex">
                     <ActionButton
-                        icon={<FiFilePlus class="text-terminal" />}
+                        icon={<FaSolidFileCirclePlus class="" />}
                         title="New File"
                         shortcut="Ctrl + N"
                         onClick={createNewFile}
                         disabled={false}
                     />
                     <ActionButton
-                        icon={<FiSave class="text-terminal" />}
+                        icon={<FaSolidFloppyDisk class="" />}
                         title="Save"
                         shortcut="Ctrl + S"
                         onClick={saveFile}
                         disabled={false}
                     />
                     <ActionButton
-                        icon={
-                            isShared() ? (
-                                <FaSolidCheck class="text-terminal" />
-                            ) : (
-                                <FaSolidShareNodes class="text-terminal" />
-                            )
-                        }
-                        title={isShared() ? "Shared" : "Share"}
+                        icon={isShared() ? <FaSolidCheck class="" /> : <FaSolidShareFromSquare class="" />}
+                        title={isShared() ? "Shared" : "Share File"}
                         onClick={() => setIsShareDialogOpen(true)}
                         disabled={false}
                     />
@@ -444,7 +445,7 @@ export function FileActions() {
                                     <>
                                         <Dialog.Title class="dialog__title text-xl">Create Share Link</Dialog.Title>
                                         <Dialog.Description class="dialog__description">
-                                            <div class="flex gap-2 justify-end mt-4">
+                                            <div class="flex gap-2 justify-start mt-4">
                                                 <button
                                                     class="border border-secondary-border hover:bg-active-background px-4 py-2 cursor-pointer rounded"
                                                     onClick={() => setIsShareDialogOpen(false)}
@@ -452,7 +453,7 @@ export function FileActions() {
                                                     Cancel
                                                 </button>
                                                 <button
-                                                    class="text-white rounded border border-green-foreground text-primary-foreground bg-terminal-700 hover:bg-terminal px-4 py-2"
+                                                    class="text-white rounded border border-green-foreground text-primary-foreground bg-green-foreground hover:bg-terminal px-4 py-2 cursor-pointer"
                                                     onClick={shareFile}
                                                     disabled={isSharing()}
                                                 >
@@ -471,7 +472,7 @@ export function FileActions() {
                                         class="bg-main-background border border-main-border rounded px-3 py-2 w-full mt-4"
                                         value={shareLink()}
                                     />
-                                    <div class="flex gap-2 justify-end mt-4">
+                                    <div class="flex gap-2 justify-start mt-4">
                                         <button
                                             class="border border-secondary-border hover:bg-active-background px-4 py-2 cursor-pointer rounded"
                                             onClick={copyLink}
@@ -479,7 +480,7 @@ export function FileActions() {
                                             Copy
                                         </button>
                                         <button
-                                            class="text-white rounded border border-red-foreground text-primary-foreground bg-red-600 hover:bg-red-700 px-4 py-2"
+                                            class="text-white rounded border border-red-foreground text-primary-foreground bg-red-foreground hover:bg-flamingo-foreground px-4 py-2 cursor-pointer"
                                             onClick={unshareFile}
                                         >
                                             Unshare
@@ -503,7 +504,9 @@ function ActionButton(props) {
                 onClick={props.onClick}
                 disabled={props.disabled}
             >
-                <div class="px-2 py-2 flex items-center gap-2 text-gray-600">{props.icon}</div>
+                <div class="px-2 py-2 flex items-center gap-2 text-inactive-foreground hover:text-terminal text-[1.2rem] transition-colors">
+                    {props.icon}
+                </div>
             </Tooltip.Trigger>
             <Tooltip.Portal>
                 <Tooltip.Content class="tooltip__content">
