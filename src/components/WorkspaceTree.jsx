@@ -1,4 +1,4 @@
-import { createSignal, onMount } from "solid-js";
+import { createSignal, onMount, onCleanup } from "solid-js";
 import { supabase } from "../lib/supabase.js";
 import { FolderNode } from "./FolderNode.jsx";
 import { FileNode } from "./FileNode.jsx";
@@ -34,8 +34,6 @@ export function WorkspaceTree(props) {
 
         file.content = content;
     };
-
-    window.addEventListener("fileSaved", handleFileSaved);
 
     async function fetchFolderContents(folderId) {
         try {
@@ -176,9 +174,21 @@ export function WorkspaceTree(props) {
     };
 
     onMount(async () => {
-        if (props.folder.id && !props.folder.parentFolderId) {
-            await fetchFolderContents(props.folder.id);
+        async function refreshContents() {
+            if (props.folder.id && !props.folder.parentFolderId) {
+                await fetchFolderContents(props.folder.id);
+            }
         }
+
+        await refreshContents();
+
+        window.addEventListener("fileSaved", handleFileSaved);
+        window.addEventListener("newFileCreated", refreshContents);
+
+        onCleanup(() => {
+            window.removeEventListener("fileSaved", handleFileSaved);
+            window.removeEventListener("newFileCreated", refreshContents);
+        });
     });
 
     const createNewFolder = async () => {

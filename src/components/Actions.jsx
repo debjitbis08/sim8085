@@ -651,7 +651,7 @@ function ActionButton(props) {
     return (
         <Tooltip>
             <Tooltip.Trigger
-                class={`${props.isHidden ? "hidden" : ""} tooltip__trigger rounded hover:bg-active-background border border-transparent hover:border-active-border ${props.class}`}
+                class={`${props.isHidden ? "hidden" : ""} tooltip__trigger rounded hover:bg-active-background border border-transparent hover:border-active-border cursor-pointer ${props.class}`}
                 onClick={props.onClick}
                 disabled={props.disabled || props.isHidden}
             >

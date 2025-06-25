@@ -1,19 +1,31 @@
-import { store, setStore } from "../store/store.js";
+import { store, setStore, INITIAL_CODE } from "../store/store.js";
 import { Tooltip } from "./generic/Tooltip.jsx";
-import { FiSave } from "solid-icons/fi";
+import { FiSave, FiFilePlus } from "solid-icons/fi";
 import { supabase, getUser, onInit } from "../lib/supabase.js";
 import { getUserTier } from "../lib/subscription.js";
 import { v7 as uuidv7 } from "uuid";
-import { createSignal, onMount, createEffect } from "solid-js";
+import { createSignal, onMount, createEffect, onCleanup } from "solid-js";
 import { produce } from "solid-js/store";
 import { Dialog } from "./generic/Dialog.jsx";
 import { canCreateFile } from "../utils/fileSaveLimit.js";
+import { FaSolidAsterisk } from "solid-icons/fa";
 
 export function FileActions() {
     const [noSession, setNoSession] = createSignal(true);
     const [isDialogOpen, setIsDialogOpen] = createSignal(false);
     const [newFileName, setNewFileName] = createSignal(store.activeFile.name);
     const [isSaving, setIsSaving] = createSignal(false);
+
+    let resolveFileNamePromise = null;
+
+    function getFileNameFromDialog(initialName) {
+        setNewFileName(initialName);
+        setIsDialogOpen(true);
+
+        return new Promise((resolve) => {
+            resolveFileNamePromise = resolve;
+        });
+    }
 
     onMount(async () => {
         onInit(async () => {
@@ -27,6 +39,17 @@ export function FileActions() {
                 setNoSession(false);
             }
         });
+
+        const saveEventHandler = async (e) => {
+            const result = await saveFile();
+            if (result && typeof e.detail?.afterSave === "function") {
+                e.detail.afterSave();
+            }
+        };
+
+        window.addEventListener("saveActiveFile", saveEventHandler);
+
+        onCleanup(() => window.removeEventListener("saveActiveFile", saveEventHandler));
     });
 
     async function fetchUserId() {
@@ -45,7 +68,7 @@ export function FileActions() {
 
         if (!activeFile) {
             console.error("No active file to save.");
-            return;
+            return false;
         }
 
         const { id: userId, tier } = (await fetchUserId()) || { id: null, tier: "FREE" };
@@ -55,7 +78,7 @@ export function FileActions() {
                     detail: {},
                 }),
             );
-            return;
+            return false;
         }
 
         const allowed = await canCreateFile(userId, tier);
@@ -65,16 +88,33 @@ export function FileActions() {
                     detail: {},
                 }),
             );
-            return;
+            return false;
         }
 
+        let isNew = false;
         if (activeFile.workspaceItemId === null) {
             // If it's a new file, open the dialog to get the file name
-            setIsDialogOpen(true);
-            return;
+            // setIsDialogOpen(true);
+            // return false;
+            isNew = true;
+            const fileName = await getFileNameFromDialog(activeFile.name);
+            console.log("Got filename from dialog", fileName);
+            if (!fileName) return false;
+
+            setNewFileName(fileName); // Set again for safety
         }
 
+        setIsSaving(true);
         await saveFileToSupabase(userId);
+        setIsSaving(false);
+        if (isNew) {
+            window.dispatchEvent(
+                new CustomEvent("newFileCreated", {
+                    detail: {},
+                }),
+            );
+        }
+        return true;
     };
 
     const saveFileToSupabase = async (userId) => {
@@ -94,6 +134,8 @@ export function FileActions() {
 
         try {
             if (!activeFile.workspaceItemId) {
+                const temporaryName = store.activeFile.name;
+
                 // New file: Create entries in `workspace_items` and `files`
                 // Step 1: Insert into `workspace_items`
                 const { error: workspaceError } = await supabase.from("workspace_items").insert([
@@ -141,6 +183,16 @@ export function FileActions() {
                 );
 
                 localStorage.setItem("activeFile", JSON.stringify(store.activeFile));
+
+                const temporaryNameMatch = temporaryName.match(/^untitled-(\d+).asm$/);
+                if (Array.isArray(temporaryNameMatch) && temporaryNameMatch[1]) {
+                    try {
+                        const num = Number.parseInt(temporaryNameMatch[1], 10);
+                        localStorage.setItem("untitledCounter", (num - 1).toString());
+                    } catch (e) {
+                        // Nothing
+                    }
+                }
             } else {
                 // Existing file: Update the content of the current version
                 const { error: updateVersionError } = await supabase
@@ -162,9 +214,39 @@ export function FileActions() {
                     },
                 }),
             );
+            setStore("activeFile", "unsavedChanges", false);
+            localStorage.setItem("activeFile", JSON.stringify(store.activeFile));
         } catch (error) {
             console.error("Error saving file:", error.message);
         }
+    };
+
+    const createNewFileDirect = () => {
+        const counter = parseInt(localStorage.getItem("untitledCounter") || "1", 10) || 1;
+        const newName = `untitled-${counter}.asm`;
+        localStorage.setItem("untitledCounter", counter + 1);
+        setStore("activeFile", {
+            name: newName,
+            workspaceItemId: null,
+            currentVersionId: null,
+            content: INITIAL_CODE,
+            unsavedChanges: false,
+        });
+        localStorage.setItem("activeFile", JSON.stringify(store.activeFile));
+        setFileName(newName);
+        setNewFileName(newName);
+    };
+
+    const createNewFile = () => {
+        if (store.activeFile.unsavedChanges) {
+            window.dispatchEvent(
+                new CustomEvent("showUnsavedFileDialog", {
+                    detail: { onDiscard: createNewFileDirect, onAfterSave: createNewFileDirect },
+                }),
+            );
+            return;
+        }
+        createNewFileDirect();
     };
 
     const handleDialogSave = async () => {
@@ -174,29 +256,38 @@ export function FileActions() {
             return;
         }
 
-        const { userId, tier } = await fetchUserId();
-        if (!userId) {
-            window.dispatchEvent(
-                new CustomEvent("showPlusDialog", {
-                    detail: {},
-                }),
-            );
-            return;
-        }
-
-        const allowed = await canCreateFile(userId, tier);
-        if (!allowed) {
-            window.dispatchEvent(
-                new CustomEvent("showPlusDialog", {
-                    detail: {},
-                }),
-            );
-            return;
-        }
-
-        setIsSaving(true);
-        await saveFileToSupabase(userId);
+        resolveFileNamePromise?.(fileName);
+        resolveFileNamePromise = null;
         setIsDialogOpen(false);
+        //
+        // const { id: userId, tier } = await fetchUserId();
+        // if (!userId) {
+        //     window.dispatchEvent(
+        //         new CustomEvent("showPlusDialog", {
+        //             detail: {},
+        //         }),
+        //     );
+        //     return;
+        // }
+        //
+        // const allowed = await canCreateFile(userId, tier);
+        // if (!allowed) {
+        //     window.dispatchEvent(
+        //         new CustomEvent("showPlusDialog", {
+        //             detail: {},
+        //         }),
+        //     );
+        //     return;
+        // }
+        //
+        // setIsSaving(true);
+        // await saveFileToSupabase(userId);
+        // window.dispatchEvent(
+        //     new CustomEvent("newFileCreated", {
+        //         detail: {},
+        //     }),
+        // );
+        // setIsDialogOpen(false);
     };
 
     const [fileName, setFileName] = createSignal("");
@@ -208,8 +299,22 @@ export function FileActions() {
     return (
         <>
             <div class={`flex items-center gap-2 ${noSession() ? "hidden" : ""}`}>
-                <div>{fileName()}</div>
+                <div class="flex items-center gap-1">
+                    <span>{fileName()}</span>
+                    <span
+                        class={`${store.activeFile.unsavedChanges ? "" : "hidden"} text-[0.6rem] text-red-foreground`}
+                    >
+                        <FaSolidAsterisk />
+                    </span>
+                </div>
                 <div class="flex">
+                    <ActionButton
+                        icon={<FiFilePlus class="text-terminal" />}
+                        title="New File"
+                        shortcut="Ctrl + N"
+                        onClick={createNewFile}
+                        disabled={false}
+                    />
                     <ActionButton
                         icon={<FiSave class="text-terminal" />}
                         title="Save"
@@ -264,7 +369,7 @@ function ActionButton(props) {
     return (
         <Tooltip>
             <Tooltip.Trigger
-                class="tooltip__trigger rounded hover:bg-active-background border border-transparent hover:border-active-border"
+                class="tooltip__trigger rounded hover:bg-active-background border border-transparent hover:border-active-border cursor-pointer"
                 onClick={props.onClick}
                 disabled={props.disabled}
             >

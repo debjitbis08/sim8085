@@ -1,6 +1,7 @@
 import { createSignal, onMount, createMemo } from "solid-js";
 import { setStore, store } from "../store/store.js";
 import { CodeMirror } from "./codemirror/CodeMirror.jsx";
+import { produce } from "solid-js/store";
 
 export function CodingArea() {
     onMount(() => {
@@ -16,7 +17,15 @@ export function CodingArea() {
     });
 
     const handleContentChange = (newContent) => {
-        setStore("activeFile", "content", newContent);
+        setStore(
+            "activeFile",
+            produce((activeFile) => {
+                if (!activeFile.unsavedChanges) {
+                    activeFile.unsavedChanges = activeFile.content !== newContent;
+                }
+                activeFile.content = newContent;
+            }),
+        );
         if (store.assembled.length) {
             setStore("assembled", []);
         }

@@ -12,6 +12,7 @@ export default function CodeFormatter() {
             const formatted = formatLines(parsed.lines);
             setStore("activeFile", "content", formatted);
             setStore("errors", []);
+            setStore("activeFile", "unsavedChanges", true);
         } catch (e) {
             if (e.name && e.message && e.location) {
                 showToaster(

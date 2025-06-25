@@ -33,6 +33,7 @@ function getInitialActiveFile() {
             workspaceItemId: null,
             currentVersionId: null,
             content: INITIAL_CODE,
+            unsavedChanges: false,
         };
     }
 
@@ -46,6 +47,7 @@ function getInitialActiveFile() {
                 workspaceItemId: savedFile.workspaceItemId ?? null,
                 currentVersionId: savedFile.currentVersionId ?? null,
                 content: savedFile.content ?? INITIAL_CODE,
+                unsavedChanges: savedFile.unsavedChanges ?? false,
             };
         } catch (_) {
             // Fall through to create default file
@@ -59,6 +61,7 @@ function getInitialActiveFile() {
         workspaceItemId: null,
         currentVersionId: null,
         content: mainAsmCode || INITIAL_CODE,
+        unsavedChanges: false,
     };
 
     if (typeof window !== "undefined") {
