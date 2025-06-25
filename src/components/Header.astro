@@ -93,7 +93,7 @@ const avatarUrl = user?.user_metadata?.avatar_url; // Default avatar if none exi
                 <div x-data="userProfile" class="relative hidden md:block">
                     <template x-if="isLoggedIn">
                         <div class="relative">
-                            <button @click="toggleMenu" class="flex items-center focus:outline-none">
+                            <button @click="toggleMenu" class="flex items-center focus:outline-none cursor-pointer">
                                 <img :src="avatarUrl" alt="User Avatar"
                                     class="w-8 h-8 rounded-full" :class="{ 'hidden': !avatarUrl }">
                                 <div class="w-8 h-8 rounded-full text-primary-foreground flex items-center mx-auto" :class="{ 'hidden': !!avatarUrl }">
@@ -102,6 +102,10 @@ const avatarUrl = user?.user_metadata?.avatar_url; // Default avatar if none exi
                             </button>
                             <div x-show="menuOpen" @click.away="menuOpen = false"
                                  class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-700 rounded-md shadow-lg overflow-hidden z-10">
+                                <a href="/plus-status/"
+                                        class="block w-full px-4 py-2 text-sm text-left text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600">
+                                    Subscription Status
+                                </a>
                                 <button @click="logout"
                                         class="block w-full px-4 py-2 text-sm text-left text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600">
                                     Logout
@@ -147,7 +151,7 @@ const avatarUrl = user?.user_metadata?.avatar_url; // Default avatar if none exi
                 </button>
                 <div x-data="mobileMenu" class="relative block md:hidden">
                     <div class="relative">
-                        <button @click="menuOpen = !menuOpen" class="flex items-center focus:outline-none py-1">
+                        <button @click="menuOpen = !menuOpen" class="flex items-center focus:outline-none py-1 cursor-pointer">
                             <span
                                 class="w-8 h-8 rounded-full text-xl content-center text-inactive-foreground hover:text-active-foreground flex items-center justify-end">
                                 <Fragment set:html={MenuIcon}/>
@@ -156,6 +160,10 @@ const avatarUrl = user?.user_metadata?.avatar_url; // Default avatar if none exi
                         <div x-show="menuOpen" @click.away="menuOpen = false"
                              class="absolute right-0 mt-2 w-48 bg-secondary-background rounded-md shadow-lg overflow-hidden z-10">
                             <template x-if="isLoggedIn">
+                                <a href="/plus-status/"
+                                        class="block w-full px-4 py-2 text-sm text-left text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600">
+                                    Subscription Status
+                                </a>
                                 <button @click="logout"
                                         class="block w-full px-4 py-2 text-sm text-left text-active-foreground hover:bg-active-background">
                                     Logout
