@@ -1,3 +1,10 @@
+## [2.17.12](https://github.com/debjitbis08/sim8085/compare/v2.17.11...v2.17.12) (2025-06-26)
+
+
+### Bug Fixes
+
+* Fix ad sense push on load ([69f6761](https://github.com/debjitbis08/sim8085/commit/69f67615c1d468525d8d8061a843afe2f17ba9b7))
+
 ## [2.17.11](https://github.com/debjitbis08/sim8085/compare/v2.17.10...v2.17.11) (2025-06-26)
 
 
