@@ -1,3 +1,10 @@
+## [2.17.4](https://github.com/debjitbis08/sim8085/compare/v2.17.3...v2.17.4) (2025-06-26)
+
+
+### Bug Fixes
+
+* Enable workspace feature ([59773bd](https://github.com/debjitbis08/sim8085/commit/59773bd3dd00ec10a097177075157ed57ab80a0e))
+
 ## [2.17.3](https://github.com/debjitbis08/sim8085/compare/v2.17.2...v2.17.3) (2025-06-26)
 
 
