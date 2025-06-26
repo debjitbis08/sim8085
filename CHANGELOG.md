@@ -1,3 +1,10 @@
+## [2.17.13](https://github.com/debjitbis08/sim8085/compare/v2.17.12...v2.17.13) (2025-06-26)
+
+
+### Bug Fixes
+
+* Debug initial ad rendering ([a26f349](https://github.com/debjitbis08/sim8085/commit/a26f34928a47e4190138d2152c18b1f259c1e4ca))
+
 ## [2.17.12](https://github.com/debjitbis08/sim8085/compare/v2.17.11...v2.17.12) (2025-06-26)
 
 
