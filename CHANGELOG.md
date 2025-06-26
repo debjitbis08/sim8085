@@ -1,3 +1,10 @@
+## [2.17.3](https://github.com/debjitbis08/sim8085/compare/v2.17.2...v2.17.3) (2025-06-26)
+
+
+### Bug Fixes
+
+* Restrict right panel collapse for free tier ([3c7f67f](https://github.com/debjitbis08/sim8085/commit/3c7f67fb0b10361fb97a37b203e743e852d0ab40))
+
 ## [2.17.2](https://github.com/debjitbis08/sim8085/compare/v2.17.1...v2.17.2) (2025-06-26)
 
 
