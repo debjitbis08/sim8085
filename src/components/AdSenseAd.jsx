@@ -19,6 +19,7 @@ export default function AdSenseAd(props) {
                 try {
                     (window.adsbygoogle = window.adsbygoogle || []).push({});
                     pushStatus = "SUCCESS";
+                    console.log("Push Ad happened");
                 } catch (e) {
                     console.error("AdsbyGoogle push error:", e);
                     pushStatus = "NOT_STARTED";
@@ -70,11 +71,11 @@ export default function AdSenseAd(props) {
         }
     });
 
-    createEffect(() => {
-        if (!props.isHidden && initialized && ref && pushStatus == "NOT_STARTED") {
-            pushAd();
-        }
-    });
+    // createEffect(() => {
+    //     if (!props.isHidden && initialized && ref && pushStatus == "NOT_STARTED") {
+    //         pushAd();
+    //     }
+    // });
 
     return pubId ? (
         <AdContainer isHidden={props.isHidden}>
