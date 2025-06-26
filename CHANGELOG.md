@@ -1,3 +1,10 @@
+## [2.17.5](https://github.com/debjitbis08/sim8085/compare/v2.17.4...v2.17.5) (2025-06-26)
+
+
+### Bug Fixes
+
+* Improve workspace message ([4dd162c](https://github.com/debjitbis08/sim8085/commit/4dd162c9e42cdc844f4a5ff00fb5bd8e6bd7e2b8))
+
 ## [2.17.4](https://github.com/debjitbis08/sim8085/compare/v2.17.3...v2.17.4) (2025-06-26)
 
 
