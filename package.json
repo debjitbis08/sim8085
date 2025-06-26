@@ -2,7 +2,7 @@
     "name": "sim8085",
     "description": "Fast, accurate, and offline-capable Intel 8085 simulator with assembler and debugger. Works on desktop and mobile, no installation needed.",
     "type": "module",
-    "version": "2.17.14",
+    "version": "2.17.15",
     "private": true,
     "license": "BSD-3-Clause",
     "author": "Debjit Biswas",
