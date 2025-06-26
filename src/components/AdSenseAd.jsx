@@ -1,5 +1,6 @@
 import { onMount, createEffect } from "solid-js";
 import AdContainer from "./AdContainer.jsx";
+import { shouldLoadAds, loadAdSenseScript } from "../lib/adsense.js";
 
 const pubId = import.meta.env.PUBLIC_ADSENSE_PUB_ID ? `ca-${import.meta.env.PUBLIC_ADSENSE_PUB_ID}` : null;
 
@@ -37,39 +38,34 @@ export default function AdSenseAd(props) {
     onMount(() => {
         if (!pubId) return;
 
-        function loadScript() {
-            const existingScript = document.querySelector(`script[src*="adsbygoogle.js?client=${pubId}"]`);
-            if (!existingScript) {
-                const script = document.createElement("script");
-                script.async = true;
-                script.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${pubId}`;
-                script.crossOrigin = "anonymous";
-                script.onload = () => {
-                    initialized = true;
-                    if (!props.isHidden) pushAd();
-                };
-                document.head.appendChild(script);
-            } else {
-                initialized = true;
-                if (!props.isHidden) pushAd();
-            }
-        }
-
         const country = localStorage.getItem("user_country");
         const consent = localStorage.getItem("cookie_consent");
-        const shouldLoad = country && consent && (!isEEACountry(country) || consent === "yes");
+        const shouldLoad = shouldLoadAds(country, consent);
 
+        // For non EEA countries and cached consent
         if (shouldLoad) {
-            loadScript();
+            loadAdSenseScript(pubId, {
+                onLoad: () => {
+                    initialized = true;
+                    if (!props.isHidden) pushAd();
+                },
+            });
         } else {
+            // For EEA countries wait for fresh consent when not provided earlier
             const handler = (e) => {
-                const detail = e.detail || {};
-                if (!detail.country || !detail.consent) return;
-                if (!isEEACountry(detail.country) || detail.consent === "yes") {
-                    loadScript();
-                    window.removeEventListener("adsConsentGiven", handler);
-                }
+                const { consent } = e.detail || {};
+                if (consent !== "yes") return;
+
+                loadAdSenseScript(pubId, {
+                    onLoad: () => {
+                        initialized = true;
+                        if (!props.isHidden) pushAd();
+                    },
+                });
+
+                window.removeEventListener("adsConsentGiven", handler);
             };
+
             window.addEventListener("adsConsentGiven", handler);
         }
     });

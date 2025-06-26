@@ -143,3 +143,22 @@ document.addEventListener('alpine:init', () => {
         })
     }
 </script>
+
+<script>
+    import { shouldLoadAds, loadAdSenseScript } from "../lib/adsense.js";
+    const pubId = import.meta.env.PUBLIC_ADSENSE_PUB_ID ? "ca-" + import.meta.env.PUBLIC_ADSENSE_PUB_ID : null;
+
+    if (pubId) {
+        try {
+            const country = localStorage.getItem("user_country");
+            const consent = localStorage.getItem("cookie_consent");
+
+            if (shouldLoadAds(country, consent)) {
+                loadAdSenseScript(pubId);
+            }
+        } catch (e) {
+            console.warn("AdSense preload failed:", e);
+        }
+    }
+
+</script>
