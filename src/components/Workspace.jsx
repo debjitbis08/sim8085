@@ -131,22 +131,21 @@ export default function Workspace() {
                 <div class="workspace-placeholder p-2">
                     <h2 class="flex items-center gap-2">
                         <FaSolidLock class="text-yellow-foreground stroke-2 text-xl" />
-                        <span class="text-lg">Unlock your Workspace</span>
+                        <span class="text-lg">Unlock Full Workspace Access</span>
                     </h2>
                     <p class="mt-4" style={{ "line-height": "1.7rem" }}>
-                        With the <span class="bg-yellow-foreground text-black px-2 rounded-sm inline-block">Plus</span>{" "}
-                        plan.
+                        Logged-in users can save up to <strong>5 files</strong>. To unlock full workspace access,
+                        upgrade to the{" "}
+                        <span class="bg-yellow-foreground text-black px-2 rounded-sm inline-block">Plus</span> plan.
                     </p>
-                    <p class="mt-4 text-sm">
-                        Log in to access and purchase the one-time Plus plan to access these features.
-                    </p>
+                    <p class="mt-4 text-sm">It's a one-time upgrade — no subscriptions, no hassle.</p>
                     <div class="mt-6">
                         <button
                             type="button"
                             class="rounded bg-terminal hover:bg-terminal-700 p-2 w-full text-white"
                             onClick={openPlusDialog}
                         >
-                            Know More
+                            Learn More
                         </button>
                     </div>
                 </div>
