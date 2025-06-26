@@ -48,6 +48,7 @@ export default function AdSenseAd(props) {
             loadAdSenseScript(pubId, {
                 onLoad: () => {
                     setTimeout(() => {
+                        console.log("Ref in onLoad", ref);
                         initialized = true;
                         if (!props.isHidden) pushAd();
                     });
