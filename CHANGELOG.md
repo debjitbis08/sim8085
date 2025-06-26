@@ -1,3 +1,10 @@
+## [2.17.2](https://github.com/debjitbis08/sim8085/compare/v2.17.1...v2.17.2) (2025-06-26)
+
+
+### Bug Fixes
+
+* Do not ads for PLUS users ([fd64cc6](https://github.com/debjitbis08/sim8085/commit/fd64cc678ea868bace94f8d8bc9690fbfb55a506))
+
 ## [2.17.1](https://github.com/debjitbis08/sim8085/compare/v2.17.0...v2.17.1) (2025-06-26)
 
 
