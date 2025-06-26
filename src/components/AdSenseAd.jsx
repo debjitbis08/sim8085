@@ -10,16 +10,33 @@ export default function AdSenseAd(props) {
     let pushStatus = "NOT_STARTED";
 
     function pushAd() {
-        if (!ref || props.isHidden || pushStatus !== "NOT_STARTED") return;
+        if (props.isHidden && pushStatus !== "NOT_STARTED") return;
 
         pushStatus = "STARTED";
         let retries = 0;
+
         function tryPush() {
+            if (!ref) {
+                if (retries < 10) {
+                    retries++;
+                    setTimeout(tryPush, 200);
+                } else {
+                    console.warn("Ref not set after retries");
+                    pushStatus = "NOT_STARTED";
+                }
+                return;
+            }
+
+            if (props.isHidden) {
+                pushStatus = "NOT_STARTED";
+                return;
+            }
+
             if (ref.offsetWidth > 0) {
                 try {
                     (window.adsbygoogle = window.adsbygoogle || []).push({});
                     pushStatus = "SUCCESS";
-                    console.log("Push Ad happened");
+                    console.log("Push Ad Success");
                 } catch (e) {
                     console.error("AdsbyGoogle push error:", e);
                     pushStatus = "NOT_STARTED";
