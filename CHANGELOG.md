@@ -1,3 +1,10 @@
+## [2.17.8](https://github.com/debjitbis08/sim8085/compare/v2.17.7...v2.17.8) (2025-06-26)
+
+
+### Bug Fixes
+
+* Fix display of ad slot ([8218105](https://github.com/debjitbis08/sim8085/commit/82181058300f3fce22efb624193ac8792209735f))
+
 ## [2.17.7](https://github.com/debjitbis08/sim8085/compare/v2.17.6...v2.17.7) (2025-06-26)
 
 
