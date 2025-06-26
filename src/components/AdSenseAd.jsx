@@ -37,20 +37,40 @@ export default function AdSenseAd(props) {
     onMount(() => {
         if (!pubId) return;
 
-        const existingScript = document.querySelector(`script[src*="adsbygoogle.js?client=${pubId}"]`);
-        if (!existingScript) {
-            const script = document.createElement("script");
-            script.async = true;
-            script.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${pubId}`;
-            script.crossOrigin = "anonymous";
-            script.onload = () => {
+        function loadScript() {
+            const existingScript = document.querySelector(`script[src*="adsbygoogle.js?client=${pubId}"]`);
+            if (!existingScript) {
+                const script = document.createElement("script");
+                script.async = true;
+                script.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${pubId}`;
+                script.crossOrigin = "anonymous";
+                script.onload = () => {
+                    initialized = true;
+                    if (!props.isHidden) pushAd();
+                };
+                document.head.appendChild(script);
+            } else {
                 initialized = true;
                 if (!props.isHidden) pushAd();
-            };
-            document.head.appendChild(script);
+            }
+        }
+
+        const country = localStorage.getItem("user_country");
+        const consent = localStorage.getItem("cookie_consent");
+        const shouldLoad = country && consent && (!isEEACountry(country) || consent === "yes");
+
+        if (shouldLoad) {
+            loadScript();
         } else {
-            initialized = true;
-            if (!props.isHidden) pushAd();
+            const handler = (e) => {
+                const detail = e.detail || {};
+                if (!detail.country || !detail.consent) return;
+                if (!isEEACountry(detail.country) || detail.consent === "yes") {
+                    loadScript();
+                    window.removeEventListener("adsConsentGiven", handler);
+                }
+            };
+            window.addEventListener("adsConsentGiven", handler);
         }
     });
 

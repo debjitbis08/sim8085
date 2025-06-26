@@ -20,26 +20,56 @@
     import Alpine from 'alpinejs';
 
     const useTracking = document.querySelector('meta[name="posthog-use-tracking"]')?.content === "true";
+
+    async function getCountry() {
+        const cached = localStorage.getItem('user_country');
+        if (cached) return cached;
+        try {
+            const res = await fetch('/api/location/');
+            const data = await res.json();
+            localStorage.setItem('user_country', data.country);
+            return data.country;
+        } catch (e) {
+            return '';
+        }
+    }
+
+    getCountry();
+
     document.addEventListener('alpine:init', () => {
         Alpine.data('cookieBanner', () => ({
             showBanner: false,
             init() {
+                const storedCountry = localStorage.getItem('user_country');
+                const storedConsent = localStorage.getItem('cookie_consent');
+
+                if (storedCountry && storedConsent) {
+                    window.dispatchEvent(new CustomEvent('adsConsentGiven', { detail: { country: storedCountry, consent: storedConsent } }));
+                    return;
+                }
+
                 requestIdleCallback(() => {
-                    setTimeout(() => {
-                        this.showBanner = useTracking && localStorage.getItem('cookie_consent') !== 'yes' && localStorage.getItem('cookie_consent') !== 'no';
+                    setTimeout(async () => {
+                        const storedConsent = localStorage.getItem('cookie_consent');
+                        this.showBanner = useTracking && !storedConsent;
                     }, 1500);
                 });
             },
-            acceptCookies() {
+            async acceptCookies() {
+                const country = await getCountry();
                 localStorage.setItem('cookie_consent', 'yes');
+                window.dispatchEvent(new CustomEvent('adsConsentGiven', { detail: { country, consent: 'yes' } }));
                 this.showBanner = false;
                 if (window.posthog) {
                     posthog.set_config({ persistence: 'localStorage+cookie' });
                     import('./identify.js').then(mod => mod.identifyUser());
                 }
             },
-            declineCookies() {
+
+            async declineCookies() {
+                const country = await getCountry();
                 localStorage.setItem('cookie_consent', 'no');
+                window.dispatchEvent(new CustomEvent('adsConsentGiven', { detail: { country, consent: 'no' } }));
                 this.showBanner = false;
                 import('./identify.js').then(mod => mod.identifyUser());
             }
@@ -48,10 +78,10 @@
 </script>
 <style>
     @reference "tailwindcss";
-  .consent-button {
-      @apply px-4;
-      @apply py-2;
-      @apply cursor-pointer;
-      @apply rounded;
-  }
+    .consent-button {
+        @apply px-4;
+        @apply py-2;
+        @apply cursor-pointer;
+        @apply rounded;
+    }
 </style>
