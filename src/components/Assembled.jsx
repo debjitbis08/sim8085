@@ -211,7 +211,7 @@ export function Assembled(props) {
                                     );
                                 })}
                             </div>
-                            <Show when={false && store.errors.length > 0}>
+                            <Show when={store.errors.length > 0}>
                                 <div class="mt-4">
                                     <ExplainErrorButton error={store.errors[0]} code={store.codeWithError} />
                                 </div>
