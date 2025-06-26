@@ -1,3 +1,10 @@
+## [2.17.14](https://github.com/debjitbis08/sim8085/compare/v2.17.13...v2.17.14) (2025-06-26)
+
+
+### Bug Fixes
+
+* Wait for element in ad sense logic ([3689471](https://github.com/debjitbis08/sim8085/commit/3689471a194f4e432bc0702aacc60512e915530b))
+
 ## [2.17.13](https://github.com/debjitbis08/sim8085/compare/v2.17.12...v2.17.13) (2025-06-26)
 
 
