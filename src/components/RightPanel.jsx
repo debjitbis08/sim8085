@@ -5,22 +5,42 @@ import { Assembled } from "./Assembled";
 import { BiRegularDockRight, BiSolidDockRight } from "solid-icons/bi";
 import { VsLoading } from "solid-icons/vs";
 import debounce from "debounce";
+import { getUserTier } from "../lib/subscription.js";
+import { onInit } from "../lib/supabase.js";
 
 const LEDArray = lazy(() => import("./LEDArray.jsx"));
 
 export function RightPanel() {
     let [expanded, setExpanded] = createSignal(true);
     const [width, setWidth] = createSignal(300);
+    const [tier, setTier] = createSignal("FREE");
+
+    const getMinWidth = () => {
+        const base = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+        return 336 + base * 3;
+    };
 
     const toggleExpanded = () => {
+        const isMd = window.matchMedia("(min-width: 768px)").matches;
+        if (isMd && tier() === "FREE" && expanded()) {
+            window.dispatchEvent(new CustomEvent("showPlusDialog", { detail: {} }));
+            return;
+        }
+
         if (window.innerWidth <= 768) {
             setWidth(window.innerWidth * (window.innerWidth > 768 ? 0.3 : 1));
         }
         setExpanded((expanded) => !expanded);
     };
 
-    onMount(() => {
+    onMount(async () => {
         setWidth(window.innerWidth * (window.innerWidth > 768 ? 0.3 : 1));
+
+        onInit(async () => {
+            const { tier } = await getUserTier();
+            setTier(tier);
+        });
+
         const handleResize = debounce(() => {
             const isMd = window.matchMedia("(min-width: 768px)").matches;
             setExpanded(isMd);
@@ -61,9 +81,18 @@ export function RightPanel() {
                 e.preventDefault();
                 e.stopPropagation();
                 let newW = prev - e.movementX;
-                if (newW <= 32) {
-                    newW = 32;
-                    setExpanded(false);
+                const isMd = window.matchMedia("(min-width: 768px)").matches;
+                let minWidth = 32;
+                if (isMd && tier() === "FREE") {
+                    minWidth = getMinWidth();
+                }
+                if (newW <= minWidth) {
+                    newW = minWidth;
+                    if (minWidth === 32) {
+                        setExpanded(false);
+                    } else {
+                        setExpanded(true);
+                    }
                 } else {
                     setExpanded(true);
                 }
@@ -111,7 +140,7 @@ export function RightPanel() {
             </Tabs>
             <Tooltip placement="left">
                 <Tooltip.Trigger
-                    class={`tooltip__trigger ${expanded() ? "absolute top-2" : "fixed top-[calc(5rem-7px)]"} right-2 py-1 hidden md:block ml-auto mr-4`}
+                    class={`tooltip__trigger ${expanded() ? "absolute top-2" : "fixed top-[calc(5rem-7px)]"} right-2 py-1 hidden md:block ml-auto mr-4 cursor-pointer`}
                     onClick={toggleExpanded}
                 >
                     {expanded() ? <BiSolidDockRight /> : <BiRegularDockRight />}
