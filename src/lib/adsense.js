@@ -38,14 +38,18 @@ export function isEEACountry(code) {
 }
 
 export function shouldLoadAds(country, consent) {
-    return country && consent && (!isEEACountry(country) || consent === "yes");
+    return country != null && consent != null && (!isEEACountry(country) || consent === "yes");
 }
 
 export function loadAdSenseScript(pubId, { onLoad } = {}) {
     if (!pubId) return;
 
     const existing = document.querySelector(`script[src*="adsbygoogle.js?client=${pubId}"]`);
+
+    console.log("Existing script", existing);
+
     if (existing?.hasAttribute("data-loaded")) {
+        console.log("Adsense script already loaded. Calling onLoad");
         onLoad?.();
         return;
     }

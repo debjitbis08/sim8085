@@ -47,8 +47,10 @@ export default function AdSenseAd(props) {
         if (shouldLoad) {
             loadAdSenseScript(pubId, {
                 onLoad: () => {
-                    initialized = true;
-                    if (!props.isHidden) pushAd();
+                    setTimeout(() => {
+                        initialized = true;
+                        if (!props.isHidden) pushAd();
+                    });
                 },
             });
         } else {
@@ -71,22 +73,23 @@ export default function AdSenseAd(props) {
         }
     });
 
-    // createEffect(() => {
-    //     if (!props.isHidden && initialized && ref && pushStatus == "NOT_STARTED") {
-    //         pushAd();
-    //     }
-    // });
+    createEffect(() => {
+        if (!props.isHidden && initialized && ref && pushStatus == "NOT_STARTED") {
+            pushAd();
+        }
+    });
 
     return pubId ? (
         <AdContainer isHidden={props.isHidden}>
             <ins
-                ref={(el) => (ref = el)}
+                ref={ref}
                 class="adsbygoogle"
                 style="display:block"
                 data-ad-client={pubId}
                 data-ad-slot="1459633275"
                 data-ad-format="fluid"
                 data-full-width-responsive="false"
+                data-adtest="on"
             ></ins>
         </AdContainer>
     ) : null;
