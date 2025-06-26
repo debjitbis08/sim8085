@@ -1,3 +1,10 @@
+## [2.17.11](https://github.com/debjitbis08/sim8085/compare/v2.17.10...v2.17.11) (2025-06-26)
+
+
+### Bug Fixes
+
+* Add better ad container visibility logic ([b3fb9d6](https://github.com/debjitbis08/sim8085/commit/b3fb9d6f99a080092f83276fd4c02e6214ba06af))
+
 ## [2.17.10](https://github.com/debjitbis08/sim8085/compare/v2.17.9...v2.17.10) (2025-06-26)
 
 
