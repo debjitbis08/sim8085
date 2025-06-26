@@ -1,3 +1,10 @@
+## [2.17.16](https://github.com/debjitbis08/sim8085/compare/v2.17.15...v2.17.16) (2025-06-26)
+
+
+### Bug Fixes
+
+* Debug ref during ad load ([2721c2d](https://github.com/debjitbis08/sim8085/commit/2721c2db029ec710ea9f261ef9b508c018182205))
+
 ## [2.17.15](https://github.com/debjitbis08/sim8085/compare/v2.17.14...v2.17.15) (2025-06-26)
 
 
