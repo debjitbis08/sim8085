@@ -1,3 +1,10 @@
+## [2.17.6](https://github.com/debjitbis08/sim8085/compare/v2.17.5...v2.17.6) (2025-06-26)
+
+
+### Bug Fixes
+
+* Fix cookie banner ([bac9982](https://github.com/debjitbis08/sim8085/commit/bac998237497eca2424657e3a15bfb7bb08178c9))
+
 ## [2.17.5](https://github.com/debjitbis08/sim8085/compare/v2.17.4...v2.17.5) (2025-06-26)
 
 
