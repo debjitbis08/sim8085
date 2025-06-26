@@ -44,8 +44,8 @@ export default function AdContainer(props) {
         );
     };
 
-    return tier() === "PLUS" || tier() === "LOADING" || props.isHidden ? null : (
-        <div class="mt-auto relative">
+    return tier() === "PLUS" || tier() === "LOADING" ? null : (
+        <div class={`mt-auto relative ${props.isHidden ? "hidden" : ""}`}>
             {props.children}
             <div
                 title="Upgrade"
