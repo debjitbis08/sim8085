@@ -89,7 +89,6 @@ export default function AdSenseAd(props) {
                 data-ad-slot="1459633275"
                 data-ad-format="fluid"
                 data-full-width-responsive="false"
-                data-adtest="on"
             ></ins>
         </AdContainer>
     ) : null;
