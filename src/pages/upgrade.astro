@@ -1,118 +1,164 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { FaSolidFolder, FaSolidShareNodes, FaSolidRobot } from 'solid-icons/fa';
+import { FaSolidFolder, FaSolidShareNodes, FaSolidRobot, FaSolidHeart, FaSolidCircleCheck } from 'solid-icons/fa';
 import { VsLoading } from 'solid-icons/vs';
 import RazorPayIcon from '../icons/razorpay.svg';
 ---
 
-<Layout title="Upgrade to Plus | Sim8085" showActions={false} fullwidth={false} fullHeight={false}>
-    <main class="mx-auto py-8 px-4" x-data="payment" x-init="init">
-        <h1 class="text-2xl mb-6 font-bold">Upgrade to Sim8085 Plus</h1>
-        <div class="my-4">
-            <div class="flex items-center gap-4 pb-8">
-                <div class="text-2xl text-green-600 bg-green-200 w-12 h-12 rounded flex items-center justify-center">
-                    <FaSolidFolder />
-                </div>
-                <div>
-                    <h3 class={"mb-1"}>Save and Organize Files</h3>
-                    <p class="text-sm text-secondary-foreground">
-                        Save up to 5 files on the free plan. Go Plus for unlimited saves and
-                        better workspace management.
-                    </p>
-                </div>
+<Layout title="Sim8085 Plus – Pricing & Benefits" showActions={false} fullwidth={false} fullHeight={false}>
+  <main class="mx-auto py-10 px-4 max-w-3xl" x-data="payment" x-init="init">
+    <h1 class="text-3xl font-bold mb-6 text-center">Sim8085 Plus</h1>
+
+    <!-- Pricing Highlight Box -->
+    <div class="bg-yellow-foreground/10 border border-yellow-400 rounded-lg p-6 mb-2 text-center text-text">
+      <p class="text-lg font-semibold text-text">One-Time Payment</p>
+      <p class="text-xl font-bold my-2">
+        <span class="line-through text-gray-500 mr-1">₹699</span>
+        <span class="text-terminal">₹349 only</span>
+      </p>
+            <p class="text-sm flex items-center gap-2 justify-center">
+                <FaSolidCircleCheck class="text-terminal"/>
+                <span>
+                Valid for 6 months
+                </span>
+            </p>
+    </div>
+
+    <p class="text-xs text-inactive-foreground mt-2 text-center mb-8">
+    🌍 International users: Price is ₹349 (~$4 USD). Card payments may work. Contact us if you face any issues.
+    </p>
+
+    <!-- Feature List -->
+    <div class="space-y-6 mb-10">
+
+        <div class="flex items-start gap-4">
+            <div class={`text-2xl text-green-600 bg-green-200 w-12 h-12 rounded flex items-center justify-center`}>
+                <FaSolidFolder />
             </div>
-            <div class="flex items-center gap-4 pb-8">
-                <div class="text-2xl text-blue-600 bg-blue-200 w-12 h-12 rounded flex items-center justify-center">
-                    <FaSolidShareNodes />
-                </div>
-                <div>
-                    <h3 class="mb-1">Public Share Links</h3>
-                    <p class="text-sm text-secondary-foreground">
-                        Share your 8085 programs with anyone using a simple link.
-                    </p>
-                </div>
-            </div>
-            <div class="flex items-center gap-4 pb-8">
-                <div class="text-2xl text-purple-600 bg-purple-200 w-12 h-12 rounded flex items-center justify-center">
-                    <FaSolidRobot />
-                </div>
-                <div>
-                    <h3 class="mb-1">AI Help for Assembler Errors</h3>
-                    <p class="text-sm text-secondary-foreground">
-                        Confused by assembler errors? Let AI explain what went wrong and how to
-                        fix it.
-                    </p>
-                </div>
-            </div>
-            {/*
-            <div class="flex items-center gap-4 pb-8">
-                <div class="text-3xl text-blue-600 bg-blue-200 w-12 h-12 rounded flex items-center justify-center">
-                    <FaSolidGraduationCap />
-                </div>
-                <div>
-                    <h3 class="flex items-center gap-2 mb-1">
-                        <span>Step-by-Step Tutorials</span>
-                        <span class="bg-terminal-200 text-terminal rounded px-2 py-1 uppercase text-[0.6rem]">
-                            Coming Soon
-                        </span>
-                    </h3>
-                    <p class="text-sm text-secondary-foreground">
-                        Master 8085 ALP with easy, step-by-step tutorials.
-                    </p>
-                </div>
-            </div>
-            */}
-        </div>
-        <div class="mb-4">
-            <ul class="space-y-3">
-                <li>
-                    ✅ One-time payment  
-                </li>
-                <li>
-                    🕕 Valid for 6 months  
-                </li>
-                <li class="text-lg">
-                    💸 
-                    <span class="text-secondary-foreground line-through decoration-double decoration-red-500">₹699</span> ₹349 only
-                </li>
-            </ul>
-        </div>
-        <template x-if="isLoading">
-            <div class="flex items-center gap-2">
-                <VsLoading class="animate-spin" />
-                <span class="text-sm text-inactive-foreground">Loading Plus status...</span>
-            </div>
-        </template>
-        <template x-if="!user && !isLoading">
-            <div class="text-left">
-                <p class="mb-4">Please login to continue.</p>
-                <a href="/login/" class="px-4 py-2 bg-yellow-foreground hover:bg-orange-foreground text-gray-900 font-bold rounded">Login</a>
-            </div>
-        </template>
-        <template x-if="user && !isPlus && !isLoading">
             <div>
-                <div>
-                    <a class="bg-yellow-foreground hover:bg-orange-foreground rounded px-6 py-3 text-gray-900 font-bold inline-flex items-center gap-2 cursor-pointer" href="https://rzp.io/rzp/sim8085plus">
-                        <span>
-                            <RazorPayIcon width={16} height={16}/>
-                        </span>
-                        <span>
-                            Pay with Razorpay
-                        </span>
-                    </a>
-                </div>
+                <h3 class="font-semibold mb-1">Save and Organize Files</h3>
+                <p class="text-sm text-secondary-foreground">Save up to 5 files on the free plan. Go Plus for unlimited saves and better workspace management.</p>
             </div>
-        </template>
-        <template x-if="isPlus && !isLoading">
-            <div class="text-left bg-secondary-background border border-terminal rounded p-4 pb-5">
-                <p class="text-green-foreground font-medium mb-2">✅ You already have Sim8085 Plus!</p>
-                <p class="text-sm text-secondary-foreground mb-4">
-                    Thank you for supporting Sim8085. Enjoy all the premium features.
+        </div>
+        <div class="flex items-start gap-4">
+            <div class={`text-2xl text-blue-600 bg-blue-200 w-12 h-12 rounded flex items-center justify-center`}>
+                <FaSolidShareNodes />
+            </div>
+            <div>
+                <h3 class="font-semibold mb-1">Public Share Links</h3>
+                <p class="text-sm text-secondary-foreground">Share your 8085 programs with anyone using a simple link.</p>
+            </div>
+        </div>
+        <div class="flex items-start gap-4">
+            <div class={`text-2xl text-purple-600 bg-purple-200 w-12 h-12 rounded flex items-center justify-center`}>
+                <FaSolidRobot />
+            </div>
+            <div>
+                <h3 class="font-semibold mb-1">AI Help for Assembler Errors</h3>
+                <p class="text-sm text-secondary-foreground">Confused by assembler errors? Let AI explain what went wrong and how to fix it.</p>
+            </div>
+        </div>
+        <div class="flex items-start gap-4">
+            <div class="text-2xl text-yellow-600 bg-yellow-200 w-12 h-12 rounded flex items-center justify-center">
+                <FaSolidHeart />
+            </div>
+            <div>
+                <h3 class="font-semibold mb-1">Support Development</h3>
+                <p class="text-sm text-secondary-foreground">
+                Sim8085 is built with love to help students. Your support keeps it ad-free, maintained, and evolving.
                 </p>
-                <a href="/" class="px-4 py-2 bg-terminal-700 hover:bg-terminal-600 text-gray-100 rounded transition-colors">Back to Sim8085</a>
             </div>
-        </template>
-    </main>
+        </div>
+
+    </div>
+
+    <p class="text-sm text-center text-secondary-foreground mt-6 mb-8">
+        ✨ More exciting features are planned for <strong>both Free and Plus users</strong>. <span class="text-terminal font-semibold">Your support helps make it happen.</span>
+    </p>
+
+    <!-- Plan Comparison Table -->
+    <div class="overflow-x-auto border border-border rounded mb-10 hidden">
+    <table class="min-w-full text-sm text-left text-gray-300 bg-background">
+        <thead class="text-xs uppercase bg-border text-gray-400">
+        <tr>
+            <th class="px-4 py-3">Feature</th>
+            <th class="px-4 py-3 text-center">Free</th>
+            <th class="px-4 py-3 text-center">Plus</th>
+        </tr>
+        </thead>
+        <tbody class="divide-y divide-border">
+        <tr>
+            <td class="px-4 py-3">File Saves</td>
+            <td class="px-4 py-3 text-center">Up to 5</td>
+            <td class="px-4 py-3 text-center font-semibold text-green-400">Unlimited</td>
+        </tr>
+        <tr>
+            <td class="px-4 py-3">Public Share Links</td>
+            <td class="px-4 py-3 text-center text-red-500">✘</td>
+            <td class="px-4 py-3 text-center text-green-400 font-bold">✔</td>
+        </tr>
+        <tr>
+            <td class="px-4 py-3">AI Help for Assembler Errors</td>
+            <td class="px-4 py-3 text-center text-red-500">✘</td>
+            <td class="px-4 py-3 text-center text-green-400 font-bold">✔</td>
+        </tr>
+        <tr>
+            <td class="px-4 py-3">Step-by-Step Tutorials</td>
+            <td class="px-4 py-3 text-center">Limited</td>
+            <td class="px-4 py-3 text-center font-semibold">Full Access <span class="text-xs">(Coming Soon)</span></td>
+        </tr>
+        <tr>
+            <td class="px-4 py-3">Support Development</td>
+            <td class="px-4 py-3 text-center">–</td>
+            <td class="px-4 py-3 text-center">✅ You're amazing ❤️</td>
+        </tr>
+        <tr class="bg-yellow-800/30">
+            <td class="px-4 py-3 font-semibold text-white">Price</td>
+            <td class="px-4 py-3 text-center font-semibold">Free</td>
+            <td class="px-4 py-3 text-center font-bold text-yellow-300">₹349 / 6 months</td>
+        </tr>
+        </tbody>
+    </table>
+    </div>
+
+    <!-- Loading State -->
+    <template x-if="isLoading">
+      <div class="flex items-center gap-2">
+        <VsLoading class="animate-spin" />
+        <span class="text-sm text-inactive-foreground">Checking status...</span>
+      </div>
+    </template>
+
+    <!-- Not Logged In -->
+    <template x-if="!user && !isLoading">
+      <div class="text-center">
+        <p class="mb-4">Please login to continue.</p>
+        <a href="/login/" class="px-5 py-2 bg-yellow-foreground hover:bg-orange-foreground text-gray-900 font-bold rounded">
+          Login
+        </a>
+      </div>
+    </template>
+
+    <!-- Show Pay Button -->
+    <template x-if="user && !isPlus && !isLoading">
+      <div class="text-center">
+        <a href="https://rzp.io/rzp/sim8085plus"
+          class="bg-yellow-foreground hover:bg-orange-foreground px-6 py-3 text-gray-900 font-bold inline-flex items-center gap-2 rounded">
+          <RazorPayIcon width={16} height={16} />
+          <span>Pay with Razorpay</span>
+        </a>
+      </div>
+    </template>
+
+    <!-- Already Subscribed -->
+    <template x-if="isPlus && !isLoading">
+      <div class="bg-secondary-background border border-terminal rounded p-5 text-left">
+        <p class="text-green-foreground font-medium mb-2">✅ You already have Sim8085 Plus!</p>
+        <p class="text-sm text-secondary-foreground mb-4">Thank you for supporting Sim8085. Enjoy all the premium features.</p>
+        <a href="/" class="px-4 py-2 bg-terminal-700 hover:bg-terminal-600 text-white rounded">Back to Sim8085</a>
+      </div>
+    </template>
+  </main>
 </Layout>
 
 <script>
@@ -121,27 +167,21 @@ import { getUser } from '../lib/supabase.js';
 import { getUserTier } from '../lib/subscription.js';
 
 document.addEventListener('alpine:init', () => {
-    Alpine.data('payment', () => ({
-        isLoading: true,
-        user: null,
-        isPlus: false,
+  Alpine.data('payment', () => ({
+    isLoading: true,
+    user: null,
+    isPlus: false,
 
-        async init() {
-            const { user } = await getUser();
-            this.user = user;
+    async init() {
+      const { user } = await getUser();
+      this.user = user;
 
-            if (!user) {
-                this.isLoading = false;
-                return;
-            }
+      if (!user) return this.isLoading = false;
 
-            const { tier } = await getUserTier();
-
-            if (tier === "PLUS") {
-                this.isPlus = true;
-            }
-            this.isLoading = false;
-        },
-    }));
+      const { tier } = await getUserTier();
+      this.isPlus = tier === 'PLUS';
+      this.isLoading = false;
+    }
+  }));
 });
 </script>
