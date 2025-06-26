@@ -1,3 +1,10 @@
+## [2.17.7](https://github.com/debjitbis08/sim8085/compare/v2.17.6...v2.17.7) (2025-06-26)
+
+
+### Bug Fixes
+
+* Enable explain with AI feature ([916d80a](https://github.com/debjitbis08/sim8085/commit/916d80abb45eeeb8f8fb4aae44a04b630da40447))
+
 ## [2.17.6](https://github.com/debjitbis08/sim8085/compare/v2.17.5...v2.17.6) (2025-06-26)
 
 
