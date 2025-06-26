@@ -1,3 +1,10 @@
+## [2.17.17](https://github.com/debjitbis08/sim8085/compare/v2.17.16...v2.17.17) (2025-06-26)
+
+
+### Bug Fixes
+
+* Wait for ref el in ad ([77195b3](https://github.com/debjitbis08/sim8085/commit/77195b3dd1acd50a8ea8629dc86ed80d6441ae1c))
+
 ## [2.17.16](https://github.com/debjitbis08/sim8085/compare/v2.17.15...v2.17.16) (2025-06-26)
 
 
