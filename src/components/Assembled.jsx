@@ -225,7 +225,9 @@ export function Assembled(props) {
                         </div>
                     </div>
                 </div>
-                <AdSwitcher isHidden={store.assembled.length > 0 || store.errors.length > 0 || props.isPanelExpanded} />
+                <AdSwitcher
+                    isHidden={store.assembled.length > 0 || store.errors.length > 0 || !props.isPanelExpanded}
+                />
             </div>
         </div>
     );
