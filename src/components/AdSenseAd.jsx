@@ -71,7 +71,7 @@ export default function AdSenseAd(props) {
     });
 
     createEffect(() => {
-        if (!props.isHidden && initialized) {
+        if (!props.isHidden && initialized && ref && pushStatus == "NOT_STARTED") {
             pushAd();
         }
     });
