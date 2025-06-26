@@ -1,13 +1,19 @@
-import { onMount, createEffect } from "solid-js";
+import { onMount, createEffect, onCleanup, createSignal, createMemo } from "solid-js";
 import AdContainer from "./AdContainer.jsx";
 import { shouldLoadAds, loadAdSenseScript } from "../lib/adsense.js";
 
 const pubId = import.meta.env.PUBLIC_ADSENSE_PUB_ID ? `ca-${import.meta.env.PUBLIC_ADSENSE_PUB_ID}` : null;
 
+function track(event, props = {}) {
+    if (window.posthog) posthog.capture(event, props);
+}
+
 export default function AdSenseAd(props) {
     let ref = null;
     let initialized = false;
     let pushStatus = "NOT_STARTED";
+
+    const [adKey, setAdKey] = createSignal(Math.random().toString(36).slice(2));
 
     function pushAd() {
         if (props.isHidden && pushStatus !== "NOT_STARTED") return;
@@ -37,8 +43,11 @@ export default function AdSenseAd(props) {
                     (window.adsbygoogle = window.adsbygoogle || []).push({});
                     pushStatus = "SUCCESS";
                     console.log("Push Ad Success");
+                    track("ad pushed");
+                    startVisibilityTracking();
                 } catch (e) {
                     console.error("AdsbyGoogle push error:", e);
+                    track("ad push failed", { error: String(e) });
                     pushStatus = "NOT_STARTED";
                 }
             } else if (retries < 10) {
@@ -53,6 +62,67 @@ export default function AdSenseAd(props) {
         tryPush();
     }
 
+    let visibilityTimer = null;
+    let visibleAccumulated = 0;
+    let visibleStartTime = null;
+
+    function rotateAd(elapsed) {
+        if (props.isHidden) return;
+
+        track("ad rotated", { totalVisibleTime: elapsed });
+
+        visibleStartTime = null;
+        visibleAccumulated = 0;
+        pushStatus = "NOT_STARTED";
+        setAdKey(Math.random().toString(36).slice(2));
+        setTimeout(pushAd, 10);
+    }
+
+    function startVisibilityTracking() {
+        if (visibilityTimer || props.isHidden) return;
+
+        if (!visibleStartTime) {
+            visibleStartTime = Date.now(); // only start if not already tracking
+        }
+
+        track("ad visibility started");
+
+        function checkVisibility() {
+            if (props.isHidden) {
+                // accumulate visible time so far
+                if (visibleStartTime) {
+                    visibleAccumulated += (Date.now() - visibleStartTime) / 1000;
+                    visibleStartTime = null;
+                }
+                visibilityTimer = null;
+                track("ad visibility paused", { totalSoFar: visibleAccumulated });
+                return;
+            }
+
+            const elapsed = visibleAccumulated + (Date.now() - visibleStartTime) / 1000;
+
+            if (elapsed >= 180) {
+                rotateAd(elapsed);
+            } else {
+                visibilityTimer = setTimeout(checkVisibility, 1000);
+            }
+        }
+
+        visibilityTimer = setTimeout(checkVisibility, 1000);
+    }
+
+    function stopVisibilityTracking() {
+        if (visibleStartTime) {
+            visibleAccumulated += (Date.now() - visibleStartTime) / 1000;
+            visibleStartTime = null;
+        }
+
+        clearTimeout(visibilityTimer);
+        visibilityTimer = null;
+
+        track("ad visibility stopped", { totalVisibleTime: visibleAccumulated });
+    }
+
     onMount(() => {
         if (!pubId) return;
 
@@ -65,7 +135,7 @@ export default function AdSenseAd(props) {
             loadAdSenseScript(pubId, {
                 onLoad: () => {
                     setTimeout(() => {
-                        console.log("Ref in onLoad", ref);
+                        track("ad loaded");
                         initialized = true;
                         if (!props.isHidden) pushAd();
                     });
@@ -79,6 +149,7 @@ export default function AdSenseAd(props) {
 
                 loadAdSenseScript(pubId, {
                     onLoad: () => {
+                        track("ad loaded");
                         initialized = true;
                         if (!props.isHidden) pushAd();
                     },
@@ -92,15 +163,24 @@ export default function AdSenseAd(props) {
     });
 
     createEffect(() => {
-        if (!props.isHidden && initialized && ref && pushStatus == "NOT_STARTED") {
+        if (!props.isHidden && initialized && ref && pushStatus === "NOT_STARTED") {
             pushAd();
+            startVisibilityTracking();
+        } else if (props.isHidden) {
+            stopVisibilityTracking();
         }
     });
 
-    return pubId ? (
-        <AdContainer isHidden={props.isHidden}>
+    onCleanup(() => {
+        stopVisibilityTracking();
+    });
+
+    const adNode = createMemo(() => {
+        const key = adKey();
+        return (
             <ins
-                ref={ref}
+                data-key={key}
+                ref={(el) => (ref = el)}
                 class="adsbygoogle"
                 style="display:block"
                 data-ad-client={pubId}
@@ -108,6 +188,20 @@ export default function AdSenseAd(props) {
                 data-ad-format="fluid"
                 data-full-width-responsive="false"
             ></ins>
+        );
+    });
+
+    return pubId ? (
+        <AdContainer isHidden={props.isHidden}>{adNode()}</AdContainer>
+    ) : (
+        <BlankAd isHidden={props.isHidden} />
+    );
+}
+
+function BlankAd(props) {
+    return (
+        <AdContainer isHidden={props.isHidden}>
+            <div class="w-[336px] h-[220px] border border-red-foreground"></div>
         </AdContainer>
-    ) : null;
+    );
 }

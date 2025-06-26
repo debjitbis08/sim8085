@@ -49,11 +49,10 @@ export default function AdContainer(props) {
             <div class={`mt-auto relative ${props.isHidden ? "hidden" : ""}`}>
                 {props.children}
                 <div
-                    title="Upgrade"
-                    class="absolute top-[-10px] right-[-5px] border border-inactive-border hover:border-active-border bg-secondary-background hover:bg-main-background text-secondary-foreground hover:text-active-foreground px-2 py-0 rounded-full cursor-pointer"
+                    class="text-[0.8rem] absolute top-[-20px] left-0 text-inactive-foreground hover:text-active-foreground hover:underline cursor-pointer"
                     onClick={openPlusDialog}
                 >
-                    &times;
+                    Hide Ad
                 </div>
             </div>
         </Show>
