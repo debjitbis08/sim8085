@@ -29,12 +29,10 @@ export function LeftPanel() {
     const [expanded, setExpanded] = createSignal(true);
     const [width, setWidth] = createSignal(300);
     const [isOnline, setIsOnline] = createSignal(false);
-    const [workspaceEnabled, setWorkspaceEnabled] = createSignal(false);
+    const [workspaceEnabled, setWorkspaceEnabled] = createSignal(true);
     const [noSession, setNoSession] = createSignal(true);
 
     onMount(() => {
-        setWorkspaceEnabled(localStorage.getItem("feature:workspace") === "true");
-
         onInit(async () => {
             const result = await getUser();
 
@@ -131,7 +129,7 @@ export function LeftPanel() {
                 </div>
                 <div class="h-[0.1rem] bg-secondary-foreground w-5 hidden md:block"></div>
 
-                <div class={workspaceEnabled() ? "" : "hidden"}>
+                <div>
                     <PanelButton
                         icon={<FiFolder />}
                         isActive={isActive("workspace")}

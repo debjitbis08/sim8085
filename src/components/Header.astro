@@ -227,11 +227,8 @@ const avatarUrl = user?.user_metadata?.avatar_url; // Default avatar if none exi
 
     document.addEventListener('alpine:init', () => {
         Alpine.data('workspace', () => ({
-            workspaceEnabled: false,
+            workspaceEnabled: true,
 
-            init() {
-                this.workspaceEnabled = localStorage.getItem('feature:workspace') === 'true';
-            }
         }));
 
         Alpine.data('userProfile', () => ({
