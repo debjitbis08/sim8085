@@ -1,3 +1,10 @@
+## [2.17.1](https://github.com/debjitbis08/sim8085/compare/v2.17.0...v2.17.1) (2025-06-26)
+
+
+### Bug Fixes
+
+* Fix consent for ads ([d2ed49d](https://github.com/debjitbis08/sim8085/commit/d2ed49dc26cdae1f7599ba3f7f29daee73694d92))
+
 # [2.17.0](https://github.com/debjitbis08/sim8085/compare/v2.16.15...v2.17.0) (2025-06-26)
 
 
