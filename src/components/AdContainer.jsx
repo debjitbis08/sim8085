@@ -44,16 +44,20 @@ export default function AdContainer(props) {
         );
     };
 
-    return tier() === "PLUS" || tier() === "LOADING" ? null : (
-        <div class={`mt-auto relative ${props.isHidden ? "hidden" : ""}`}>
-            {props.children}
-            <div
-                title="Upgrade"
-                class="absolute top-[-10px] right-[-5px] border border-inactive-border hover:border-active-border bg-secondary-background hover:bg-main-background text-secondary-foreground hover:text-active-foreground px-2 py-0 rounded-full cursor-pointer"
-                onClick={openPlusDialog}
-            >
-                &times;
-            </div>
+    return (
+        <div>
+            {tier() === "PLUS" || tier() === "LOADING" ? null : (
+                <div class={`mt-auto relative ${props.isHidden ? "hidden" : ""}`}>
+                    {props.children}
+                    <div
+                        title="Upgrade"
+                        class="absolute top-[-10px] right-[-5px] border border-inactive-border hover:border-active-border bg-secondary-background hover:bg-main-background text-secondary-foreground hover:text-active-foreground px-2 py-0 rounded-full cursor-pointer"
+                        onClick={openPlusDialog}
+                    >
+                        &times;
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
