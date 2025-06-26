@@ -8,6 +8,7 @@ const titleMap = {
     aiExplanation: "AI Help is a Plus feature",
     shareLink: "Sharing is for Plus users",
     notLoggedIn: "Sign in to Save Your Work",
+    ads: "Remove Ads with Plus",
     default: "Your Support Keeps Sim8085 Running — Go Plus Today!",
 };
 
@@ -16,6 +17,7 @@ const subtitleMap = {
     aiExplanation: "AI explanations are available only to Plus users. Get smarter debugging today.",
     shareLink: "Share your code with a link — available for Plus users only.",
     notLoggedIn: "You need to log in to save your code and access additional features.",
+    ads: "Enjoy a clean and distraction-free experience by upgrading.",
     default: "Enjoy unlimited saves, AI help, and sharing with a one-time upgrade.",
 };
 

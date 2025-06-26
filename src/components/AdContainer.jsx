@@ -1,24 +1,23 @@
-import { createSignal, onMount, createEffect } from "solid-js";
+import { createSignal, onMount } from "solid-js";
 import { supabase, getUser } from "../lib/supabase.js";
 
 export default function AdContainer(props) {
-    const [visible, setVisible] = createSignal(false);
-    const [tier, setTier] = createSignal("FREE");
+    const [tier, setTier] = createSignal("LOADING");
 
     async function checkTier() {
         if (!supabase) {
-            setVisible(!props.isHidden);
+            setTier("FREE");
             return;
         }
 
         const { user, error } = await getUser();
         if (error && error.name === "AuthSessionMissingError") {
-            setVisible(!props.isHidden);
+            setTier("FREE");
             return;
         }
 
         if (error || !user) {
-            setVisible(!props.isHidden);
+            setTier("FREE");
             return;
         }
 
@@ -30,33 +29,27 @@ export default function AdContainer(props) {
 
         if (!tierError && data?.subscription_tier) {
             setTier(data.subscription_tier);
+        } else {
+            setTier("FREE");
         }
     }
 
     onMount(checkTier);
 
-    createEffect(() => {
-        if (tier() !== "PLUS" && !props.isHidden) {
-            setVisible(true);
-        } else {
-            setVisible(false);
-        }
-    });
-
     const openPlusDialog = () => {
         window.dispatchEvent(
             new CustomEvent("showPlusDialog", {
-                detail: {},
+                detail: { reason: "ads" },
             }),
         );
     };
 
-    return (
-        <div class={`mt-auto relative ${visible() ? "" : "hidden"}`}>
+    return tier() === "PLUS" || tier() === "LOADING" || props.isHidden ? null : (
+        <div class="mt-auto relative">
             {props.children}
             <div
                 title="Upgrade"
-                class="hidden absolute top-[-10px] right-[-5px] border border-inactive-border hover:border-active-border bg-secondary-background hover:bg-main-background text-secondary-foreground hover:text-active-foreground px-2 py-0 rounded-full cursor-pointer"
+                class="absolute top-[-10px] right-[-5px] border border-inactive-border hover:border-active-border bg-secondary-background hover:bg-main-background text-secondary-foreground hover:text-active-foreground px-2 py-0 rounded-full cursor-pointer"
                 onClick={openPlusDialog}
             >
                 &times;
