@@ -1,3 +1,22 @@
+# [2.17.0](https://github.com/debjitbis08/sim8085/compare/v2.16.15...v2.17.0) (2025-06-26)
+
+
+### Bug Fixes
+
+* Add subscription status link in profile menu ([3f9bd91](https://github.com/debjitbis08/sim8085/commit/3f9bd914f6647a8ca92d3454f342f97d96962ec5))
+* Add unsaved file dialog ([786bfe6](https://github.com/debjitbis08/sim8085/commit/786bfe6169e53ca122eac3dbb67f090c91809ce0))
+* Avoid rendering ad when right panel is hidden ([6d3ebe0](https://github.com/debjitbis08/sim8085/commit/6d3ebe026de16e39504b30e30b9b4626a6403394))
+* Better icons for file actions ([4226949](https://github.com/debjitbis08/sim8085/commit/422694957a5c37570410b1b94fada73c884c9016))
+* Improve plus pages ([d50d3d1](https://github.com/debjitbis08/sim8085/commit/d50d3d1c63dacf0f08b8197b397d432e358ce4ab))
+* Improve upgrade and thank you page ([4bbd427](https://github.com/debjitbis08/sim8085/commit/4bbd4273964e53470a20b3794411151c104d2a4b))
+* Improve upgrade pages styles ([155a412](https://github.com/debjitbis08/sim8085/commit/155a412465a2cb06b731b1439cfd16a324a0932d))
+* Support creating temporary files ([a6f6db8](https://github.com/debjitbis08/sim8085/commit/a6f6db8324b0aef1cc56aa67be89a75cab08bd7d))
+
+
+### Features
+
+* Add file sharing ([387ba3a](https://github.com/debjitbis08/sim8085/commit/387ba3a94ea9b39b29f8f2bec90b54f759c38160))
+
 ## [2.16.15](https://github.com/debjitbis08/sim8085/compare/v2.16.14...v2.16.15) (2025-06-24)
 
 
