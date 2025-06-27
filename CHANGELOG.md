@@ -1,3 +1,10 @@
+## [2.17.19](https://github.com/debjitbis08/sim8085/compare/v2.17.18...v2.17.19) (2025-06-27)
+
+
+### Bug Fixes
+
+* Fix JS errors in pushing ad ([02736f6](https://github.com/debjitbis08/sim8085/commit/02736f6744212c679c1d2b35a63b0992042b0ed5))
+
 ## [2.17.18](https://github.com/debjitbis08/sim8085/compare/v2.17.17...v2.17.18) (2025-06-27)
 
 
