@@ -13,7 +13,7 @@ export default defineConfig({
     trailingSlash: "always",
     integrations: [
         starlight({
-            title: "Sim8085 Docs",
+            title: "Sim8085 Documentation",
             defaultLocale: "en",
             locales: {
                 en: {
@@ -64,6 +64,31 @@ export default defineConfig({
                 { label: "Interrupts in Sim8085", link: "/interrupts" },
                 { label: "Reasons for Infinite Loops", link: "/infinite-loop-reasons" },
                 { label: "Installing Sim8085", link: "/app-install" },
+                {
+                    label: "Programs",
+                    items: [
+                        {
+                            label: "Find the Largest Number in an Array",
+                            link: "/programs/largest-number-in-array",
+                        },
+                        {
+                            label: "Reverse a Block in Memory",
+                            link: "/programs/reversing-an-array",
+                        },
+                        {
+                            label: "Find the Sum of Array Elements",
+                            link: "/programs/sum-array-elements",
+                        },
+                        {
+                            label: "Delay Loop and Output to Port",
+                            link: "/programs/delay-and-output",
+                        },
+                        {
+                            label: "Count Number of 1’s in an 8-bit Number",
+                            link: "/programs/count-ones-in-byte",
+                        },
+                    ],
+                },
                 {
                     label: "References",
                     items: [

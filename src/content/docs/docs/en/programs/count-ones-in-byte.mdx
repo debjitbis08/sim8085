@@ -1,0 +1,339 @@
+---
+title: 8085 Program to Count Number of 1’s in an 8-bit Number
+description: An 8085 assembly program that counts the number of bits set to 1 in a given byte using bitwise rotation and carry flag logic.
+---
+
+Write an 8085 assembly program that counts how many bits are set to 1 in a given 8-bit number stored in memory.
+
+* Input:
+
+  * `2500H` = one 8-bit number
+* Output:
+
+  * `3000H` = number of bits set (0 to 8)
+
+---
+
+## ⚡ TL;DR — Final Working Code
+
+```asm
+        INPUT_ADDR  EQU 2500H       ; Input byte
+        OUTPUT_ADDR EQU 3000H       ; Output: bit count
+
+        LXI H, INPUT_ADDR
+        MOV A, M                    ; A ← input byte
+        MVI C, 00H                  ; C ← bit count
+        MVI B, 08H                  ; B ← number of bits to check
+
+LOOP:   RAR                         ; Rotate bit 0 into carry
+        JNC SKIP
+        INR C                       ; If carry = 1, increment count
+
+SKIP:   DCR B
+        JNZ LOOP
+
+        LXI H, OUTPUT_ADDR
+        MOV M, C                    ; Store count
+        HLT
+```
+
+---
+
+## 🧱 Step 1: Define the Interface
+
+Just like with other problems, we start by asking:
+
+> **How will this module receive input and return output?**
+
+This problem is focused on **bitwise analysis**, so we need a simple interface where we can isolate and test a single byte.
+
+---
+
+### 📦 Interface Definition
+
+| Address | Meaning                    |
+| ------- | -------------------------- |
+| `2500H` | The 8-bit number (input)   |
+| `3000H` | Output: count of 1’s (0–8) |
+
+This interface is:
+
+* Simple and focused
+* Easy to test in a simulator
+* Extendable (you could later apply it to an entire array)
+
+---
+
+### 🧠 Why This Is a Good Interface
+
+* One input, one output → clean and traceable
+* Does not rely on flags or registers after execution
+* Keeps logic focused on a single byte (makes the loop tight)
+
+---
+
+### ❌ Bad Interface Examples
+
+* Writing the count back to the input address (overwrites test case)
+* Leaving the result only in a register (lost after program halts)
+* Storing multiple things without clear layout
+
+---
+
+### 🧾 Code (Load the Byte Only)
+
+Let’s begin by just loading the input value into a register.
+
+```asm
+LXI H, 2500H     ; HL → input byte
+MOV A, M         ; A ← value to count bits from
+HLT              ; Pause to verify A
+```
+
+---
+
+### 🧪 Manual Test
+
+Set memory:
+
+```
+2500H = 5AH   ; Binary: 01011010 → 4 bits set
+```
+
+Expected:
+
+* Register `A` = `5AH` after execution
+
+This prepares the input for bitwise processing in the next step.
+
+---
+
+## 🧱 Step 2: Count the Number of 1’s Bit-by-Bit
+
+We’ve loaded the byte into register `A`. Now we’ll check each of its bits and **count how many are set (1)**.
+
+---
+
+### 💡 What We're Doing
+
+* Use **rotate instructions** to shift bits and expose each one
+* Use the **carry flag** as an indicator (after rotation)
+* Use a register (say, `C`) to **count the number of 1’s**
+
+---
+
+### 🧠 How This Works
+
+* `RAR` (Rotate Accumulator Right through Carry) moves bit 0 into the carry flag
+* We check the carry using `JNC` (if carry not set)
+* If carry is set → increment counter
+
+We’ll do this **8 times**, once for each bit.
+
+---
+
+### 🧾 Code to Count 1’s
+
+```asm
+LXI H, 2500H     ; HL → input value
+MOV A, M         ; A ← input byte
+MVI C, 00H       ; C ← count of 1s
+MVI B, 08H       ; B ← number of bits to check
+
+LOOP: RAR                 ; Rotate right, bit 0 → CY
+      JNC SKIP            ; If carry not set, skip increment
+      INR C               ; Else, increment count
+
+SKIP: DCR B               ; Decrement bit counter
+      JNZ LOOP            ; Repeat if bits remain
+
+HLT
+```
+
+---
+
+### 🧪 Manual Test
+
+Set:
+
+```
+2500H = 5AH   ; Binary = 01011010 → 4 bits set
+```
+
+Expected:
+
+* Register `C` = `04H`
+
+Try:
+
+```
+2500H = FFH → All 8 bits set → C = 08H
+2500H = 00H → All 0 → C = 00H
+```
+
+---
+
+### 🧠 Why RAR Instead of ANI?
+
+We use `RAR` because:
+
+* It shifts bits into the **carry flag**, which we can check easily
+* It avoids needing a mask (`ANI`) and avoids messing with accumulator contents
+
+---
+
+## 🧱 Step 3: Store the Result in Memory
+
+After counting all the 1’s:
+
+* The final result is in register `C`
+* We want to **store it in memory** at a predefined output location
+
+This step completes the module’s contract:
+
+> Read from input → compute → write output
+
+---
+
+### 📦 Output Location
+
+We’ll use:
+
+```
+3000H = final count of 1’s (0–8)
+```
+
+This makes the result persistent and inspectable after program halts.
+
+---
+
+### 🧾 Full Code with Storage
+
+```asm
+        ; Interface
+        INPUT_ADDR  EQU 2500H
+        OUTPUT_ADDR EQU 3000H
+
+        ; Step 1: Load input
+        LXI H, INPUT_ADDR
+        MOV A, M             ; A ← byte to count 1s from
+
+        ; Step 2: Initialize counters
+        MVI C, 00H           ; C ← bit count
+        MVI B, 08H           ; B ← number of bits
+
+LOOP:   RAR                  ; Rotate bit 0 → Carry
+        JNC SKIP             ; If carry = 0, skip
+        INR C                ; Else, increment count
+
+SKIP:   DCR B
+        JNZ LOOP
+
+        ; Step 3: Store result
+        LXI H, OUTPUT_ADDR
+        MOV M, C
+        HLT
+```
+
+---
+
+### 🧪 Manual Test
+
+Set:
+
+```
+2500H = 0FH   ; Binary = 00001111
+```
+
+Expected:
+
+```
+3000H = 04H   ; 4 bits set
+```
+
+Try a few more:
+
+* `FFH` → result = 08H
+* `00H` → result = 00H
+* `AAH` → result = 04H
+
+---
+
+## 🧱 Step 4: Refactor and Clean Up
+
+Our current program is correct and relatively clean, but with a few small improvements, we can make it:
+
+* Easier to understand
+* Slightly more efficient
+* Easier to reuse
+
+---
+
+### 🔧 Improvements
+
+#### ✅ 1. Use Clear Constants
+
+We already use `INPUT_ADDR` and `OUTPUT_ADDR`, which is good. Ensure these are at the top.
+
+#### ✅ 2. Avoid Switching HL Unnecessarily
+
+We used HL twice: once for reading, once for writing. We can keep it focused on **one task** — either input or output — and let `A` carry the data.
+
+#### ✅ 3. Add Semantic Comments
+
+Make it obvious why we rotate, why we count, and what each register means.
+
+---
+
+### 🧾 Refactored Code
+
+```asm
+        ; Interface definitions
+        INPUT_ADDR  EQU 2500H       ; Byte to check
+        OUTPUT_ADDR EQU 3000H       ; Store count of 1s
+
+        ; Step 1: Load input byte
+        LXI H, INPUT_ADDR
+        MOV A, M                    ; A ← input value
+        MVI C, 00H                  ; C ← count of 1s
+        MVI B, 08H                  ; B ← bit counter
+
+        ; Step 2: Loop through bits
+LOOP:   RAR                         ; Rotate right, LSB → CY
+        JNC SKIP                    ; If CY = 0, skip
+        INR C                       ; Else, increment count
+
+SKIP:   DCR B                       ; B ← B - 1
+        JNZ LOOP
+
+        ; Step 3: Store result
+        LXI H, OUTPUT_ADDR
+        MOV M, C
+        HLT
+```
+
+---
+
+### ✨ Result
+
+* **Registers are used meaningfully**: A for rotating, B for bit loop, C for counting
+* **No register reuse confusion** — each one has one job
+* **Interface addresses are named** and easy to change
+
+---
+
+## 📚 Summary
+
+This problem takes us into **bitwise thinking**. It teaches:
+
+* How to **inspect individual bits** using rotation and carry
+* How to design a tight **bit-counting loop**
+* The use of **semantic registers** (`A` for rotation, `C` for counting, `B` for loop)
+* How to **separate computation from interface** using meaningful memory addresses
+
+Together, it builds a foundation for more advanced tasks like:
+
+* Parity checking
+* Bitmasking
+* Microcontroller-level bit manipulation
+

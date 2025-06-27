@@ -1,0 +1,464 @@
+---
+title: 8085 Program to Find the Sum of Array Elements
+description: Use the 8085 microprocessor to compute the sum of a series of numbers stored in memory. This program includes loop logic and carry handling for 8-bit addition.
+---
+
+Write an 8085 assembly program that calculates the sum of N 8-bit numbers stored in memory.
+
+* Input:
+
+  * `2500H` = number of elements (N)
+  * `2501H` to `2500H + N` = data values
+* Output:
+
+  * `3000H` = lower 8 bits of the result (sum)
+  * `3001H` = carry flag (0 or 1)
+
+---
+
+## ⚡ TL;DR — Final Working Code
+
+```asm
+        ARRAY_BASE  EQU 2500H     ; Input: [2500H] = count, [2501H...] = data
+        RESULT_LO   EQU 3000H     ; Output: 8-bit sum
+        RESULT_HI   EQU 3001H     ; Output: carry
+
+        LXI H, ARRAY_BASE         ; HL → array start
+        MOV C, M                  ; C ← count
+        INX H                     ; HL → first data element
+
+        MVI A, 00H                ; A ← running sum
+        MVI B, 00H                ; B ← carry tracker
+
+LOOP:   ADD M                     ; A ← A + [HL]
+        JNC SKIP                  ; If no carry, skip
+        INR B                     ; Else, B ← B + 1
+
+SKIP:   INX H                     ; HL → next element
+        DCR C                     ; C ← C - 1
+        JNZ LOOP
+
+        STA RESULT_LO             ; Store sum
+        MOV A, B
+        STA RESULT_HI             ; Store carry
+        HLT
+```
+
+---
+
+## 🧱 Step 1: Define the Interface
+
+Before we do anything, we need to define how the outside world communicates with this program.
+
+> **Every working program needs a working interface.**
+
+This interface tells us:
+
+* **Where to read inputs from**
+* **Where to place the output**
+
+---
+
+### 📦 The Interface We’ll Use
+
+We’ll use memory locations to read and write data:
+
+| Address | Meaning                    |
+| ------- | -------------------------- |
+| `2500H` | Number of elements (N)     |
+| `2501H` | First element              |
+| ...     | Next N-1 elements          |
+| `3000H` | Output: 8-bit result (sum) |
+| `3001H` | Output: Carry (0 or 1)     |
+
+This ensures:
+
+* The array is **self-describing**
+* The output is stored clearly and separately
+* You can verify the result without checking flags
+
+---
+
+### 🧠 Why This Is a Good Interface
+
+* **Count-first layout** supports dynamic-sized arrays
+* Output address is **predictable and external** — doesn’t overwrite input
+* Handles overflow explicitly — no hidden flag checking required
+
+---
+
+### ❌ Bad Interface Examples
+
+* Putting the sum back into the first array element (overwrites data)
+* Using the carry flag without storing it (not visible after program halts)
+* Hardcoding the array size in the program instead of reading it
+
+---
+
+### 🧾 Code (Read Count Only)
+
+Let’s just begin by reading the count — a foundational step for any loop.
+
+```asm
+LXI H, 2500H    ; HL → start of array
+MOV C, M        ; C ← number of elements
+HLT             ; Pause to inspect C
+```
+
+---
+
+### 🧪 Manual Test
+
+Set memory:
+
+```
+2500H = 04H
+```
+
+Expected:
+
+* Register `C` should contain `04H`
+
+This confirms the input interface is working.
+
+---
+
+## 🧱 Step 2: Sum the First Element
+
+Now that we’ve read how many elements we need to add, it’s time to:
+
+> Begin adding elements one by one using the accumulator.
+
+We’ll **start small** — by adding just the **first element** and observing the result.
+
+---
+
+### 💡 What We're Doing
+
+1. Move HL to the **first element** (`2501H`)
+2. Initialize accumulator `A` with 0
+3. Add the value at `HL` to `A`
+
+We’ll also leave space in register `B` for the carry bit (in case we eventually exceed `FFH`).
+
+---
+
+### 🧠 Why One Element?
+
+Doing one addition first helps us:
+
+* Validate that we’re loading values correctly
+* See how the `ADD` instruction affects `A` and the carry flag
+* Build the core pattern for the loop safely
+
+---
+
+### 🧾 Code So Far
+
+```asm
+LXI H, 2500H    ; HL → start of array
+MOV C, M        ; C ← number of elements
+INX H           ; HL → first element
+
+MVI A, 00H      ; A ← 0 (sum)
+ADD M           ; A ← A + [HL]
+HLT             ; Check result
+```
+
+---
+
+### 🧪 Manual Test
+
+Set memory:
+
+```
+2500H = 03H
+2501H = 2AH
+```
+
+Expected:
+
+* Register `A` = `2AH`
+* Carry flag not set
+
+Now try:
+
+```
+2501H = FFH
+```
+
+Expected:
+
+* Register `A` = `FFH`
+* Carry flag = 0
+
+Later, if we add more and exceed `FFH`, carry will become important.
+
+---
+
+### 🧠 Tip: Why Start with A = 00H?
+
+This lets us treat the sum like a growing total, building up from 0 — similar to how accumulators work in most languages and CPUs.
+
+---
+
+## 🧱 Step 3: Loop Through All Elements
+
+We’ve added one element. Now it’s time to:
+
+> **Loop through the rest of the array** and keep adding each value to the accumulator.
+
+We'll also monitor the **carry flag** in each addition and **track it separately**, using register `B`.
+
+---
+
+### 💡 What We're Doing
+
+* Set accumulator `A` to 0 (for the sum)
+* Set register `B` to 0 (for total carry)
+* Loop through:
+
+  * `ADD M` to add current value to `A`
+  * If carry is set, increment `B`
+  * Move to next element
+  * Decrease counter `C`
+* End the loop when `C = 0`
+
+This gives us:
+
+* 8-bit sum in `A`
+* Carry count in `B` (will be 1 for simple cases)
+
+---
+
+### 🧾 Full Code So Far
+
+```asm
+        LXI H, 2500H    ; HL → base address
+        MOV C, M        ; C ← count
+        INX H           ; HL → first element
+
+        MVI A, 00H      ; Accumulator for sum
+        MVI B, 00H      ; Carry tracker
+
+LOOP:   ADD M           ; A ← A + [HL]
+        JNC SKIP        ; If no carry, skip incrementing B
+        INR B           ; Else, increment carry count
+
+SKIP:   INX H           ; Move to next element
+        DCR C           ; Decrease counter
+        JNZ LOOP        ; Repeat if elements remain
+
+        HLT             ; Inspect A and B
+```
+
+---
+
+### 🧪 Manual Test
+
+Set memory:
+
+```
+2500H = 03H
+2501H = 20H
+2502H = 90H
+2503H = F0H
+```
+
+Manual addition:
+
+* 20H + 90H = B0H → no carry
+* B0H + F0H = 0AH (carry out)
+
+Expected:
+
+* Register `A` = `0AH`
+* Register `B` = `01H`
+
+---
+
+### 🧠 Tip: Why Track Carry Separately?
+
+8085 only gives us **8-bit math**, but the real sum may be **larger than 255**.
+By tracking the carry, we simulate 16-bit addition using two registers.
+
+---
+
+## 🧱 Step 4: Store the Result in Memory
+
+We now have:
+
+* The **8-bit sum** in register `A`
+* The **carry count** in register `B` (either `00H` or `01H` for small arrays)
+
+Our task is to:
+
+> **Store the final result to predefined output addresses** so the rest of the system (or a human) can see the outcome.
+
+---
+
+### 💡 What We’re Doing
+
+* Store the value of `A` (sum) at `3000H`
+* Store the value of `B` (carry) at `3001H`
+
+This gives us a **two-byte result**:
+
+* Low byte = `A`
+* High byte = `B` (which will be 00H or 01H)
+
+Together, they represent the **true 16-bit sum**:
+
+> `Result = B × 256 + A`
+
+---
+
+### 🧾 Final Code (So Far)
+
+```asm
+        ARRAY_BASE  EQU 2500H
+        RESULT_LO   EQU 3000H
+        RESULT_HI   EQU 3001H
+
+        LXI H, ARRAY_BASE
+        MOV C, M
+        INX H
+
+        MVI A, 00H
+        MVI B, 00H
+
+LOOP:   ADD M
+        JNC SKIP
+        INR B
+
+SKIP:   INX H
+        DCR C
+        JNZ LOOP
+
+        STA RESULT_LO     ; Store sum (A)
+        MOV A, B
+        STA RESULT_HI     ; Store carry (B)
+        HLT
+```
+
+---
+
+### 🧪 Manual Test
+
+Set memory:
+
+```
+2500H = 03H
+2501H = 20H
+2502H = 90H
+2503H = F0H
+```
+
+Expected memory after execution:
+
+```
+3000H = 0AH   ; Low byte of sum
+3001H = 01H   ; High byte of sum (carry)
+```
+
+---
+
+### 🧠 Takeaway
+
+This is a classic 8-bit-to-16-bit pattern in 8085:
+
+* Work within 8-bit constraints
+* Track overflow manually
+* Store results explicitly
+
+---
+
+## 🧱 Step 5: Refactor and Clean Up
+
+We’ve built a fully working program to compute the sum of an array, including carry.
+Now it's time to refactor — to make the program **clearer, more maintainable, and easier to reuse**.
+
+---
+
+### 🧠 Why Refactor?
+
+We already have a correct solution. But refactoring improves:
+
+* **Readability** for humans
+* **Adaptability** for future changes
+* **Professionalism** in design
+
+---
+
+### 🔧 What We’ll Improve
+
+#### ✅ 1. Use `EQU` to Name Addresses
+
+No more magic numbers. Let’s define constants for:
+
+* Input base
+* Output locations
+
+#### ✅ 2. Add Comments That Explain Why, Not Just What
+
+Good comments explain **purpose**, not just **syntax**.
+
+---
+
+### 🧾 Refactored Code
+
+```asm
+        ; Interface definitions
+        ARRAY_BASE  EQU 2500H     ; Start of array (first byte = count)
+        RESULT_LO   EQU 3000H     ; Store sum (8-bit)
+        RESULT_HI   EQU 3001H     ; Store carry (if any)
+
+        ; Step 1: Load count
+        LXI H, ARRAY_BASE         ; HL → start of array
+        MOV C, M                  ; C ← number of elements
+        INX H                     ; HL → first data element
+
+        ; Step 2: Initialize accumulators
+        MVI A, 00H                ; A ← running sum
+        MVI B, 00H                ; B ← carry tracker
+
+LOOP:   ADD M                     ; Add current element to A
+        JNC SKIP                  ; If no carry, skip increment
+        INR B                     ; Else increment carry
+
+SKIP:   INX H                     ; HL → next element
+        DCR C                     ; C ← C - 1
+        JNZ LOOP                  ; Repeat if more elements
+
+        ; Step 3: Store result
+        STA RESULT_LO             ; Store low byte of sum
+        MOV A, B
+        STA RESULT_HI             ; Store high byte (carry)
+        HLT
+```
+
+---
+
+### ✅ What This Achieves
+
+* Makes **intent visible**: `ARRAY_BASE`, `RESULT_LO`, etc., are meaningful
+* Keeps the logic easy to modify (e.g., changing output address)
+* Provides a clean separation of input, processing, and output
+
+---
+
+## 📚 Summary
+
+This problem is simple, but powerful. It teaches:
+
+* How to design a **clean interface** for variable-length input and fixed output
+* How to use the **accumulator pattern** in assembly
+* How to manage **overflow manually** by tracking the carry flag
+* How to structure loops and conditionals using only `ADD`, `JNC`, `INX`, and `DCR`
+* The importance of **refactoring** — turning a working solution into a readable one
+
+Together, these steps build a strong foundation for more advanced operations like:
+
+* 16-bit additions
+* Multi-word arithmetic
+* Array-level analytics

@@ -1,0 +1,239 @@
+---
+title: 8085 Program for Delay Loop and Output to Port
+description: Learn how to use delay loops and the OUT instruction in 8085 to send values to output ports with visible timing gaps. Useful for LED blink and pattern generation.
+---
+
+Write an 8085 assembly program that:
+
+* Sends a value (`55H`) to output port `01H`
+* Waits using a software delay loop
+* Repeats this pattern indefinitely
+
+---
+
+## ⚡ TL;DR — Final Working Code
+
+```asm
+START:  MVI A, 55H        ; Value to send
+        OUT 01H           ; Output to port
+
+        MVI B, 0AH        ; Outer loop counter
+DELAY_OUTER:
+        MVI C, 0FFH       ; Inner loop counter
+DELAY_INNER:
+        DCR C
+        JNZ DELAY_INNER
+        DCR B
+        JNZ DELAY_OUTER
+
+        JMP START         ; Repeat forever
+```
+
+### 💡 In Sim8085:
+
+> ✅ **Turn on “Simulate Instruction Timing”** to observe the delay effect visibly.
+
+---
+
+Let me know if you want to:
+
+* ✅ Start the next article: *Count Number of 1’s in a Byte*
+* 🧪 Add optional exercises for this one (e.g., toggling output, adding input polling)
+
+---
+
+## 🧱 Step 1: Define the Interface
+
+Before writing instructions, we need to answer:
+
+> **How does this program interact with the world?**
+
+We define a **hardware interface** now — not just memory.
+
+---
+
+### 📦 Interface Details
+
+| Component  | Meaning                                |
+| ---------- | -------------------------------------- |
+| `OUT 01H`  | Output value to port `01H`             |
+| Delay loop | Approximate timing using software loop |
+
+We assume:
+
+* The device connected to port `01H` can accept simple 8-bit values
+* No handshaking or status check — fire-and-forget model
+
+---
+
+### 🧾 Code (Basic I/O Only)
+
+We’ll begin by just sending a value to the port.
+
+```asm
+MVI A, 55H     ; Load value
+OUT 01H        ; Send to output port
+HLT            ; Stop here for now
+```
+
+---
+
+### 🧪 Manual Test
+
+* Check if port `01H` receives `55H`
+* In a simulator: port log or memory-mapped device will show this
+* On hardware: LED pattern may show (if connected)
+
+---
+
+## 🧱 Step 2: Add a Delay Loop
+
+After sending data to the output port, we want the program to **wait** for a visible duration. Without delay, the change is too fast for humans (or some devices) to notice.
+
+---
+
+### 🧠 Why Delay?
+
+* Human eyes can't catch microsecond-level changes
+* Simulators and hardware might register output, but it's not **observable**
+* We use a **software delay loop** to create a visible pause using CPU cycles
+
+---
+
+### 💡 What We’re Doing
+
+* Use two registers (`B` and `C`) to build a **nested loop**
+* Each iteration consumes CPU time
+* No memory or port changes — just cycles
+
+---
+
+### 🧾 Code with Delay Loop
+
+```asm
+MVI A, 55H        ; Load value
+OUT 01H           ; Output to port
+
+MVI B, 0AH        ; Outer loop counter
+DELAY_OUTER:
+    MVI C, 0FFH   ; Inner loop counter
+DELAY_INNER:
+    DCR C
+    JNZ DELAY_INNER
+    DCR B
+    JNZ DELAY_OUTER
+
+HLT               ; Stop after delay
+```
+
+---
+
+### 🧪 Manual Test (Sim8085 Tip 💡)
+
+To **observe the delay visually in Sim8085**:
+
+> 🔧 Enable the setting: **Simulate Instruction Timing**
+
+This makes Sim8085 account for the actual instruction execution delays — so your delay loops behave realistically and visibly slow the output.
+
+---
+
+### ⚙️ Why Two Loops?
+
+* `C` counts down from `FFH` (255 times)
+* `B` counts outer passes (10 times)
+* Total delay = 255 × 10 instructions
+
+Feel free to tweak `B` and `C` to control timing.
+
+---
+
+## 🧱 Step 3: Loop the Pattern Forever
+
+So far, our program:
+
+* Sends one value to the port
+* Waits using a delay loop
+* Halts
+
+Now we want it to:
+
+> **Repeat this output–delay cycle forever**, without halting.
+
+This is common in:
+
+* LED blink programs
+* Periodic buzzer beeps
+* Scrolling or toggling displays
+
+---
+
+### 🧠 Why Loop Forever?
+
+* Real-world output programs often run until powered off
+* They wait, act, and repeat — **no explicit halt**
+* This is also useful for practicing infinite loops and timing control
+
+---
+
+### 💡 What We’re Doing
+
+* Wrap the entire output + delay logic inside a loop
+* Jump back to the top once the delay finishes
+
+---
+
+### 🧾 Full Code: Repeating Output with Delay
+
+```asm
+START:  MVI A, 55H        ; Value to output
+        OUT 01H           ; Send to port
+
+        MVI B, 0AH        ; Outer delay loop
+DELAY_OUTER:
+        MVI C, 0FFH       ; Inner delay loop
+DELAY_INNER:
+        DCR C
+        JNZ DELAY_INNER
+        DCR B
+        JNZ DELAY_OUTER
+
+        JMP START         ; Repeat forever
+```
+
+---
+
+### 🧪 Manual Test (Sim8085)
+
+1. Turn on **Simulate Instruction Timing**
+2. Use Sim8085’s **I/O port log** or a connected visualization (LED or register view)
+3. You’ll see port `01H` receive `55H`, hold it briefly, and repeat — with CPU visibly in delay
+
+---
+
+### 🔁 Bonus: Modify the Output Each Time
+
+Later, try toggling values (e.g., `55H` → `AAH` alternately) to simulate blinking or toggling.
+
+We can add that as a separate step if desired.
+
+---
+
+## 📚 Summary
+
+This problem shifts focus from data processing to **hardware interaction and timing**.
+
+It teaches:
+
+* How to write to **output ports** with `OUT`
+* How to build **delay loops** using registers and CPU cycles
+* The role of **infinite loops** in embedded programs
+* How to **simulate hardware behavior** in a tool like Sim8085
+
+This type of pattern forms the foundation of real-world behaviors like:
+
+* Blinking LEDs
+* Buzzer timers
+* Signal pattern generators
+* Debouncing inputs or polling peripherals
+

@@ -1,0 +1,543 @@
+---
+title: 8085 Program to Find the Largest Number in an Array
+description: Learn how to find the largest value in a list of numbers using 8085 assembly. Step-by-step explanation with register usage and in-memory operations.
+---
+
+import AdBlock from "../../../../../components/AdBlock.astro";
+
+Write an 8085 assembly program that scans an array stored in memory, finds the largest number, and stores the result at a predefined memory location.
+
+* Input interface:
+
+  * `2500H` = number of elements (N)
+  * `2501H` to `2500H + N` = array elements
+* Output interface:
+
+  * Result (largest number) is stored at `3000H`
+
+<AdBlock adSlot="7634600323" fullWidthResponsive={false} textAlign="left" />
+
+---
+
+## ⚡ TL;DR — Final Working Code
+
+```asm
+        ARRAY_BASE  EQU 2500H       ; Input array location
+        OUTPUT_ADDR EQU 3000H       ; Output result location
+
+        LXI H, ARRAY_BASE           ; Point to array
+        MOV C, M                    ; Load element count
+        INX H                       ; Move to first data
+        MOV A, M                    ; Initialize max
+        DCR C                       ; One used
+
+LOOP:   INX H                       ; Next element
+        CMP M                       ; Compare with max
+        JNC SKIP                    ; Skip if smaller
+        MOV A, M                    ; Update max
+
+SKIP:   DCR C                       ; Count down
+        JNZ LOOP                    ; Loop again
+
+        STA OUTPUT_ADDR             ; Store result
+        HLT
+```
+
+---
+
+Would you like this packaged as a `.md` or `.astro` file for your site? Or should we move on to another problem, like "Reverse an Array" or "Count Even/Odd"?
+
+## 🧱 Step 1: Define the Interface — Reading the Array
+
+Before writing any logic, we must answer a question every software engineer should ask:
+
+> **How will this code interact with the rest of the system?**
+
+That’s where the idea of an **interface** comes in.
+
+---
+
+### 📦 What is an Interface?
+
+In software, an *interface* is the **boundary between a module and its environment**. It defines:
+
+* What inputs the module expects
+* What outputs it produces
+* How the outside world must prepare the data for it to work correctly
+
+In our case, the interface is:
+
+> **The program expects the array to begin at memory location `2500H`, and the first byte should contain the number of elements.**
+
+This is a **data interface**, defined by how we lay out memory.
+
+---
+
+### 🧠 Real-World Parallel
+
+In professional software projects, you’ll rarely get interfaces that are this neat or well-structured.
+Instead, you may find:
+
+* Ambiguous formats
+* Inconsistent locations
+* Poor documentation
+* Overloaded or underutilized signals
+
+That’s why thinking about interfaces early is a sign of maturity in programming.
+
+---
+
+### ❌ Bad Interface Examples
+
+Let’s say we defined the array like this:
+
+1. First element is *data*, not size — you'd have to scan till an end marker like `FFH`.
+   → Inefficient, error-prone
+
+2. Size is stored separately, say at `3000H`, not near the array.
+   → Adds complexity, hurts locality
+
+3. The size is implied by a counter variable elsewhere.
+   → Hard to trace, non-obvious
+
+So we deliberately choose a simple interface to make our logic clear and testable.
+
+---
+
+### ✅ Chosen Interface
+
+| Address  | Purpose            |
+| -------- | ------------------ |
+| `2500H`  | Number of elements |
+| `2501H+` | Array elements     |
+
+---
+
+### 🔧 Code (Just Read the Count)
+
+```asm
+LXI H, 2500H    ; Point to start of array
+MOV C, M        ; Load count into register C
+HLT             ; Pause for manual check
+```
+
+---
+
+### 🧪 Manual Test
+
+Set memory:
+
+```
+2500H = 05H
+```
+
+Run the program and inspect **register C** — it should hold `05H`.
+
+---
+
+## 🧱 Step 2: Initialize the Maximum
+
+Now that we’ve read the size of the array into register `C`, we need a **starting value to compare others against**.
+
+We’ll use the **first actual element** of the array as our initial maximum value.
+
+---
+
+### 💡 What We're Doing
+
+* Move HL to point to the **first element** (right after the count)
+* Load that value into **accumulator A**
+* We will treat this as the maximum for now
+
+This step lays the groundwork for comparisons later.
+
+---
+
+### 🧠 Why This Makes Sense
+
+We don't yet know what the other elements are, but we have to start somewhere. Instead of using a constant like `00H` or `FFH`, we just use the first number in the array — which is **guaranteed to be valid**.
+
+This makes our logic:
+
+* Simpler
+* More general
+* More efficient
+
+---
+
+### 🔧 Code So Far
+
+```asm
+LXI H, 2500H    ; Point to array base
+MOV C, M        ; Load count into C
+INX H           ; Move to first element
+MOV A, M        ; Assume it's the maximum
+HLT
+```
+
+---
+
+### 🧪 Manual Test
+
+Set memory:
+
+```
+2500H = 05H     ; Count
+2501H = 23H     ; First data element
+```
+
+Expected result:
+
+* Register `C` should be `05H`
+* Register `A` should be `23H`
+
+---
+
+### 🛠️ Design Principle: Locality and Meaning
+
+By placing the size and data together, and reading the first item right after the count, our interface remains **self-contained** and **easy to reason about**.
+
+Had we jumped around in memory to find the first element, we'd introduce unnecessary complexity.
+
+
+<AdBlock adSlot="3777463403" layout="in-article" />
+
+---
+
+## 🧱 Step 3: Compare with the Next Element
+
+We now have:
+
+* The count in `C`
+* The current max in `A`
+* HL pointing to the first element
+
+It’s time to:
+
+1. Move to the **next** array element
+2. Compare it with the current max
+3. Update `A` if the new value is greater
+
+We'll do it just **once** in this step — no loop yet.
+
+---
+
+### 💡 What We're Doing
+
+* Decrement `C`, because we already processed one element
+* Move HL forward to the second element
+* Use `CMP` to compare it with `A`
+* If it’s larger, update `A`
+* Stop and inspect the result
+
+---
+
+### 🧠 Why Only One Comparison?
+
+We’re **building step-by-step**, and a single comparison helps us verify:
+
+* If comparison works correctly
+* If the logic to update max is sound
+* That `CMP` + `JNC` behaves as expected
+
+This is our chance to **learn how the carry flag helps** in decision-making.
+
+---
+
+### 🧾 Code
+
+```asm
+LXI H, 2500H    ; Start of array
+MOV C, M        ; Load count
+INX H           ; First element
+MOV A, M        ; Initialize max
+DCR C           ; One element processed
+
+INX H           ; Move to second element
+CMP M           ; Compare A (max) with M (new element)
+JNC SKIP        ; Jump if A >= M
+MOV A, M        ; Else, update A
+
+SKIP: HLT
+```
+
+---
+
+### 🧪 Manual Test
+
+Set memory:
+
+```
+2500H = 05H
+2501H = 23H
+2502H = 45H
+```
+
+Expected:
+
+* Register `A` = `45H`
+
+Try switching the numbers:
+
+* `2501H = 77H`, `2502H = 12H` → A should remain `77H`
+
+---
+
+### 🔍 Tip: How `CMP` Works
+
+`CMP M` does: `A - M` but discards the result and just sets flags.
+
+* If A ≥ M → Carry **not** set → `JNC` works (jump = don’t update)
+* If A < M → Carry set → `MOV A, M` happens (update)
+
+This is how comparisons are done in 8085.
+
+---
+
+## 🧱 Step 4: Loop Through Remaining Elements
+
+So far, we've compared two elements. Now we'll generalize this to **N elements** using a loop — the essence of all iterative logic.
+
+---
+
+### 🧠 A Loop Is Just State + Repetition
+
+At its core, **every loop — in every programming language — maintains some kind of state**, and then:
+
+1. **Checks a condition**
+2. **Performs work**
+3. **Updates the state**
+4. **Repeats**
+
+In our case, the **state** is:
+
+* The current memory pointer (`HL`)
+* The current max (`A`)
+* The loop counter (`C`)
+
+The **work** is: compare and update.
+
+The **loop mechanics** are driven by:
+
+```asm
+DCR C        ; update loop state
+JNZ LOOP     ; repeat if not finished
+```
+
+---
+
+### 💡 What We're Doing
+
+* Move through the array one element at a time
+* At each step:
+
+  * Compare with current max
+  * Update max if needed
+  * Decrease the count
+* Stop when count hits zero
+
+This is the 8085 way of saying:
+
+> `for (i = 1; i < count; i++) { ... }`
+
+---
+
+### 🧾 Code
+
+```asm
+LXI H, 2500H    ; Array base
+MOV C, M        ; Load count
+INX H           ; Move to first data element
+MOV A, M        ; Initialize max
+DCR C           ; Already processed one element
+
+LOOP: INX H     ; Move to next element
+CMP M           ; Compare with current max
+JNC SKIP        ; If A >= M, skip
+MOV A, M        ; Else update max
+
+SKIP: DCR C     ; Decrease loop counter
+JNZ LOOP        ; If not zero, go again
+
+HLT             ; Done
+```
+
+---
+
+### 🧪 Manual Test
+
+Set memory:
+
+```
+2500H = 05H
+2501H = 23H
+2502H = ABH
+2503H = 45H
+2504H = 99H
+2505H = 11H
+```
+
+After execution:
+
+* Register `A` = `99H`
+
+Try different variations:
+
+* Largest at start: `2501H = FEH` → No update happens
+* Largest at end: `2505H = FFH` → A updated on last iteration
+* All equal: `A` remains unchanged
+
+---
+
+
+## 🧱 Step 5: Store the Result
+
+After looping through the array, we have the **largest number in register A**.
+
+Our job now is to **store it in memory** — this final step makes our program useful.
+
+---
+
+### 💡 What We're Doing
+
+* Store the result from `A` into a predefined memory location (`3000H`)
+* Then halt the program
+
+This is how we **communicate the output** of our module to the outside world — completing the contract of our interface.
+
+---
+
+### 🧠 Interfaces Have Two Sides
+
+In Step 1, we discussed how the module reads its **input interface** from memory (`2500H` onward).
+
+Now we’re defining the **output interface** — another memory location where the result will be placed:
+
+```
+Output: 3000H → [largest number]
+```
+
+This completes the “input-process-output” triangle.
+
+---
+
+### 🧾 Final Code
+
+```asm
+LXI H, 2500H    ; Array base
+MOV C, M        ; Load count
+INX H           ; Move to first data element
+MOV A, M        ; Initialize max
+DCR C           ; Already processed one element
+
+LOOP: INX H     ; Move to next element
+CMP M           ; Compare with current max
+JNC SKIP        ; If A >= M, skip
+MOV A, M        ; Else update max
+
+SKIP: DCR C     ; Decrease loop counter
+JNZ LOOP        ; If not zero, go again
+
+STA 3000H       ; Store the result
+HLT
+```
+
+---
+
+### 🧪 Manual Test
+
+Set memory:
+
+```
+2500H = 05
+2501H = 23
+2502H = AB
+2503H = 45
+2504H = 99
+2505H = 11
+```
+
+Expected:
+
+* After execution, `3000H` should contain `99H`
+
+Try this:
+
+* Change values to `01, 02, 03, 04, 05` → Output should be `05H`
+
+---
+
+## 🧱 Step 6: Refactor the Code for Clarity and Maintainability
+
+Now that the program is working correctly and producing the right result, we take a final but crucial step:
+
+> **Make the code easier to understand, adapt, and maintain — without changing its behavior.**
+
+This is called **refactoring**.
+
+---
+
+### 💡 What is Refactoring?
+
+Refactoring is the process of improving the **structure, readability, and clarity** of a program **without altering what it does**.
+
+You do it *after* the program works — not before — and it often reveals how well you understand the problem.
+
+---
+
+### 🛠️ What We’re Changing (and Why)
+
+#### ✅ 1. Use Constants for Memory Locations
+
+We define `ARRAY_BASE` and `OUTPUT_ADDR` using `EQU`, so if the interface changes, we **only update one place**.
+
+#### ✅ 2. Write Comments That Explain Meaning, Not Mechanics
+
+Instead of `; increment HL`, we write `; move to next element`.
+This makes the program readable **even for someone unfamiliar with every instruction**.
+
+---
+
+### 🧾 Refactored Code
+
+```asm
+        ; Step 1: Define interface constants
+        ARRAY_BASE  EQU 2500H       ; Input array starts here
+        OUTPUT_ADDR EQU 3000H       ; Final result goes here
+
+        ; Step 2: Initialize
+        LXI H, ARRAY_BASE           ; HL → base of array
+        MOV C, M                    ; Load count into C
+        INX H                       ; HL → first data element
+        MOV A, M                    ; A ← initial max
+        DCR C                       ; One element processed
+
+        ; Step 3: Loop through remaining elements
+LOOP:   INX H                       ; Move to next element
+        CMP M                       ; Compare A with current element
+        JNC SKIP                    ; If A ≥ M, keep A
+        MOV A, M                    ; Else, update max
+
+SKIP:   DCR C                       ; Reduce remaining count
+        JNZ LOOP                    ; Repeat if not done
+
+        ; Step 4: Store the result
+        STA OUTPUT_ADDR             ; Save max value
+        HLT
+```
+
+<AdBlock adSlot="6212055052" layout="in-article" />
+
+---
+
+## 📚 Summary
+
+This problem wasn’t just about finding a maximum value — it taught us how to:
+
+* Define and respect **interfaces** for input and output
+* Structure a program incrementally with clarity at each step
+* Think in terms of **state and control flow** — the essence of loops
+* Use 8085's limited tools to solve meaningful problems
+* **Refactor** for readability and maintainability once the logic is correct
+
+👉 In real-world programming, **getting the logic right is only half the work**. Making it understandable and reusable is what makes your code professional.
