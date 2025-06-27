@@ -38,7 +38,11 @@ export function isEEACountry(code) {
 }
 
 export function shouldLoadAds(country, consent) {
-    return country != null && consent != null && (!isEEACountry(country) || consent === "yes");
+    if (country == null) return false;
+
+    if (!isEEACountry(country)) return true; // Non-EEA — always load
+
+    return consent === "yes"; // EEA — require explicit consent
 }
 
 export function loadAdSenseScript(pubId, { onLoad } = {}) {

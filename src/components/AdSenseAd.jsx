@@ -62,69 +62,26 @@ export default function AdSenseAd(props) {
         tryPush();
     }
 
-    let visibilityTimer = null;
     let visibleAccumulated = 0;
     let visibleStartTime = null;
 
-    function rotateAd(elapsed) {
-        if (props.isHidden) return;
-
-        track("ad rotated", { totalVisibleTime: elapsed });
-
-        visibleStartTime = null;
-        visibleAccumulated = 0;
-        pushStatus = "NOT_STARTED";
-        setAdKey(Math.random().toString(36).slice(2));
-        setTimeout(pushAd, 10);
-    }
-
-    function startVisibilityTracking() {
-        if (visibilityTimer || props.isHidden) return;
-
-        if (!visibleStartTime) {
-            visibleStartTime = Date.now(); // only start if not already tracking
-        }
-
-        track("ad visibility started");
-
-        function checkVisibility() {
-            if (props.isHidden) {
-                // accumulate visible time so far
-                if (visibleStartTime) {
-                    visibleAccumulated += (Date.now() - visibleStartTime) / 1000;
-                    visibleStartTime = null;
-                }
-                visibilityTimer = null;
-                track("ad visibility paused", { totalSoFar: visibleAccumulated });
-                return;
-            }
-
-            const elapsed = visibleAccumulated + (Date.now() - visibleStartTime) / 1000;
-
-            if (elapsed >= 180) {
-                rotateAd(elapsed);
-            } else {
-                visibilityTimer = setTimeout(checkVisibility, 1000);
-            }
-        }
-
-        visibilityTimer = setTimeout(checkVisibility, 1000);
-    }
-
-    function stopVisibilityTracking() {
-        if (visibleStartTime) {
+    function handleVisibilityChange() {
+        if (document.visibilityState === "hidden" && visibleStartTime) {
+            // Document became hidden — accumulate time
             visibleAccumulated += (Date.now() - visibleStartTime) / 1000;
             visibleStartTime = null;
+            track("ad visibility paused (document hidden)", { totalSoFar: visibleAccumulated });
+        } else if (document.visibilityState === "visible" && !props.isHidden) {
+            // Document came back into view — resume
+            visibleStartTime = Date.now();
+            track("ad visibility resumed (document visible)");
         }
-
-        clearTimeout(visibilityTimer);
-        visibilityTimer = null;
-
-        track("ad visibility stopped", { totalVisibleTime: visibleAccumulated });
     }
 
     onMount(() => {
         if (!pubId) return;
+
+        document.addEventListener("visibilitychange", handleVisibilityChange);
 
         const country = localStorage.getItem("user_country");
         const consent = localStorage.getItem("cookie_consent");
@@ -162,17 +119,73 @@ export default function AdSenseAd(props) {
         }
     });
 
-    createEffect(() => {
-        if (!props.isHidden && initialized && ref && pushStatus === "NOT_STARTED") {
-            pushAd();
-            startVisibilityTracking();
-        } else if (props.isHidden) {
-            stopVisibilityTracking();
+    let rotationCount = 0;
+    const MAX_ROTATIONS = 6;
+
+    function rotateAd(elapsed) {
+        if (props.isHidden) return;
+
+        if (rotationCount >= MAX_ROTATIONS) {
+            console.warn("Ad rotation limit reached. Skipping.");
+            track("ad rotation skipped", { reason: "limit", totalVisibleTime: elapsed });
+            return;
         }
+
+        rotationCount++;
+
+        track("ad rotated", { totalVisibleTime: elapsed });
+
+        visibleStartTime = null;
+        visibleAccumulated = 0;
+        pushStatus = "NOT_STARTED";
+        setAdKey(Math.random().toString(36).slice(2));
+        setTimeout(pushAd, 10);
+    }
+
+    let prevHidden = props.isHidden;
+
+    createEffect(() => {
+        const nowHidden = props.isHidden;
+
+        if (prevHidden && !nowHidden) {
+            // User just showed the ad panel
+
+            track("ad visibility started");
+
+            const now = Date.now();
+
+            // Accumulate time from last session
+            if (visibleStartTime) {
+                visibleAccumulated += (now - visibleStartTime) / 1000;
+            }
+
+            if (visibleAccumulated >= 180) {
+                rotateAd(visibleAccumulated);
+            }
+
+            visibleStartTime = now;
+
+            if (initialized && ref && pushStatus === "NOT_STARTED") {
+                pushAd();
+            }
+        }
+
+        if (!prevHidden && nowHidden) {
+            // Ad panel just got hidden
+
+            if (visibleStartTime) {
+                visibleAccumulated += (Date.now() - visibleStartTime) / 1000;
+                visibleStartTime = null;
+            }
+
+            track("ad visibility paused", { totalSoFar: visibleAccumulated });
+        }
+
+        prevHidden = nowHidden;
     });
 
     onCleanup(() => {
-        stopVisibilityTracking();
+        document.removeEventListener("visibilitychange", handleVisibilityChange);
     });
 
     const adNode = createMemo(() => {
@@ -187,6 +200,7 @@ export default function AdSenseAd(props) {
                 data-ad-slot="1459633275"
                 data-ad-format="fluid"
                 data-full-width-responsive="false"
+                data-adtest="on"
             ></ins>
         );
     });
