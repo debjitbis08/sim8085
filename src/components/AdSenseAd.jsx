@@ -44,7 +44,6 @@ export default function AdSenseAd(props) {
                     pushStatus = "SUCCESS";
                     console.log("Push Ad Success");
                     track("ad pushed");
-                    startVisibilityTracking();
                 } catch (e) {
                     console.error("AdsbyGoogle push error:", e);
                     track("ad push failed", { error: String(e) });

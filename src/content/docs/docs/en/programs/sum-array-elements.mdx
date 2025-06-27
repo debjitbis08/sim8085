@@ -3,6 +3,8 @@ title: 8085 Program to Find the Sum of Array Elements
 description: Use the 8085 microprocessor to compute the sum of a series of numbers stored in memory. This program includes loop logic and carry handling for 8-bit addition.
 ---
 
+import AdBlock from "../../../../../components/AdBlock.astro";
+
 Write an 8085 assembly program that calculates the sum of N 8-bit numbers stored in memory.
 
 * Input:
@@ -13,6 +15,8 @@ Write an 8085 assembly program that calculates the sum of N 8-bit numbers stored
 
   * `3000H` = lower 8 bits of the result (sum)
   * `3001H` = carry flag (0 or 1)
+
+<AdBlock adSlot="7634600323" fullWidthResponsive={false} textAlign="left" />
 
 ---
 
@@ -201,6 +205,8 @@ Later, if we add more and exceed `FFH`, carry will become important.
 This lets us treat the sum like a growing total, building up from 0 — similar to how accumulators work in most languages and CPUs.
 
 ---
+
+<AdBlock adSlot="3777463403" layout="in-article" />
 
 ## 🧱 Step 3: Loop Through All Elements
 
@@ -446,6 +452,8 @@ SKIP:   INX H                     ; HL → next element
 * Provides a clean separation of input, processing, and output
 
 ---
+
+<AdBlock adSlot="6212055052" layout="in-article" />
 
 ## 📚 Summary
 
