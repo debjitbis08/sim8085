@@ -8,7 +8,7 @@ const {
   style = null,
 } = Astro.props;
 
-const pubId = import.meta.env.PUBLIC_ADSENSE_PUB_ID;
+const pubId = import.meta.env.PUBLIC_ADSENSE_PUB_ID ? `ca-${import.meta.env.PUBLIC_ADSENSE_PUB_ID}` : null;
 const isAdReady = !!(pubId && adSlot);
 
 const computedStyle = style ?? `display:block; text-align:${textAlign};`;
@@ -42,23 +42,17 @@ const computedStyle = style ?? `display:block; text-align:${textAlign};`;
   import Alpine from "alpinejs";
   import { shouldLoadAds, loadAdSenseScript } from "../lib/adsense.js";
 
-  const pubId = import.meta.env.PUBLIC_ADSENSE_PUBLISHER_ID;
-
   document.addEventListener("alpine:init", () => {
     Alpine.data("adsenseBlock", () => {
       let ref: HTMLElement | null = null;
       let retries = 0;
       let pushStatus = "NOT_STARTED";
 
-      const adSlot = "{{ adSlot }}"; // interpolated by Astro at build time
-      let adKey = Math.random().toString(36).slice(2);
-
       function track(event, props = {}) {
         if (window.posthog) posthog.capture(event, props);
       }
 
       function tryPush() {
-        ref = document.querySelector(`ins.adsbygoogle[data-ad-slot="${adSlot}"]`);
         if (!ref) {
           if (retries++ < 10) return setTimeout(tryPush, 200);
           pushStatus = "NOT_STARTED";
@@ -85,33 +79,37 @@ const computedStyle = style ?? `display:block; text-align:${textAlign};`;
       }
 
       return {
-        adKey,
         init() {
-          if (!pubId || !adSlot) return;
+            ref = this.$el.querySelector("ins.adsbygoogle");
 
-          const country = localStorage.getItem("user_country");
-          const consent = localStorage.getItem("cookie_consent");
+            if (!ref) return;
 
-          if (shouldLoadAds(country, consent)) {
-            loadAdSenseScript(pubId, {
-              onLoad: () => {
-                initialized = true;
-                tryPush();
-              },
-            });
-          } else {
-            window.addEventListener("adsConsentGiven", (e) => {
-              const { consent } = e.detail || {};
-              if (consent === "yes") {
+            const pubId = ref.dataset.adClient;
+            const adSlot = ref.dataset.adSlot;
+
+            if (!pubId || !adSlot) return;
+
+            const country = localStorage.getItem("user_country");
+            const consent = localStorage.getItem("cookie_consent");
+
+            if (shouldLoadAds(country, consent)) {
                 loadAdSenseScript(pubId, {
-                  onLoad: () => {
-                    initialized = true;
-                    tryPush();
-                  },
+                    onLoad: () => {
+                        tryPush();
+                    },
                 });
-              }
-            });
-          }
+            } else {
+                window.addEventListener("adsConsentGiven", (e) => {
+                const { consent } = e.detail || {};
+                if (consent === "yes") {
+                    loadAdSenseScript(pubId, {
+                        onLoad: () => {
+                            tryPush();
+                        },
+                    });
+                }
+                });
+            }
         },
       };
     });
