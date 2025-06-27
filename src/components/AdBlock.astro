@@ -8,7 +8,7 @@ const {
   style = null,
 } = Astro.props;
 
-const pubId = import.meta.env.PUBLIC_ADSENSE_PUBLISHER_ID;
+const pubId = import.meta.env.PUBLIC_ADSENSE_PUB_ID;
 const isAdReady = !!(pubId && adSlot);
 
 const computedStyle = style ?? `display:block; text-align:${textAlign};`;
