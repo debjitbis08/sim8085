@@ -1,3 +1,10 @@
+## [2.17.18](https://github.com/debjitbis08/sim8085/compare/v2.17.17...v2.17.18) (2025-06-27)
+
+
+### Bug Fixes
+
+* Add ad rotation ([926569a](https://github.com/debjitbis08/sim8085/commit/926569a3fb95e62da6c280eb39a9bc1b5ceaa204))
+
 ## [2.17.17](https://github.com/debjitbis08/sim8085/compare/v2.17.16...v2.17.17) (2025-06-26)
 
 
