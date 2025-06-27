@@ -1,3 +1,10 @@
+## [2.17.20](https://github.com/debjitbis08/sim8085/compare/v2.17.19...v2.17.20) (2025-06-27)
+
+
+### Bug Fixes
+
+* Fix the tutorial pages ([fbd8a3a](https://github.com/debjitbis08/sim8085/commit/fbd8a3a660030ea088216c1f5a2c1b46ebed75d7))
+
 ## [2.17.19](https://github.com/debjitbis08/sim8085/compare/v2.17.18...v2.17.19) (2025-06-27)
 
 
