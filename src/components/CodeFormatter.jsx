@@ -18,6 +18,7 @@ export default function CodeFormatter() {
             setStore("errors", []);
             setStore("activeFile", "unsavedChanges", true);
         } catch (e) {
+            console.error(e);
             track("formatting failed", { error: String(e) });
             if (e.name && e.message && e.location) {
                 showToaster(
@@ -224,13 +225,13 @@ function formatLines(lines) {
             return hasLabels ? label : "";
         }
 
+        const mnemonicCol = mnemonic.padEnd(operandCol.length || comment.length ? 8 : 0);
+
         // 📏 If label is too long → break into two lines
         if (label.length > LABEL_WIDTH) {
             const indented = " ".repeat(LABEL_WIDTH) + mnemonicCol + operandCol + comment;
             return `${label}\n${indented}`;
         }
-
-        const mnemonicCol = mnemonic.padEnd(operandCol.length || comment.length ? 8 : 0);
 
         // 🧱 Assemble the line
         if (hasLabels) {
