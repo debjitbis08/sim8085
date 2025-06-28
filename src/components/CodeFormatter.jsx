@@ -5,6 +5,10 @@ import { store, setStore } from "../store/store.js";
 import { showToaster } from "./toaster.jsx";
 import { trackEvent } from "./analytics/tracker.js";
 
+function track(event, props = {}) {
+    if (window.posthog) posthog.capture(event, props);
+}
+
 export default function CodeFormatter() {
     const format = () => {
         try {
@@ -14,6 +18,7 @@ export default function CodeFormatter() {
             setStore("errors", []);
             setStore("activeFile", "unsavedChanges", true);
         } catch (e) {
+            track("formatting failed", { error: String(e) });
             if (e.name && e.message && e.location) {
                 showToaster(
                     "error",
@@ -190,8 +195,8 @@ function formatLines(lines) {
         }
 
         // 🟨 Comment-only line
-        if (typeof line === "string" && line.trim().startsWith(";")) {
-            return line.trim();
+        if (line.comment && line.text.trim().startsWith(";")) {
+            return line.text.trim();
         }
 
         const labelObj = Array.isArray(line.labels) ? (line.labels || [])[0] : line.label;
