@@ -1,3 +1,16 @@
+# [2.18.0](https://github.com/debjitbis08/sim8085/compare/v2.17.21...v2.18.0) (2025-06-28)
+
+
+### Bug Fixes
+
+* Fix code formatter JS bug ([870678f](https://github.com/debjitbis08/sim8085/commit/870678fbe9db935e1db4c1ec2941d411222c226d))
+* Update workspace login message ([5b53602](https://github.com/debjitbis08/sim8085/commit/5b536024ee266fa640da53c2c18daa910bf68bde))
+
+
+### Features
+
+* Add Tutor ([e7f4c40](https://github.com/debjitbis08/sim8085/commit/e7f4c40f6460834c4805e380f8a6515197222e77))
+
 ## [2.17.21](https://github.com/debjitbis08/sim8085/compare/v2.17.20...v2.17.21) (2025-06-28)
 
 
