@@ -1,3 +1,12 @@
+## [2.17.21](https://github.com/debjitbis08/sim8085/compare/v2.17.20...v2.17.21) (2025-06-28)
+
+
+### Bug Fixes
+
+* Fix code formatter ([4a10417](https://github.com/debjitbis08/sim8085/commit/4a10417017e343c4c214fd719aedf4fa334bdc60))
+* Fix reading env vars ([f563cd4](https://github.com/debjitbis08/sim8085/commit/f563cd44fc48b6d1b4c7ce6a8e94b22495424b54))
+* Wait for new element before rotation ([1e3ebc0](https://github.com/debjitbis08/sim8085/commit/1e3ebc0df4553af7c96748b13a11469b4bcb43a6))
+
 ## [2.17.20](https://github.com/debjitbis08/sim8085/compare/v2.17.19...v2.17.20) (2025-06-27)
 
 
