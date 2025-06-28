@@ -137,6 +137,7 @@ export default function AdSenseAd(props) {
         visibleStartTime = null;
         visibleAccumulated = 0;
         pushStatus = "NOT_STARTED";
+        ref = null;
         setAdKey(Math.random().toString(36).slice(2));
         setTimeout(pushAd, 10);
     }
