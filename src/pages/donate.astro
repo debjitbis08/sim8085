@@ -20,66 +20,64 @@ import TriangleInfoIcon from '../icons/triangle-info.svg?raw';
         <p class="mb-10 leading-relaxed">
             Every contribution matters. 🙏
         </p>
-        <div class="flex gap-4 md:gap-8 items-start flex-wrap justify-start md:justify-evenly bg-main-background px-4 pt-8 pb-6 rounded-lg align-center shadow-lg">
-            <div class="" title="Recommended">
-                <a target="_blank" href="https://github.com/sponsors/debjitbis08?o=esb"
-                    class="text-xl border-b-0 border-b-secondary-border flex gap-1 items-end text-active-foreground hover:text-blue-foreground cursor-pointer">
-                    <Fragment set:html={GitHubIcon} />
-                    <span>GitHub</span>
-                    <span class="text-xs self-center">⭐</span>
-                </a>
-                <div>
-                    <!-- <iframe src="https://github.com/sponsors/debjitbis08/button" title="Sponsor debjitbis08" height="32" width="114" style="border: 0; border-radius: 6px;"></iframe> -->
-                </div>
-                <p class="mt-0 text-inactive-foreground text-sm">
+        <!-- Payment Options Section -->
+        <div class="flex flex-col gap-8 items-center bg-main-background px-4 pt-8 pb-6 rounded-lg shadow-lg">
+
+            <!-- 🔶 Razorpay — Primary CTA -->
+            <div class="w-full max-w-md text-center" title="Recommended for Indian users">
+                <form>
+                <script
+                    src="https://checkout.razorpay.com/v1/payment-button.js"
+                    data-payment_button_id="pl_PRRyue1p9GnvTp"
+                    data-prefill.amount.Amount="50"
+                    async>
+                </script>
+                </form>
+                <p class="mt-2 text-sm text-secondary-foreground italic">
+                Supports UPI, Cards, and NetBanking
+                </p>
+                <p class="mt-1 text-xs text-muted-foreground">
+                    Razorpay requires Email and phone for compliance.
                 </p>
             </div>
-            <div class="">
-                <form action="https://www.paypal.com/ncp/payment/9W3T973GRR7LN" method="post" target="_top" style="display:inline-grid;justify-items:center;align-content:start;gap:0.5rem;">
-                    <button class="text-xl border-b-0 border-b-secondary-border flex gap-1 items-center text-active-foreground hover:text-blue-foreground cursor-pointer" type="submit">
-                        <Fragment set:html={PayPalIcon} />
-                        <span>PayPal</span>
+
+            <!-- 💳 Secondary Options -->
+            <div class="w-full max-w-4xl grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 justify-items-center pt-4 border-t border-dashed border-secondary-border">
+                
+                <div title="For international supporters">
+                <a target="_blank" href="https://ko-fi.com/O4O8170QHN" class="payment-link text-xl flex gap-1 items-center text-active-foreground hover:text-blue-foreground">
+                    <Fragment set:html={KoFiIcon} />
+                    <span>Ko-Fi</span>
+                </a>
+                <p class="mt-2 text-sm text-secondary-foreground">PayPal or Card</p>
+                </div>
+
+                <div title="Alternative for PayPal users">
+                <form action="https://www.paypal.com/ncp/payment/9W3T973GRR7LN" method="post" target="_top">
+                    <button class="text-xl flex gap-1 items-center text-active-foreground hover:text-blue-foreground cursor-pointer" type="submit">
+                    <Fragment set:html={PayPalIcon} />
+                    <span>PayPal</span>
                     </button>
                 </form>
-                <div>
+                <p class="mt-2 text-sm text-secondary-foreground">Great for international supporters</p>
                 </div>
-                <p class="mt-2 text-secondary-foreground text-sm">
-                </p>
-            </div>
-            <div class="">
-                <a target="_blank" href="https://ko-fi.com/O4O8170QHN" class="text-xl border-b-0 border-b-secondary-border flex gap-1 items-center text-active-foreground hover:text-blue-foreground cursor-pointer">
-                    <Fragment set:html={KoFiIcon} />
-                    <span>KoFi</span>
-                </a>
-                <p class="mt-2 text-secondary-foreground text-sm">
-                </p>
-            </div>
-            <div class="" title="May not work for accounts outside India.">
-                <a target="_blank" href="https://www.buymeacoffee.com/debjit.biswas" class="text-xl border-b-0 border-b-secondary-border flex gap-1 items-center text-active-foreground hover:text-blue-foreground cursor-pointer">
+
+                <div title="May not work for accounts outside India.">
+                <a target="_blank" href="https://www.buymeacoffee.com/debjit.biswas" class="payment-link text-xl flex gap-1 items-center text-active-foreground hover:text-blue-foreground">
                     <Fragment set:html={BmcIcon} />
-                    <span>Buy me a coffee</span>
-                    <span class="text-base self-auto text-yellow-foreground">
-                        <Fragment set:html={TriangleInfoIcon} />
-                    </span>
+                    <span>Buy Me a Coffee</span>
                 </a>
-                <div>
+                <p class="mt-2 text-sm text-secondary-foreground">Card payments only</p>
                 </div>
-                <p class="mt-2 text-secondary-foreground text-sm">
-                </p>
-            </div>
-            <div class="" title="Razorpay requires email and phone number.">
-                <a target="_blank" href="https://razorpay.com/payment-button/pl_PRRyue1p9GnvTp/view/?utm_source=payment_button&utm_medium=button&utm_campaign=payment_button"
-                    class="text-xl border-b-0 border-b-secondary-border flex gap-1 items-center text-active-foreground hover:text-blue-foreground cursor-pointer">
-                    <Fragment set:html={RazorPayIcon} />
-                    <span>Razorpay</span>
-                    <span class="text-base self-auto text-yellow-foreground">
-                        <Fragment set:html={TriangleInfoIcon} />
-                    </span>
+
+                <div title="Via GitHub Sponsors">
+                <a target="_blank" href="https://github.com/sponsors/debjitbis08?o=esb" class="payment-link text-xl flex gap-1 items-end text-active-foreground hover:text-blue-foreground">
+                    <Fragment set:html={GitHubIcon} />
+                    <span>GitHub</span>
                 </a>
-                <div>
+                <p class="mt-2 text-sm text-secondary-foreground">Best for recurring support</p>
                 </div>
-                <p class="mt-1 text-secondary-foreground text-sm">
-                </p>
+
             </div>
         </div>
         <div class="flex mt-8 md:gap-16 items-start flex-wrap justify-stretch">
@@ -90,7 +88,37 @@ import TriangleInfoIcon from '../icons/triangle-info.svg?raw';
             day job to focus full-time on projects like this. This decision allows me to continuously improve and add new features to the project, but it also means that I depend on donations for my livelihood.
         </p>
         <p class="mb-6 leading-relaxed">
-My goal is to create tools and <a href="https://www.lambda-classes.com">courses</a> for students and developers to make their lives easier and help them learn.
+My goal is to create <a href="https://github.com/debjitbis08/logo">tools</a> and <a href="https://www.lambda-classes.com">courses</a> for students and developers to make their lives easier and help them learn.
+        </p>
+
+
+        <h2 class="text-xl font-bold mt-12 mb-4">💎 Sim8085 Plus</h2>
+        <p class="mb-4 leading-relaxed">
+            Sim8085 Plus is a one-time upgrade designed to support serious learners and power users. It unlocks useful features like:
+        </p>
+        <ul class="list-disc list-inside mb-4">
+            <li>Saving unlimited files</li>
+            <li>File versioning and history</li>
+            <li>Future AI-powered tutorials and insights</li>
+        </ul>
+        <p class="mb-4 leading-relaxed">
+            There’s no subscription — just a simple one-time payment. If you use Sim8085 regularly and want to support its future, Plus is the best way to do so.
+        </p>
+        <p class="mb-8 leading-relaxed">
+                        You can learn more or upgrade from the <a href="/upgrade/" class="underline underline-offset-4">Pricing page</a>.
+        </p>
+            
+        <h2 class="text-xl font-bold mt-12 mb-4">📊 Revenue So Far</h2>
+        <p class="mb-4 leading-relaxed">
+            I believe in being transparent about what Sim8085 earns. As of now:
+        </p>
+        <ul class="list-disc list-inside mb-4 text-sm">
+            <li><strong>Donations:</strong> ₹10</li>
+            <li><strong>Plus Plan:</strong> ₹0</li>
+            <li><strong>Ad Revenue:</strong> ₹0</li>
+        </ul>
+        <p class="mb-6 leading-relaxed">
+            These numbers are small, but I'm grateful for every bit of support. It helps me stay focused on improving the project without external funding.
         </p>
 
         <p class="mb-6 leading-relaxed">
@@ -149,9 +177,9 @@ My goal is to create tools and <a href="https://www.lambda-classes.com">courses<
 <style>
 @reference "tailwindcss";
 
-a {
-    @apply text-blue-500;
+a:not(.payment-link) {
+    @apply text-[rgb(var(--sm-blue-foreground))]
 }
 </style>
 
-<script is:inline  defer src="https://buttons.github.io/buttons.js"></script>
+<script is:inline defer src="https://buttons.github.io/buttons.js"></script>
