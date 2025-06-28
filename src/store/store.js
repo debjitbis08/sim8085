@@ -130,4 +130,16 @@ export const [store, setStore] = createStore({
     activeFile: getInitialActiveFile(),
     homeFolderId: null,
     settings: structuredClone(DEFAULT_SETTINGS),
+    tutorial: {
+        problem: "",
+        isSubmitted: false,
+        conversationId: crypto.randomUUID(),
+        latestResponseId: null,
+        stepIndex: 1,
+        step: "",
+        stepHint: "",
+        stepInstructionHint: "",
+        isLastStep: false,
+        maxSteps: 7, // or dynamic
+    },
 });

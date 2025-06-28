@@ -62,6 +62,9 @@ importers:
       debounce:
         specifier: ^2.2.0
         version: 2.2.0
+      openai:
+        specifier: ^5.8.1
+        version: 5.8.1(ws@8.18.0)(zod@3.25.67)
       posthog-js:
         specifier: ^1.239.1
         version: 1.239.1
@@ -4839,6 +4842,18 @@ packages:
 
   oniguruma-to-es@4.3.3:
     resolution: {integrity: sha512-rPiZhzC3wXwE59YQMRDodUwwT9FZ9nNBwQQfsd1wfdtlKEyCdRV0avrTcSZ5xlIvGRVPd/cx6ZN45ECmS39xvg==}
+
+  openai@5.8.1:
+    resolution: {integrity: sha512-+qp4vQjJs43pzMSb6quTYslOhVE0c0c7j4YMoEks83BnusG23UrsWn3Hey6/8mwYadY05KipLvbp+PTO4jxO9w==}
+    hasBin: true
+    peerDependencies:
+      ws: ^8.18.0
+      zod: ^3.23.8
+    peerDependenciesMeta:
+      ws:
+        optional: true
+      zod:
+        optional: true
 
   own-keys@1.0.1:
     resolution: {integrity: sha512-qFOyK5PjiWZd+QQIh+1jhdb9LpxTF0qs7Pm8o5QHYZ0M3vKqSqzsZaEB6oWlxZ+q2sJBMI/Ktgd2N5ZwQoRHfg==}
@@ -12078,6 +12093,11 @@ snapshots:
       oniguruma-parser: 0.12.1
       regex: 6.0.1
       regex-recursion: 6.0.2
+
+  openai@5.8.1(ws@8.18.0)(zod@3.25.67):
+    optionalDependencies:
+      ws: 8.18.0
+      zod: 3.25.67
 
   own-keys@1.0.1:
     dependencies:

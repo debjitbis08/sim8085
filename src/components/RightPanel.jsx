@@ -9,6 +9,9 @@ import { getUserTier } from "../lib/subscription.js";
 import { onInit } from "../lib/supabase.js";
 
 const LEDArray = lazy(() => import("./LEDArray.jsx"));
+const Tutor = lazy(() => import("./Tutor.jsx"));
+
+const isOpenAiEnabled = import.meta.env.PUBLIC_OPENAI_ENABLED === "true";
 
 export function RightPanel() {
     let [expanded, setExpanded] = createSignal(true);
@@ -127,6 +130,11 @@ export function RightPanel() {
                     <Tabs.Trigger class={`tabs__trigger ${expanded() ? "" : "hidden"}`} value="led-array">
                         LED Array
                     </Tabs.Trigger>
+                    {isOpenAiEnabled && (
+                        <Tabs.Trigger class={`tabs__trigger ${expanded() ? "" : "hidden"}`} value="step-guide">
+                            Tutor
+                        </Tabs.Trigger>
+                    )}
                     <Tabs.Indicator class="tabs__indicator" />
                 </Tabs.List>
                 <Tabs.Content class="tabs__content flex-grow overflow-y-auto overflow-x-auto" value="machine-code">
@@ -137,6 +145,13 @@ export function RightPanel() {
                         <LEDArray />
                     </Suspense>
                 </Tabs.Content>
+                {isOpenAiEnabled && (
+                    <Tabs.Content class="tabs__content flex-grow overflow-y-auto overflow-x-auto" value="step-guide">
+                        <Suspense fallback={<VsLoading class="animate-spin" />}>
+                            <Tutor />
+                        </Suspense>
+                    </Tabs.Content>
+                )}
             </Tabs>
             <Tooltip placement="left">
                 <Tooltip.Trigger
