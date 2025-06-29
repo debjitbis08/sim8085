@@ -230,12 +230,12 @@ function formatLines(lines) {
         // 📏 If label is too long → break into two lines
         if (label.length > LABEL_WIDTH) {
             const indented = " ".repeat(LABEL_WIDTH) + mnemonicCol + operandCol + comment;
-            return `${label}\n${indented}`;
+            return `${label}\n ${indented}`;
         }
 
         // 🧱 Assemble the line
         if (hasLabels) {
-            return `${labelPadded}${mnemonicCol}${operandCol}${comment}`;
+            return `${labelPadded} ${mnemonicCol}${operandCol}${comment}`;
         } else {
             return `${mnemonicCol}${operandCol}${comment}`;
         }

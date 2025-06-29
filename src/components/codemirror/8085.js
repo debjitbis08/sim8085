@@ -77,8 +77,11 @@ const language = StreamLanguage.define({
                     context = CONTEXT.SOL;
                     return "label";
                 } else {
+                    if (stream.eol()) {
+                        return "label";
+                    }
                     // Peek the next word after the current label
-                    stream.eatWhile(/\s/); // Consume any white spaces
+                    stream.eatWhile(/[\s\n]+/m); // Consume any white spaces
                     const nextWord = stream.match(/\w+/, false); // Match the next word without consuming
 
                     if (nextWord && (nextWord[0] === "EQU" || nextWord[0] === "SET")) {
