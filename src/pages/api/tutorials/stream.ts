@@ -1,6 +1,7 @@
 import type { APIRoute } from "astro";
 import { OPENAI_API_KEY } from "astro:env/server";
 import OpenAI from "openai";
+import { getUserFromRequest } from "../../../lib/supabase-server.js";
 
 export const prerender = false;
 
@@ -67,8 +68,17 @@ Each tutorial should follow this structure:
   Avoid dropping full programs upfront. Let the final version emerge at the end as a natural conclusion of the previous steps.
 `;
 
-export const GET: APIRoute = async ({ url }) => {
+export const GET: APIRoute = async ({ request, url }) => {
     const encoder = new TextEncoder();
+
+    const { user, error: authError } = await getUserFromRequest(request);
+
+    if (authError || !user) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+            status: 401,
+            headers: { "Content-Type": "application/json" },
+        });
+    }
 
     const stepNum = parseInt(url.searchParams.get("step") || "1", 10);
     const mode = url.searchParams.get("mode") || "generate";

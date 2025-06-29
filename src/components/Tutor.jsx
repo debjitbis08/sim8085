@@ -3,6 +3,7 @@ import { createSignal, onMount, Show } from "solid-js";
 import { getUserTier } from "../lib/subscription.js";
 import { store, setStore } from "../store/store.js";
 import { produce } from "solid-js/store";
+import { getSession } from "../lib/supabase.js";
 
 export default function StepByStepGuide() {
     const [tier, setTier] = createSignal("FREE");
@@ -30,6 +31,11 @@ export default function StepByStepGuide() {
             currentCode: store.activeFile.content || "",
             problem: store.tutorial.problem,
         });
+
+        const { session } = await getSession();
+        if (session?.access_token) {
+            params.set("access_token", session.access_token);
+        }
 
         const evt = new EventSource(`/api/tutorials/stream/?${params.toString()}`);
 

@@ -107,6 +107,10 @@ export default defineConfig({
                             label: "Multiply Two 8‑bit Numbers",
                             link: "/programs/multiply-8bit-numbers",
                         },
+                        {
+                            label: "Automatic Lawn Irrigation System",
+                            link: "/programs/automatic-lawn-irrigation",
+                        },
                     ],
                 },
                 {
@@ -169,6 +173,11 @@ export default defineConfig({
                 optional: true,
             }),
             SUPABASE_SERVICE_ROLE_KEY: envField.string({
+                context: "server",
+                access: "secret",
+                optional: true,
+            }),
+            SUPABASE_JWT_SECRET: envField.string({
                 context: "server",
                 access: "secret",
                 optional: true,

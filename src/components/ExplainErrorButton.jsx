@@ -1,5 +1,5 @@
 import { createSignal, onMount, Show, createEffect, onCleanup } from "solid-js";
-import { supabase, getUser } from "../lib/supabase.js";
+import { supabase, getUser, getSession } from "../lib/supabase.js";
 import { HiSolidSparkles } from "solid-icons/hi";
 import { FaSolidRobot } from "solid-icons/fa";
 
@@ -24,11 +24,14 @@ export default function ExplainErrorButton(props) {
     async function explain() {
         setIsLoading(true);
         try {
+            const { session } = await getSession();
+            const headers = { "Content-Type": "application/json" };
+            if (session?.access_token) {
+                headers["Authorization"] = `Bearer ${session.access_token}`;
+            }
             const response = await fetch("/api/explain-error/", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
+                headers,
                 body: JSON.stringify({
                     code: props.code,
                     error: props.error.msg,

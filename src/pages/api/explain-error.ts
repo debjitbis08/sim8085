@@ -1,4 +1,5 @@
 import { OPENAI_API_KEY } from "astro:env/server";
+import { getUserFromRequest } from "../../lib/supabase-server.js";
 
 export const prerender = false;
 
@@ -9,6 +10,14 @@ export async function POST({ request }) {
     if (!apiKey) {
         return new Response(JSON.stringify({ error: "OpenAI key not configured" }), {
             status: 400,
+            headers: { "Content-Type": "application/json" },
+        });
+    }
+
+    const { user, error: authError } = await getUserFromRequest(request);
+    if (authError || !user) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+            status: 401,
             headers: { "Content-Type": "application/json" },
         });
     }
