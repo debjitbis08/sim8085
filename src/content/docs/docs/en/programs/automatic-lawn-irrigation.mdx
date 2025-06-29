@@ -1,0 +1,339 @@
+---
+title: 8085 Program for an Automatic Lawn Irrigation System
+description: Simulate a smart irrigation controller using 8085 assembly and I/O ports based on soil moisture, rain sensor, time of day, and manual override.
+---
+
+Design an **8085 assembly program** that simulates a basic automatic lawn irrigation system. The program should:
+
+* **Turn ON** irrigation only when:
+
+  * Manual override is not active
+  * Soil is dry
+  * It's not raining
+  * It's not daytime
+
+If **manual override is ON**, irrigation must always turn on, regardless of other conditions.
+
+---
+
+### 🔌 Interface (Ports)
+
+| Port (Hex) | Purpose              | Input Value Meaning             |
+| ---------- | -------------------- | ------------------------------- |
+| `00H`      | Soil Moisture Sensor | `1 = Moist`, `0 = Dry`          |
+| `01H`      | Rain Sensor          | `1 = Raining`, `0 = Dry`        |
+| `02H`      | Time of Day          | `1 = Daytime`, `0 = Night`      |
+| `03H`      | Manual Override      | `1 = Force ON`, `0 = Auto Mode` |
+| `10H`      | Output to Valve      | `1 = Irrigation ON`, `0 = OFF`  |
+
+---
+
+## ⚡ TL;DR — Final Working Code
+
+```asm
+        ; Step 1: Check Manual Override
+        IN 03H
+        CPI 01H
+        JZ MANUAL_ON
+
+        ; Step 2: Check Soil Moisture
+        IN 00H
+        CPI 01H
+        JZ IRRIGATION_OFF
+
+        ; Step 3: Check Rain Sensor
+        IN 01H
+        CPI 01H
+        JZ IRRIGATION_OFF
+
+        ; Step 4: Check Time of Day
+        IN 02H
+        CPI 01H
+        JZ IRRIGATION_OFF
+
+        ; All conditions passed → Irrigation ON
+        MVI A, 01H
+        OUT 10H
+        HLT
+
+MANUAL_ON:
+        MVI A, 01H
+        OUT 10H
+        HLT
+
+IRRIGATION_OFF:
+        MVI A, 00H
+        OUT 10H
+        HLT
+```
+
+---
+
+## 🧱 Step 1: Control the Irrigation Valve with a Simple Output
+
+Before building decision logic, we first need to **define how to turn irrigation ON or OFF** from the 8085.
+
+This step introduces the **output port** connected to the irrigation valve.
+
+---
+
+### 📦 Output Interface
+
+| Port  | Purpose                  | Accepted Values     |
+| ----- | ------------------------ | ------------------- |
+| `10H` | Irrigation Control Valve | `0 = OFF`, `1 = ON` |
+
+We’ll directly send a value to this port to simulate the valve being turned **ON or OFF**.
+
+---
+
+### 🧠 Why Start Here?
+
+* It gives us a **simple, verifiable action** to test
+* It introduces the concept of **output control** using the `OUT` instruction
+* It lays the groundwork for plugging in more complex logic later
+
+---
+
+### 🧾 Code (Manual Valve Control)
+
+```asm
+MVI A, 01H       ; Load A with 1 to simulate "turn ON"
+OUT 10H          ; Send A to port 10H
+HLT              ; Stop execution
+```
+
+---
+
+### 🧪 Manual Test
+
+Try changing `MVI A, 01H` to `MVI A, 00H` to simulate turning **OFF** the irrigation.
+
+Expected:
+
+* Port `10H` reflects the ON/OFF signal
+* Easy to test using I/O monitor in Sim8085
+
+---
+
+## 🧱 Step 2: Add Manual Override as Input
+
+Now that we can control the valve through an output port, let’s add **manual override** as an input condition.
+
+When the override switch is **ON** (`1`), irrigation should **always turn ON** regardless of other sensor inputs.
+
+---
+
+### 📦 I/O Interface Update
+
+| Port  | Purpose             | Value `0`      | Value `1`           |
+| ----- | ------------------- | -------------- | ------------------- |
+| `03H` | Manual Override     | Automatic mode | Force irrigation ON |
+| `10H` | Valve Control (OUT) | OFF            | ON                  |
+
+---
+
+### 🧠 How This Works
+
+* We **read the override input** from port `03H` using `IN`
+* If the value is `01H`, we **skip all sensor checks** and go straight to turning irrigation ON
+
+This models **user-first logic**: a manual switch overrides all automation.
+
+---
+
+### 🧾 Code Snippet (Manual Override)
+
+```asm
+IN 03H          ; Read from port 03H (Manual Override)
+CPI 01H         ; Compare with 1 (Override ON)
+JZ MANUAL_ON    ; If equal, jump to force ON
+
+HLT             ; Temporary end
+
+MANUAL_ON:
+MVI A, 01H      ; Force irrigation ON
+OUT 10H         ; Send ON signal to valve
+HLT
+```
+
+---
+
+### 🧪 Manual Test
+
+Try:
+
+```
+03H = 00H  → Should not jump (automation continues)
+03H = 01H  → Should jump to MANUAL_ON and turn irrigation ON
+```
+
+---
+
+## 🧱 Step 3: Check Soil Moisture Sensor
+
+If the **manual override is OFF**, we now begin evaluating environmental conditions — starting with the **soil moisture sensor**.
+
+If the soil is already **moist**, irrigation is **not needed**.
+
+---
+
+### 📦 I/O Update
+
+| Port  | Purpose             | Value `0`         | Value `1`             |
+| ----- | ------------------- | ----------------- | --------------------- |
+| `00H` | Soil Moisture Input | Dry (needs water) | Moist (skip watering) |
+
+---
+
+### 🧠 What We’re Doing
+
+* Read input from port `00H` (soil moisture)
+* If it’s moist (`01H`), jump to `IRRIGATION_OFF`
+* If dry (`00H`), continue to the next condition (rain sensor)
+
+---
+
+### 🧾 Code Snippet (Soil Moisture Check)
+
+```asm
+IN 00H          ; Read soil moisture from port 00H
+CPI 01H         ; Is soil moist?
+JZ IRRIGATION_OFF   ; Yes → skip irrigation
+```
+
+---
+
+### 🧪 Manual Test
+
+Try setting:
+
+```
+00H = 01H  → moist → jumps to IRRIGATION_OFF
+00H = 00H  → dry   → continues to next condition
+```
+
+---
+
+## 🧱 Step 4: Check the Rain Sensor
+
+If the soil is dry and manual override is **not active**, the next check is the **rain sensor**.
+
+If it's currently **raining**, irrigation should be **turned OFF** — watering during rain is wasteful.
+
+---
+
+### 📦 I/O Summary (Rain Sensor)
+
+| Port  | Purpose     | Value `0`          | Value `1`               |
+| ----- | ----------- | ------------------ | ----------------------- |
+| `01H` | Rain Sensor | No rain (continue) | Raining (skip watering) |
+
+---
+
+### 🧠 What We’re Doing
+
+* Read input from port `01H`
+* If rain is detected (`01H`), **jump to `IRRIGATION_OFF`**
+* If not raining (`00H`), proceed to the final check — time of day
+
+This prevents unnecessary watering during active rainfall.
+
+---
+
+### 🧾 Code Snippet (Rain Check)
+
+```asm
+IN 01H          ; Read rain sensor input from port 01H
+CPI 01H         ; Is it raining?
+JZ IRRIGATION_OFF   ; Yes → turn irrigation OFF
+```
+
+---
+
+### 🧪 Manual Test
+
+Try setting:
+
+```
+01H = 01H → raining → jump to IRRIGATION_OFF  
+01H = 00H → dry → continue to time-of-day check
+```
+
+---
+
+## 🧱 Step 5: Check Time of Day Before Irrigation
+
+If the soil is dry, it's not raining, and manual override is off — the last condition to check is the **time of day**.
+
+We assume that irrigation should **only happen at night** (for example, to reduce evaporation).
+
+---
+
+### 📦 I/O Summary (Time Sensor)
+
+| Port  | Purpose     | Value `0`        | Value `1`      |
+| ----- | ----------- | ---------------- | -------------- |
+| `02H` | Time of Day | Night (continue) | Daytime (skip) |
+
+---
+
+### 🧠 What We’re Doing
+
+* Read port `02H` to get time info
+* If it's **daytime (`01H`)**, skip irrigation
+* If it's **night (`00H`)**, proceed to turn it ON
+
+This simulates **energy-efficient watering schedules**.
+
+---
+
+### 🧾 Code Snippet (Time Check)
+
+```asm
+IN 02H            ; Read time-of-day input
+CPI 01H           ; Is it daytime?
+JZ IRRIGATION_OFF ; Yes → skip irrigation
+```
+
+If we pass all conditions:
+
+```asm
+; All checks passed → turn irrigation ON
+MVI A, 01H
+OUT 10H
+HLT
+```
+
+---
+
+### 🧪 Final Manual Test Cases
+
+Try these combinations of input:
+
+| OVR | SM | RAIN | TIME | Expected Output  |
+| --- | -- | ---- | ---- | ---------------- |
+| 1   | X  | X    | X    | ON (override)    |
+| 0   | 1  | X    | X    | OFF (moist soil) |
+| 0   | 0  | 1    | X    | OFF (raining)    |
+| 0   | 0  | 0    | 1    | OFF (daytime)    |
+| 0   | 0  | 0    | 0    | ON (all clear)   |
+
+---
+
+---
+
+## 📚 Summary
+
+This program demonstrates how to build a **real-world decision system** using the 8085 microprocessor. It models an **automatic irrigation controller** using:
+
+* **Input ports** for real-world signals (soil moisture, rain, time, override)
+* **Short-circuit logic** to prioritize early exits (like manual override or moisture detection)
+* **Clean modular conditions** to simulate control flow
+
+### 🧠 Key Concepts Reinforced
+
+* I/O port communication using `IN` and `OUT`
+* Multi-stage conditional logic
+* How microprocessors are used in automation and embedded control systems
+
