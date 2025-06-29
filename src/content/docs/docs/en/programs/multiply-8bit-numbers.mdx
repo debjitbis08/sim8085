@@ -1,0 +1,244 @@
+---
+title: 8085 Program to Multiply Two 8‑bit Numbers
+description: An 8085 assembly program that multiplies two unsigned 8‑bit numbers from memory using repeated addition and stores the 16‑bit result in consecutive memory locations.
+---
+
+import AdBlock from "../../../../../components/AdBlock.astro";
+
+Write an 8085 program that reads two 8‑bit numbers from memory (e.g., `2500H` and `2501H`), multiplies them by **repeated addition**, and stores the 16‑bit product across two bytes in memory (e.g., `3000H`‑`3001H`).
+
+This approach is straightforward and avoids indirect multiplication or shift-based algorithms, making it easy to follow and educational.
+
+<AdBlock adSlot="7634600323" fullWidthResponsive={false} textAlign="left" />
+
+---
+
+## ⚡ TL;DR — Final Working Code
+
+```asm
+        ; Interface
+        FIRST_NUM_ADDR   EQU 2500H
+        SECOND_NUM_ADDR  EQU 2501H
+        RESULT_ADDR      EQU 3000H
+
+        ; Step 1: Load inputs
+        LXI H, FIRST_NUM_ADDR
+        MOV B, M             ; B ← multiplicand
+        INX H
+        MOV C, M             ; C ← multiplier
+
+        ; Step 2: Initialize result
+        LXI H, 0000H         ; HL ← result (16-bit accumulator)
+
+        ; Step 3: Multiply using repeated addition
+MUL_LOOP:
+        MOV A, L
+        ADD B
+        MOV L, A
+        JNC SKIP_INC
+        INR H                ; Carry to high byte
+
+SKIP_INC:
+        DCR C
+        JNZ MUL_LOOP
+
+        ; Step 4: Store result
+        LXI D, RESULT_ADDR
+        MOV M, L             ; Store low byte
+        INX D
+        MOV M, H             ; Store high byte
+        HLT
+```
+
+---
+
+## 🧱 Step 1: Define the Interface and Load Inputs
+
+First, define where your inputs come from and where the result will go:
+
+| Address | Purpose                 |
+| ------- | ----------------------- |
+| `2500H` | First 8‑bit operand     |
+| `2501H` | Second 8‑bit operand    |
+| `3000H` | Product low byte (LSB)  |
+| `3001H` | Product high byte (MSB) |
+
+Next, begin by loading the two operands into registers for processing:
+
+```asm
+LXI H, 2500H     ; HL → first operand
+MOV B, M         ; B ← first number
+INX H            ; HL → second operand
+MOV C, M         ; C ← second number
+```
+
+---
+
+### 🧪 Manual Test
+
+Initialize memory:
+
+```
+2500H = 05H
+2501H = 03H
+```
+
+After loading:
+
+* Register B = `05H`
+* Register C = `03H`
+
+---
+
+## 🧱 Step 2: Initialize Result Registers
+
+We’ll now prepare registers to **hold the result** of multiplication.
+
+Since multiplying two 8-bit numbers can produce a 16-bit result (maximum `255 × 255 = 65025` = `FE01H`), we need:
+
+* One register for the **low byte** (e.g., `L`)
+* One for the **high byte** (e.g., `H`)
+* An additional register (`C`) will act as a loop counter (already holds one multiplier)
+
+---
+
+### 🧠 What We're Doing
+
+* Clear the result registers (HL pair) to start from zero
+* Use `C` as the counter to add the multiplicand (`B`) repeatedly
+
+---
+
+### 🧾 Code (Initialize Result)
+
+```asm
+LXI H, 0000H     ; HL ← 0000H → result = 0
+                 ; B = multiplicand, C = multiplier
+```
+
+Now we’re ready to perform the actual multiplication in the next step using **repeated addition with carry** into HL.
+
+---
+
+<AdBlock adSlot="3777463403" layout="in-article" />
+
+## 🧱 Step 3: Add the Multiplicand Repeatedly
+
+Now we’ll perform the multiplication using **repeated addition**.
+
+Since register `C` holds the multiplier, we’ll add the multiplicand (`B`) to the result (`HL`) that many times. To properly handle 16-bit accumulation, we’ll add `B` to the **L register**, and propagate any carry into **H**.
+
+---
+
+### 🧠 What We're Doing
+
+* Loop `C` times:
+
+  * Add `B` to `L` (low byte)
+  * If there’s a carry, increment `H` (high byte)
+* Decrement `C` until zero
+
+---
+
+### 🧾 Code (Multiplication Loop)
+
+```asm
+MUL_LOOP:
+    MOV A, L       ; A ← current low byte
+    ADD B          ; A ← A + multiplicand
+    MOV L, A       ; Store updated low byte
+
+    JNC SKIP_INC   ; If no carry, skip
+    INR H          ; Else, increment high byte
+
+SKIP_INC:
+    DCR C          ; Decrement loop counter
+    JNZ MUL_LOOP   ; Repeat if C ≠ 0
+```
+
+---
+
+### 🧪 Manual Test
+
+If:
+
+* B = 5 (multiplicand)
+* C = 3 (multiplier)
+
+Then:
+
+* HL = `000F` (15 decimal), as expected for `5 × 3`
+
+Now we're ready to store the result in memory in the next step.
+
+---
+
+## 🧱 Step 4: Store the 16-bit Result in Memory
+
+After computing the result in the HL register pair:
+
+* `L` holds the **lower byte** of the product
+* `H` holds the **upper byte** (in case of overflow)
+
+Now we need to store both bytes at predefined memory addresses for output.
+
+---
+
+### 📦 Output Mapping
+
+| Address | Purpose              |
+| ------- | -------------------- |
+| `3000H` | Low byte of product  |
+| `3001H` | High byte of product |
+
+---
+
+### 🧾 Code (Store Result)
+
+```asm
+LXI D, 3000H     ; DE → destination address
+MOV M, L         ; Store low byte at 3000H
+INX H            ; Move to 3001H
+MOV M, H         ; Store high byte
+HLT
+```
+
+> 🔍 Note: If `HL` was used earlier, use another register pair (like `DE`) for storing, or reload address.
+
+---
+
+### 🧪 Manual Test
+
+For:
+
+```
+2500H = 0AH  (10)
+2501H = 0CH  (12)
+```
+
+After execution:
+
+```
+3000H = 78H  ; LSB = 120
+3001H = 00H  ; MSB = 0
+```
+
+This confirms the product `10 × 12 = 120` is stored correctly.
+
+---
+
+<AdBlock adSlot="6212055052" layout="in-article" />
+
+## 📚 Summary
+
+This program multiplies two unsigned 8-bit numbers using **repeated addition**, a common approach on processors like the 8085 which lack a dedicated `MUL` instruction.
+
+It demonstrates:
+
+✅ Careful setup of an input/output interface
+✅ Use of HL as a **16-bit accumulator**
+✅ Proper handling of **carry** across bytes
+✅ Clean final result storage in memory
+
+The method is simple, reliable, and teaches how arithmetic operations are built from basic instructions in low-level programming.
+

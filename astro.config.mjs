@@ -87,6 +87,26 @@ export default defineConfig({
                             label: "Count Number of 1’s in an 8-bit Number",
                             link: "/programs/count-ones-in-byte",
                         },
+                        {
+                            label: "Add Two 8-bit Numbers",
+                            link: "/programs/add-8bit-numbers",
+                        },
+                        {
+                            label: "Swap Two 8-bit numbers",
+                            link: "/programs/swap-8bit-numbers",
+                        },
+                        {
+                            label: "Find Largest and Smallest in an Array",
+                            link: "/programs/largest-smallest-in-array",
+                        },
+                        {
+                            label: "Convert a Two‑Digit BCD to Binary",
+                            link: "/programs/convert-bcd-to-binary",
+                        },
+                        {
+                            label: "Multiply Two 8‑bit Numbers",
+                            link: "/programs/multiply-8bit-numbers",
+                        },
                     ],
                 },
                 {

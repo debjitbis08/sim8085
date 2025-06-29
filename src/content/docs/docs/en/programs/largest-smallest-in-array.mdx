@@ -1,0 +1,275 @@
+---
+title: 8085 Program to Find Largest and Smallest in an Array
+description: An 8085 assembly program that scans a block of numbers in memory to determine both the largest and the smallest values, storing the results in dedicated memory locations.
+---
+
+import AdBlock from "../../../../../components/AdBlock.astro";
+
+Write an 8085 assembly program that:
+
+* Reads a block of N 8-bit numbers from memory (`2500H` = count, `2501H…` = data)
+* Finds the **largest** and **smallest** values in the array
+* Stores the results as:
+
+  * `3000H` = largest value
+  * `3001H` = smallest value
+
+Assume N is a small positive integer (e.g., ≤ 16). This is a classic array scan using comparison and branch logic.
+
+<AdBlock adSlot="7634600323" fullWidthResponsive={false} textAlign="left" />
+
+---
+## ⚡ TL;DR — Final Working Code
+
+```asm
+        ; Interface constants
+        ARRAY_ADDR     EQU 2500H
+        MAX_OUTPUT     EQU 3000H
+        MIN_OUTPUT     EQU 3001H
+
+        ; Step 1: Load array count and first element
+        LXI H, ARRAY_ADDR
+        MOV C, M             ; C ← count (N)
+        INX H
+        MOV A, M             ; A ← first value (max)
+        MOV B, M             ; B ← also min
+        INX H
+        DCR C                ; Already processed one
+
+        ; Step 2: Loop through array
+LOOP:   MOV D, M             ; D ← current element
+        CMP D
+        JNC SKIP_MAX
+        MOV A, D             ; Update max
+SKIP_MAX:
+        MOV E, D
+        MOV D, B
+        CMP E
+        JC SKIP_MIN
+        MOV B, E             ; Update min
+SKIP_MIN:
+        INX H
+        DCR C
+        JNZ LOOP
+
+        ; Step 3: Store results
+        LXI H, MAX_OUTPUT
+        MOV M, A             ; Store max
+        INX H
+        MOV M, B             ; Store min
+        HLT
+```
+
+---
+
+## 🧱 Step 1: Define the Interface
+
+Before any code, define how input and output are communicated:
+
+| Address  | Meaning                |
+| -------- | ---------------------- |
+| `2500H`  | Number of elements (N) |
+| `2501H…` | Array of N elements    |
+| `3000H`  | Output: largest value  |
+| `3001H`  | Output: smallest value |
+
+**Why this matters:**
+A clear interface makes testing easy and ensures correct data flow. It’s the contract your program must adhere to.
+
+**How to test it:**
+In Sim8085, set `2500H = 04H`, and memory `2501H…2504H` to known values (e.g., `30H, 10H, 50H, 20H`). Then inspect memory after steps complete to verify setup.
+
+---
+
+## 🧱 Step 2: Initialize Registers and Setup the Scan
+
+Before scanning the array, we need to load the data and prepare storage for the current largest and smallest values.
+
+---
+
+### 🧠 What We're Doing
+
+* Load the count (N) from `2500H` into register `C`
+* Use the first data element (at `2501H`) to initialize:
+
+  * `A` as the **current maximum**
+  * `B` as the **current minimum**
+* Set `HL` to point to the next array element (start of the loop)
+
+---
+
+### 🧾 Code (Initialization)
+
+```asm
+LXI H, 2500H     ; HL → count
+MOV C, M         ; C ← number of elements (N)
+INX H            ; HL → first element
+MOV A, M         ; A ← first value (initial max)
+MOV B, M         ; B ← also set as initial min
+INX H            ; HL → next element for loop
+DCR C            ; We've already processed one
+HLT
+```
+
+---
+
+### 🧪 Manual Test
+
+Set memory:
+
+```
+2500H = 04H
+2501H = 30H
+2502H = 10H
+2503H = 50H
+2504H = 20H
+```
+
+Expected after halt:
+
+* `A` = 30H (max)
+* `B` = 30H (min)
+* `C` = 03H (remaining elements)
+* `HL` = 2502H (next value to compare)
+
+This prepares us to scan through the rest of the array in Step 3.
+
+---
+
+<AdBlock adSlot="3777463403" layout="in-article" />
+
+## 🧱 Step 3: Loop Through the Array and Compare
+
+Now that we've initialized the maximum (`A`) and minimum (`B`) values using the first element, we loop through the remaining elements and compare each one with both `A` and `B`.
+
+---
+
+### 🧠 What We're Doing
+
+* At each step:
+
+  * Compare the current element (`M`) with the value in `A` (max)
+    * If it's larger, update `A`
+  * Then compare the same element with `B` (min)
+    * If it's smaller, update `B`
+* Decrement `C` each time — the loop runs `N−1` times
+* Use conditional jumps (`JC`, `JNC`) to decide when to update
+
+---
+
+### 🧾 Code (Compare and Loop)
+
+```asm
+LOOP: MOV D, M         ; D ← current element
+      CMP D            ; Compare A (max) with D
+      JNC SKIP_MAX     ; If A ≥ D, skip updating max
+      MOV A, D         ; A ← new max
+
+SKIP_MAX:
+      MOV E, D         ; E ← same current element
+      MOV D, B         ; D ← current min
+      CMP E            ; Compare B (min) with current element
+      JC SKIP_MIN      ; If B < E, skip updating min
+      MOV B, E         ; B ← new min
+
+SKIP_MIN:
+      INX H            ; HL → next element
+      DCR C
+      JNZ LOOP
+HLT
+```
+
+---
+
+### 🧪 Manual Test (Continued)
+
+With:
+
+```
+2500H = 04H
+2501H = 30H
+2502H = 10H
+2503H = 50H
+2504H = 20H
+```
+
+After execution:
+
+* `A` should contain `50H` (largest)
+* `B` should contain `10H` (smallest)
+
+The loop completes the core logic. Next, we’ll store the results into memory.
+
+---
+
+## 🧱 Step 4: Store the Results in Memory
+
+After scanning the entire array:
+
+* Register `A` holds the **largest** value
+* Register `B` holds the **smallest** value
+
+We now store these results at their designated memory addresses to make them observable and usable outside the program.
+
+---
+
+### 📦 Output Mapping
+
+| Address | Meaning        |
+| ------- | -------------- |
+| `3000H` | Largest value  |
+| `3001H` | Smallest value |
+
+---
+
+### 🧾 Code (Store Phase)
+
+```asm
+LXI H, 3000H     ; HL → output location
+MOV M, A         ; Store largest at 3000H
+INX H            ; HL → 3001H
+MOV M, B         ; Store smallest at 3001H
+HLT
+```
+
+This completes the program’s contract:
+✅ Read array → ✅ Compare each element → ✅ Write final results
+
+---
+
+### 🧪 Manual Test
+
+For input:
+
+```
+2500H = 04H
+2501H = 30H
+2502H = 10H
+2503H = 50H
+2504H = 20H
+```
+
+Expected output after execution:
+
+```
+3000H = 50H   ; Largest
+3001H = 10H   ; Smallest
+```
+
+---
+
+<AdBlock adSlot="6212055052" layout="in-article" />
+
+## 📚 Summary
+
+This program walks through an array in memory and identifies both the **largest** and **smallest** 8-bit values using straightforward comparison and conditional logic.
+
+**Key concepts covered:**
+
+* Initializing state from the first element
+* Comparing elements using `CMP`, `JNC`, and `JC`
+* Using registers (`A`, `B`) as running max/min
+* Writing outputs clearly and predictably to memory
+
+The program uses no subroutines or extra memory, everything is done using registers and direct memory access, making it perfect for learning array processing in 8085 assembly.
+

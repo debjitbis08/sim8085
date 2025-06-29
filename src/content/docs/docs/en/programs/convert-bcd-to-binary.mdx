@@ -1,0 +1,276 @@
+---
+title: 8085 Program to Convert a Two‑Digit BCD to Binary
+description: An 8085 assembly program that converts a two-digit packed BCD (stored in one byte) into its binary equivalent using mask, rotate, and repeated addition logic.
+---
+
+import AdBlock from "../../../../../components/AdBlock.astro";
+
+Write an 8085 assembly program that reads a **packed two-digit BCD** value from memory (e.g., `XY` in one byte, where `X` and `Y` are decimal digits), converts it to its **binary equivalent**, and stores the result in memory as a single 8-bit number.
+
+* **Input**:
+
+  * `2500H` = one packed BCD byte (e.g., `0x67` → decimal 67)
+  
+* **Output**:
+
+  * `3000H` = corresponding binary value (e.g., `0x43` → decimal 67)
+
+<AdBlock adSlot="7634600323" fullWidthResponsive={false} textAlign="left" />
+
+---
+
+## ⚡ TL;DR — Final Working Code
+
+```asm
+; Interface
+INPUT_ADDR  EQU     2500H
+OUTPUT_ADDR EQU     3000H
+
+; Step 1: Load the BCD byte
+          LXI     H, INPUT_ADDR
+          MOV     A, M                ; A ← packed BCD byte
+          MOV     B, A                ; Save a copy
+
+; Step 2: Extract units digit
+          ANI     0FH                 ; Mask lower nibble
+          MOV     C, A                ; C ← units digit
+
+; Step 2: Extract tens digit
+          MOV     A, B                ; Restore original byte
+          ANI     0F0H                ; Mask upper nibble
+          RRC                         ; Right shift ×4 to get tens digit
+          RRC
+          RRC
+          RRC
+          MOV     B, A                ; B ← tens digit
+
+; Step 3: Multiply tens × 10 and add units
+          MVI     A, 00H              ; Clear A to accumulate result
+          MVI     D, 0AH              ; D ← 10
+MUL_LOOP: ADD     B
+          DCR     D
+          JNZ     MUL_LOOP
+          ADD     C                   ; Add units
+          MOV     D, A                ; Final result → D
+
+; Step 4: Store binary result
+          LXI     H, OUTPUT_ADDR
+          MOV     M, D
+          HLT
+```
+
+
+---
+
+## 🧱 Step 1: Define the Interface and Load the Input
+
+In this problem, we’re converting a **packed BCD value** (two decimal digits in one byte) into its **binary equivalent**. That means we need to extract the high and low nibbles and compute:
+
+> **Binary = (tens digit × 10) + units digit**
+
+---
+
+### 📦 Interface Definition
+
+| Address | Purpose                            |
+| ------- | ---------------------------------- |
+| `2500H` | Input: Packed BCD byte (e.g., 67H) |
+| `3000H` | Output: 8-bit binary result        |
+
+This keeps the problem clean and easy to simulate. The input is static, the output is stored clearly, and no flags or temporary memory are needed.
+
+---
+
+### 🧾 Code (Just Load Input)
+
+Let’s begin by reading the BCD byte from memory:
+
+```asm
+LXI H, 2500H     ; HL → input address
+MOV A, M         ; A ← packed BCD (e.g., 67H)
+HLT              ; Pause to inspect A
+```
+
+---
+
+### 🧪 Manual Test
+
+If memory is set to:
+
+```
+2500H = 67H   ; BCD for decimal 67
+```
+
+After execution:
+
+* Register `A` should contain `67H`
+* This confirms the program has loaded the input correctly and is ready to unpack the digits in the next step
+
+---
+
+<AdBlock adSlot="3777463403" layout="in-article" />
+
+## 🧱 Step 2: Unpack the BCD Nibbles
+
+A packed BCD byte stores two decimal digits:
+
+* High nibble (upper 4 bits) = tens place
+* Low nibble (lower 4 bits) = units place
+
+We need to extract these digits so we can compute the decimal value:
+
+> **Binary = (tens × 10) + units**
+
+---
+
+### 🧠 What We're Doing
+
+* Load the packed BCD byte into the accumulator
+* Copy the accumulator to another register (we’ll need both parts)
+* Use bitwise AND masking (`ANI`) to:
+
+  * Extract **lower nibble** (`ANI 0FH`) → units
+  * Extract **upper nibble** (`ANI F0H` followed by `RRC RRC RRC RRC`) → tens
+
+---
+
+### 🧾 Code (Unpack Phase Only)
+
+```asm
+LXI H, 2500H     ; HL → input byte
+MOV A, M         ; A ← packed BCD (e.g., 67H)
+MOV B, A         ; Preserve copy for later use
+ANI 0FH          ; A ← lower nibble (units)
+MOV C, A         ; C ← units digit
+
+MOV A, B         ; Restore original byte
+ANI F0H          ; A ← upper nibble (tens × 16)
+RRC              ; Shift right ×4 to get actual tens
+RRC
+RRC
+RRC
+MOV B, A         ; B ← tens digit
+HLT
+```
+
+---
+
+### 🧪 Manual Test
+
+For `2500H = 67H`:
+
+* `B` = 6 (tens)
+* `C` = 7 (units)
+
+Now we’re ready to compute `B × 10 + C` in the next step.
+
+---
+
+## 🧱 Step 3: Multiply the Tens Digit by 10 and Add Units
+
+Now that we’ve extracted the **tens digit** (in register `B`) and **units digit** (in register `C`), it’s time to compute the final binary value:
+
+> **Binary = (B × 10) + C**
+
+We'll do this using **repeated addition**, since 8085 doesn’t support multiplication directly.
+
+---
+
+### 🧠 What We're Doing
+
+* Use a loop to add the tens digit (`B`) to itself 10 times
+* Accumulate the result in a register (`D`)
+* Add the units digit (`C`) to the result
+
+This gives us the full binary equivalent of the original BCD value.
+
+---
+
+### 🧾 Code (Multiplication and Addition)
+
+```asm
+MVI D, 00H       ; D ← result (starts at 0)
+MVI E, 0AH       ; E ← 10 (multiplier)
+
+MUL_LOOP:
+ADD B            ; A ← A + B (each time adds 1 × tens)
+DCR E
+JNZ MUL_LOOP     ; Repeat until E = 0
+
+ADD C            ; Add units digit
+MOV D, A         ; Final result → D
+HLT
+```
+
+---
+
+### 🧪 Manual Test
+
+If:
+
+* `B` = 6 (tens digit)
+* `C` = 7 (units digit)
+
+Then:
+
+* After loop: `A` = 60
+* After adding `C`: `A` = 67
+
+This completes the computation. In the next step, we’ll store the binary result in memory.
+
+---
+
+## 🧱 Step 4: Store the Result in Memory
+
+Once the final binary value is computed, we need to write it to a well-defined memory location so the result is visible and usable.
+
+---
+
+### 📦 Output Location
+
+| Address | Meaning             |
+| ------- | ------------------- |
+| `3000H` | Final binary result |
+
+This location acts as the program’s **output interface**, decoupling logic from display or downstream use.
+
+---
+
+### 🧠 What We're Doing
+
+* Store the contents of register `A` (which holds the final result) to memory
+* Use a labeled address like `OUTPUT_ADDR` for clarity
+
+---
+
+### 🧾 Code (Store Result)
+
+```asm
+LXI H, 3000H     ; HL → output location
+MOV M, A         ; Store binary result at 3000H
+HLT
+```
+
+---
+
+### 🧪 Manual Test
+
+If `2500H = 67H` (BCD for decimal 67), after execution:
+
+```
+3000H = 43H   ; Binary 67
+```
+
+---
+
+<AdBlock adSlot="6212055052" layout="in-article" />
+
+## 📚 Summary
+
+This program converts a packed 2-digit **BCD** value (e.g., `67H`) into its pure **binary** form (`43H`, which is decimal 67). It teaches:
+
+* How to **extract nibbles** from a byte using `ANI`
+* How to **shift and interpret BCD digits**
+* Performing multiplication using **repeated addition**
+* Proper **interface separation** with clearly assigned memory roles
+

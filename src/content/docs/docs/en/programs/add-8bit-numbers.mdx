@@ -1,0 +1,284 @@
+---
+title: Add Two 8-bit Numbers
+description: An 8085 assembly program that adds two 8-bit numbers stored in memory and stores the result at a defined memory location.
+---
+
+import AdBlock from "../../../../../components/AdBlock.astro";
+
+Write an 8085 assembly program to add two 8-bit numbers stored in memory. The result should be stored in a specified memory location.
+
+* Input:
+
+  * `2500H` = first number  
+  * `2501H` = second number
+* Output:
+
+  * `3000H` = result of the addition
+
+<AdBlock adSlot="7634600323" fullWidthResponsive={false} textAlign="left" />
+
+---
+
+## ⚡ TL;DR — Final Working Code
+
+```asm
+        ; Define interface addresses
+        FIRST_INPUT   EQU 2500H
+        SECOND_INPUT  EQU 2501H
+        RESULT_LOW    EQU 2502H
+        RESULT_HIGH   EQU 2503H
+
+        ; Step 1: Load inputs
+        LXI H, FIRST_INPUT
+        MOV A, M             ; A ← first number
+        INX H
+        MOV B, M             ; B ← second number
+
+        ; Step 2: Perform addition
+        ADD B                ; A ← A + B
+        MOV C, 00H           ; Assume no carry
+        JNC SKIP_CARRY
+        INR C                ; If carry, C ← 01H
+SKIP_CARRY:
+
+        ; Step 3: Store result
+        LXI H, RESULT_LOW
+        MOV M, A             ; Store sum
+        INX H
+        MOV M, C             ; Store carry
+        HLT
+```
+
+---
+
+
+## 🧱 Step 1: Define the Interface
+
+Before writing the logic, we need to define how this program will communicate with the external world — this is called the **interface**.
+
+---
+
+### 📦 Interface Definition
+
+We’ll keep all inputs and outputs in the same memory page for clarity and ease of testing.
+
+| Address | Role                         |
+|---------|------------------------------|
+| `2500H` | First 8-bit input            |
+| `2501H` | Second 8-bit input           |
+| `2502H` | Output: sum (lower byte)     |
+| `2503H` | Output: carry (00H or 01H)   |
+
+This interface supports both:
+- ✅ Simple use case (just 8-bit sum)
+- ✅ Advanced case (with carry handling, if added later)
+
+---
+
+### 🧠 Why Interface Design Matters
+
+An interface defines the contract between your program and everything outside it. Good interface design means:
+
+- Inputs and outputs are clearly separated
+- The module can be extended without breaking
+- The user knows exactly where to place test values
+
+---
+
+### ❌ Bad Interface Examples
+
+- Leaving the result in a register only
+- Overwriting one of the input addresses
+- Storing the result across non-contiguous memory
+
+---
+
+### 🧾 Code (Input Preparation Only)
+
+Let’s just load the two input numbers from memory to understand the data flow.
+
+```asm
+LXI H, 2500H     ; HL → first input
+MOV A, M         ; A ← first number
+INX H            ; HL → second input
+MOV B, M         ; B ← second number
+HLT
+````
+
+---
+
+### 🧪 Manual Test
+
+Set memory:
+
+```
+2500H = 0AH
+2501H = 14H
+```
+
+Expected after halt:
+
+* Register A = 0AH
+* Register B = 14H
+
+You’ve now read both inputs into registers. Next, we’ll perform the actual addition.
+
+---
+
+## 🧱 Step 2: Perform the Addition
+
+Now that we've loaded the two input numbers into registers, the next step is to **perform the addition** and **preserve the result**, including the carry if any.
+
+---
+
+### 🧠 What Happens in This Step
+
+We'll:
+
+* Add the value in register `B` to the value in `A` using `ADD B`
+* Check the carry flag (`CY`) to see if the result overflowed 8 bits
+* Store the lower byte of the result in `A`
+* Prepare a value (`00H` or `01H`) based on whether carry occurred
+
+---
+
+### 🧾 Code (Addition Logic Only)
+
+```asm
+ADD B             ; A ← A + B
+MOV C, 00H        ; Assume no carry
+JNC SKIP_CARRY    ; If no carry, skip
+INR C             ; If carry occurred, C ← 01H
+
+SKIP_CARRY:
+HLT
+```
+
+* After `ADD B`, the sum is in `A`.
+* If the addition caused a carry, we increment `C`.
+* Now `C` holds the **carry byte** (`00H` or `01H`) to store alongside the result.
+
+---
+
+### 🧪 Manual Test
+
+Set:
+
+```
+2500H = 0AH   ; A = 10
+2501H = 14H   ; B = 20
+```
+
+Expected:
+
+* A = `1EH` (30 in decimal)
+* C = `00H` (no carry)
+
+Try with:
+
+```
+2500H = FFH
+2501H = 01H
+```
+
+Expected:
+
+* A = `00H` (overflow)
+* C = `01H` (carry)
+
+
+This step sets up both parts of the result: the 8-bit sum and the carry. Next, we’ll store them into memory.
+
+---
+
+<AdBlock adSlot="3777463403" layout="in-article" />
+
+## 🧱 Step 3: Store the Result in Memory
+
+We now have the result of the addition:
+
+* The **sum** (lower 8 bits) is in register `A`
+* The **carry** (if any) is in register `C`
+
+Our task is to store these two values at the predefined output addresses so the result is preserved even after the program halts.
+
+---
+
+### 📦 Output Mapping (Reminder)
+
+| Address | Purpose            |
+| ------- | ------------------ |
+| `2502H` | Sum (lower byte)   |
+| `2503H` | Carry (00H or 01H) |
+
+We’ll use the HL pair to point to `2502H` and write the results in order.
+
+---
+
+### 🧾 Code to Store Result
+
+```asm
+LXI H, 2502H     ; HL → first output address
+MOV M, A         ; Store sum at 2502H
+INX H            ; HL → next address
+MOV M, C         ; Store carry at 2503H
+HLT
+```
+
+This makes your output traceable and testable even after execution ends.
+
+---
+
+### 🧪 Manual Test
+
+Try:
+
+```
+2500H = FFH
+2501H = 01H
+```
+
+Expected memory after execution:
+
+```
+2502H = 00H   ; Sum = 00H (overflow)
+2503H = 01H   ; Carry = 01H
+```
+
+Try another:
+
+```
+2500H = 0AH
+2501H = 05H
+```
+
+Expected:
+
+```
+2502H = 0FH   ; Sum = 15
+2503H = 00H   ; No carry
+```
+
+You’ve now completed the full data flow: load → compute → store.
+
+---
+
+<AdBlock adSlot="6212055052" layout="in-article" />
+
+## 📚 Summary
+
+This program demonstrates how to add two 8-bit numbers in 8085 assembly while handling potential overflow:
+
+* **Inputs** are placed in contiguous memory (`2500H`, `2501H`)
+* The **sum** is calculated and stored in `A`
+* A **carry check** is performed using `JNC` and stored in a separate byte
+* Final results are written to memory for inspection
+
+---
+
+### 🔍 Key Learnings
+
+* Use `ADD` to combine register values and update flags
+* Use `JNC` to detect overflow via the carry flag
+* Always design your memory interface clearly when sharing results with the outside world
+

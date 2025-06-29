@@ -1,0 +1,176 @@
+---
+title: Swap Two 8-bit numbers
+---
+
+import AdBlock from "../../../../../components/AdBlock.astro";
+
+Write an 8085 assembly program that **swaps the values** stored at two memory locations. After execution, the value at the first address should move to the second, and vice versa.
+
+* Input:
+
+  * `2500H` = first 8-bit number
+  * `2501H` = second 8-bit number
+
+* Output:
+
+  * `2500H` = value originally at 2501H
+  * `2501H` = value originally at 2500H
+
+This program should perform an in-place swap using only registers — no additional memory locations should be used.
+
+<AdBlock adSlot="7634600323" fullWidthResponsive={false} textAlign="left" />
+
+---
+
+## ⚡ TL;DR — Final Working Code
+
+```asm
+        ; Define memory addresses
+        FIRST_ADDR  EQU 2500H
+        SECOND_ADDR EQU 2501H
+
+        ; Step 1: Load values into registers
+        LXI H, FIRST_ADDR
+        MOV A, M             ; A ← value at 2500H
+        INX H
+        MOV B, M             ; B ← value at 2501H
+
+        ; Step 2: Write swapped values back
+        DCX H                ; HL → back to 2500H
+        MOV M, B             ; 2500H ← B
+        INX H
+        MOV M, A             ; 2501H ← A
+
+        HLT
+```
+
+---
+
+## 🧱 Step 1: Define the Interface
+
+We need a clear contract for where the two numbers are read from and where they’ll return after swapping. Let’s assume:
+
+| Address | Role                         |
+| ------- | ---------------------------- |
+| `2500H` | First byte input             |
+| `2501H` | Second byte input            |
+| `2500H` | First byte output (swapped)  |
+| `2501H` | Second byte output (swapped) |
+
+This means the program should **exchange the two memory values in place**. A clean interface like this ensures the swap is fully reversible and testable.
+
+---
+
+## 🧱 Step 2: Load the Values into Registers
+
+To perform the swap, we need both values in registers so we can manipulate them safely without overwriting either one prematurely.
+
+---
+
+### 🧠 What We're Doing
+
+* Use the `HL` register pair to point to the first memory address (`2500H`)
+* Load the first value into register `A`
+* Increment `HL` to point to the second value (`2501H`)
+* Load the second value into register `B`
+
+This setup gives us:
+
+* `A` → value at `2500H`
+* `B` → value at `2501H`
+
+---
+
+### 🧾 Code (Load Phase Only)
+
+```asm
+LXI H, 2500H     ; HL → first byte
+MOV A, M         ; A ← value at 2500H
+INX H            ; HL → 2501H
+MOV B, M         ; B ← value at 2501H
+HLT
+```
+
+---
+
+### 🧪 Manual Test
+
+Before running, set memory:
+
+```
+2500H = 3CH
+2501H = 91H
+```
+
+Expected after halt:
+
+* Register A = `3C`
+* Register B = `91`
+
+These values are now ready to be written back in the reverse order in the next step.
+
+---
+
+<AdBlock adSlot="3777463403" layout="in-article" />
+
+## 🧱 Step 3: Write the Swapped Values Back to Memory
+
+Now that the two values are safely loaded into registers, we’ll write them back to memory — but in **reversed order**.
+
+---
+
+### 🧠 What We're Doing
+
+* Use the `HL` register pair again to point back to `2500H`
+* Store the value in `B` (originally from `2501H`) into `2500H`
+* Increment `HL` to `2501H`
+* Store the value in `A` (originally from `2500H`) into `2501H`
+
+This completes the swap directly in memory.
+
+---
+
+### 🧾 Code (Store Phase Only)
+
+```asm
+LXI H, 2500H     ; HL → 2500H
+MOV M, B         ; 2500H ← B (originally second value)
+INX H            ; HL → 2501H
+MOV M, A         ; 2501H ← A (originally first value)
+HLT
+```
+
+---
+
+### 🧪 Manual Test
+
+Initial memory:
+
+```
+2500H = 3CH
+2501H = 91H
+```
+
+Expected memory after program halts:
+
+```
+2500H = 91H
+2501H = 3CH
+```
+
+This confirms that the swap was successful. No temporary memory location is needed because we used registers to hold both values. Let me know if you'd like to proceed to TL;DR and summary.
+
+---
+
+<AdBlock adSlot="6212055052" layout="in-article" />
+
+## 📚 Summary
+
+This program demonstrates a basic and clean technique to **swap two memory values** using registers:
+
+* Data is read into registers `A` and `B` to avoid overwriting.
+* Values are written back in reverse order using the same memory locations.
+* The program uses no extra memory — just internal registers.
+
+This simple logic is widely used in sorting, data transformation, and register exchange operations. It also serves as a good exercise in register and memory pointer management in 8085 assembly.
+
