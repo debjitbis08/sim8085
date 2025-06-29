@@ -1,3 +1,10 @@
+## [2.18.1](https://github.com/debjitbis08/sim8085/compare/v2.18.0...v2.18.1) (2025-06-29)
+
+
+### Bug Fixes
+
+* Fix code formatting for EQU directive ([1362ab0](https://github.com/debjitbis08/sim8085/commit/1362ab0492378afbccbe759dcfc68e5edc6c4035))
+
 # [2.18.0](https://github.com/debjitbis08/sim8085/compare/v2.17.21...v2.18.0) (2025-06-28)
 
 
