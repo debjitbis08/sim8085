@@ -1,3 +1,10 @@
+## [2.18.12](https://github.com/debjitbis08/sim8085/compare/v2.18.11...v2.18.12) (2025-07-02)
+
+
+### Bug Fixes
+
+* Make product id public ([4b5b1f3](https://github.com/debjitbis08/sim8085/commit/4b5b1f3fd1b499f904a6030eb8f42901146bdcd8))
+
 ## [2.18.11](https://github.com/debjitbis08/sim8085/compare/v2.18.10...v2.18.11) (2025-07-02)
 
 
