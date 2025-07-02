@@ -1,3 +1,10 @@
+## [2.18.3](https://github.com/debjitbis08/sim8085/compare/v2.18.2...v2.18.3) (2025-07-02)
+
+
+### Bug Fixes
+
+* Change donation link to use dodo ([7f31857](https://github.com/debjitbis08/sim8085/commit/7f318579ff269d87d92d3e8963c5ef82ebd51510))
+
 ## [2.18.2](https://github.com/debjitbis08/sim8085/compare/v2.18.1...v2.18.2) (2025-07-02)
 
 
