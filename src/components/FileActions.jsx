@@ -1,6 +1,5 @@
 import { store, setStore, INITIAL_CODE } from "../store/store.js";
 import { Tooltip } from "./generic/Tooltip.jsx";
-import { FiSave, FiFilePlus } from "solid-icons/fi";
 import { supabase, getUser, onInit } from "../lib/supabase.js";
 import { getUserTier } from "../lib/subscription.js";
 import { v7 as uuidv7 } from "uuid";
@@ -27,6 +26,7 @@ export function FileActions() {
     const [isDialogOpen, setIsDialogOpen] = createSignal(false);
     const [newFileName, setNewFileName] = createSignal(store.activeFile.name);
     const [isSaving, setIsSaving] = createSignal(false);
+    const [isNoSessionDialogOpen, setIsNoSessionDialogOpen] = createSignal(false);
 
     const [isShareDialogOpen, setIsShareDialogOpen] = createSignal(false);
     const [isCantShareDialogOpen, setIsCantShareDialogOpen] = createSignal(false);
@@ -92,11 +92,7 @@ export function FileActions() {
 
         const { id: userId, tier } = (await fetchUserId()) || { id: null, tier: "FREE" };
         if (!userId) {
-            window.dispatchEvent(
-                new CustomEvent("showPlusDialog", {
-                    detail: { reason: "notLoggedIn" },
-                }),
-            );
+            setIsNoSessionDialogOpen(true);
             return false;
         }
 
@@ -375,7 +371,7 @@ export function FileActions() {
 
     return (
         <>
-            <div class={`flex items-center gap-2 ${noSession() ? "hidden" : ""}`}>
+            <div class={`flex items-center gap-2`}>
                 <div class="flex items-center gap-1">
                     <span>{fileName()}</span>
                     <span
@@ -509,17 +505,45 @@ export function FileActions() {
                     <Dialog.Overlay class="dialog__overlay" />
                     <div class="dialog__positioner">
                         <Dialog.Content class="dialog__content">
-                            <Dialog.Title class="dialog__title text-xl">
-                                Please save the file before trying to share it.
+                            <Dialog.Title class="dialog__title text-xl font-semibold flex items-center gap-2">
+                                <FaSolidFloppyDisk />
+                                <span>Save First!</span>
                             </Dialog.Title>
+                            <Dialog.Description class="dialog__description mt-2">
+                                You need to <strong>save your file</strong> before sharing it with others.
+                            </Dialog.Description>
+                            <div class="flex justify-end mt-6">
+                                <button
+                                    class="cursor-pointer text-white rounded-md border border-terminal bg-terminal hover:bg-terminal-700 px-4 py-2 text-sm font-medium transition"
+                                    onClick={() => setIsCantShareDialogOpen(false)}
+                                >
+                                    Got it!
+                                </button>
+                            </div>
+                        </Dialog.Content>
+                    </div>
+                </Dialog.Portal>
+            </Dialog>
+            <Dialog open={isNoSessionDialogOpen()} onOpenChange={setIsNoSessionDialogOpen}>
+                <Dialog.Trigger class="hidden" />
+                <Dialog.Portal>
+                    <Dialog.Overlay class="dialog__overlay" />
+                    <div class="dialog__positioner">
+                        <Dialog.Content class="dialog__content">
                             <Dialog.Description class="dialog__description">
-                                <div class="flex gap-2 justify-start mt-4">
-                                    <button
-                                        class="text-white rounded border border-green-foreground text-primary-foreground bg-green-foreground hover:bg-terminal px-4 py-2 cursor-pointer"
-                                        onClick={() => setIsCantShareDialogOpen(false)}
+                                <div class="p-4">
+                                    <h2 class="text-2xl font-bold mb-4">Sign in to Save Your Work</h2>
+                                    <p class="mb-8 text-secondary-foreground">
+                                        You need to log in to save your code and access additional features.
+                                    </p>
+                                </div>
+                                <div class="p-4">
+                                    <a
+                                        href="/login/"
+                                        class="text-white border border-terminal bg-terminal hover:bg-terminal-700 rounded-lg px-8 py-4 font-bold text-lg"
                                     >
-                                        Ok
-                                    </button>
+                                        Log In
+                                    </a>
                                 </div>
                             </Dialog.Description>
                         </Dialog.Content>
@@ -538,7 +562,7 @@ function ActionButton(props) {
                 onClick={props.onClick}
                 disabled={props.disabled}
             >
-                <div class="px-2 py-2 flex items-center gap-2 text-inactive-foreground hover:text-terminal text-[1.2rem] transition-colors">
+                <div class="px-2 py-2 flex items-center gap-2 text-inactive-foreground hover:text-active-foreground text-[1.2rem] transition-colors">
                     {props.icon}
                 </div>
             </Tooltip.Trigger>

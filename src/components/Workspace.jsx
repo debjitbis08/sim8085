@@ -139,7 +139,7 @@ export default function Workspace() {
                     </p>
                     <p class="mt-4 text-sm">It's quick and free, no email verification required.</p>
                     <div class="mt-6">
-                        <a class="rounded bg-terminal hover:bg-terminal-700 p-2 w-full text-white" href="/login/">
+                        <a class="rounded bg-terminal hover:bg-terminal-700 px-4 py-2 w-full text-white" href="/login/">
                             Log In
                         </a>
                     </div>
