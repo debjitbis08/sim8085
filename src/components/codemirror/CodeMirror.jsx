@@ -182,7 +182,7 @@ export function CodeMirror(props) {
         if (!lineNo) return;
         const docPosition = view.state.doc.line(lineNo).from;
         if (isPaused || (isRunning && !isTimingEnabled)) {
-            view.dispatch({ effects: addLineHighlight.of(docPosition) });
+            view.dispatch({ effects: [addLineHighlight.of(docPosition), EditorView.scrollIntoView(docPosition)] });
         } else {
             view.dispatch({ effects: removeLineHighlight.of(docPosition) });
         }
