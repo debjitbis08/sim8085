@@ -13,7 +13,7 @@ import ActionsLoader from './ActionsLoader.jsx';
 import {FileActions} from './FileActions.jsx';
 import CodeFormatterLoader from "./CodeFormatterLoader.jsx";
 import {getUserFromSession} from '../lib/supabase.js';
-import { FaSolidRocket } from 'solid-icons/fa'
+import { FaSolidRocket, FaBrandsYoutube, FaSolidBook } from 'solid-icons/fa'
 
 interface Props {
     showActions: boolean;
@@ -122,13 +122,55 @@ const avatarUrl = user?.user_metadata?.avatar_url; // Default avatar if none exi
                     </template>
                 </div>
                 <a href="https://youtu.be/7l-zS9RmAnM"
-                    class="transition-colors font-bold relative z-[1] h-8 py-4 px-4 hidden md:flex items-center gap-2 rounded-lg text-sm bg-transparent box-border text-secondary-foreground hover:text-active-foreground border border-inactive-border hover:border-secondary-border"
+                    class="transition-colors font-bold relative z-[1] h-8 py-4 px-4 hidden items-center gap-2 rounded-lg text-sm bg-transparent box-border text-secondary-foreground hover:text-active-foreground border border-inactive-border hover:border-secondary-border"
                     target="_blank"
                 >
                     <span class="text-red-foreground">
                         <Fragment set:html={YoutubeIcon}/>
                     </span> <span class="hidden md:inline bmc-btn-text">Demo</span>
                 </a>
+
+                <div 
+                    x-data="{
+                        index: 0, 
+                        paused: false,
+                        items: [
+                            { text: 'Demo Video', href: 'https://youtu.be/7l-zS9RmAnM', icon: 'youtube' },
+                            { text: 'Sample Programs', href: '/docs/en/programs/samples/', icon: 'book' }
+                        ],
+                        init() {
+                            setInterval(() => {
+                                if (!this.paused) {
+                                    this.index = (this.index + 1) % this.items.length;
+                                }
+                            }, 10000);
+                        }
+                    }"
+                    @mouseenter="paused = true"
+                    @mouseleave="paused = false"
+                    class="hidden md:block relative w-[160px] h-8 py-4 px-4 overflow-hidden rounded-lg text-sm bg-transparent box-border text-secondary-foreground hover:text-active-foreground border border-inactive-border hover:border-secondary-border"
+                >
+                    <template x-for="(item, i) in items" :key="i">
+                        <a
+                            :href="item.href"
+                            class="absolute left-0 top-0 w-full h-8 flex items-center justify-center gap-2 transition-transform duration-500"
+                            :style="`transform: translateY(${(i - index) * 100}%);`"
+                            target="_blank"
+                        >
+                            <span :class="{ 'text-red-foreground': item.icon === 'youtube', 'text-yellow-foreground': item.icon === 'book' }">
+                                <template x-if="item.icon === 'youtube'">
+                                    <FaBrandsYoutube />
+                                </template>
+                                <template x-if="item.icon === 'book'">
+                                    <FaSolidBook />
+                                </template>
+                            </span>
+                            <span class="text-sm font-bold bmc-btn-text">
+                                <span x-text="item.text"></span>
+                            </span>
+                        </a>
+                    </template>
+                </div>
                 <!-- <link href="https://fonts.googleapis.com/css?family=Inter&amp;display=swap" rel="stylesheet"> -->
                 <a
                     class="group transition-colors font-bold relative z-[1] h-8 py-4 px-4 hidden md:flex items-center gap-2 rounded-lg text-sm bg-transparent hover:bg-yellow-foreground/30 box-border text-yellow-foreground hover:text-active-foreground border border-yellow-foreground"
