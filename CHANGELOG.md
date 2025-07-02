@@ -1,3 +1,14 @@
+## [2.18.2](https://github.com/debjitbis08/sim8085/compare/v2.18.1...v2.18.2) (2025-07-02)
+
+
+### Bug Fixes
+
+* Add authorization to APIs ([65c3497](https://github.com/debjitbis08/sim8085/commit/65c3497ef3d68d14c1ec1555073f30f5c1fe817e))
+* Add dodo webhook ([a5262ec](https://github.com/debjitbis08/sim8085/commit/a5262ecf29d6010434a0768754205794c5f0e943))
+* Fix dodo webhook secrets ([34379e6](https://github.com/debjitbis08/sim8085/commit/34379e6a62a144a2bf1d2d130e8ec8adcc0167be))
+* Proper message on share without save ([da6bf53](https://github.com/debjitbis08/sim8085/commit/da6bf536638f3b5d7f71d72eb6f921b785ff8834))
+* Proper responsiveness for ads ([258393b](https://github.com/debjitbis08/sim8085/commit/258393bdf79c9262e692d8b3b28d9226aa7eab74))
+
 ## [2.18.1](https://github.com/debjitbis08/sim8085/compare/v2.18.0...v2.18.1) (2025-06-29)
 
 
