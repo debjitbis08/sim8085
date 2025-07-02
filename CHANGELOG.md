@@ -1,3 +1,12 @@
+## [2.18.9](https://github.com/debjitbis08/sim8085/compare/v2.18.8...v2.18.9) (2025-07-02)
+
+
+### Bug Fixes
+
+* Improve dialog layout on mobile ([9cf09d9](https://github.com/debjitbis08/sim8085/commit/9cf09d93dbeb8ad6a16652c12ca576c818893fed))
+* Scroll to line when debugging ([3820436](https://github.com/debjitbis08/sim8085/commit/38204360bfbde35c24220edeb36438ee6cd244f8)), closes [#75](https://github.com/debjitbis08/sim8085/issues/75)
+* Switch to dodo payments ([f81d2e9](https://github.com/debjitbis08/sim8085/commit/f81d2e90931f3fefea841a7f733fe1c4e192bc2c))
+
 ## [2.18.8](https://github.com/debjitbis08/sim8085/compare/v2.18.7...v2.18.8) (2025-07-02)
 
 
