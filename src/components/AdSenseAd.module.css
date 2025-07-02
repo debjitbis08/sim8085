@@ -1,0 +1,11 @@
+.bottomRightSlot {
+    width: 300px;
+    height: 250px;
+}
+
+@media (min-width: 1024px) {
+    .bottomRightSlot {
+        width: 300px;
+        height: 600px;
+    }
+}

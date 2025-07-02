@@ -35,7 +35,7 @@ export function Assembled(props) {
                         </Tooltip>
                     </div>
                 </div>
-                <div class={`flex flex-col h-full`}>
+                <div class={`flex flex-col grow min-h-20`}>
                     <div class="h-full">
                         <div class={`${store.assembled.length ? "" : "hidden"} h-full text-[0.7rem] md:text-sm`}>
                             <table class={`font-mono table ${styles.machineCodeTable} mb-8`}>

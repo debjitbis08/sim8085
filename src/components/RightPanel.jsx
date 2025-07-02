@@ -37,7 +37,8 @@ export function RightPanel() {
     };
 
     onMount(async () => {
-        setWidth(window.innerWidth * (window.innerWidth > 768 ? 0.3 : 1));
+        const startingWidth = window.innerWidth * (window.innerWidth > 768 ? 0.3 : 1);
+        setWidth(tier() === "FREE" ? Math.max(startingWidth, getMinWidth()) : startingWidth);
 
         onInit(async () => {
             const { tier } = await getUserTier();
