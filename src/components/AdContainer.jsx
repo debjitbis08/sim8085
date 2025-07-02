@@ -49,7 +49,7 @@ export default function AdContainer(props) {
             <div class={`mt-auto relative ${props.isHidden ? "hidden" : ""} grow flex flex-col pb-5`}>
                 {props.children}
                 <div
-                    class="text-[0.8rem] absolute bottom-[0px] left-0 text-inactive-foreground hover:text-active-foreground hover:underline cursor-pointer"
+                    class="text-[0.8rem] self-center text-inactive-foreground hover:text-active-foreground hover:underline cursor-pointer"
                     onClick={openPlusDialog}
                 >
                     Hide Ad

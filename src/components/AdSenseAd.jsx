@@ -213,7 +213,9 @@ export default function AdSenseAd(props) {
 function BlankAd(props) {
     return (
         <AdContainer isHidden={props.isHidden}>
-            <div class={`w-[336px] h-[220px] border border-red-foreground mt-auto ${classes.bottomRightSlot}`}></div>
+            <div
+                class={`w-[336px] h-[220px] border border-red-foreground mt-auto self-center ${classes.bottomRightSlot}`}
+            ></div>
         </AdContainer>
     );
 }

@@ -9,3 +9,10 @@
         height: 600px;
     }
 }
+
+@media (min-width: 1440px) {
+    .bottomRightSlot {
+        width: 336px;
+        height: 600px;
+    }
+}
