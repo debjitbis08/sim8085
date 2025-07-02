@@ -24,6 +24,7 @@
         "@astrojs/alpinejs": "^0.4.8",
         "@astrojs/solid-js": "^5.1.0",
         "@astrojs/tailwind": "^6.0.2",
+        "@catppuccin/tailwindcss": "^0.1.6",
         "@codemirror/commands": "^6.6.2",
         "@codemirror/language": "^6.10.3",
         "@codemirror/state": "^6.4.1",
@@ -47,6 +48,7 @@
         "solid-devtools": "^0.30.1",
         "solid-icons": "^1.1.0",
         "solid-js": "^1.9.5",
+        "standardwebhooks": "^1.0.0",
         "tailwindcss": "^4.1.10",
         "uuid": "^11.0.1"
     },

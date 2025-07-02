@@ -1,0 +1,28 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Sim8085 – Thank You for Donating" showActions={false} fullwidth={false} fullHeight={false}>
+  <main class="mx-auto max-w-xl py-12 px-6 text-center">
+    <h1 class="text-3xl font-bold mb-4">🎉 Thank You for Supporting Sim8085!</h1>
+    <p class="text-lg text-secondary-foreground mb-6">
+      Your donation means a lot. It helps us keep Sim8085 <strong>free, fast, and improving</strong> for students and teachers around the world.
+    </p>
+
+    <div class="mb-6">
+      <p class="text-secondary-foreground">Feel free to explore more:</p>
+      <div class="mt-4 flex flex-col md:flex-row gap-3 justify-center">
+        <a href="/docs/en/programs/samples/" class="rounded bg-terminal px-4 py-2 text-white hover:bg-terminal-700 transition">
+          📚 View Sample Programs
+        </a>
+        <a href="/upgrade/" class="rounded border border-terminal text-terminal px-4 py-2 hover:bg-terminal hover:text-white transition">
+          🌟 Learn About Plus Plan
+        </a>
+      </div>
+    </div>
+
+    <p class="text-sm text-muted-foreground mt-12">
+      If you have any questions or want to share feedback, feel free to <a href="mailto:dev@sim8085.com" class="underline">contact us</a>.
+    </p>
+  </main>
+</Layout>
