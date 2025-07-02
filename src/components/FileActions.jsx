@@ -14,6 +14,7 @@ import {
     FaSolidShareFromSquare,
     FaSolidFileCirclePlus,
     FaSolidFloppyDisk,
+    FaSolidXmark,
 } from "solid-icons/fa";
 import { createShortcut } from "@solid-primitives/keyboard";
 import { customAlphabet } from "nanoid";
@@ -373,7 +374,7 @@ export function FileActions() {
         <>
             <div class={`flex items-center gap-2`}>
                 <div class="flex items-center gap-1">
-                    <span>{fileName()}</span>
+                    <span class="whitespace-nowrap overflow-ellipsis">{fileName()}</span>
                     <span
                         class={`${store.activeFile.unsavedChanges ? "" : "hidden"} text-[0.6rem] text-red-foreground`}
                     >
@@ -504,10 +505,13 @@ export function FileActions() {
                 <Dialog.Portal>
                     <Dialog.Overlay class="dialog__overlay" />
                     <div class="dialog__positioner">
-                        <Dialog.Content class="dialog__content">
+                        <Dialog.Content class="dialog__content h-auto!">
                             <Dialog.Title class="dialog__title text-xl font-semibold flex items-center gap-2">
                                 <FaSolidFloppyDisk />
                                 <span>Save First!</span>
+                                <Dialog.CloseButton class="dialog__close-button ml-auto">
+                                    <FaSolidXmark />
+                                </Dialog.CloseButton>
                             </Dialog.Title>
                             <Dialog.Description class="dialog__description mt-2">
                                 You need to <strong>save your file</strong> before sharing it with others.

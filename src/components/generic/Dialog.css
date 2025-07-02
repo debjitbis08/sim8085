@@ -25,7 +25,8 @@
 
 .dialog__content {
     @apply z-50;
-    @apply min-w-full md:min-w-[500px] min-h-svh md:min-h-max;
+    @apply md:min-w-[500px] md:min-h-max w-[calc(100%-2px)] md:w-auto max-h-[calc(100svh-2px)];
+    @apply overflow-y-auto;
     background-color: rgb(var(--sm-secondary-background));
     border: 1px solid hsl(240 5% 84%);
     border-radius: 6px;
@@ -50,6 +51,8 @@
 .dialog__close-button {
     height: 16px;
     width: 16px;
+    float: right;
+    cursor: pointer;
 }
 
 .dialog__title {

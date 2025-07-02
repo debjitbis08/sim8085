@@ -11,7 +11,49 @@ import { VsLoading } from 'solid-icons/vs';
             Your contribution helps us keep Sim8085 free, open, and growing. Let's take a quick look at what you've unlocked with Plus:
         </p>
 
-        <div class="my-4">
+        <template x-if="isLoading">
+            <div class="flex items-center gap-2">
+                <VsLoading class="animate-spin" />
+                <span class="text-sm text-inactive-foreground">Validating payment status...</span>
+            </div>
+        </template>
+
+        <template x-if="!user && !isLoading">
+            <div class="text-left">
+                <p class="mb-4 text-red-foreground">Please log in to activate your Plus Plan.</p>
+                <a href="/login/" class="px-4 py-2 bg-yellow-foreground hover:bg-orange-foreground text-gray-900 font-bold rounded">Login</a>
+            </div>
+        </template>
+
+        <template x-if="user && isPlus && !isLoading">
+            <div class="text-left bg-secondary-background border border-terminal rounded p-4 pb-5">
+                <p class="mb-4 text-green-foreground font-medium flex items-center gap-2">
+                    <FaSolidCircleCheck />
+                    <span>Payment successful! Your Sim8085 Plus access is now active.</span>
+                </p>
+                <p class="mb-4 text-sm text-secondary-foreground">
+                    If you don't see Plus features right away, please refresh the page or log out and log back in.
+                </p>
+                <p class="mb-6 text-sm text-secondary-foreground">
+                    If the issue persists or you used the wrong email during payment, feel free to reach out at:
+                    <a href="mailto:support@sim8085.com" class="underline text-blue-foreground">support@sim8085.com</a>
+                </p>
+                <a href="/" class="px-4 py-2 bg-terminal-700 hover:bg-terminal-600 text-gray-100 rounded">Back to Sim8085</a>
+            </div>
+        </template>
+        <template x-if="user && failed">
+            <div class="text-left mt-6 border-t pt-6">
+                <p class="mb-4 text-red-foreground font-medium">
+                    ⚠️ Your payment was successful, but Plus access hasn't activated yet.
+                </p>
+                <p class="mb-2 text-sm text-secondary-foreground">
+                    Please email <a href="mailto:support@sim8085.com" class="underline text-blue-foreground600">support@sim8085.com</a> with your invoice so we can help you activate it manually.
+                </p>
+                <p class="mb-2 text-sm text-muted-foreground">We apologize for the inconvenience.</p>
+            </div>
+        </template>
+
+        <div class="my-4 mt-8">
             <div class="flex items-center gap-4 pb-8">
                 <div class="text-2xl text-green-600 bg-green-200 w-12 h-12 rounded flex items-center justify-center">
                     <FaSolidFolder />
@@ -61,47 +103,6 @@ import { VsLoading } from 'solid-icons/vs';
             </div>
         </div>
 
-        <template x-if="isLoading">
-            <div class="flex items-center gap-2">
-                <VsLoading class="animate-spin" />
-                <span class="text-sm text-inactive-foreground">Validating payment status...</span>
-            </div>
-        </template>
-
-        <template x-if="!user && !isLoading">
-            <div class="text-left">
-                <p class="mb-4 text-red-foreground">Please log in to activate your Plus Plan.</p>
-                <a href="/login/" class="px-4 py-2 bg-yellow-foreground hover:bg-orange-foreground text-gray-900 font-bold rounded">Login</a>
-            </div>
-        </template>
-
-        <template x-if="user && isPlus && !isLoading">
-            <div class="text-left bg-secondary-background border border-terminal rounded p-4 pb-5">
-                <p class="mb-4 text-green-foreground font-medium flex items-center gap-2">
-                    <FaSolidCircleCheck />
-                    <span>Payment successful! Your Sim8085 Plus access is now active.</span>
-                </p>
-                <p class="mb-4 text-sm text-secondary-foreground">
-                    If you don't see Plus features right away, please refresh the page or log out and log back in.
-                </p>
-                <p class="mb-6 text-sm text-secondary-foreground">
-                    If the issue persists or you used the wrong email during payment, feel free to reach out at:
-                    <a href="mailto:support@sim8085.com" class="underline text-blue-foreground">support@sim8085.com</a>
-                </p>
-                <a href="/" class="px-4 py-2 bg-terminal-700 hover:bg-terminal-600 text-gray-100 rounded">Back to Sim8085</a>
-            </div>
-        </template>
-        <template x-if="user && failed">
-            <div class="text-left mt-6 border-t pt-6">
-                <p class="mb-4 text-red-foreground font-medium">
-                    ⚠️ Your payment was successful, but Plus access hasn't activated yet.
-                </p>
-                <p class="mb-2 text-sm text-secondary-foreground">
-                    Please email <a href="mailto:support@sim8085.com" class="underline text-blue-foreground600">support@sim8085.com</a> with your invoice so we can help you activate it manually.
-                </p>
-                <p class="mb-2 text-sm text-muted-foreground">We apologize for the inconvenience.</p>
-            </div>
-        </template>
     </main>
 </Layout>
 

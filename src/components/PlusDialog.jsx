@@ -1,6 +1,13 @@
 import { Dialog } from "./generic/Dialog.jsx";
 import { createSignal, onMount, onCleanup } from "solid-js";
-import { FaSolidFolder, FaSolidGraduationCap, FaSolidShareNodes, FaSolidRobot, FaSolidBan } from "solid-icons/fa";
+import {
+    FaSolidFolder,
+    FaSolidGraduationCap,
+    FaSolidShareNodes,
+    FaSolidRobot,
+    FaSolidBan,
+    FaSolidXmark,
+} from "solid-icons/fa";
 import { VsBook } from "solid-icons/vs";
 
 const titleMap = {
@@ -46,13 +53,16 @@ export function PlusDialog() {
                 <Dialog.Overlay class="dialog__overlay" />
                 <div class="dialog__positioner">
                     <Dialog.Content class="dialog__content">
+                        <Dialog.CloseButton class="dialog__close-button">
+                            <FaSolidXmark />
+                        </Dialog.CloseButton>
                         <Dialog.Description class="dialog__description">
                             <div class="p-4">
-                                <h2 class="text-2xl font-bold mb-4">{titleMap[dialogReason()]}</h2>
-                                <p class="mb-8 text-secondary-foreground">{subtitleMap[dialogReason()]}</p>
+                                <h2 class="text-xl md:text-2xl font-bold mb-4">{titleMap[dialogReason()]}</h2>
+                                <p class="mb-4 md:mb-8 text-secondary-foreground">{subtitleMap[dialogReason()]}</p>
                                 <div class="my-4">
-                                    <div class="flex items-center gap-4 pb-8">
-                                        <div class="text-2xl text-green-600 bg-green-200 w-12 h-12 rounded flex items-center justify-center">
+                                    <div class="flex items-start md:items-center gap-4 pb-4 md:pb-8">
+                                        <div class="text-lg md:text-2xl text-green-600 md:bg-green-200 w-8 h-8 md:w-12 md:h-12 rounded flex items-start md:items-center justify-center">
                                             <FaSolidFolder />
                                         </div>
                                         <div>
@@ -63,8 +73,8 @@ export function PlusDialog() {
                                             </p>
                                         </div>
                                     </div>
-                                    <div class="flex items-center gap-4 pb-8">
-                                        <div class="text-2xl text-blue-600 bg-blue-200 w-12 h-12 rounded flex items-center justify-center">
+                                    <div class="flex items-start md:items-center gap-4 pb-4 md:pb-8">
+                                        <div class="text-lg md:text-2xl text-blue-600 md:bg-blue-200 w-8 h-8 md:w-12 md:h-12 rounded flex items-start md:items-center justify-start md:justify-center">
                                             <FaSolidShareNodes />
                                         </div>
                                         <div>
@@ -74,8 +84,8 @@ export function PlusDialog() {
                                             </p>
                                         </div>
                                     </div>
-                                    <div class="flex items-center gap-4 pb-8">
-                                        <div class="text-2xl text-purple-600 bg-purple-200 w-12 h-12 rounded flex items-center justify-center">
+                                    <div class="flex items-start md:items-center gap-4 pb-4 md:pb-8">
+                                        <div class="text-lg md:text-2xl text-purple-600 md:bg-purple-200 w-8 h-8 md:w-12 md:h-12 rounded flex items-start md:items-center justify-start md:justify-center">
                                             <FaSolidRobot />
                                         </div>
                                         <div>
@@ -87,8 +97,8 @@ export function PlusDialog() {
                                         </div>
                                     </div>
 
-                                    <div class="flex items-center gap-4 pb-8">
-                                        <div class="text-2xl text-red-600 bg-red-200 w-12 h-12 rounded flex items-center justify-center">
+                                    <div class="flex items-start md:items-center gap-4 pb-4 md:pb-8">
+                                        <div class="text-lg md:text-2xl text-red-600 md:bg-red-200 w-8 h-8 md:w-12 md:h-12 rounded flex items-start md:items-center justify-start md:justify-center">
                                             <FaSolidBan />
                                         </div>
                                         <div>
@@ -119,14 +129,14 @@ export function PlusDialog() {
                                     */}
                                 </div>
                                 <div>
-                                    <div class="flex items-center justify-start gap-4">
+                                    <div class="flex flex-col-reverse md:flex-row items-center justify-start gap-4">
                                         <a
                                             href="/upgrade/"
-                                            class="bg-yellow-foreground rounded-lg px-8 py-4 font-bold text-lg text-gray-900"
+                                            class="bg-yellow-foreground rounded-lg px-8 py-4 font-bold text-md md:text-lg text-gray-900"
                                         >
                                             Upgrade to Plus
                                         </a>
-                                        <div>
+                                        <div class="text-center md:text-left">
                                             <p>
                                                 Just{" "}
                                                 <span class="text-secondary-foreground line-through decoration-double decoration-red-500 text-lg">
@@ -139,7 +149,7 @@ export function PlusDialog() {
                                             </p>
                                         </div>
                                     </div>
-                                    <p class="mx-auto mt-2 text-secondary-foreground">
+                                    <p class="mx-auto mt-2 text-secondary-foreground text-center md:text-left">
                                         Upgrade now and get <span class="text-red-foreground">50% OFF</span> for a
                                         limited time!
                                     </p>

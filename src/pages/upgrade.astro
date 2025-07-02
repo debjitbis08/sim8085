@@ -28,11 +28,51 @@ import { DODO_PLUS_PAYMENT_LINK } from 'astro:env/client';
         Approx. ₹342 for 6 months (based on current rates)
     </p>
 
-    <!-- Feature List -->
-    <div class="space-y-6 mb-10">
 
-        <div class="flex items-start gap-4">
-            <div class={`text-2xl text-green-600 bg-green-200 w-12 h-12 rounded flex items-center justify-center`}>
+    <!-- Loading State -->
+    <template x-if="isLoading">
+      <div class="flex items-center justify-center gap-2">
+        <VsLoading class="animate-spin" />
+        <span class="text-sm text-inactive-foreground">Checking Plus status...</span>
+      </div>
+    </template>
+
+    <!-- Not Logged In -->
+    <template x-if="!user && !isLoading">
+      <div class="text-center">
+        <p class="mb-4">Please login to continue.</p>
+        <a href="/login/" class="px-5 py-2 bg-yellow-foreground hover:bg-orange-foreground text-gray-900 font-bold rounded">
+          Login
+        </a>
+      </div>
+    </template>
+
+    <!-- Show Pay Button -->
+    <template x-if="user && !isPlus && !isLoading">
+      <div class="text-center">
+        <a :href={'`${$el.dataset.link}?quantity=1&redirect_url=https://www.sim8085.com%2Fplus-thank-you%2F&fullName=${user.user_metadata.name}&email=${user.email}&disableEmail=true`'}
+                    class="bg-yellow-foreground/80 hover:bg-yellow-foreground px-6 py-3 text-gray-900 font-bold inline-flex items-center gap-2 rounded"
+            data-link={DODO_PLUS_PAYMENT_LINK}
+        >
+          <span>Upgrade Now</span>
+        </a>
+      </div>
+    </template>
+
+    <!-- Already Subscribed -->
+    <template x-if="isPlus && !isLoading">
+      <div class="bg-secondary-background border border-terminal rounded p-5 text-left">
+        <p class="text-green-foreground font-medium mb-2">✅ You already have Sim8085 Plus!</p>
+        <p class="text-sm text-secondary-foreground mb-4">Thank you for supporting Sim8085. Enjoy all the premium features.</p>
+        <a href="/" class="px-4 py-2 bg-terminal-700 hover:bg-terminal-600 text-white rounded">Back to Sim8085</a>
+      </div>
+    </template>
+
+    <!-- Feature List -->
+    <div class="space-y-2 md:space-y-6 mb-10 mt-8">
+
+        <div class="flex items-start md:items-center gap-4 pb-4 md:pb-8">
+            <div class="text-lg md:text-2xl text-green-600 md:bg-green-200 w-8 h-8 md:w-12 md:h-12 rounded flex items-start md:items-center justify-center">
                 <FaSolidFolder />
             </div>
             <div>
@@ -40,8 +80,8 @@ import { DODO_PLUS_PAYMENT_LINK } from 'astro:env/client';
                 <p class="text-sm text-secondary-foreground">Save up to 5 files on the free plan. Go Plus for unlimited saves and better workspace management.</p>
             </div>
         </div>
-        <div class="flex items-start gap-4">
-            <div class={`text-2xl text-blue-600 bg-blue-200 w-12 h-12 rounded flex items-center justify-center`}>
+        <div class="flex items-start md:items-center gap-4 pb-4 md:pb-8">
+            <div class="text-lg md:text-2xl text-blue-600 md:bg-blue-200 w-8 h-8 md:w-12 md:h-12 rounded flex items-start md:items-center justify-start md:justify-center">
                 <FaSolidShareNodes />
             </div>
             <div>
@@ -49,8 +89,8 @@ import { DODO_PLUS_PAYMENT_LINK } from 'astro:env/client';
                 <p class="text-sm text-secondary-foreground">Share your 8085 programs with anyone using a simple link.</p>
             </div>
         </div>
-        <div class="flex items-start gap-4">
-            <div class={`text-2xl text-purple-600 bg-purple-200 w-12 h-12 rounded flex items-center justify-center`}>
+        <div class="flex items-start md:items-center gap-4 pb-4 md:pb-8">
+            <div class="text-lg md:text-2xl text-purple-600 md:bg-purple-200 w-8 h-8 md:w-12 md:h-12 rounded flex items-start md:items-center justify-start md:justify-center">
                 <FaSolidRobot />
             </div>
             <div>
@@ -58,8 +98,8 @@ import { DODO_PLUS_PAYMENT_LINK } from 'astro:env/client';
                 <p class="text-sm text-secondary-foreground">Confused by assembler errors? Let AI explain what went wrong and how to fix it.</p>
             </div>
         </div>
-        <div class="flex items-center gap-4">
-            <div class="text-2xl text-red-600 bg-red-200 w-12 h-12 rounded flex items-center justify-center">
+        <div class="flex items-start md:items-center gap-4 pb-4 md:pb-8">
+            <div class="text-lg md:text-2xl text-red-600 md:bg-red-200 w-8 h-8 md:w-12 md:h-12 rounded flex items-start md:items-center justify-start md:justify-center">
                 <FaSolidBan />
             </div>
             <div>
@@ -70,8 +110,8 @@ import { DODO_PLUS_PAYMENT_LINK } from 'astro:env/client';
                 </p>
             </div>
         </div>
-        <div class="flex items-start gap-4">
-            <div class="text-2xl text-yellow-600 bg-yellow-200 w-12 h-12 rounded flex items-center justify-center">
+        <div class="flex items-start md:items-center gap-4 pb-4 md:pb-8">
+            <div class="text-lg md:text-2xl text-yellow-600 md:bg-yellow-200 w-8 h-8 md:w-12 md:h-12 rounded flex items-start md:items-center justify-start md:justify-center">
                 <FaSolidHeart />
             </div>
             <div>
@@ -133,44 +173,6 @@ import { DODO_PLUS_PAYMENT_LINK } from 'astro:env/client';
     </table>
     </div>
 
-    <!-- Loading State -->
-    <template x-if="isLoading">
-      <div class="flex items-center justify-center gap-2">
-        <VsLoading class="animate-spin" />
-        <span class="text-sm text-inactive-foreground">Checking Plus status...</span>
-      </div>
-    </template>
-
-    <!-- Not Logged In -->
-    <template x-if="!user && !isLoading">
-      <div class="text-center">
-        <p class="mb-4">Please login to continue.</p>
-        <a href="/login/" class="px-5 py-2 bg-yellow-foreground hover:bg-orange-foreground text-gray-900 font-bold rounded">
-          Login
-        </a>
-      </div>
-    </template>
-
-    <!-- Show Pay Button -->
-    <template x-if="user && !isPlus && !isLoading">
-      <div class="text-center">
-        <a :href={'`${$el.dataset.link}?quantity=1&redirect_url=https://www.sim8085.com%2Fplus-thank-you%2F&fullName=${user.user_metadata.name}&email=${user.email}&disableEmail=true`'}
-                    class="bg-yellow-foreground/80 hover:bg-yellow-foreground px-6 py-3 text-gray-900 font-bold inline-flex items-center gap-2 rounded"
-            data-link={DODO_PLUS_PAYMENT_LINK}
-        >
-          <span>Upgrade Now</span>
-        </a>
-      </div>
-    </template>
-
-    <!-- Already Subscribed -->
-    <template x-if="isPlus && !isLoading">
-      <div class="bg-secondary-background border border-terminal rounded p-5 text-left">
-        <p class="text-green-foreground font-medium mb-2">✅ You already have Sim8085 Plus!</p>
-        <p class="text-sm text-secondary-foreground mb-4">Thank you for supporting Sim8085. Enjoy all the premium features.</p>
-        <a href="/" class="px-4 py-2 bg-terminal-700 hover:bg-terminal-600 text-white rounded">Back to Sim8085</a>
-      </div>
-    </template>
   </main>
 </Layout>
 
