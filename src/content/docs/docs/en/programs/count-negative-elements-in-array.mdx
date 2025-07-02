@@ -1,0 +1,144 @@
+---
+title: Count Number of Negative Elements in an Array
+description: Learn how to count the number of negative (MSB = 1) elements in a block of data using 8085 assembly and the CMP instruction.
+---
+
+import AdBlock from "../../../../../components/AdBlock.astro";
+
+Write an 8085 program to determine how many elements in a given array are **negative**. In 8085, negative 8-bit numbers are represented using **two's complement**, so any number with the **most significant bit (MSB)** set to 1 is considered negative.
+
+- The length of the array is stored at memory location `41H`.
+- The array starts at memory location `42H`.
+- The result (number of negative elements) should be stored at memory location `40H`.
+
+🧪 Sample Input:
+```
+(41H) = 05   ; length
+(42H) = 15H  ; +ve
+(43H) = 9CH  ; -ve
+(44H) = 7EH  ; +ve
+(45H) = E1H  ; -ve
+(46H) = 2AH  ; +ve
+
+```
+
+✅ Expected Output:
+```
+(40H) = 02H  ; 9CH and E1H are negative
+```
+
+<AdBlock adSlot="7634600323" fullWidthResponsive={false} textAlign="left" />
+
+---
+
+### ✅ TL;DR — Final Working Code
+
+```asm
+LXI H, 41H     ; HL points to length (41H)
+MOV B, M       ; Load length into B
+MVI C, 00H     ; Initialize negative count to 0
+MVI A, 7FH     ; Highest positive value (0111 1111B)
+
+NEXT: INX H     ; Move to next data byte
+CMP M          ; Compare with 7FH
+JNC SKIP       ; If not negative, skip
+INR C          ; Increment count if MSB = 1
+
+SKIP: DCR B     ; Decrement counter
+JNZ NEXT       ; Loop until B = 0
+
+MOV A, C       ; Move count to accumulator
+STA 40H        ; Store result at memory 40H
+HLT            ; End program
+```
+
+---
+
+### ✅ Step 1: Load Array Length and Initialize Count
+
+Start by setting up the registers:
+
+- Use `LXI H, 41H` to point to the memory where the array length is stored.
+- Move the length into a loop counter register, say `B`.
+- Set a counter register (like `C`) to 0 to track the number of negative values.
+- Also load `7FH` (0111 1111B) into `A`. This value is the **largest positive 8-bit number**, and will be used with `CMP` to check if each element is negative.
+
+> 🧠 Why 7FH? Because any value greater than 7F (i.e., with MSB = 1) is considered negative in two’s complement. `CMP` helps us check that by setting the carry flag.
+
+Now you're ready to process each element in the next step.
+
+---
+
+<AdBlock adSlot="3777463403" layout="in-article" />
+
+### ✅ Step 2: Loop Through Each Element
+
+With your counter (`B`) holding the number of elements and `HL` pointing to `41H`, we now want to:
+
+1. Increment `HL` to point to the next data element.
+2. Use `CMP M` to compare it with `7FH` (stored in `A`).
+3. If the result sets the **carry flag (CY = 1)**, we increment our count of negative numbers.
+4. Decrement `B` and repeat until `B = 0`.
+
+> 🧠 *We don’t load the memory value into `A` directly, because that would overwrite our 7FH reference. `CMP M` is ideal here—it checks the value and sets flags without changing any registers.*
+
+---
+
+#### 🧪 Modified Code (continued from Step 1)
+
+```asm
+LXI H, 41H     ; HL points to 41H (length)
+MOV B, M       ; Load count into B
+MVI C, 00H     ; Counter for negative numbers = 0
+MVI A, 7FH     ; 0111 1111B - highest positive number
+
+NEXT: INX H     ; Move to next data byte (starts at 42H)
+CMP M          ; Compare current value with 7FH
+JNC SKIP       ; If no carry, it's non-negative → skip
+INR C          ; If carry, increment negative count
+
+SKIP: DCR B     ; Decrement loop counter
+JNZ NEXT       ; Repeat if more elements remain
+```
+
+---
+
+In the next step, we'll store the final count in memory and wrap up the program.
+
+---
+
+### ✅ Step 3: Store the Result and End the Program
+
+After the loop finishes, the register `C` contains the number of negative elements.
+
+Now, all that's left is:
+
+1. Move the result from `C` to the accumulator `A`.
+2. Store `A` into memory location `40H`, which is reserved for the final output.
+
+> 💡 It’s good practice to move the result to `A` before storing, because `STA addr` always stores the value of the accumulator.
+
+---
+
+#### 🧪 Modified Code (Final Part)
+
+```asm
+MOV A, C       ; Move result to accumulator
+STA 40H        ; Store result at 40H
+HLT            ; End of program
+```
+
+With this, the full loop is complete and the result is saved. You can now test this in Sim8085 by placing a value at `41H`, filling the array starting at `42H`, and checking `40H` after execution.
+
+---
+
+<AdBlock adSlot="6212055052" layout="in-article" />
+
+### 📌 Summary
+
+* This program counts **how many bytes have MSB = 1**, i.e., are negative in 2’s complement form.
+* We use `CMP` with `7FH` to determine whether a number is negative. If the memory value is **greater than 7FH**, the **carry flag is set**, indicating a negative number.
+* The **carry flag** is checked using `JNC` to skip non-negative values.
+* Count is tracked in register `C` and stored in `40H` after the loop.
+* The program is efficient and does **not modify** the array itself.
+

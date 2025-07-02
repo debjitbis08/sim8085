@@ -3,6 +3,9 @@ title: 8085 Program for an Automatic Lawn Irrigation System
 description: Simulate a smart irrigation controller using 8085 assembly and I/O ports based on soil moisture, rain sensor, time of day, and manual override.
 ---
 
+import { Aside } from '@astrojs/starlight/components';
+import AdBlock from "../../../../../components/AdBlock.astro";
+
 Design an **8085 assembly program** that simulates a basic automatic lawn irrigation system. The program should:
 
 * **Turn ON** irrigation only when:
@@ -26,11 +29,21 @@ If **manual override is ON**, irrigation must always turn on, regardless of othe
 | `03H`      | Manual Override      | `1 = Force ON`, `0 = Auto Mode` |
 | `10H`      | Output to Valve      | `1 = Irrigation ON`, `0 = OFF`  |
 
+<AdBlock adSlot="7634600323" fullWidthResponsive={false} textAlign="left" />
+
 ---
 
 ## ⚡ TL;DR — Final Working Code
 
+<Aside type="caution">
+<p>
+<strong>Note</strong>: To see the loop in action, make sure Simulate Instruction Timing is turned ON in Sim8085.
+This allows the delay loop to actually slow down the execution, instead of running instantly.
+</p>
+</Aside>
+
 ```asm
+START:
         ; Step 1: Check Manual Override
         IN 03H
         CPI 01H
@@ -54,17 +67,23 @@ If **manual override is ON**, irrigation must always turn on, regardless of othe
         ; All conditions passed → Irrigation ON
         MVI A, 01H
         OUT 10H
-        HLT
+        JMP WAIT_AND_RESTART
 
 MANUAL_ON:
         MVI A, 01H
         OUT 10H
-        HLT
+        JMP WAIT_AND_RESTART
 
 IRRIGATION_OFF:
         MVI A, 00H
         OUT 10H
-        HLT
+        JMP WAIT_AND_RESTART
+
+WAIT_AND_RESTART:
+        MVI C, FFH      ; Simple delay
+WAIT:   DCR C
+        JNZ WAIT
+        JMP START
 ```
 
 ---
@@ -169,6 +188,8 @@ Try:
 ```
 
 ---
+
+<AdBlock adSlot="3777463403" layout="in-article" />
 
 ## 🧱 Step 3: Check Soil Moisture Sensor
 
@@ -321,19 +342,76 @@ Try these combinations of input:
 
 ---
 
+## 🧱 Step 6: Run Continuously in a Monitoring Loop
+
+<Aside type="caution">
+<p>
+<strong>Note</strong>: To see the loop in action, make sure Simulate Instruction Timing is turned ON in Sim8085.
+This allows the delay loop to actually slow down the execution, instead of running instantly.
+</p>
+</Aside>
+
+So far, our program halts after making a single decision. In a real-world irrigation controller, we want it to **run forever** and **re-evaluate conditions regularly**.
+
 ---
+
+### 🧠 Why This Matters
+
+* A single check isn't enough — environment changes with time
+* Sensors may update inputs (e.g., rain starts after initial dry condition)
+* Automation means **ongoing evaluation**, not one-time logic
+
+---
+
+### 🔁 Add an Infinite Loop
+
+We add a loop at the end of the program to **jump back to the start** after each evaluation. To avoid tight-loop issues, we also add a **delay** to prevent too frequent checks.
+
+---
+
+### 🧾 Code Snippet (Looping)
+
+```asm
+WAIT_AND_RESTART:
+        MVI C, FFH     ; Software delay (adjust as needed)
+WAIT:   DCR C
+        JNZ WAIT
+        JMP START      ; Begin sensor checks again
+```
+
+Update all `HLT` instructions to:
+
+```asm
+JMP WAIT_AND_RESTART
+```
+
+This makes the program a **live system** — it continuously watches and reacts.
+
+---
+
+### 🧪 Final Behavior
+
+* On power-up, the irrigation logic starts running
+* After each ON/OFF decision, the system waits a little and starts over
+* You can simulate changing conditions in Sim8085 by updating I/O ports mid-run
+
+---
+
+<AdBlock adSlot="6212055052" layout="in-article" />
 
 ## 📚 Summary
 
-This program demonstrates how to build a **real-world decision system** using the 8085 microprocessor. It models an **automatic irrigation controller** using:
+This 8085 assembly program simulates a **smart irrigation controller** using **real-world inputs** like moisture, rain, and time. The logic includes:
 
-* **Input ports** for real-world signals (soil moisture, rain, time, override)
-* **Short-circuit logic** to prioritize early exits (like manual override or moisture detection)
-* **Clean modular conditions** to simulate control flow
+* 🧠 **Manual override** that takes priority over automation
+* 💧 **Soil and rain checks** to avoid overwatering
+* ☀️ **Daytime skipping** to conserve water
+* 🔁 **Continuous monitoring loop** for real-time behavior
 
-### 🧠 Key Concepts Reinforced
+### Key Takeaways:
 
-* I/O port communication using `IN` and `OUT`
-* Multi-stage conditional logic
-* How microprocessors are used in automation and embedded control systems
+* `IN` and `OUT` are essential for hardware interaction
+* Multi-condition decision-making can be modeled step-by-step
+* Infinite loops with delays create realistic control systems
 
+This is a great example of using 8085 assembly for **practical automation**.
