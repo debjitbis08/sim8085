@@ -195,7 +195,7 @@ export default function AdSenseAd(props) {
             <ins
                 data-key={key}
                 ref={(el) => (ref = el)}
-                class={`adsbygoogle mt-auto self-center ${classes.bottomRightSlot}`}
+                class={`adsbygoogle self-center ${classes.bottomRightSlot}`}
                 style="display:block"
                 data-ad-client={pubId}
                 data-ad-slot="1459633275"
@@ -215,7 +215,7 @@ export default function AdSenseAd(props) {
 function BlankAd(props) {
     return (
         <AdContainer isHidden={props.isHidden}>
-            <div class={`border border-red-foreground mt-auto self-center ${classes.bottomRightSlot}`}></div>
+            <div class={`w-[336px] h-[250px] border border-red-foreground self-center`}></div>
         </AdContainer>
     );
 }
