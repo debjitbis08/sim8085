@@ -73,8 +73,15 @@ export default function AdSenseAd(props) {
             track("ad visibility paused (document hidden)", { totalSoFar: visibleAccumulated });
         } else if (document.visibilityState === "visible" && !props.isHidden) {
             // Document came back into view — resume
-            visibleStartTime = Date.now();
             track("ad visibility resumed (document visible)");
+
+            const now = Date.now();
+
+            if (visibleAccumulated >= 300) {
+                rotateAd(visibleAccumulated);
+            }
+
+            visibleStartTime = now;
         }
     }
 
