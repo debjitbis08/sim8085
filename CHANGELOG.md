@@ -1,3 +1,10 @@
+## [2.18.6](https://github.com/debjitbis08/sim8085/compare/v2.18.5...v2.18.6) (2025-07-02)
+
+
+### Bug Fixes
+
+* Fix layout breakage ([de87660](https://github.com/debjitbis08/sim8085/commit/de8766047271c20450a885ffa6216b3222015ce9))
+
 ## [2.18.5](https://github.com/debjitbis08/sim8085/compare/v2.18.4...v2.18.5) (2025-07-02)
 
 
