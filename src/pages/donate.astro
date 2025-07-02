@@ -6,6 +6,7 @@ import KoFiIcon from '../icons/kofi.svg?raw';
 import BmcIcon from '../icons/bmc.svg?raw';
 import RazorPayIcon from '../icons/razorpay.svg?raw';
 import TriangleInfoIcon from '../icons/triangle-info.svg?raw';
+import { DODO_DONATION_PAYMENT_LINK } from 'astro:env/client';
 ---
 
 <Layout title="Support Sim8085" showActions={false} fullwidth={false} fullHeight={false}>
@@ -25,7 +26,8 @@ import TriangleInfoIcon from '../icons/triangle-info.svg?raw';
 
             <!-- 🔶 Razorpay — Primary CTA -->
             <div class="w-full max-w-md text-center" title="Recommended for Indian users">
-                <a href="https://checkout.dodopayments.com/buy/pdt_BBQuIavCRouiefiozTizu?quantity=1&redirect_url=https://www.sim8085.com%2Fdonation-thank-you%2F&showDiscounts=false"
+                <a
+                    href={`${DODO_DONATION_PAYMENT_LINK}?quantity=1&redirect_url=https://www.sim8085.com%2Fdonation-thank-you%2F"`}
                     class="payment-link rounded bg-terminal px-4 py-2 text-white hover:bg-terminal-700 transition"
                 >
                     Donate Now

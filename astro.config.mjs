@@ -207,6 +207,14 @@ export default defineConfig({
                 access: "secret",
                 optional: true,
             }),
+            DODO_PLUS_PAYMENT_LINK: envField.string({
+                context: "client",
+                access: "public",
+            }),
+            DODO_DONATION_PAYMENT_LINK: envField.string({
+                context: "client",
+                access: "public",
+            }),
         },
     },
 });

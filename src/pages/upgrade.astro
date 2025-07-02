@@ -1,8 +1,8 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { FaSolidFolder, FaSolidShareNodes, FaSolidRobot, FaSolidHeart, FaSolidCircleCheck } from 'solid-icons/fa';
+import { FaSolidFolder, FaSolidShareNodes, FaSolidRobot, FaSolidHeart, FaSolidCircleCheck, FaSolidBan } from 'solid-icons/fa';
 import { VsLoading } from 'solid-icons/vs';
-import RazorPayIcon from '../icons/razorpay.svg';
+import { DODO_PLUS_PAYMENT_LINK } from 'astro:env/client';
 ---
 
 <Layout title="Sim8085 Plus – Pricing & Benefits" showActions={false} fullwidth={false} fullHeight={false}>
@@ -13,8 +13,8 @@ import RazorPayIcon from '../icons/razorpay.svg';
     <div class="bg-yellow-foreground/10 border border-yellow-400 rounded-lg p-6 mb-2 text-center text-text">
       <p class="text-lg font-semibold text-text">One-Time Payment</p>
       <p class="text-xl font-bold my-2">
-        <span class="line-through text-gray-500 mr-1">₹699</span>
-        <span class="text-terminal">₹349 only</span>
+        <span class="line-through text-gray-500 mr-1 decoration-red-foreground">$8</span>
+        <span class="text-terminal">$4 only</span>
       </p>
             <p class="text-sm flex items-center gap-2 justify-center">
                 <FaSolidCircleCheck class="text-terminal"/>
@@ -25,7 +25,7 @@ import RazorPayIcon from '../icons/razorpay.svg';
     </div>
 
     <p class="text-xs text-inactive-foreground mt-2 text-center mb-8">
-    🌍 International users: Price is ₹349 (~$4 USD). Card payments may work. Contact us if you face any issues.
+        Approx. ₹342 for 6 months (based on current rates)
     </p>
 
     <!-- Feature List -->
@@ -56,6 +56,18 @@ import RazorPayIcon from '../icons/razorpay.svg';
             <div>
                 <h3 class="font-semibold mb-1">AI Help for Assembler Errors</h3>
                 <p class="text-sm text-secondary-foreground">Confused by assembler errors? Let AI explain what went wrong and how to fix it.</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-4">
+            <div class="text-2xl text-red-600 bg-red-200 w-12 h-12 rounded flex items-center justify-center">
+                <FaSolidBan />
+            </div>
+            <div>
+                <h3 class="mb-1">No Ads, No Distractions</h3>
+                <p class="text-sm text-secondary-foreground">
+                    Enjoy a clean and distraction-free experience by removing all ads from
+                    the site.
+                </p>
             </div>
         </div>
         <div class="flex items-start gap-4">
@@ -123,9 +135,9 @@ import RazorPayIcon from '../icons/razorpay.svg';
 
     <!-- Loading State -->
     <template x-if="isLoading">
-      <div class="flex items-center gap-2">
+      <div class="flex items-center justify-center gap-2">
         <VsLoading class="animate-spin" />
-        <span class="text-sm text-inactive-foreground">Checking status...</span>
+        <span class="text-sm text-inactive-foreground">Checking Plus status...</span>
       </div>
     </template>
 
@@ -142,10 +154,11 @@ import RazorPayIcon from '../icons/razorpay.svg';
     <!-- Show Pay Button -->
     <template x-if="user && !isPlus && !isLoading">
       <div class="text-center">
-        <a href="https://rzp.io/rzp/sim8085plus"
-          class="bg-yellow-foreground hover:bg-orange-foreground px-6 py-3 text-gray-900 font-bold inline-flex items-center gap-2 rounded">
-          <RazorPayIcon width={16} height={16} />
-          <span>Pay with Razorpay</span>
+        <a :href={'`${$el.dataset.link}?quantity=1&redirect_url=https://www.sim8085.com%2Fplus-thank-you%2F&fullName=${user.user_metadata.name}&email=${user.email}&disableEmail=true`'}
+                    class="bg-yellow-foreground/80 hover:bg-yellow-foreground px-6 py-3 text-gray-900 font-bold inline-flex items-center gap-2 rounded"
+            data-link={DODO_PLUS_PAYMENT_LINK}
+        >
+          <span>Upgrade Now</span>
         </a>
       </div>
     </template>

@@ -13,6 +13,7 @@ import ActionsLoader from './ActionsLoader.jsx';
 import {FileActions} from './FileActions.jsx';
 import CodeFormatterLoader from "./CodeFormatterLoader.jsx";
 import {getUserFromSession} from '../lib/supabase.js';
+import { FaSolidRocket } from 'solid-icons/fa'
 
 interface Props {
     showActions: boolean;
@@ -130,12 +131,12 @@ const avatarUrl = user?.user_metadata?.avatar_url; // Default avatar if none exi
                 </a>
                 <!-- <link href="https://fonts.googleapis.com/css?family=Inter&amp;display=swap" rel="stylesheet"> -->
                 <a
-                    class="transition-colors font-bold relative z-[1] h-8 py-4 px-4 hidden md:flex items-center gap-2 rounded-lg text-sm bg-transparent box-border text-secondary-foreground hover:text-active-foreground border border-inactive-border hover:border-secondary-border"
-                    href="/donate/"
+                    class="group transition-colors font-bold relative z-[1] h-8 py-4 px-4 hidden md:flex items-center gap-2 rounded-lg text-sm bg-transparent hover:bg-yellow-foreground/30 box-border text-yellow-foreground hover:text-active-foreground border border-yellow-foreground"
+                    href="/upgrade/"
                 >
-                    <span class="text-red-foreground">
-                        <Fragment set:html={SponsorIcon}/>
-                    </span> <span class="hidden md:inline bmc-btn-text">Donate</span>
+                    <span class="text-yellow-foreground group-hover:text-active-foreground">
+                        <FaSolidRocket />
+                    </span> <span class="hidden md:inline bmc-btn-text">Upgrade</span>
                 </a>
                 <button
                     x-data="unlockPlusButton"
@@ -177,7 +178,7 @@ const avatarUrl = user?.user_metadata?.avatar_url; // Default avatar if none exi
                             </template>
                             <a href="/donate/"
                                class="block w-full px-4 py-2 text-sm text-left text-active-foreground hover:bg-active-background">
-                                Support
+                                Donate
                             </a>
                             <a href="/docs/en/"
                                target="_blank"

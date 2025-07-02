@@ -1,6 +1,6 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { FaSolidFolder, FaSolidShareNodes, FaSolidRobot, FaSolidCircleCheck } from "solid-icons/fa";
+import { FaSolidFolder, FaSolidShareNodes, FaSolidRobot, FaSolidCircleCheck, FaSolidBan } from "solid-icons/fa";
 import { VsLoading } from 'solid-icons/vs';
 ---
 
@@ -47,16 +47,18 @@ import { VsLoading } from 'solid-icons/vs';
                     </p>
                 </div>
             </div>
-        </div>
-
-        <div class="mb-6">
-            <ul class="space-y-3 text-lg">
-                <li>✅ One-time payment</li>
-                <li>🕕 Valid for 6 months</li>
-                <li>
-                    💸 <span class="text-secondary-foreground line-through decoration-double decoration-red-foreground">₹699</span> ₹349 only
-                </li>
-            </ul>
+            <div class="flex items-center gap-4">
+                <div class="text-2xl text-red-600 bg-red-200 w-12 h-12 rounded flex items-center justify-center">
+                    <FaSolidBan />
+                </div>
+                <div>
+                    <h3 class="mb-1">No Ads, No Distractions</h3>
+                    <p class="text-sm text-secondary-foreground">
+                        Enjoy a clean and distraction-free experience by removing all ads from
+                        the site.
+                    </p>
+                </div>
+            </div>
         </div>
 
         <template x-if="isLoading">
@@ -75,7 +77,7 @@ import { VsLoading } from 'solid-icons/vs';
 
         <template x-if="user && isPlus && !isLoading">
             <div class="text-left bg-secondary-background border border-terminal rounded p-4 pb-5">
-                <p class="mb-4 text-green-700 font-medium flex items-center gap-2">
+                <p class="mb-4 text-green-foreground font-medium flex items-center gap-2">
                     <FaSolidCircleCheck />
                     <span>Payment successful! Your Sim8085 Plus access is now active.</span>
                 </p>
@@ -91,11 +93,11 @@ import { VsLoading } from 'solid-icons/vs';
         </template>
         <template x-if="user && failed">
             <div class="text-left mt-6 border-t pt-6">
-                <p class="mb-2 text-red-700 font-medium">
-                    ⚠️ Your payment was successful, but Plus access hasn’t activated yet.
+                <p class="mb-4 text-red-foreground font-medium">
+                    ⚠️ Your payment was successful, but Plus access hasn't activated yet.
                 </p>
-                <p class="mb-4 text-sm text-secondary-foreground">
-                    Please email <a href="mailto:support@sim8085.com" class="underline text-blue-foreground600">support@sim8085.com</a> with your Razorpay invoice so we can help you activate it manually.
+                <p class="mb-2 text-sm text-secondary-foreground">
+                    Please email <a href="mailto:support@sim8085.com" class="underline text-blue-foreground600">support@sim8085.com</a> with your invoice so we can help you activate it manually.
                 </p>
                 <p class="mb-2 text-sm text-muted-foreground">We apologize for the inconvenience.</p>
             </div>
