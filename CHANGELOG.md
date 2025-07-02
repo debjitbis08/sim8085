@@ -1,3 +1,10 @@
+## [2.18.4](https://github.com/debjitbis08/sim8085/compare/v2.18.3...v2.18.4) (2025-07-02)
+
+
+### Bug Fixes
+
+* Center the ad slot ([b4a6ee7](https://github.com/debjitbis08/sim8085/commit/b4a6ee7aab2655e138a70f94908700a06e82b3dc))
+
 ## [2.18.3](https://github.com/debjitbis08/sim8085/compare/v2.18.2...v2.18.3) (2025-07-02)
 
 
