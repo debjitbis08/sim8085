@@ -1,3 +1,11 @@
+## [2.18.8](https://github.com/debjitbis08/sim8085/compare/v2.18.7...v2.18.8) (2025-07-02)
+
+
+### Bug Fixes
+
+* Rotate ad on tab visibility ([d606ebe](https://github.com/debjitbis08/sim8085/commit/d606ebeb654dbd72151f7b1a7a35c42add2572aa))
+* Show login dialog on save ([6e16c3e](https://github.com/debjitbis08/sim8085/commit/6e16c3e769e073fc5c742d3b5e4009f651c81655))
+
 ## [2.18.7](https://github.com/debjitbis08/sim8085/compare/v2.18.6...v2.18.7) (2025-07-02)
 
 
