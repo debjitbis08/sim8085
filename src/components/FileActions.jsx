@@ -29,6 +29,7 @@ export function FileActions() {
     const [isSaving, setIsSaving] = createSignal(false);
 
     const [isShareDialogOpen, setIsShareDialogOpen] = createSignal(false);
+    const [isCantShareDialogOpen, setIsCantShareDialogOpen] = createSignal(false);
     const [shareId, setShareId] = createSignal(null);
     const [isShared, setIsShared] = createSignal(false);
     const [shareLink, setShareLink] = createSignal("");
@@ -279,6 +280,16 @@ export function FileActions() {
         setIsDialogOpen(false);
     };
 
+    const tryShare = async () => {
+        const { id: userId } = (await fetchUserId()) || { id: null };
+        if (!userId || !store.activeFile.workspaceItemId) {
+            setIsCantShareDialogOpen(true);
+            return;
+        }
+
+        setIsShareDialogOpen(true);
+    };
+
     const shareFile = async () => {
         setIsSharing(true);
         const { id: userId } = (await fetchUserId()) || { id: null };
@@ -391,7 +402,7 @@ export function FileActions() {
                     <ActionButton
                         icon={isShared() ? <FaSolidCheck class="" /> : <FaSolidShareFromSquare class="" />}
                         title={isShared() ? "Shared" : "Share File"}
-                        onClick={() => setIsShareDialogOpen(true)}
+                        onClick={tryShare}
                         disabled={false}
                     />
                 </div>
@@ -488,6 +499,29 @@ export function FileActions() {
                                     </div>
                                 </Dialog.Description>
                             </Show>
+                        </Dialog.Content>
+                    </div>
+                </Dialog.Portal>
+            </Dialog>
+            <Dialog open={isCantShareDialogOpen()} onOpenChange={setIsCantShareDialogOpen}>
+                <Dialog.Trigger class="hidden" />
+                <Dialog.Portal>
+                    <Dialog.Overlay class="dialog__overlay" />
+                    <div class="dialog__positioner">
+                        <Dialog.Content class="dialog__content">
+                            <Dialog.Title class="dialog__title text-xl">
+                                Please save the file before trying to share it.
+                            </Dialog.Title>
+                            <Dialog.Description class="dialog__description">
+                                <div class="flex gap-2 justify-start mt-4">
+                                    <button
+                                        class="text-white rounded border border-green-foreground text-primary-foreground bg-green-foreground hover:bg-terminal px-4 py-2 cursor-pointer"
+                                        onClick={() => setIsCantShareDialogOpen(false)}
+                                    >
+                                        Ok
+                                    </button>
+                                </div>
+                            </Dialog.Description>
                         </Dialog.Content>
                     </div>
                 </Dialog.Portal>
