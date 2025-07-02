@@ -1,3 +1,10 @@
+## [2.18.7](https://github.com/debjitbis08/sim8085/compare/v2.18.6...v2.18.7) (2025-07-02)
+
+
+### Bug Fixes
+
+* Fix right panel alignment ([a4a8284](https://github.com/debjitbis08/sim8085/commit/a4a828472cf32e7a5afbb296a43e665dd306fc4a))
+
 ## [2.18.6](https://github.com/debjitbis08/sim8085/compare/v2.18.5...v2.18.6) (2025-07-02)
 
 
