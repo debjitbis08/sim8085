@@ -35,7 +35,7 @@ export function Assembled(props) {
                         </Tooltip>
                     </div>
                 </div>
-                <div class={`flex flex-col grow min-h-20`}>
+                <div class={`flex flex-col grow min-h-8`}>
                     <div class="h-full">
                         <div class={`${store.assembled.length ? "" : "hidden"} h-full text-[0.7rem] md:text-sm`}>
                             <table class={`font-mono table ${styles.machineCodeTable} mb-8`}>
@@ -219,7 +219,6 @@ export function Assembled(props) {
                         </div>
                         <div
                             class={`${store.assembled.length || store.errors.length ? "hidden" : ""} max-w-full overflow-x-auto text-sm`}
-                            style={{ height: "calc(100% - 2.75rem)" }}
                         >
                             <p class="text-gray-500">Load or Run the program to view machine codes.</p>
                         </div>

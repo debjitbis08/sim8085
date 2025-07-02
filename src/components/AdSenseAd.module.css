@@ -1,18 +1,41 @@
 .bottomRightSlot {
-    width: 300px;
+    max-width: 300px;
     height: 250px;
+    width: 100%;
 }
 
-@media (min-width: 1024px) {
+/* Large screens with enough height */
+@media (min-width: 1024px) and (min-height: 800px) {
     .bottomRightSlot {
-        width: 300px;
+        max-width: 300px;
         height: 600px;
+        width: 100%;
     }
 }
 
-@media (min-width: 1440px) {
+/* Large screens but shorter height */
+@media (min-width: 1024px) and (max-height: 799px) {
     .bottomRightSlot {
-        width: 336px;
+        max-width: 320px;
+        height: 480px;
+        width: 100%;
+    }
+}
+
+/* XL screens with enough height */
+@media (min-width: 1440px) and (min-height: 800px) {
+    .bottomRightSlot {
+        max-width: 336px;
         height: 600px;
+        width: 100%;
+    }
+}
+
+/* XL screens but shorter height */
+@media (min-width: 1440px) and (max-height: 799px) {
+    .bottomRightSlot {
+        max-width: 336px;
+        height: 480px;
+        width: 100%;
     }
 }

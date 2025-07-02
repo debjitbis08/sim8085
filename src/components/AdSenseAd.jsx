@@ -195,10 +195,12 @@ export default function AdSenseAd(props) {
             <ins
                 data-key={key}
                 ref={(el) => (ref = el)}
-                class={`adsbygoogle mt-auto ${classes.bottomRightSlot}`}
+                class={`adsbygoogle mt-auto self-center ${classes.bottomRightSlot}`}
                 style="display:block"
                 data-ad-client={pubId}
                 data-ad-slot="1459633275"
+                data-ad-format="rectangle"
+                data-full-width-responsive="false"
             ></ins>
         );
     });
@@ -213,9 +215,7 @@ export default function AdSenseAd(props) {
 function BlankAd(props) {
     return (
         <AdContainer isHidden={props.isHidden}>
-            <div
-                class={`w-[336px] h-[220px] border border-red-foreground mt-auto self-center ${classes.bottomRightSlot}`}
-            ></div>
+            <div class={`border border-red-foreground mt-auto self-center ${classes.bottomRightSlot}`}></div>
         </AdContainer>
     );
 }
