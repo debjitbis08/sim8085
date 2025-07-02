@@ -10,7 +10,7 @@ const wh = new Webhook(DODO_WEBHOOK_SECRET);
 
 export const POST: APIRoute = async ({ request }) => {
     if (!supabaseAdminClient) return new Response("No DB client", { status: 500 });
-    if (!DODO_WEBHOOK_SECRET) return new Response("Secret missing", { status: 500 });
+    if (!DODO_WEBHOOK_SECRET || !DODO_PLUS_PRODUCT_ID) return new Response("Secret missing", { status: 500 });
 
     const rawBody = await request.text();
     const headers = {
