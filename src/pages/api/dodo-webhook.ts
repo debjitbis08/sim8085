@@ -2,7 +2,8 @@ import type { APIRoute } from "astro";
 import { createHmac } from "crypto";
 import { supabaseAdminClient } from "../../lib/supabase-admin.js";
 import { Webhook } from "standardwebhooks";
-import { DODO_WEBHOOK_SECRET, DODO_PLUS_PRODUCT_ID } from "astro:env/server";
+import { DODO_WEBHOOK_SECRET } from "astro:env/server";
+import { DODO_PLUS_PRODUCT_ID } from "astro:env/client";
 
 export const prerender = false;
 

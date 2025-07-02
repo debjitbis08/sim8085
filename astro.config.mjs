@@ -203,8 +203,8 @@ export default defineConfig({
                 optional: true,
             }),
             DODO_PLUS_PRODUCT_ID: envField.string({
-                context: "server",
-                access: "secret",
+                context: "client",
+                access: "public",
                 optional: true,
             }),
             DODO_PLUS_PAYMENT_LINK: envField.string({
