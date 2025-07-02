@@ -1,3 +1,10 @@
+## [2.18.5](https://github.com/debjitbis08/sim8085/compare/v2.18.4...v2.18.5) (2025-07-02)
+
+
+### Bug Fixes
+
+* Adjust slot for viewability ([a849161](https://github.com/debjitbis08/sim8085/commit/a84916123045977811d7c4054f14cd31e26cee7b))
+
 ## [2.18.4](https://github.com/debjitbis08/sim8085/compare/v2.18.3...v2.18.4) (2025-07-02)
 
 
