@@ -1,5 +1,6 @@
 import { createSignal, onMount, Show } from "solid-js";
 import { supabase, getUser } from "../lib/supabase.js";
+import classes from "./AdContainer.module.css";
 
 export default function AdContainer(props) {
     const [tier, setTier] = createSignal("LOADING");
@@ -46,7 +47,9 @@ export default function AdContainer(props) {
 
     return (
         <Show when={tier() === "FREE"}>
-            <div class={`mt-auto relative ${props.isHidden ? "hidden" : ""} grow flex flex-col justify-end pt-5`}>
+            <div
+                class={`mt-auto relative ${props.isHidden ? "hidden" : ""} grow flex flex-col justify-end pt-5 ${classes.bottomRightSlot}`}
+            >
                 <div
                     class="text-[0.8rem] self-center text-inactive-foreground hover:text-active-foreground hover:underline cursor-pointer"
                     onClick={openPlusDialog}

@@ -8,7 +8,7 @@
 @media (min-width: 1024px) and (min-height: 800px) {
     .bottomRightSlot {
         max-width: 300px;
-        height: 600px;
+        height: 500px;
         width: 100%;
     }
 }
@@ -17,7 +17,7 @@
 @media (min-width: 1024px) and (max-height: 799px) {
     .bottomRightSlot {
         max-width: 320px;
-        height: 480px;
+        height: 500px;
         width: 100%;
     }
 }
@@ -26,7 +26,7 @@
 @media (min-width: 1440px) and (min-height: 800px) {
     .bottomRightSlot {
         max-width: 336px;
-        height: 600px;
+        height: 500px;
         width: 100%;
     }
 }
@@ -35,7 +35,7 @@
 @media (min-width: 1440px) and (max-height: 799px) {
     .bottomRightSlot {
         max-width: 336px;
-        height: 480px;
+        height: 500px;
         width: 100%;
     }
 }
