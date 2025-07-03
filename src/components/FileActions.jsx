@@ -370,6 +370,10 @@ export function FileActions() {
     createShortcut(["Control", "n"], createNewFile);
     createShortcut(["Control", "s"], saveFile);
 
+    createEffect(() => {
+        document.title = `${fileName()}${store.activeFile.unsavedChanges ? "*" : ""} - Sim8085`;
+    });
+
     return (
         <>
             <div class={`flex items-center gap-2`}>
