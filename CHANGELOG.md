@@ -1,3 +1,10 @@
+## [2.18.16](https://github.com/debjitbis08/sim8085/compare/v2.18.15...v2.18.16) (2025-07-03)
+
+
+### Bug Fixes
+
+* Fix file save ([14509d2](https://github.com/debjitbis08/sim8085/commit/14509d2f83d76d14d389f06b3133da8be2dde59d))
+
 ## [2.18.15](https://github.com/debjitbis08/sim8085/compare/v2.18.14...v2.18.15) (2025-07-03)
 
 
