@@ -101,7 +101,7 @@ export function FileActions() {
         if (!allowed) {
             window.dispatchEvent(
                 new CustomEvent("showPlusDialog", {
-                    detail: { reason: "notLoggedIn" },
+                    detail: { reason: "fileLimit" },
                 }),
             );
             return false;
