@@ -1,3 +1,11 @@
+## [2.18.14](https://github.com/debjitbis08/sim8085/compare/v2.18.13...v2.18.14) (2025-07-03)
+
+
+### Bug Fixes
+
+* Allow full width ad slot ([12ba60a](https://github.com/debjitbis08/sim8085/commit/12ba60ad0ae35c0032c826a94d3c36617c450cf0))
+* Show file name in title ([24879a3](https://github.com/debjitbis08/sim8085/commit/24879a3507acdc7a61d9401edf8e9522520d0bc4))
+
 ## [2.18.13](https://github.com/debjitbis08/sim8085/compare/v2.18.12...v2.18.13) (2025-07-03)
 
 
