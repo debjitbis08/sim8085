@@ -1,3 +1,10 @@
+## [2.18.13](https://github.com/debjitbis08/sim8085/compare/v2.18.12...v2.18.13) (2025-07-03)
+
+
+### Bug Fixes
+
+* Fix ad slot dimensions ([127b0ba](https://github.com/debjitbis08/sim8085/commit/127b0ba311e846bd6e4a2694ce5fdd19132796a3))
+
 ## [2.18.12](https://github.com/debjitbis08/sim8085/compare/v2.18.11...v2.18.12) (2025-07-02)
 
 
