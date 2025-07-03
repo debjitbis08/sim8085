@@ -79,7 +79,7 @@ export default function Workspace() {
         try {
             const { id: userId, tier } = (await fetchUserId()) || { id: null, tier: "FREE" };
 
-            if (!userId || tier === "FREE") {
+            if (!userId) {
                 setLoading(false);
                 return;
             }
