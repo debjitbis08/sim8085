@@ -1,3 +1,10 @@
+## [2.18.17](https://github.com/debjitbis08/sim8085/compare/v2.18.16...v2.18.17) (2025-07-03)
+
+
+### Bug Fixes
+
+* Fix reading workspace ([ebed69b](https://github.com/debjitbis08/sim8085/commit/ebed69b8ae3b7720329ea956d39a141c2f964258))
+
 ## [2.18.16](https://github.com/debjitbis08/sim8085/compare/v2.18.15...v2.18.16) (2025-07-03)
 
 
