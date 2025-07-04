@@ -1,3 +1,10 @@
+## [2.18.19](https://github.com/debjitbis08/sim8085/compare/v2.18.18...v2.18.19) (2025-07-04)
+
+
+### Bug Fixes
+
+* Fix workspace creation on initial file save ([b651927](https://github.com/debjitbis08/sim8085/commit/b6519271d9c3e5d8b8eecff7f0dcb5a65f0c677f))
+
 ## [2.18.18](https://github.com/debjitbis08/sim8085/compare/v2.18.17...v2.18.18) (2025-07-04)
 
 
