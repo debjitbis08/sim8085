@@ -190,7 +190,7 @@ document.addEventListener('alpine:init', () => {
 
       if (!user) return this.isLoading = false;
 
-      const { tier } = await getUserTier();
+            const { tier } = await getUserTier({ forceRefresh: true });
       this.isPlus = tier === 'PLUS';
       this.isLoading = false;
     }

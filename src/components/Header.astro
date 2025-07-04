@@ -171,27 +171,17 @@ const avatarUrl = user?.user_metadata?.avatar_url; // Default avatar if none exi
                         </a>
                     </template>
                 </div>
-                <!-- <link href="https://fonts.googleapis.com/css?family=Inter&amp;display=swap" rel="stylesheet"> -->
                 <a
                     class="group transition-colors font-bold relative z-[1] h-8 py-4 px-4 hidden md:flex items-center gap-2 rounded-lg text-sm bg-transparent hover:bg-yellow-foreground/30 box-border text-yellow-foreground hover:text-active-foreground border border-yellow-foreground"
                     href="/upgrade/"
+                    x-data="unlockPlusButton"
+                    x-show="tier === 'FREE'"
+                    x-cloak
                 >
                     <span class="text-yellow-foreground group-hover:text-active-foreground">
                         <FaSolidRocket />
                     </span> <span class="hidden md:inline bmc-btn-text">Upgrade</span>
                 </a>
-                <button
-                    x-data="unlockPlusButton"
-                    type="button"
-                    class="hidden h-8 py-4 px-4 flex items-center gap-2 rounded text-sm bg-transparent hover:bg-secondary-background box-border border border-main-border hover:border-yellow-foreground text-yellow-foreground"
-                    @click="showPlusDialog"
-                    x-show="tier === 'FREE'"
-                >
-                    <span>
-                        <Fragment set:html={LockIcon}/>
-                    </span>
-                    <span class="hidden md:inline bmc-btn-text">Unlock Plus</span>
-                </button>
                 <div x-data="mobileMenu" class="relative block md:hidden">
                     <div class="relative">
                         <button @click="menuOpen = !menuOpen" class="flex items-center focus:outline-none py-1 cursor-pointer">
@@ -261,6 +251,7 @@ const avatarUrl = user?.user_metadata?.avatar_url; // Default avatar if none exi
     .solid .regular-icon {
         display: none;
     }
+    [x-cloak] { display: none !important; }
 </style>
 <script>
     import Alpine from 'alpinejs';

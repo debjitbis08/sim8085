@@ -7,10 +7,6 @@ import { VsLoading } from 'solid-icons/vs';
 <Layout title="Sim8085 Plus – Thank You" showActions={false} fullwidth={false} fullHeight={false}>
     <main class="mx-auto py-8 px-4" x-data="payment" x-init="init">
         <h1 class="text-2xl mb-6 font-bold">🎉 Thank You for Supporting Sim8085!</h1>
-        <p class="mb-6 text-secondary-foreground">
-            Your contribution helps us keep Sim8085 free, open, and growing. Let's take a quick look at what you've unlocked with Plus:
-        </p>
-
         <template x-if="isLoading">
             <div class="flex items-center gap-2">
                 <VsLoading class="animate-spin" />
@@ -52,6 +48,10 @@ import { VsLoading } from 'solid-icons/vs';
                 <p class="mb-2 text-sm text-muted-foreground">We apologize for the inconvenience.</p>
             </div>
         </template>
+
+        <p class="mt-6 mb-6 text-secondary-foreground">
+            Your contribution helps us keep Sim8085 free, open, and growing. Let's take a quick look at what you've unlocked with Plus:
+        </p>
 
         <div class="my-4 mt-8">
             <div class="flex items-center gap-4 pb-8">
@@ -127,7 +127,7 @@ document.addEventListener('alpine:init', () => {
                 return;
             }
 
-            const { tier } = await getUserTier();
+            const { tier } = await getUserTier({ forceRefresh: true });
 
             if (tier === "PLUS") {
                 this.isPlus = true;
@@ -146,7 +146,7 @@ document.addEventListener('alpine:init', () => {
         },
 
         async validate(retries = 0) {
-            const { tier } = await getUserTier();
+            const { tier } = await getUserTier({ forceRefresh: true });
             if (tier === "PLUS") return true;
 
             if (retries >= 10) return false;
