@@ -1,3 +1,11 @@
+## [2.18.18](https://github.com/debjitbis08/sim8085/compare/v2.18.17...v2.18.18) (2025-07-04)
+
+
+### Bug Fixes
+
+* Fix loading files with NULL Home folder ([5ff84bf](https://github.com/debjitbis08/sim8085/commit/5ff84bfe26f4d13e0b871b4de7c21f1f32b64eda))
+* Fix no workspace condition in initial file save ([a65376f](https://github.com/debjitbis08/sim8085/commit/a65376f0702e4bb2fde60beef732f24b72771ca9))
+
 ## [2.18.17](https://github.com/debjitbis08/sim8085/compare/v2.18.16...v2.18.17) (2025-07-03)
 
 
