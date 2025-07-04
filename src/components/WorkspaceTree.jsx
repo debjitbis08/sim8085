@@ -58,7 +58,6 @@ export function WorkspaceTree(props) {
 
             if (folderError) throw folderError;
 
-            console.log(folders);
             setFolders(
                 folders.map((folder) => {
                     return {
@@ -86,14 +85,18 @@ export function WorkspaceTree(props) {
                     )
                 `,
                 )
-                .eq("workspace_items.parent_folder_id", folderId)
+                .or(
+                    `parent_folder_id.eq.${folderId}${store.homeFolderId === folderId ? ",parent_folder_id.is.null" : ""}`,
+                    {
+                        referencedTable: "workspace_items",
+                    },
+                )
                 .eq("workspace_items.status_id", "ACTIVE")
                 .eq("workspace_items.user_id", props.userId)
                 .eq("file_versions.is_latest", true); // Get only the latest version
 
             if (fileError) throw fileError;
 
-            console.log(files);
             setFiles(
                 files.map((file) => ({
                     id: file.id,
