@@ -226,7 +226,7 @@ export function FileActions() {
                 const temporaryName = store.activeFile.name;
 
                 if (store.homeFolderId == null) {
-                    getOrCreateWorkspace();
+                    await getOrCreateWorkspace();
                 }
 
                 // New file: Create entries in `workspace_items` and `files`
