@@ -1,3 +1,15 @@
+## [2.18.21](https://github.com/debjitbis08/sim8085/compare/v2.18.20...v2.18.21) (2025-07-04)
+
+
+### Bug Fixes
+
+* Highlight pricing better ([ce28da6](https://github.com/debjitbis08/sim8085/commit/ce28da69aa6b00bb91c47803d070022c34c59fb7))
+
+
+### Performance Improvements
+
+* Add caching for tier data ([edfd9d7](https://github.com/debjitbis08/sim8085/commit/edfd9d7a848772e4ab12b335d01623ae95eb4a09))
+
 ## [2.18.20](https://github.com/debjitbis08/sim8085/compare/v2.18.19...v2.18.20) (2025-07-04)
 
 
