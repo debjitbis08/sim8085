@@ -59,7 +59,11 @@ export function PlusDialog() {
                         <Dialog.Description class="dialog__description">
                             <div class="p-4">
                                 <h2 class="text-xl md:text-2xl font-bold mb-4">{titleMap[dialogReason()]}</h2>
-                                <p class="mb-4 md:mb-8 text-secondary-foreground">{subtitleMap[dialogReason()]}</p>
+                                <p class="mb-2 text-secondary-foreground">{subtitleMap[dialogReason()]}</p>
+                                <p class="mb-4 md:mb-8 font-semibold text-lg">
+                                    <span class="text-yellow-foreground">Just $0.66/month</span>
+                                    <span> — one-time $4 payment for 6 months. No subscription.</span>
+                                </p>
                                 <div class="my-4">
                                     <div class="flex items-start md:items-center gap-4 pb-4 md:pb-8">
                                         <div class="text-lg md:text-2xl text-green-600 md:bg-green-200 w-8 h-8 md:w-12 md:h-12 rounded flex items-start md:items-center justify-center">
