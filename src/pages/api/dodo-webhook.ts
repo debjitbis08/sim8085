@@ -1,5 +1,5 @@
 import type { APIRoute } from "astro";
-import { createHmac } from "crypto";
+import { addMonths } from "date-fns";
 import { supabaseAdminClient } from "../../lib/supabase-admin.js";
 import { Webhook } from "standardwebhooks";
 import { DODO_WEBHOOK_SECRET } from "astro:env/server";
@@ -28,17 +28,28 @@ export const POST: APIRoute = async ({ request }) => {
         return new Response("Invalid signature", { status: 401 });
     }
 
-    if (payload.type !== "payment.succeeded" || payload.data.product_cart?.product_id !== DODO_PLUS_PRODUCT_ID) {
+    if (payload.type !== "payment.succeeded") {
+        return new Response("Ignored", { status: 200 });
+    }
+
+    if (payload.data.status !== "succeeded") {
+        return new Response("Not successful", { status: 200 });
+    }
+
+    if (!payload.data.product_cart?.some((item: any) => item.product_id === DODO_PLUS_PRODUCT_ID)) {
         return new Response("Ignored", { status: 200 });
     }
 
     const payment = payload.data;
-    const email = payment.customer?.email || payment.email;
-    if (!email) return new Response("Missing email", { status: 400 });
+    if (!payment.customer?.email) {
+        console.error("Missing customer email:", payment);
+        return new Response("Missing email", { status: 400 });
+    }
+    const email = payment.customer.email;
 
     const { data: user, error: userError } = await supabaseAdminClient
         .from("customers")
-        .select("id")
+        .select("id, last_payment_id")
         .eq("email", email)
         .single();
 
@@ -47,10 +58,13 @@ export const POST: APIRoute = async ({ request }) => {
         return new Response("User not found", { status: 404 });
     }
 
+    if (user.last_payment_id === payment.payment_id) {
+        return new Response("Already processed", { status: 200 });
+    }
+
     // Update customer subscription
     const now = new Date();
-    const expiresAt = new Date(now);
-    expiresAt.setMonth(expiresAt.getMonth() + 6); // 6 months later
+    const expiresAt = addMonths(now, 6);
 
     const { error: updateError } = await supabaseAdminClient
         .from("customers")
@@ -58,6 +72,7 @@ export const POST: APIRoute = async ({ request }) => {
             subscription_tier: "PLUS",
             subscription_started_at: now.toISOString(),
             subscription_expires_at: expiresAt.toISOString(),
+            last_payment_id: payment.payment_id,
         })
         .eq("id", user.id);
 
@@ -65,6 +80,8 @@ export const POST: APIRoute = async ({ request }) => {
         console.error("Failed to update subscription:", updateError);
         return new Response("Failed to upgrade user", { status: 500 });
     }
+
+    console.log(`Subscription upgraded for ${email} until ${expiresAt.toISOString()}`);
 
     return new Response("Success", { status: 200 });
 };
