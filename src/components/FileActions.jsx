@@ -133,6 +133,79 @@ export function FileActions() {
         return true;
     };
 
+    async function createWorkspace(userId) {
+        try {
+            // Step 1: Create a new workspace_item for the home folder
+            const { data: workspaceItem, error: workspaceItemError } = await supabase
+                .from("workspace_items")
+                .insert([
+                    {
+                        id: uuidv7(),
+                        name: "Home",
+                        status_id: "ACTIVE", // Replace with the correct status_id
+                        user_id: userId,
+                        parent_folder_id: null, // No parent folder since this is the root
+                    },
+                ])
+                .select()
+                .single();
+
+            if (workspaceItemError) throw workspaceItemError;
+
+            // Step 2: Create a folder referencing the workspace_item
+            const { data: folder, error: folderError } = await supabase
+                .from("folders")
+                .insert([{ id: workspaceItem.id }])
+                .select()
+                .single();
+
+            if (folderError) throw folderError;
+
+            // Step 3: Create the workspace referencing the folder
+            const { data: workspace, error: workspaceError } = await supabase
+                .from("workspaces")
+                .insert([{ user_id: userId, home_folder_id: folder.id }])
+                .select()
+                .single();
+
+            if (workspaceError) throw workspaceError;
+
+            // Save the home folder ID
+            setStore("homeFolderId", folder.id);
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
+    async function getOrCreateWorkspace() {
+        try {
+            const { id: userId, tier } = (await fetchUserId()) || { id: null, tier: "FREE" };
+
+            if (!userId) {
+                return;
+            }
+
+            // Step 1: Try to fetch the workspace for the current user
+            const { data, error } = await supabase
+                .from("workspaces")
+                .select("home_folder_id")
+                .eq("user_id", userId)
+                .single();
+
+            if (error && error.code !== "PGRST116") throw error; // Ignore "row not found" errors
+
+            if (data) {
+                // Workspace exists
+                setStore("homeFolderId", data.home_folder_id);
+            } else {
+                // Workspace does not exist; create it
+                await createWorkspace(userId);
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
     const saveFileToSupabase = async (userId) => {
         const activeFile = store.activeFile;
 
@@ -151,6 +224,10 @@ export function FileActions() {
         try {
             if (!activeFile.workspaceItemId) {
                 const temporaryName = store.activeFile.name;
+
+                if (store.homeFolderId == null) {
+                    getOrCreateWorkspace();
+                }
 
                 // New file: Create entries in `workspace_items` and `files`
                 // Step 1: Insert into `workspace_items`
