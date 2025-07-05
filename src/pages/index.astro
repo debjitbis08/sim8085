@@ -8,6 +8,7 @@ import { PlusDialog } from '../components/PlusDialog.jsx';
 import { DonationPlea } from '../components/DonationPlea.jsx';
 import { NatoryAd } from '../components/NatoryAd.jsx';
 import { UnsavedFileDialog } from '../components/UnsavedFileDialog.jsx';
+import { DODO_DONATION_PAYMENT_LINK } from 'astro:env/client';
 ---
 
 <Layout title="Sim8085 | A 8085 microprocessor simulator" showActions={true} fullwidth={true} fullHeight={true} smallFooter={true}>
@@ -43,7 +44,7 @@ import { UnsavedFileDialog } from '../components/UnsavedFileDialog.jsx';
             </div>
         </div>
 
-        <PlusDialog client:idle />
+        <PlusDialog client:idle DODO_DONATION_PAYMENT_LINK={DODO_DONATION_PAYMENT_LINK} />
         <UnsavedFileDialog client:idle />
 
         <DonationPlea client:idle />

@@ -28,7 +28,7 @@ const subtitleMap = {
     default: "Enjoy unlimited saves, AI help, and sharing with a one-time upgrade.",
 };
 
-export function PlusDialog() {
+export function PlusDialog(props) {
     const [isDialogOpen, setIsDialogOpen] = createSignal(false);
     const [dialogReason, setDialogReason] = createSignal("default");
 
@@ -158,15 +158,19 @@ export function PlusDialog() {
                                         limited time!
                                     </p>
                                 </div>
-                                {/*
                                 <span class="flex items-center my-4">
                                     <span class="pr-6 text-secondary-foreground">OR</span>
                                     <span class="h-px flex-1 bg-main-border"></span>
                                 </span>
-                                <button class="border border-terminal text-terminal rounded-lg px-8 py-4 font-bold text-base">
-                                    Make a one-time Donation of $2
-                                </button>
-                                */}
+                                <div class="flex items-center gap-2">
+                                    <a
+                                        class="inline-block border border-blue-foreground text-blue-foreground hover:bg-main-background rounded-lg px-8 py-4 font-bold text-base"
+                                        href={`${props.DODO_DONATION_PAYMENT_LINK}?quantity=1&redirect_url=https://www.sim8085.com%2Fdonation-thank-you%2F"`}
+                                    >
+                                        Make a one-time Donation of $1
+                                    </a>
+                                </div>
+                                <p class="text-sm text-secondary-foreground mt-2">* No Plus benefits for donations.</p>
                             </div>
                         </Dialog.Description>
                     </Dialog.Content>
