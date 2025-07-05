@@ -1,3 +1,10 @@
+## [2.18.22](https://github.com/debjitbis08/sim8085/compare/v2.18.21...v2.18.22) (2025-07-05)
+
+
+### Bug Fixes
+
+* Add donation link in Plus Dialog ([c558b40](https://github.com/debjitbis08/sim8085/commit/c558b40df4feb84e289059ee8973da9974b185c0))
+
 ## [2.18.21](https://github.com/debjitbis08/sim8085/compare/v2.18.20...v2.18.21) (2025-07-04)
 
 
