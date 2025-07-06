@@ -490,6 +490,19 @@ lineError "Error in this line now" = lineWithError:.* {
         return (code < 32 || code > 126) && !ignoredCodes.has(code);
     });
 
+    const trimmed = content.trim();
+    const tokens = trimmed.split(/\s+/);
+
+    if (spoofedChars.length === 0 && /^[A-Za-z?@][A-Za-z0-9_]*$/.test(tokens[0])) {
+        error(JSON.stringify({
+            type: "Invalid Syntax",
+            message: "Label missing ':'",
+            hint: [
+                "Labels must end with a colon (':')."
+            ]
+        }));
+    }
+
     if (spoofedChars.length > 0) {
         const examples = spoofedChars.map(c => {
             const hex = c.charCodeAt(0).toString(16).toUpperCase().padStart(4, "0");
