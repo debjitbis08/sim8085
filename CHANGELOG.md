@@ -1,3 +1,10 @@
+## [2.18.23](https://github.com/debjitbis08/sim8085/compare/v2.18.22...v2.18.23) (2025-07-06)
+
+
+### Bug Fixes
+
+* Improve assembler error for missing colon ([7c1a81d](https://github.com/debjitbis08/sim8085/commit/7c1a81d4db8410c2137d0631a5912cf3b44b8db4))
+
 ## [2.18.22](https://github.com/debjitbis08/sim8085/compare/v2.18.21...v2.18.22) (2025-07-05)
 
 
