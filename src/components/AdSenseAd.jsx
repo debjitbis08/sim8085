@@ -1,10 +1,13 @@
 import { onMount, createEffect, onCleanup, createSignal, createMemo } from "solid-js";
 import AdContainer from "./AdContainer.jsx";
 import { shouldLoadAds, loadAdSenseScript } from "../lib/adsense.js";
+import { MAX_AD_ROTATIONS } from "astro:env/client";
 
 const pubId = import.meta.env.PUBLIC_ADSENSE_PUB_ID ? `ca-${import.meta.env.PUBLIC_ADSENSE_PUB_ID}` : null;
 
 function track(event, props = {}) {
+    // Disable to handle PostHog cost
+    return;
     if (window.posthog) posthog.capture(event, props);
 }
 
@@ -126,7 +129,7 @@ export default function AdSenseAd(props) {
     });
 
     let rotationCount = 0;
-    const MAX_ROTATIONS = 6;
+    const MAX_ROTATIONS = MAX_AD_ROTATIONS || 0;
 
     function rotateAd(elapsed) {
         if (props.isHidden) return;

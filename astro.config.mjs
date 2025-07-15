@@ -166,6 +166,7 @@ export default defineConfig({
             USE_TRACKING: envField.boolean({ context: "client", access: "public", optional: true, default: false }),
             POSTHOG_API_KEY: envField.string({ context: "client", access: "public", optional: true }),
             OPENAI_ENABLED: envField.boolean({ context: "client", access: "public", optional: true, default: false }),
+            MAX_AD_ROTATIONS: envField.number({ context: "client", access: "public", optional: true, default: 0 }),
             SUPABASE_URL: envField.string({ context: "client", access: "public", optional: true }),
             SUPABASE_ANON_KEY: envField.string({
                 context: "client",
