@@ -1,0 +1,21 @@
+
+OPCODE : ADD 
+		|...
+
+REGISTER : A 
+		 | B
+		 | C
+		 | D
+		 | E
+		 | H
+		 | L
+		 | SP
+		 | PSW
+
+<INSTRUCTION> : OPCODE <ARGS>
+<ARGS> : REGISTER <ARGS_TAIL> | NUM_LITERAL | e
+<ARGS_TAIL> : , REGISTER | , NUM_LITERAL | e
+
+ADD A B
+
+ADD  REGISTER REGISTER
