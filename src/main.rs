@@ -4,6 +4,9 @@ use frontend::lexer::{Lexer};
 use frontend::token::{Token,TokenType};
 
 fn main() {
-    let mut l = Lexer::new(String::from("Hello, world!\n"));
+    let mut l = Lexer::new(String::from("ADD A,B\n"));
+    println!("{:?}",l.next());
+    println!("{:?}",l.next());
+    println!("{:?}",l.next());
     println!("{:?}",l.next());
 }

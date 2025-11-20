@@ -28,10 +28,25 @@ impl Lexer{
 }
 
 impl Lexer{
-    pub fn next(&mut self){
-        println!("{:?}",self);
-        self.consume();
-        println!("{:?}",self);
+    pub fn next(&mut self)->Token{
+        match self.ch {
+            c if self.ch.is_alphabetic() =>{ 
+                // identifier
+                return self.read_identifier();
+            }
+            ',' =>{
+                self.consume();
+                return Token::new(String::from(','),TokenType::COMMA_DELIM);
+            }
+            ' '=>{
+                self.consume();
+                return self.next();
+            }
+            _=>{
+                self.consume();
+                return Token::new(String::from('\0'),TokenType::ILLEGAL);
+            }
+        }
     }
     pub fn consume(&mut self){
         if self.read_position >= self.source.len(){
@@ -45,8 +60,34 @@ impl Lexer{
         self.location.col += 1;
         self.location.row = 0;
     }
-    pub fn read_identifier(&mut self){
-
+    pub fn read_identifier(&mut self)->Token{
+        let mut identifier_buf = String::from("");
+        while self.ch.is_alphabetic(){
+            identifier_buf += &self.ch.to_string();
+            self.consume();
+        }
+        return Token::new(identifier_buf.clone(),get_identifier_token(&identifier_buf));
+    }
+}
+fn get_identifier_token(identifier_lit: &String)->TokenType{
+    match identifier_lit.as_str(){
+        "ADD" => {
+            return TokenType::OPERATION; 
+        }
+        "A"
+        |"B"
+        |"C"
+        |"D"
+        |"E"
+        |"PSW"
+        |"H"
+        |"L"
+        =>{
+            return TokenType::REGISTER;
+        }
+        _=>{
+            return TokenType::ILLEGAL;
+        }
     }
 }
 
