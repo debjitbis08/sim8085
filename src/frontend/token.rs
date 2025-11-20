@@ -24,6 +24,7 @@ pub enum TokenType{
     IMM_VALUE,
     REGISTER,
     COMMA_DELIM,
+    EOL,
     EOF,
     ILLEGAL,
 }

@@ -33,19 +33,29 @@ impl Lexer{
             c if self.ch.is_alphabetic() =>{ 
                 // identifier
                 return self.read_identifier();
+            },
+            c if self.ch.is_numeric() =>{
+                return self.read_immediate();
             }
             ',' =>{
                 self.consume();
                 return Token::new(String::from(','),TokenType::COMMA_DELIM);
-            }
+            },
             ' '=>{
                 self.consume();
                 return self.next();
-            }
+            },
+            '\n'=>{
+                self.consume();
+                return Token::new(String::from('\0'),TokenType::EOL);
+            },
+            '\0'=>{
+                return Token::new(String::from('\0'),TokenType::EOF);
+            },
             _=>{
                 self.consume();
                 return Token::new(String::from('\0'),TokenType::ILLEGAL);
-            }
+            },
         }
     }
     pub fn consume(&mut self){
@@ -67,6 +77,14 @@ impl Lexer{
             self.consume();
         }
         return Token::new(identifier_buf.clone(),get_identifier_token(&identifier_buf));
+    }
+    pub fn read_immediate(&mut self)->Token{
+        let mut immediate_buf = String::from("");
+        while self.ch.is_numeric(){
+            immediate_buf += &self.ch.to_string();
+            self.consume();
+        }
+        return Token::new(immediate_buf.clone(),TokenType::IMM_VALUE);
     }
 }
 fn get_identifier_token(identifier_lit: &String)->TokenType{
