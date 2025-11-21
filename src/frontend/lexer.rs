@@ -1,13 +1,10 @@
 use crate::frontend::token::{TokenType,Token,Location};
-
 #[derive(Debug)]
 pub struct Lexer{
     pub source: String,         // source string
     pub ch : char,              // current literal
     pub curr_position: usize,   // current position
     pub read_position: usize,   // next position
-                                // 
-                                //
     pub location: Location,     // current location 
 }
 
@@ -108,4 +105,3 @@ fn get_identifier_token(identifier_lit: &String)->TokenType{
         }
     }
 }
-
