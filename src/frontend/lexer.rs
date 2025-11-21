@@ -27,19 +27,20 @@ impl Lexer{
     }
 }
 
-impl Lexer{
-    pub fn next(&mut self)->Token{
+impl Iterator for Lexer{
+    type Item = Token; 
+    fn next(&mut self)->Option<Token>{
         match self.ch {
             c if self.ch.is_alphabetic() =>{ 
                 // identifier
-                return self.read_identifier();
+                return Some(self.read_identifier());
             },
             c if self.ch.is_numeric() =>{
-                return self.read_immediate();
+                return Some(self.read_immediate());
             }
             ',' =>{
                 self.consume();
-                return Token::new(String::from(','),TokenType::COMMA_DELIM);
+                return Some(Token::new(String::from(','),TokenType::COMMA_DELIM));
             },
             ' '=>{
                 self.consume();
@@ -47,17 +48,19 @@ impl Lexer{
             },
             '\n'=>{
                 self.consume();
-                return Token::new(String::from('\0'),TokenType::EOL);
+                return Some(Token::new(String::from('\0'),TokenType::EOL));
             },
             '\0'=>{
-                return Token::new(String::from('\0'),TokenType::EOF);
+                return Some(Token::new(String::from('\0'),TokenType::EOF));
             },
             _=>{
                 self.consume();
-                return Token::new(String::from('\0'),TokenType::ILLEGAL);
+                return Some(Token::new(String::from('\0'),TokenType::ILLEGAL));
             },
         }
     }
+}
+impl Lexer {
     pub fn consume(&mut self){
         if self.read_position >= self.source.len(){
             self.ch = '\0';
