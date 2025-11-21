@@ -1,4 +1,7 @@
 use crate::frontend::token::{Location, Token, TokenType};
+
+
+
 #[derive(Debug)]
 pub struct Lexer {
     pub source: String,       // source string
@@ -45,15 +48,17 @@ impl Iterator for Lexer {
                 return self.next();
             }
             '\n' => {
-                self.location.col = 0;
-                self.location.row += 1;
                 self.consume();
-                return Some(Token::new(
+                let buf_token = Some(Token::new(
                     String::from('\n'),
                     TokenType::EOL,
                     self.location,
                     1,
                 ));
+                self.location.col = 0;
+                self.location.row += 1;
+
+                return buf_token;
             }
             '\0' => {
                 return None;
@@ -131,5 +136,29 @@ fn get_identifier_token(identifier_lit: &String) -> TokenType {
         _ => {
             return TokenType::ILLEGAL;
         }
+    }
+}
+
+#[cfg(test)]
+mod tests{
+
+    use crate::frontend::token::{Location, Token, TokenType};
+    use super::Lexer;
+    #[test]
+    fn lexer_test_case(){
+        let source = String::from("ADD A,B\n");
+        let mut l = Lexer::new(source);
+        let mut tokens: Vec<Token> = vec![];
+        for token in l { tokens.push(token); }
+
+        assert_eq!(
+            vec![
+            Token::new("ADD".to_string(),TokenType::OPERATION,Location::new(0,3),3),
+            Token::new("A".to_string(),TokenType::REGISTER,Location::new(0,5),1),
+            Token::new(",".to_string(),TokenType::COMMA_DELIM,Location::new(0,6),1),
+            Token::new("B".to_string(),TokenType::REGISTER,Location::new(0,7),1),
+            Token::new("\n".to_string(),TokenType::EOL,Location::new(0,8),1)
+            ]
+            ,tokens);
     }
 }
