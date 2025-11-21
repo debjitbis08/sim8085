@@ -1,4 +1,4 @@
-#[derive(Debug, Copy, Clone,PartialEq)]
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Location {
     pub row: i32,
     pub col: i32,
@@ -9,7 +9,7 @@ impl Location {
     }
 }
 
-#[derive(Debug,PartialEq)]
+#[derive(Debug, PartialEq)]
 pub struct Token {
     pub tok_literal: String,
     pub tok_type: TokenType,
@@ -38,7 +38,7 @@ impl Token {
 // INSTRUCTION
 // OPERATION REGISTER COMMA_DELIM REGISTER
 //
-#[derive(Debug,PartialEq)]
+#[derive(Debug, PartialEq)]
 pub enum TokenType {
     OPERATION,
     IMM_VALUE,

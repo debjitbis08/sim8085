@@ -1,7 +1,5 @@
 use crate::frontend::token::{Location, Token, TokenType};
 
-
-
 #[derive(Debug)]
 pub struct Lexer {
     pub source: String,       // source string
@@ -140,25 +138,38 @@ fn get_identifier_token(identifier_lit: &String) -> TokenType {
 }
 
 #[cfg(test)]
-mod tests{
+mod tests {
 
-    use crate::frontend::token::{Location, Token, TokenType};
     use super::Lexer;
+    use crate::frontend::token::{Location, Token, TokenType};
     #[test]
-    fn lexer_test_case(){
+    fn lexer_test_case() {
         let source = String::from("ADD A,B\n");
         let mut l = Lexer::new(source);
         let mut tokens: Vec<Token> = vec![];
-        for token in l { tokens.push(token); }
+        for token in l {
+            tokens.push(token);
+        }
 
         assert_eq!(
             vec![
-            Token::new("ADD".to_string(),TokenType::OPERATION,Location::new(0,3),3),
-            Token::new("A".to_string(),TokenType::REGISTER,Location::new(0,5),1),
-            Token::new(",".to_string(),TokenType::COMMA_DELIM,Location::new(0,6),1),
-            Token::new("B".to_string(),TokenType::REGISTER,Location::new(0,7),1),
-            Token::new("\n".to_string(),TokenType::EOL,Location::new(0,8),1)
-            ]
-            ,tokens);
+                Token::new(
+                    "ADD".to_string(),
+                    TokenType::OPERATION,
+                    Location::new(0, 3),
+                    3
+                ),
+                Token::new("A".to_string(), TokenType::REGISTER, Location::new(0, 5), 1),
+                Token::new(
+                    ",".to_string(),
+                    TokenType::COMMA_DELIM,
+                    Location::new(0, 6),
+                    1
+                ),
+                Token::new("B".to_string(), TokenType::REGISTER, Location::new(0, 7), 1),
+                Token::new("\n".to_string(), TokenType::EOL, Location::new(0, 8), 1)
+            ],
+            tokens
+        );
     }
 }
