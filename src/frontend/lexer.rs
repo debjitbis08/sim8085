@@ -11,11 +11,11 @@ pub struct Lexer {
 impl Lexer {
     pub fn new(source: String) -> Self {
         Self {
-            source: source.clone(),
             ch: source.chars().nth(0).expect("source of size <1?"),
             curr_position: 0,
             read_position: 1,
             location: Location { row: 0, col: 0 },
+            source: source,
         }
     }
 }
