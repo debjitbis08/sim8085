@@ -110,11 +110,15 @@ impl Lexer {
 }
 fn get_identifier_token(identifier_lit: &String) -> TokenType {
     match identifier_lit.as_str() {
-        "ADD" => {
+        "ADD" | "SUB" | "MOV" | "MVI" | "LXI" | "PUSH" | "POP" | "INR" | "DCR" | "DAD" | "LDAX"
+        | "STAX" => {
             return TokenType::OPERATION;
         }
         "A" | "B" | "C" | "D" | "E" | "PSW" | "H" | "L" => {
             return TokenType::REGISTER;
+        }
+        "BC" | "DE" | "HL" | "SP" => {
+            return TokenType::REGISTER_PAIR;
         }
         _ => {
             return TokenType::ILLEGAL;
