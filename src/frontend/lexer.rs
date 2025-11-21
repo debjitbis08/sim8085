@@ -96,7 +96,15 @@ impl Lexer {
     }
     pub fn read_immediate(&mut self) -> Token {
         let mut immediate_buf = String::from("");
-        while self.ch.is_numeric() {
+
+        //Support for hex digits
+        while self.ch.is_ascii_hexdigit() {
+            immediate_buf += &self.ch.to_string();
+            self.consume();
+        }
+
+        //H suffix handling Eg: 123AH
+        if self.ch == 'H' {
             immediate_buf += &self.ch.to_string();
             self.consume();
         }
