@@ -7,9 +7,10 @@ use frontend::utils::files::get_raw_source;
 fn main(){
     if let Some(source) = get_raw_source("test_value.asm"){
         let mut l = Lexer::new(source);
-        println!("{:?}",l.next());
-        println!("{:?}",l.next());
-        println!("{:?}",l.next());
-        println!("{:?}",l.next());
+        let mut tokns_buf : Vec<Token> = vec![];
+        for tok in l {
+            tokns_buf.push(tok);
+        }
+        println!("{:?}",tokns_buf);
     }
 }

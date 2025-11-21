@@ -1,17 +1,13 @@
-use crate::frontend::token::{TokenType,Token};
-#[derive(Debug)]
-struct Location{
-    row: i64,
-    col: i64,
-}
+use crate::frontend::token::{TokenType,Token,Location};
+
 #[derive(Debug)]
 pub struct Lexer{
     pub source: String,         // source string
     pub ch : char,              // current literal
     pub curr_position: usize,   // current position
     pub read_position: usize,   // next position
-                            // 
-                            //
+                                // 
+                                //
     pub location: Location,     // current location 
 }
 
@@ -40,22 +36,25 @@ impl Iterator for Lexer{
             }
             ',' =>{
                 self.consume();
-                return Some(Token::new(String::from(','),TokenType::COMMA_DELIM));
+                return Some(Token::new(String::from(','),TokenType::COMMA_DELIM,self.location,1));
             },
             ' '=>{
                 self.consume();
                 return self.next();
             },
             '\n'=>{
+
+                self.location.col = 0;
+                self.location.row += 1;
                 self.consume();
-                return Some(Token::new(String::from('\0'),TokenType::EOL));
+                return Some(Token::new(String::from('\n'),TokenType::EOL,self.location,1));
             },
             '\0'=>{
-                return Some(Token::new(String::from('\0'),TokenType::EOF));
+                return None;
             },
             _=>{
                 self.consume();
-                return Some(Token::new(String::from('\0'),TokenType::ILLEGAL));
+                return Some(Token::new(String::from('\0'),TokenType::ILLEGAL,self.location,1));
             },
         }
     }
@@ -69,9 +68,7 @@ impl Lexer {
         }
         self.curr_position = self.read_position;
         self.read_position = self.curr_position + 1;
-
         self.location.col += 1;
-        self.location.row = 0;
     }
     pub fn read_identifier(&mut self)->Token{
         let mut identifier_buf = String::from("");
@@ -79,7 +76,7 @@ impl Lexer {
             identifier_buf += &self.ch.to_string();
             self.consume();
         }
-        return Token::new(identifier_buf.clone(),get_identifier_token(&identifier_buf));
+        return Token::new(identifier_buf.clone(),get_identifier_token(&identifier_buf),self.location,identifier_buf.len());
     }
     pub fn read_immediate(&mut self)->Token{
         let mut immediate_buf = String::from("");
@@ -87,7 +84,7 @@ impl Lexer {
             immediate_buf += &self.ch.to_string();
             self.consume();
         }
-        return Token::new(immediate_buf.clone(),TokenType::IMM_VALUE);
+        return Token::new(immediate_buf.clone(),TokenType::IMM_VALUE,self.location,immediate_buf.len());
     }
 }
 fn get_identifier_token(identifier_lit: &String)->TokenType{
