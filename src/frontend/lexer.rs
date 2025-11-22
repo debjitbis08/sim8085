@@ -10,12 +10,12 @@ pub struct Lexer {
 }
 
 impl Lexer {
-    pub fn new(source: String) -> Self {
+    pub fn new(source: String,line_no: usize) -> Self {
         Self {
             ch: source.chars().nth(0).expect("source of size <1?"),
             curr_position: 0,
             read_position: 1,
-            location: Location { row: 0, col: 0 },
+            location: Location { row: line_no, col: 0 },
             source: source,
         }
     }
@@ -35,10 +35,10 @@ impl Iterator for Lexer {
             ',' => {
                 self.consume();
                 return Some(Token::new(
-                    String::from(','),
+                    1,
                     TokenType::COMMA_DELIM,
                     self.location,
-                    1,
+                    String::from(','),
                 ));
             }
             ' ' => {
@@ -48,10 +48,10 @@ impl Iterator for Lexer {
             '\n' => {
                 self.consume();
                 let buf_token = Some(Token::new(
-                    String::from('\n'),
+                        1,
                     TokenType::EOL,
                     self.location,
-                    1,
+                    String::from('\n'),
                 ));
                 self.location.col = 0;
                 self.location.row += 1;
@@ -64,10 +64,10 @@ impl Iterator for Lexer {
             _ => {
                 self.consume();
                 return Some(Token::new(
-                    String::from('\0'),
+                    1,
                     TokenType::ILLEGAL,
                     self.location,
-                    1,
+                    String::from('\0'),
                 ));
             }
         }
@@ -91,10 +91,10 @@ impl Lexer {
             self.consume();
         }
         return Token::new(
-            identifier_buf.clone(),
+            identifier_buf.len(),
             get_identifier_token(&identifier_buf),
             self.location,
-            identifier_buf.len(),
+            identifier_buf,
         );
     }
     pub fn read_immediate(&mut self) -> Token {
@@ -112,10 +112,10 @@ impl Lexer {
             self.consume();
         }
         return Token::new(
-            immediate_buf.clone(),
+            immediate_buf.len(),
             TokenType::IMM_VALUE,
             self.location,
-            immediate_buf.len(),
+            immediate_buf,
         );
     }
 }

@@ -1,10 +1,10 @@
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Location {
-    pub row: i32,
-    pub col: i32,
+    pub row: usize,
+    pub col: usize,
 }
 impl Location {
-    pub fn new(row: i32, col: i32) -> Self {
+    pub fn new(row: usize, col: usize) -> Self {
         Self { row, col }
     }
 }
@@ -19,10 +19,10 @@ pub struct Token {
 
 impl Token {
     pub fn new(
-        tok_literal: String,
+        offset: usize,
         tok_type: TokenType,
         location: Location,
-        offset: usize,
+        tok_literal: String,
     ) -> Self {
         Self {
             tok_literal,

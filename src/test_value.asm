@@ -1,2 +1,0 @@
-ADD A,B
-ADD B,C
