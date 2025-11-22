@@ -1,16 +1,13 @@
 use std::fs::File;
 use std::io::Read;
+use std::io::BufReader;
+use std::io::BufRead;
+use std::iter::Enumerate;
+use std::io::Lines;
 
-pub fn get_raw_source(f_name: &'static str) -> Option<String> {
-    let mut f_contents = String::from("");
-    let mut f = File::open(f_name);
-    if let Ok(mut f) = f {
-        if let Ok(_) = f.read_to_string(&mut f_contents) {
-            return Some(f_contents);
-        } else {
-            return None;
-        }
-    } else {
-        return None;
-    }
+pub fn get_source_buffer(f_name: &'static str) -> Option<Enumerate<Lines<BufReader<File>>>> {
+    let file = File::open(f_name).ok()?;
+    let buffer = BufReader::new(file);
+    let lines = buffer.lines().enumerate();
+    return Some(lines);
 }

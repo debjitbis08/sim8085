@@ -143,8 +143,8 @@ mod tests {
     use super::Lexer;
     use crate::frontend::token::{Location, Token, TokenType};
     #[test]
-    fn lexer_test_case() {
-        let source = String::from("ADD A,B\n");
+    fn imm_test() {
+        let source = String::from("MVI A,05H\n");
         let mut l = Lexer::new(source);
         let mut tokens: Vec<Token> = vec![];
         for token in l {
@@ -154,7 +154,7 @@ mod tests {
         assert_eq!(
             vec![
                 Token::new(
-                    "ADD".to_string(),
+                    "MVI".to_string(),
                     TokenType::OPERATION,
                     Location::new(0, 3),
                     3
@@ -166,8 +166,39 @@ mod tests {
                     Location::new(0, 6),
                     1
                 ),
-                Token::new("B".to_string(), TokenType::REGISTER, Location::new(0, 7), 1),
-                Token::new("\n".to_string(), TokenType::EOL, Location::new(0, 8), 1)
+                Token::new("05H".to_string(), TokenType::IMM_VALUE, Location::new(0, 9), 3),
+                Token::new("\n".to_string(), TokenType::EOL, Location::new(0, 10), 1)
+            ],
+            tokens
+        );
+    }
+
+    #[test]
+    fn reg_pair() {
+        let source = String::from("MVI A,SP\n");
+        let mut l = Lexer::new(source);
+        let mut tokens: Vec<Token> = vec![];
+        for token in l {
+            tokens.push(token);
+        }
+
+        assert_eq!(
+            vec![
+                Token::new(
+                    "MVI".to_string(),
+                    TokenType::OPERATION,
+                    Location::new(0, 3),
+                    3
+                ),
+                Token::new("A".to_string(), TokenType::REGISTER, Location::new(0, 5), 1),
+                Token::new(
+                    ",".to_string(),
+                    TokenType::COMMA_DELIM,
+                    Location::new(0, 6),
+                    1
+                ),
+                Token::new("SP".to_string(), TokenType::REGISTER_PAIR, Location::new(0, 8), 2),
+                Token::new("\n".to_string(), TokenType::EOL, Location::new(0, 9), 1)
             ],
             tokens
         );
