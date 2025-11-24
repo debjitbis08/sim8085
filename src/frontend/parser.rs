@@ -41,7 +41,7 @@ pub struct Node {
     pub branch: Box<Tree>
 }
 
-impl Node {
+impl Node{
     pub fn new(tok_val: Token, branch: Box<Tree>)->Self{
         Self{
             value: tok_val,
@@ -51,19 +51,78 @@ impl Node {
 }
 
 impl Parser {
-    pub fn parse_expression(&mut self) {
+    pub fn parse_expression(&mut self)->Option<Node>{
+
         if let Some(peeked_token) = self.tok_stream.peek(){
+            println!("parse_expression() called! {:?}",peeked_token);
             match peeked_token {
                 Token{tok_type: TokenType::OPERATION,..}=>{
-                    self.parse_operation();
+                    return self.parse_operation();
                 },
-                Token{tok_type: TokenType::REGISTER,..}=>{
-                    self.parse_register();
-                },
+                Token{tok_type: TokenType::REGISTER, ..}=>{
+                    println!("unexpected placement of register!");
+                    return None;
+                }
+                Token{tok_type: TokenType::EOF, ..}=>{
+                    return None;
+                }
+                _ =>{
+                    self.tok_stream.next();
+                    return self.parse_expression();
+                }
             }
+        }else{
+            return None;
         }
     }
-    pub fn parse_operation(){
+    pub fn parse_operation(&mut self)->Option<Node>{
+        let mut l_child: Node;
+        if let Some(peeked_token) = self.tok_stream.peek(){
+            l_child = Node::new(peeked_token.clone(),Box::new(Tree::default()));
+        }else{
+            return None;
+        }
+        self.tok_stream.next();
+        if let Some(peeked_token) = self.tok_stream.peek(){
+            match peeked_token{
+                Token{ tok_type: TokenType::REGISTER, .. }=>{
+                    l_child.branch.l_child = self.parse_operand();
+                    l_child.branch.r_child = self.parse_operand();
+                    return Some(l_child);
+                },
+                _=>{
+                    return Some(l_child);
+                }
+            }
+        }else{
+            return Some(l_child);
+        }
+    }
+    pub fn parse_operand(&mut self)->Option<Node>{
 
+        let mut l_child: Node;
+        if let Some(peeked_token) = self.tok_stream.peek(){
+            match peeked_token{
+                Token{tok_type: TokenType:: REGISTER, .. }=>{
+                    let token_buffer = peeked_token.clone();
+                    self.tok_stream.next();
+                    return Some(Node::new(token_buffer,Box::new(Tree::default())));
+                },
+                Token{tok_type: TokenType:: COMMA_DELIM, .. }=>{
+                    self.tok_stream.next();
+                    return self.parse_operand();
+                },
+                Token{tok_type: TokenType:: IMM_VALUE, .. }=>{
+                    let token_buffer = peeked_token.clone();
+                    self.tok_stream.next();
+                    return Some(Node::new(token_buffer,Box::new(Tree::default())));
+                },
+                _ =>{
+                    return None;
+                }
+            }
+        }else{
+            return None;
+        } 
     }
 }

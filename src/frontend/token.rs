@@ -9,7 +9,7 @@ impl Location {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug,Clone,PartialEq)]
 pub struct Token {
     pub tok_literal: String,
     pub tok_type: TokenType,
@@ -38,12 +38,13 @@ impl Token {
 // INSTRUCTION
 // OPERATION REGISTER COMMA_DELIM REGISTER
 //
-#[derive(Debug, PartialEq)]
+#[derive(Debug,Copy,Clone,PartialEq)]
 pub enum TokenType {
     OPERATION,
     IMM_VALUE,
     REGISTER,
     COMMA_DELIM,
+    BOL,
     EOL,
     EOF,
     ILLEGAL,

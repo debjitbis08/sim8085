@@ -128,7 +128,7 @@ fn get_identifier_token(identifier_lit: &String) -> TokenType {
         | "STAX" => {
             return TokenType::OPERATION;
         }
-        "A" | "B" | "C" | "D" | "E" | "PSW" | "H" | "L" => {
+        "A" | "B" | "C" | "D" | "E" | "PSW" | "H" | "L" | "SP" => {
             return TokenType::REGISTER;
         }
         _ => {
@@ -145,7 +145,7 @@ mod tests {
     #[test]
     fn imm_test() {
         let source = String::from("MVI A,05H\n");
-        let mut l = Lexer::new(source);
+        let mut l = Lexer::new(source,0);
         let mut tokens: Vec<Token> = vec![];
         for token in l {
             tokens.push(token);
@@ -154,25 +154,30 @@ mod tests {
         assert_eq!(
             vec![
                 Token::new(
-                    "MVI".to_string(),
+                    3,
                     TokenType::OPERATION,
                     Location::new(0, 3),
-                    3
-                ),
-                Token::new("A".to_string(), TokenType::REGISTER, Location::new(0, 5), 1),
+                    "MVI".to_string()),
                 Token::new(
-                    ",".to_string(),
+                    1,
+                    TokenType::REGISTER,
+                    Location::new(0, 5),
+                    "A".to_string()),
+                Token::new(
+                    1,
                     TokenType::COMMA_DELIM,
                     Location::new(0, 6),
-                    1
-                ),
+                    ",".to_string()),
                 Token::new(
-                    "05H".to_string(),
+                    3,
                     TokenType::IMM_VALUE,
                     Location::new(0, 9),
-                    3
-                ),
-                Token::new("\n".to_string(), TokenType::EOL, Location::new(0, 10), 1)
+                    "05H".to_string()),
+                Token::new(
+                    1,
+                    TokenType::EOL,
+                    Location::new(0, 10),
+                    "\n".to_string())
             ],
             tokens
         );
@@ -181,7 +186,7 @@ mod tests {
     #[test]
     fn reg_pair() {
         let source = String::from("MVI A,SP\n");
-        let mut l = Lexer::new(source);
+        let mut l = Lexer::new(source,0);
         let mut tokens: Vec<Token> = vec![];
         for token in l {
             tokens.push(token);
@@ -190,25 +195,26 @@ mod tests {
         assert_eq!(
             vec![
                 Token::new(
-                    "MVI".to_string(),
+                    3,
                     TokenType::OPERATION,
                     Location::new(0, 3),
-                    3
-                ),
-                Token::new("A".to_string(), TokenType::REGISTER, Location::new(0, 5), 1),
+                    "MVI".to_string()),
+                Token::new( 1, TokenType::REGISTER, Location::new(0, 5), "A".to_string()),
                 Token::new(
-                    ",".to_string(),
+                    1,
                     TokenType::COMMA_DELIM,
                     Location::new(0, 6),
-                    1
-                ),
+                    ",".to_string()),
                 Token::new(
-                    "SP".to_string(),
-                    TokenType::REGISTER_PAIR,
+                    2,
+                    TokenType::REGISTER,
                     Location::new(0, 8),
-                    2
-                ),
-                Token::new("\n".to_string(), TokenType::EOL, Location::new(0, 9), 1)
+                    "SP".to_string()),
+                Token::new( 
+                    1,
+                    TokenType::EOL,
+                    Location::new(0, 9),
+                    "\n".to_string())
             ],
             tokens
         );
