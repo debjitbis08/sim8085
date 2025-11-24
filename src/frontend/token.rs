@@ -43,7 +43,6 @@ pub enum TokenType {
     OPERATION,
     IMM_VALUE,
     REGISTER,
-    REGISTER_PAIR,
     COMMA_DELIM,
     EOL,
     EOF,

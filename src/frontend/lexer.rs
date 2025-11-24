@@ -10,12 +10,15 @@ pub struct Lexer {
 }
 
 impl Lexer {
-    pub fn new(source: String,line_no: usize) -> Self {
+    pub fn new(source: String, line_no: usize) -> Self {
         Self {
             ch: source.chars().nth(0).expect("source of size <1?"),
             curr_position: 0,
             read_position: 1,
-            location: Location { row: line_no, col: 0 },
+            location: Location {
+                row: line_no,
+                col: 0,
+            },
             source: source,
         }
     }
@@ -48,7 +51,7 @@ impl Iterator for Lexer {
             '\n' => {
                 self.consume();
                 let buf_token = Some(Token::new(
-                        1,
+                    1,
                     TokenType::EOL,
                     self.location,
                     String::from('\n'),
@@ -128,9 +131,6 @@ fn get_identifier_token(identifier_lit: &String) -> TokenType {
         "A" | "B" | "C" | "D" | "E" | "PSW" | "H" | "L" => {
             return TokenType::REGISTER;
         }
-        "BC" | "DE" | "HL" | "SP" => {
-            return TokenType::REGISTER_PAIR;
-        }
         _ => {
             return TokenType::ILLEGAL;
         }
@@ -166,7 +166,12 @@ mod tests {
                     Location::new(0, 6),
                     1
                 ),
-                Token::new("05H".to_string(), TokenType::IMM_VALUE, Location::new(0, 9), 3),
+                Token::new(
+                    "05H".to_string(),
+                    TokenType::IMM_VALUE,
+                    Location::new(0, 9),
+                    3
+                ),
                 Token::new("\n".to_string(), TokenType::EOL, Location::new(0, 10), 1)
             ],
             tokens
@@ -197,7 +202,12 @@ mod tests {
                     Location::new(0, 6),
                     1
                 ),
-                Token::new("SP".to_string(), TokenType::REGISTER_PAIR, Location::new(0, 8), 2),
+                Token::new(
+                    "SP".to_string(),
+                    TokenType::REGISTER_PAIR,
+                    Location::new(0, 8),
+                    2
+                ),
                 Token::new("\n".to_string(), TokenType::EOL, Location::new(0, 9), 1)
             ],
             tokens
