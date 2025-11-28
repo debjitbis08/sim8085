@@ -1,4 +1,5 @@
 mod frontend;
+mod server;
 
 // use frontend::lexer::Lexer;
 // use frontend::parser::{Parser,Node};
@@ -8,6 +9,7 @@ mod frontend;
 use lsp_server::{Connection};
 use lsp_types::{InitializeParams,ClientCapabilities,ServerCapabilities};
 use std::error::{Error};
+use server::{debug_send_message};
 
 
 fn main() -> Result<(),Box<dyn Error + Sync + Send > >{
@@ -15,6 +17,7 @@ fn main() -> Result<(),Box<dyn Error + Sync + Send > >{
     let (connection,io_threads) = Connection::stdio();
 
     let (id,params) = connection.initialize_start()?;
+    eprintln!("Connection initialized!");
 
     let init_params: InitializeParams = serde_json::from_value(params).unwrap();
     let client_capabilities: ClientCapabilities = init_params.capabilities;
@@ -24,13 +27,18 @@ fn main() -> Result<(),Box<dyn Error + Sync + Send > >{
     let initialize_data = serde_json::json!({
         "capabilities": server_capabilities,
         "serverInfo": {
-            "name":"lsp-server",
+            "name":"lsp85",
             "version":"0.1",
         }
     });
-    connection.initialize_finish(id,initialize_data);
+    connection.initialize_finish(id,initialize_data)?;
+    
+    for msg in &connection.receiver {
+        eprintln!("{:?}",msg);
+    }
 
 
+    io_threads.join()?;
     Ok(())
 
 
