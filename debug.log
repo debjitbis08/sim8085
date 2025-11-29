@@ -1,0 +1,14 @@
+[12:28:39] LSP Server starting...
+[12:28:39] Connection established
+[12:28:39] Initialize start: id=RequestId(I32(1))
+[12:28:42] Initialize finished, entering main loop
+[12:28:50] Received message: Request(Request { id: RequestId(I32(2)), method: "shutdown", params: Null })
+[12:28:50] Request method: shutdown
+[12:28:50] Unhandled request: shutdown
+[12:28:51] LSP Server starting...
+[12:28:51] Connection established
+[12:28:51] Initialize start: id=RequestId(I32(1))
+[12:28:52] Initialize finished, entering main loop
+[12:30:26] Received message: Request(Request { id: RequestId(I32(2)), method: "shutdown", params: Null })
+[12:30:26] Request method: shutdown
+[12:30:26] Unhandled request: shutdown
