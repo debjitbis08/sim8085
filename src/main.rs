@@ -8,7 +8,7 @@ mod server;
 
 use lsp_server::{Connection, ExtractError, Message, Notification, Request, RequestId, Response};
 use lsp_types::{
-    ClientCapabilities, CompletionItem, CompletionOptions, CompletionResponse, Hover, HoverOptions,
+    ClientCapabilities, CompletionItem, CompletionOptions, CompletionResponse, HoverOptions,
     HoverProviderCapability, InitializeParams, ServerCapabilities, request::Completion,
 };
 use std::error::Error;
@@ -24,6 +24,7 @@ fn main() -> Result<(), Box<dyn Error + Sync + Send>> {
     let mut server_capabilities = ServerCapabilities::default();
 
     server_capabilities.completion_provider = Some(CompletionOptions::default());
+    server_capabilities.hover_provider = Some(HoverProviderCapability::Simple(true));
 
     let initialize_data = serde_json::json!({
         "capabilities": server_capabilities,
@@ -43,6 +44,7 @@ fn main() -> Result<(), Box<dyn Error + Sync + Send>> {
                 eprintln!("got request: {:?}", req);
                 let req = match cast::<Completion>(req) {
                     Ok((id, params)) => {
+                        eprintln!("got completion request #{}: {:?}", id, params);
                         let sample_responses = vec![
                             CompletionItem::new_simple(
                                 "MOV".to_string(),
@@ -56,6 +58,29 @@ fn main() -> Result<(), Box<dyn Error + Sync + Send>> {
                         ];
                         let result = CompletionResponse::Array(sample_responses);
                         let result = serde_json::to_value(&result).unwrap();
+                        let resp = Response {
+                            id,
+                            result: Some(result),
+                            error: None,
+                        };
+                        connection.sender.send(Message::Response(resp))?;
+                        continue;
+                    }
+                    Err(err @ ExtractError::JsonError { .. }) => panic!("{:?}", err),
+                    Err(ExtractError::MethodMismatch(req)) => req,
+                };
+                let req = match cast::<lsp_types::request::HoverRequest>(req) {
+                    Ok((id, params)) => {
+                        eprintln!("hovr request {}: {:?}", id, params);
+
+                        let hover_result = lsp_types::Hover {
+                            contents: lsp_types::HoverContents::Scalar(
+                                lsp_types::MarkedString::String("dummy hover info".to_string()),
+                            ),
+                            range: None,
+                        };
+
+                        let result = serde_json::to_value(&hover_result).unwrap();
                         let resp = Response {
                             id,
                             result: Some(result),
