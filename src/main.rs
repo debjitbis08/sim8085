@@ -6,10 +6,9 @@ mod server;
 // use frontend::token::{Token, TokenType,Location};
 // use frontend::utils::files::get_source_buffer;
 
-use lsp_server::{Connection};
-use lsp_types::{InitializeParams,ClientCapabilities,ServerCapabilities};
+use lsp_server::{Connection,Message,Notification,Request};
+use lsp_types::{InitializeParams,ClientCapabilities,ServerCapabilities,CompletionOptions};
 use std::error::{Error};
-use server::{debug_send_message};
 
 
 fn main() -> Result<(),Box<dyn Error + Sync + Send > >{
@@ -21,7 +20,9 @@ fn main() -> Result<(),Box<dyn Error + Sync + Send > >{
 
     let init_params: InitializeParams = serde_json::from_value(params).unwrap();
     let client_capabilities: ClientCapabilities = init_params.capabilities;
-    let server_capabilities =  ServerCapabilities::default();
+    let mut server_capabilities =  ServerCapabilities::default();
+
+    server_capabilities.completion_provider = Some(CompletionOptions::default());
 
 
     let initialize_data = serde_json::json!({
@@ -34,7 +35,33 @@ fn main() -> Result<(),Box<dyn Error + Sync + Send > >{
     connection.initialize_finish(id,initialize_data)?;
     
     for msg in &connection.receiver {
-        eprintln!("{:?}",msg);
+        match &msg{
+            Message::Request(rq)=>{
+                match rq{
+                    Request{ method:method, .. } if *method == String::from("Close") =>{
+                        eprintln!("Close called!");
+                    }
+                     e =>{
+                        eprintln!("unimplemented {:?}",e)
+                    }
+                }
+                eprintln!("request: {:?}",rq);
+            } 
+            Message::Response(rs)=>{
+                eprintln!("response: {:?}",rs);
+            } 
+            Message::Notification(n)=>{
+                match n {
+                    Notification{ method:method, .. } if *method == String::from("textDocument/didSave") =>{
+                        eprintln!("File saved!");
+                    }
+                     e =>{
+                        eprintln!("unimplemented {:?}",e)
+                    }
+                }
+                eprintln!("notification: {:?}",n);
+            }
+        }
     }
 
 
@@ -64,6 +91,5 @@ fn main() -> Result<(),Box<dyn Error + Sync + Send > >{
     //         println!("{:?}",ast_list);
     //     }
     // }
-    
 
 }
