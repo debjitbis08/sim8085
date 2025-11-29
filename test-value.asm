@@ -1,0 +1,3 @@
+ADD A,B
+MOV A,B
+SUB A,B

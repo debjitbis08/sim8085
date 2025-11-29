@@ -6,10 +6,10 @@ mod server;
 // use frontend::token::{Token, TokenType,Location};
 // use frontend::utils::files::get_source_buffer;
 
-use lsp_server::{Connection, Message, Notification, Request, Response};
+use lsp_server::{Connection, ExtractError, Message, Notification, Request, RequestId, Response};
 use lsp_types::{
-    ClientCapabilities, CompletionItem, CompletionOptions, CompletionResponse, InitializeParams,
-    ServerCapabilities,
+    ClientCapabilities, CompletionItem, CompletionOptions, CompletionResponse, Hover, HoverOptions,
+    HoverProviderCapability, InitializeParams, ServerCapabilities, request::Completion,
 };
 use std::error::Error;
 
@@ -35,16 +35,14 @@ fn main() -> Result<(), Box<dyn Error + Sync + Send>> {
     connection.initialize_finish(id, initialize_data)?;
 
     for msg in &connection.receiver {
-        match &msg {
+        match msg {
             Message::Request(req) => {
-                match req {
-                    Request { method, .. } if *method == String::from("Close") => {
-                        eprintln!("Close called!");
-                    }
-                    Request { method, .. }
-                        if *method == String::from("textDocument/completion") =>
-                    {
-                        eprintln!("Close called!");
+                if connection.handle_shutdown(&req)? {
+                    return Ok(());
+                }
+                eprintln!("got request: {:?}", req);
+                let req = match cast::<Completion>(req) {
+                    Ok((id, params)) => {
                         let sample_responses = vec![
                             CompletionItem::new_simple(
                                 "MOV".to_string(),
@@ -56,23 +54,26 @@ fn main() -> Result<(), Box<dyn Error + Sync + Send>> {
                             ),
                             CompletionItem::new_simple("ADD".to_string(), "Add values".to_string()),
                         ];
-                        let resp = Response::new_ok(
-                            req.id.clone(),
-                            CompletionResponse::Array(sample_responses),
-                        );
+                        let result = CompletionResponse::Array(sample_responses);
+                        let result = serde_json::to_value(&result).unwrap();
+                        let resp = Response {
+                            id,
+                            result: Some(result),
+                            error: None,
+                        };
                         connection.sender.send(Message::Response(resp))?;
+                        continue;
                     }
-                    e => {
-                        eprintln!("unimplemented {:?}", e)
-                    }
-                }
-                eprintln!("request: {:?}", req);
+                    Err(err @ ExtractError::JsonError { .. }) => panic!("{:?}", err),
+                    Err(ExtractError::MethodMismatch(req)) => req,
+                };
+                eprintln!("request not handled: {:?}", req);
             }
             Message::Response(rs) => {
                 eprintln!("response: {:?}", rs);
             }
             Message::Notification(n) => {
-                match n {
+                match &n {
                     Notification { method, .. }
                         if *method == String::from("textDocument/didSave") =>
                     {
@@ -112,4 +113,12 @@ fn main() -> Result<(), Box<dyn Error + Sync + Send>> {
     //         println!("{:?}",ast_list);
     //     }
     // }
+}
+
+fn cast<R>(req: Request) -> Result<(RequestId, R::Params), ExtractError<Request>>
+where
+    R: lsp_types::request::Request,
+    R::Params: serde::de::DeserializeOwned,
+{
+    req.extract(R::METHOD)
 }
