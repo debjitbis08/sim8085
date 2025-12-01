@@ -6,24 +6,25 @@ mod server;
 // use frontend::token::{Token, TokenType,Location};
 // use frontend::utils::files::get_source_buffer;
 
-use lsp_server::{Connection,Message,Notification,Request};
-use lsp_types::{InitializeParams,ClientCapabilities,ServerCapabilities,CompletionOptions};
-use std::error::{Error};
+use lsp_server::{Connection, ExtractError, Message, Notification, Request, RequestId, Response};
+use lsp_types::{
+    ClientCapabilities, CompletionItem, CompletionOptions, CompletionResponse, HoverOptions,
+    HoverProviderCapability, InitializeParams, ServerCapabilities, request::Completion,
+};
+use std::error::Error;
 
+fn main() -> Result<(), Box<dyn Error + Sync + Send>> {
+    let (connection, io_threads) = Connection::stdio();
 
-fn main() -> Result<(),Box<dyn Error + Sync + Send > >{
-
-    let (connection,io_threads) = Connection::stdio();
-
-    let (id,params) = connection.initialize_start()?;
+    let (id, params) = connection.initialize_start()?;
     eprintln!("Connection initialized!");
 
     let init_params: InitializeParams = serde_json::from_value(params).unwrap();
     let client_capabilities: ClientCapabilities = init_params.capabilities;
-    let mut server_capabilities =  ServerCapabilities::default();
+    let mut server_capabilities = ServerCapabilities::default();
 
     server_capabilities.completion_provider = Some(CompletionOptions::default());
-
+    server_capabilities.hover_provider = Some(HoverProviderCapability::Simple(true));
 
     let initialize_data = serde_json::json!({
         "capabilities": server_capabilities,
@@ -32,42 +33,88 @@ fn main() -> Result<(),Box<dyn Error + Sync + Send > >{
             "version":"0.1",
         }
     });
-    connection.initialize_finish(id,initialize_data)?;
-    
+    connection.initialize_finish(id, initialize_data)?;
+
     for msg in &connection.receiver {
-        match &msg{
-            Message::Request(rq)=>{
-                match rq{
-                    Request{ method:method, .. } if *method == String::from("Close") =>{
-                        eprintln!("Close called!");
-                    }
-                     e =>{
-                        eprintln!("unimplemented {:?}",e)
-                    }
+        match msg {
+            Message::Request(req) => {
+                if connection.handle_shutdown(&req)? {
+                    return Ok(());
                 }
-                eprintln!("request: {:?}",rq);
-            } 
-            Message::Response(rs)=>{
-                eprintln!("response: {:?}",rs);
-            } 
-            Message::Notification(n)=>{
-                match n {
-                    Notification{ method:method, .. } if *method == String::from("textDocument/didSave") =>{
+                eprintln!("got request: {:?}", req);
+                let req = match cast::<Completion>(req) {
+                    Ok((id, params)) => {
+                        eprintln!("got completion request #{}: {:?}", id, params);
+                        let sample_responses = vec![
+                            CompletionItem::new_simple(
+                                "MOV".to_string(),
+                                "Move instruction".to_string(),
+                            ),
+                            CompletionItem::new_simple(
+                                "SUB".to_string(),
+                                "Subtract instruction".to_string(),
+                            ),
+                            CompletionItem::new_simple("ADD".to_string(), "Add values".to_string()),
+                        ];
+                        let result = CompletionResponse::Array(sample_responses);
+                        let result = serde_json::to_value(&result).unwrap();
+                        let resp = Response {
+                            id,
+                            result: Some(result),
+                            error: None,
+                        };
+                        connection.sender.send(Message::Response(resp))?;
+                        continue;
+                    }
+                    Err(err @ ExtractError::JsonError { .. }) => panic!("{:?}", err),
+                    Err(ExtractError::MethodMismatch(req)) => req,
+                };
+                let req = match cast::<lsp_types::request::HoverRequest>(req) {
+                    Ok((id, params)) => {
+                        eprintln!("hovr request {}: {:?}", id, params);
+
+                        let hover_result = lsp_types::Hover {
+                            contents: lsp_types::HoverContents::Scalar(
+                                lsp_types::MarkedString::String("dummy hover info".to_string()),
+                            ),
+                            range: None,
+                        };
+
+                        let result = serde_json::to_value(&hover_result).unwrap();
+                        let resp = Response {
+                            id,
+                            result: Some(result),
+                            error: None,
+                        };
+                        connection.sender.send(Message::Response(resp))?;
+                        continue;
+                    }
+                    Err(err @ ExtractError::JsonError { .. }) => panic!("{:?}", err),
+                    Err(ExtractError::MethodMismatch(req)) => req,
+                };
+                eprintln!("request not handled: {:?}", req);
+            }
+            Message::Response(rs) => {
+                eprintln!("response: {:?}", rs);
+            }
+            Message::Notification(n) => {
+                match &n {
+                    Notification { method, .. }
+                        if *method == String::from("textDocument/didSave") =>
+                    {
                         eprintln!("File saved!");
                     }
-                     e =>{
-                        eprintln!("unimplemented {:?}",e)
+                    e => {
+                        eprintln!("unimplemented {:?}", e)
                     }
                 }
-                eprintln!("notification: {:?}",n);
+                eprintln!("notification: {:?}", n);
             }
         }
     }
 
-
     io_threads.join()?;
     Ok(())
-
 
     // if let Some(source) = get_source_buffer("test_value.asm") {
     //     // buffered reading
@@ -91,5 +138,12 @@ fn main() -> Result<(),Box<dyn Error + Sync + Send > >{
     //         println!("{:?}",ast_list);
     //     }
     // }
+}
 
+fn cast<R>(req: Request) -> Result<(RequestId, R::Params), ExtractError<Request>>
+where
+    R: lsp_types::request::Request,
+    R::Params: serde::de::DeserializeOwned,
+{
+    req.extract(R::METHOD)
 }
