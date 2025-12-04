@@ -11,34 +11,23 @@ use lsp_types::{
     ClientCapabilities, CompletionItem, CompletionOptions, CompletionResponse, HoverOptions,
     HoverProviderCapability, InitializeParams, ServerCapabilities, request::Completion,
 };
+use server::{lsp85};
 use std::error::Error;
 
 fn main() -> Result<(), Box<dyn Error + Sync + Send>> {
-    let (connection, io_threads) = Connection::stdio();
 
-    let (id, params) = connection.initialize_start()?;
-    eprintln!("Connection initialized!");
+    let lsp = lsp85::build()
+                .stdio()
+                .enable_hover()
+                .initialize()
+                .unwrap();
 
-    let init_params: InitializeParams = serde_json::from_value(params).unwrap();
-    let client_capabilities: ClientCapabilities = init_params.capabilities;
-    let mut server_capabilities = ServerCapabilities::default();
-
-    server_capabilities.completion_provider = Some(CompletionOptions::default());
-    server_capabilities.hover_provider = Some(HoverProviderCapability::Simple(true));
-
-    let initialize_data = serde_json::json!({
-        "capabilities": server_capabilities,
-        "serverInfo": {
-            "name":"lsp85",
-            "version":"0.1",
-        }
-    });
-    connection.initialize_finish(id, initialize_data)?;
-
-    for msg in &connection.receiver {
+    for msg in &lsp.conn.as_ref().unwrap().receiver {
+        eprintln!("Message incoming: {:?}",msg);
         match msg {
             Message::Request(req) => {
-                if connection.handle_shutdown(&req)? {
+                if lsp.conn.as_ref().unwrap().handle_shutdown(&req)? {
+                    eprintln!("shutting down!");
                     return Ok(());
                 }
                 eprintln!("got request: {:?}", req);
@@ -63,7 +52,7 @@ fn main() -> Result<(), Box<dyn Error + Sync + Send>> {
                             result: Some(result),
                             error: None,
                         };
-                        connection.sender.send(Message::Response(resp))?;
+                        lsp.conn.as_ref().unwrap().sender.send(Message::Response(resp))?;
                         continue;
                     }
                     Err(err @ ExtractError::JsonError { .. }) => panic!("{:?}", err),
@@ -86,7 +75,7 @@ fn main() -> Result<(), Box<dyn Error + Sync + Send>> {
                             result: Some(result),
                             error: None,
                         };
-                        connection.sender.send(Message::Response(resp))?;
+                        lsp.conn.as_ref().unwrap().sender.send(Message::Response(resp))?;
                         continue;
                     }
                     Err(err @ ExtractError::JsonError { .. }) => panic!("{:?}", err),
@@ -113,7 +102,7 @@ fn main() -> Result<(), Box<dyn Error + Sync + Send>> {
         }
     }
 
-    io_threads.join()?;
+    lsp.io_threads.unwrap().join()?;
     Ok(())
 
     // if let Some(source) = get_source_buffer("test_value.asm") {
