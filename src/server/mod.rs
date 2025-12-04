@@ -50,6 +50,14 @@ impl lsp85 {
             .expect("[[ERROR] Failed to parse initialization params!");
         self.client_cap = Some(init_params.capabilities);
     }
+    pub fn enable_completion(mut self)->Self{  
+        self.server_cap
+            .as_mut()
+            .expect("[ERROR] Expected existing server_cap!")
+            .completion_provider = Some(CompletionOptions::default());
+        self
+    }
+
     pub fn enable_hover(mut self) -> Self {
         self.server_cap
             .as_mut()
@@ -59,12 +67,21 @@ impl lsp85 {
     }
 
     pub fn initialize(self) -> Result<Self, Box<dyn Error + Sync + Send>> {
+
+        let initialize_data = serde_json::json!({
+            "capabilities": self.server_cap,
+            "serverInfo": {
+                "name":"lsp85",
+                "version":"0.1",
+            }
+        });
+
         self.conn
             .as_ref()
             .expect("[ERROR] Expected populated connection!")
             .initialize_finish(
                 self.id.as_ref().expect("Expected populated id!").clone(),
-                serde_json::to_value(&self.server_cap)?,
+                initialize_data,
             )?;
         Ok(self)
     }

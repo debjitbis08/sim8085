@@ -19,6 +19,7 @@ fn main() -> Result<(), Box<dyn Error + Sync + Send>> {
     let lsp = lsp85::build()
                 .stdio()
                 .enable_hover()
+                .enable_completion()
                 .initialize()
                 .unwrap();
 
