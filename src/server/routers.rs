@@ -6,7 +6,7 @@ macro_rules! lsp_router {
         }
     ) => {{
 $(
-                let __req = match cast::<$method>($req) {
+                let req = match cast::<$method>($req.clone()) {
                     Ok((id, params)) => {
                         let resp = Response {
                             result: Some($handler(&id,params)),
@@ -14,8 +14,8 @@ $(
                             error: None,
                         };
                         $state.conn.as_ref().unwrap().sender.send(Message::Response(resp))?;
-                        return Ok(())
-                    }
+                        continue;
+                    },
                     Err(err @ ExtractError::JsonError { .. }) => panic!("{:?}", err),
                     Err(ExtractError::MethodMismatch(req)) => req,
                 };

@@ -9,7 +9,7 @@ mod server;
 use lsp_server::{ExtractError, Message, Notification, Request, RequestId, Response};
 use lsp_types::{
     CompletionItem, CompletionResponse,
-    request::Completion,
+    request::{Completion,HoverRequest},
 };
 use server::{lsp85,routers,handlers};
 use std::error::Error;
@@ -64,26 +64,10 @@ fn main() -> Result<(), Box<dyn Error + Sync + Send>> {
                 // };
                 lsp_router!(req,lsp,{
                         Completion=>handlers::completion_handler,
+                        HoverRequest=>handlers::hover_handler,
                     });
                 // let req = match cast::<lsp_types::request::HoverRequest>(req) {
                 //     Ok((id, params)) => {
-                //         eprintln!("hovr request {}: {:?}", id, params);
-
-                //         let hover_result = lsp_types::Hover {
-                //             contents: lsp_types::HoverContents::Scalar(
-                //                 lsp_types::MarkedString::String("dummy hover info".to_string()),
-                //             ),
-                //             range: None,
-                //         };
-
-                //         let result = serde_json::to_value(&hover_result).unwrap();
-                //         let resp = Response {
-                //             id,
-                //             result: Some(result),
-                //             error: None,
-                //         };
-                //         lsp.conn.as_ref().unwrap().sender.send(Message::Response(resp))?;
-                //         continue;
                 //     }
                 //     Err(err @ ExtractError::JsonError { .. }) => panic!("{:?}", err),
                 //     Err(ExtractError::MethodMismatch(req)) => req,
