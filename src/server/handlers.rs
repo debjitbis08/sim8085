@@ -1,18 +1,14 @@
 use lsp_server::{ExtractError, Message, Notification, Request, RequestId, Response};
-use serde_json;
-use lsp_types::{
-    CompletionItem, CompletionResponse,
-    CompletionParams,
-    HoverParams,
-    Documentation,
-    MarkupContent,
-    MarkupKind,
-};
 use lsp_types::CompletionItemKind;
+use lsp_types::{
+    CompletionItem, CompletionParams, CompletionResponse, Documentation, HoverParams,
+    MarkupContent, MarkupKind,
+};
+use serde_json;
 
-pub fn completion_handler(id:&RequestId ,params:CompletionParams)->serde_json::Value{
-        eprintln!("got completion request #{}: {:?}", id, params);
-                let responses = vec![
+pub fn completion_handler(id: &RequestId, params: CompletionParams) -> serde_json::Value {
+    eprintln!("got completion request #{}: {:?}", id, params);
+    let responses = vec![
                     CompletionItem {
                         label: "MOV".to_string(),
                         detail: Some("MOV - Move data between registers".to_string()),
@@ -95,20 +91,20 @@ pub fn completion_handler(id:&RequestId ,params:CompletionParams)->serde_json::V
                     },
                 ];
 
-        let result = CompletionResponse::Array(responses);
-        let result = serde_json::to_value(&result).unwrap();
-        return result;
-}       
-pub fn hover_handler(id:&RequestId ,params:HoverParams)->serde_json::Value{
-            eprintln!("hovr request {}: {:?}", id, params);
+    let result = CompletionResponse::Array(responses);
+    let result = serde_json::to_value(&result).unwrap();
+    return result;
+}
+pub fn hover_handler(id: &RequestId, params: HoverParams) -> serde_json::Value {
+    eprintln!("hovr request {}: {:?}", id, params);
 
-            let hover_result = lsp_types::Hover {
-                contents: lsp_types::HoverContents::Scalar(
-                    lsp_types::MarkedString::String("dummy hover info".to_string()),
-                ),
-                range: None,
-            };
+    let hover_result = lsp_types::Hover {
+        contents: lsp_types::HoverContents::Scalar(lsp_types::MarkedString::String(
+            "dummy hover info".to_string(),
+        )),
+        range: None,
+    };
 
-            let result = serde_json::to_value(&hover_result).unwrap();
-            return result;
-}       
+    let result = serde_json::to_value(&hover_result).unwrap();
+    return result;
+}

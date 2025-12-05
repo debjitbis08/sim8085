@@ -1,7 +1,6 @@
 pub mod handlers;
 pub mod routers;
 
-
 use lsp_server::{Connection, IoThreads, Message, Notification, Request, RequestId};
 use lsp_types::{
     ClientCapabilities, CompletionOptions, HoverProviderCapability, InitializeParams,
@@ -54,7 +53,7 @@ impl lsp85 {
             .expect("[[ERROR] Failed to parse initialization params!");
         self.client_cap = Some(init_params.capabilities);
     }
-    pub fn enable_completion(mut self)->Self{  
+    pub fn enable_completion(mut self) -> Self {
         self.server_cap
             .as_mut()
             .expect("[ERROR] Expected existing server_cap!")
@@ -71,7 +70,6 @@ impl lsp85 {
     }
 
     pub fn initialize(self) -> Result<Self, Box<dyn Error + Sync + Send>> {
-
         let initialize_data = serde_json::json!({
             "capabilities": self.server_cap,
             "serverInfo": {
