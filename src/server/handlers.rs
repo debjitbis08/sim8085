@@ -1,11 +1,11 @@
 use lsp_server::{ExtractError, Message, Notification, Request, RequestId, Response};
+use serde_json;
 use lsp_types::{
     CompletionItem, CompletionResponse,
-    request::Completion,
+    CompletionParams
 };
 
-pub fn completion_handler(id,params)->T
-    where T:CompletionResponse::Array{
+pub fn completion_handler(id:&RequestId ,params:CompletionParams)->serde_json::Value{
         eprintln!("got completion request #{}: {:?}", id, params);
         let sample_responses = vec![
             CompletionItem::new_simple(
@@ -19,5 +19,6 @@ pub fn completion_handler(id,params)->T
             CompletionItem::new_simple("ADD".to_string(), "Add values".to_string()),
         ];
         let result = CompletionResponse::Array(sample_responses);
+        let result = serde_json::to_value(&result).unwrap();
         return result;
 }       
