@@ -6,10 +6,10 @@ mod server;
 // use frontend::token::{Token, TokenType,Location};
 // use frontend::utils::files::get_source_buffer;
 
-use lsp_server::{Connection, ExtractError, Message, Notification, Request, RequestId, Response};
+use lsp_server::{ExtractError, Message, Notification, Request, RequestId, Response};
 use lsp_types::{
-    ClientCapabilities, CompletionItem, CompletionOptions, CompletionResponse, HoverOptions,
-    HoverProviderCapability, InitializeParams, ServerCapabilities, request::Completion,
+    CompletionItem, CompletionResponse,
+    request::Completion,
 };
 use server::{lsp85};
 use std::error::Error;
@@ -20,9 +20,9 @@ fn main() -> Result<(), Box<dyn Error + Sync + Send>> {
                 .stdio()
                 .enable_hover()
                 .enable_completion()
-                .initialize()
-                .unwrap();
+                .initialize();
 
+    if let Ok(lsp) = lsp{
     for msg in &lsp.conn.as_ref().unwrap().receiver {
         eprintln!("Message incoming: {:?}",msg);
         match msg {
@@ -32,6 +32,9 @@ fn main() -> Result<(), Box<dyn Error + Sync + Send>> {
                     return Ok(());
                 }
                 eprintln!("got request: {:?}", req);
+                
+
+
                 let req = match cast::<Completion>(req) {
                     Ok((id, params)) => {
                         eprintln!("got completion request #{}: {:?}", id, params);
@@ -102,8 +105,14 @@ fn main() -> Result<(), Box<dyn Error + Sync + Send>> {
             }
         }
     }
-
     lsp.io_threads.unwrap().join()?;
+
+    }else if let Err(e) = lsp{
+        eprintln!("{:?}",e);
+        return Err(e);
+    }
+
+
     Ok(())
 
     // if let Some(source) = get_source_buffer("test_value.asm") {
