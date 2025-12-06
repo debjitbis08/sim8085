@@ -8,96 +8,91 @@ mod server;
 
 use lsp_server::{ExtractError, Message, Notification, Request, RequestId, Response};
 use lsp_types::{
+    request::{Completion, HoverRequest},
     CompletionItem, CompletionResponse,
-    request::{Completion,HoverRequest},
 };
-use server::{lsp85,routers,handlers};
+use server::{handlers, lsp85, routers};
 use std::error::Error;
 
 fn main() -> Result<(), Box<dyn Error + Sync + Send>> {
-
     let lsp = lsp85::build()
-                .stdio()
-                .enable_hover()
-                .enable_completion()
-                .initialize();
+        .stdio()
+        .enable_hover()
+        .enable_completion()
+        .initialize();
 
-    if let Ok(lsp) = lsp{
-    for msg in &lsp.conn.as_ref().unwrap().receiver {
-        eprintln!("Message incoming: {:?}",msg);
-        match msg {
-            Message::Request(req) => {
-                if lsp.conn.as_ref().unwrap().handle_shutdown(&req)? {
-                    eprintln!("shutting down!");
-                    return Ok(());
-                }
-                eprintln!("got request: {:?}", req);
-                
+    if let Ok(lsp) = lsp {
+        for msg in &lsp.conn.as_ref().unwrap().receiver {
+            eprintln!("Message incoming: {:?}", msg);
+            match msg {
+                Message::Request(req) => {
+                    if lsp.conn.as_ref().unwrap().handle_shutdown(&req)? {
+                        eprintln!("shutting down!");
+                        return Ok(());
+                    }
+                    eprintln!("got request: {:?}", req);
 
-
-                // let req = match cast::<Completion>(req) {
-                //     Ok((id, params)) => {
-                //         eprintln!("got completion request #{}: {:?}", id, params);
-                //         let sample_responses = vec![
-                //             CompletionItem::new_simple(
-                //                 "MOV".to_string(),
-                //                 "Move instruction".to_string(),
-                //             ),
-                //             CompletionItem::new_simple(
-                //                 "SUB".to_string(),
-                //                 "Subtract instruction".to_string(),
-                //             ),
-                //             CompletionItem::new_simple("ADD".to_string(), "Add values".to_string()),
-                //         ];
-                //         let result = CompletionResponse::Array(sample_responses);
-                //         let result = serde_json::to_value(&result).unwrap();
-                //         let resp = Response {
-                //             id,
-                //             result: Some(result),
-                //             error: None,
-                //         };
-                //         lsp.conn.as_ref().unwrap().sender.send(Message::Response(resp))?;
-                //         continue;
-                //     }
-                //     Err(err @ ExtractError::JsonError { .. }) => panic!("{:?}", err),
-                //     Err(ExtractError::MethodMismatch(req)) => req,
-                // };
-                lsp_router!(req,lsp,{
+                    // let req = match cast::<Completion>(req) {
+                    //     Ok((id, params)) => {
+                    //         eprintln!("got completion request #{}: {:?}", id, params);
+                    //         let sample_responses = vec![
+                    //             CompletionItem::new_simple(
+                    //                 "MOV".to_string(),
+                    //                 "Move instruction".to_string(),
+                    //             ),
+                    //             CompletionItem::new_simple(
+                    //                 "SUB".to_string(),
+                    //                 "Subtract instruction".to_string(),
+                    //             ),
+                    //             CompletionItem::new_simple("ADD".to_string(), "Add values".to_string()),
+                    //         ];
+                    //         let result = CompletionResponse::Array(sample_responses);
+                    //         let result = serde_json::to_value(&result).unwrap();
+                    //         let resp = Response {
+                    //             id,
+                    //             result: Some(result),
+                    //             error: None,
+                    //         };
+                    //         lsp.conn.as_ref().unwrap().sender.send(Message::Response(resp))?;
+                    //         continue;
+                    //     }
+                    //     Err(err @ ExtractError::JsonError { .. }) => panic!("{:?}", err),
+                    //     Err(ExtractError::MethodMismatch(req)) => req,
+                    // };
+                    lsp_router!(req,lsp,{
                         Completion=>handlers::completion_handler,
                         HoverRequest=>handlers::hover_handler,
                     });
-                // let req = match cast::<lsp_types::request::HoverRequest>(req) {
-                //     Ok((id, params)) => {
-                //     }
-                //     Err(err @ ExtractError::JsonError { .. }) => panic!("{:?}", err),
-                //     Err(ExtractError::MethodMismatch(req)) => req,
-                // };
-            }
-            Message::Response(rs) => {
-                eprintln!("response: {:?}", rs);
-            }
-            Message::Notification(n) => {
-                match &n {
-                    Notification { method, .. }
-                        if *method == String::from("textDocument/didSave") =>
-                    {
-                        eprintln!("File saved!");
-                    }
-                    e => {
-                        eprintln!("unimplemented {:?}", e);
-                    }
+                    // let req = match cast::<lsp_types::request::HoverRequest>(req) {
+                    //     Ok((id, params)) => {
+                    //     }
+                    //     Err(err @ ExtractError::JsonError { .. }) => panic!("{:?}", err),
+                    //     Err(ExtractError::MethodMismatch(req)) => req,
+                    // };
                 }
-                eprintln!("notification: {:?}", n);
+                Message::Response(rs) => {
+                    eprintln!("response: {:?}", rs);
+                }
+                Message::Notification(n) => {
+                    match &n {
+                        Notification { method, .. }
+                            if *method == String::from("textDocument/didSave") =>
+                        {
+                            eprintln!("File saved!");
+                        }
+                        e => {
+                            eprintln!("unimplemented {:?}", e);
+                        }
+                    }
+                    eprintln!("notification: {:?}", n);
+                }
             }
         }
-    }
-    lsp.io_threads.unwrap().join()?;
-
-    }else if let Err(e) = lsp{
-        eprintln!("{:?}",e);
+        lsp.io_threads.unwrap().join()?;
+    } else if let Err(e) = lsp {
+        eprintln!("{:?}", e);
         return Err(e);
     }
-
 
     Ok(())
 

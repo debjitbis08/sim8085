@@ -6,7 +6,7 @@ macro_rules! lsp_router {
         }
     ) => {{
 $(
-                let req = match cast::<$method>($req.clone()) {
+                let $req = match cast::<$method>($req) {
                     Ok((id, params)) => {
                         let resp = Response {
                             result: Some($handler(&id,params)),

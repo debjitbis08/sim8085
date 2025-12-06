@@ -145,7 +145,7 @@ mod tests {
     #[test]
     fn imm_test() {
         let source = String::from("MVI A,05H\n");
-        let mut l = Lexer::new(source,0);
+        let mut l = Lexer::new(source, 0);
         let mut tokens: Vec<Token> = vec![];
         for token in l {
             tokens.push(token);
@@ -157,27 +157,22 @@ mod tests {
                     3,
                     TokenType::OPERATION,
                     Location::new(0, 3),
-                    "MVI".to_string()),
-                Token::new(
-                    1,
-                    TokenType::REGISTER,
-                    Location::new(0, 5),
-                    "A".to_string()),
+                    "MVI".to_string()
+                ),
+                Token::new(1, TokenType::REGISTER, Location::new(0, 5), "A".to_string()),
                 Token::new(
                     1,
                     TokenType::COMMA_DELIM,
                     Location::new(0, 6),
-                    ",".to_string()),
+                    ",".to_string()
+                ),
                 Token::new(
                     3,
                     TokenType::IMM_VALUE,
                     Location::new(0, 9),
-                    "05H".to_string()),
-                Token::new(
-                    1,
-                    TokenType::EOL,
-                    Location::new(0, 10),
-                    "\n".to_string())
+                    "05H".to_string()
+                ),
+                Token::new(1, TokenType::EOL, Location::new(0, 10), "\n".to_string())
             ],
             tokens
         );
@@ -186,7 +181,7 @@ mod tests {
     #[test]
     fn reg_pair() {
         let source = String::from("MVI A,SP\n");
-        let mut l = Lexer::new(source,0);
+        let mut l = Lexer::new(source, 0);
         let mut tokens: Vec<Token> = vec![];
         for token in l {
             tokens.push(token);
@@ -198,23 +193,22 @@ mod tests {
                     3,
                     TokenType::OPERATION,
                     Location::new(0, 3),
-                    "MVI".to_string()),
-                Token::new( 1, TokenType::REGISTER, Location::new(0, 5), "A".to_string()),
+                    "MVI".to_string()
+                ),
+                Token::new(1, TokenType::REGISTER, Location::new(0, 5), "A".to_string()),
                 Token::new(
                     1,
                     TokenType::COMMA_DELIM,
                     Location::new(0, 6),
-                    ",".to_string()),
+                    ",".to_string()
+                ),
                 Token::new(
                     2,
                     TokenType::REGISTER,
                     Location::new(0, 8),
-                    "SP".to_string()),
-                Token::new( 
-                    1,
-                    TokenType::EOL,
-                    Location::new(0, 9),
-                    "\n".to_string())
+                    "SP".to_string()
+                ),
+                Token::new(1, TokenType::EOL, Location::new(0, 9), "\n".to_string())
             ],
             tokens
         );
