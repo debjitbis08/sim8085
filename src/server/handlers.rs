@@ -89,6 +89,127 @@ pub fn completion_handler(id: &RequestId, params: CompletionParams) -> serde_jso
                         kind: Some(CompletionItemKind::KEYWORD),
                         ..Default::default()
                     },
+        CompletionItem {
+            label: "STAX".to_string(),
+            detail: Some("STAX - Store accumulator indirect".to_string()),
+            documentation: Some(Documentation::MarkupContent(MarkupContent {
+                kind: MarkupKind::Markdown,
+                value: "Stores the contents of the **accumulator** into the **memory location** pointed to by the **designated register pair**.".to_string(),
+            })),
+            kind: Some(CompletionItemKind::KEYWORD),
+            ..Default::default()
+        },
+
+        CompletionItem {
+            label: "PUSH".to_string(),
+            detail: Some("PUSH - Push register pair to stack".to_string()),
+            documentation: Some(Documentation::MarkupContent(MarkupContent {
+                kind: MarkupKind::Markdown,
+                value: "The contents of the specified **register pair** are **pushed onto the stack**, decrementing the **stack pointer** by 2.".to_string(),
+            })),
+            kind: Some(CompletionItemKind::KEYWORD),
+            ..Default::default()
+        },
+
+        CompletionItem {
+            label: "POP".to_string(),
+            detail: Some("POP - Pop register pair from stack".to_string()),
+            documentation: Some(Documentation::MarkupContent(MarkupContent {
+                kind: MarkupKind::Markdown,
+                value: "Two bytes from the **stack** are **popped** and loaded into the specified **register pair**, incrementing the **stack pointer** by 2.".to_string(),
+            })),
+            kind: Some(CompletionItemKind::KEYWORD),
+            ..Default::default()
+        },
+
+        CompletionItem {
+            label: "INR".to_string(),
+            detail: Some("INR - Increment register".to_string()),
+            documentation: Some(Documentation::MarkupContent(MarkupContent {
+                kind: MarkupKind::Markdown,
+                value: "Increments the contents of the specified **register** by **1**. Flags are affected except Carry.".to_string(),
+            })),
+            kind: Some(CompletionItemKind::KEYWORD),
+            ..Default::default()
+        },
+
+        CompletionItem {
+            label: "DCR".to_string(),
+            detail: Some("DCR - Decrement register".to_string()),
+            documentation: Some(Documentation::MarkupContent(MarkupContent {
+                kind: MarkupKind::Markdown,
+                value: "Decrements the contents of the specified **register** by **1**. Flags are affected except Carry.".to_string(),
+            })),
+            kind: Some(CompletionItemKind::KEYWORD),
+            ..Default::default()
+        },
+
+        CompletionItem {
+            label: "DAD".to_string(),
+            detail: Some("DAD - Double add register pair".to_string()),
+            documentation: Some(Documentation::MarkupContent(MarkupContent {
+                kind: MarkupKind::Markdown,
+                value: "Adds the contents of the specified **register pair** to the **HL pair**. Only the **Carry flag** is affected.".to_string(),
+            })),
+            kind: Some(CompletionItemKind::KEYWORD),
+            ..Default::default()
+        },
+
+        // --- JMP Variants ---
+        CompletionItem {
+            label: "JMP".to_string(),
+            detail: Some("JMP - Unconditional jump".to_string()),
+            documentation: Some(Documentation::MarkupContent(MarkupContent {
+                kind: MarkupKind::Markdown,
+                value: "Program execution **jumps** to the specified **16-bit address** unconditionally.".to_string(),
+            })),
+            kind: Some(CompletionItemKind::KEYWORD),
+            ..Default::default()
+        },
+
+        CompletionItem {
+            label: "JC".to_string(),
+            detail: Some("JC - Jump if carry".to_string()),
+            documentation: Some(Documentation::MarkupContent(MarkupContent {
+                kind: MarkupKind::Markdown,
+                value: "Jumps to the given address **if the Carry flag = 1**.".to_string(),
+            })),
+            kind: Some(CompletionItemKind::KEYWORD),
+            ..Default::default()
+        },
+
+        CompletionItem {
+            label: "JNC".to_string(),
+            detail: Some("JNC - Jump if no carry".to_string()),
+            documentation: Some(Documentation::MarkupContent(MarkupContent {
+                kind: MarkupKind::Markdown,
+                value: "Jumps to the given address **if the Carry flag = 0**.".to_string(),
+            })),
+            kind: Some(CompletionItemKind::KEYWORD),
+            ..Default::default()
+        },
+
+        CompletionItem {
+            label: "JZ".to_string(),
+            detail: Some("JZ - Jump if zero".to_string()),
+            documentation: Some(Documentation::MarkupContent(MarkupContent {
+                kind: MarkupKind::Markdown,
+                value: "Jumps to the given address **if the Zero flag = 1**.".to_string(),
+            })),
+            kind: Some(CompletionItemKind::KEYWORD),
+            ..Default::default()
+        },
+
+        CompletionItem {
+            label: "JNZ".to_string(),
+            detail: Some("JNZ - Jump if not zero".to_string()),
+            documentation: Some(Documentation::MarkupContent(MarkupContent {
+                kind: MarkupKind::Markdown,
+                value: "Jumps to the given address **if the Zero flag = 0**.".to_string(),
+            })),
+            kind: Some(CompletionItemKind::KEYWORD),
+            ..Default::default()
+        },
                 ];
 
     let result = CompletionResponse::Array(responses);
