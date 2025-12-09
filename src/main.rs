@@ -14,7 +14,7 @@ use lsp_types::{
 use server::{handlers, lsp85, routers};
 use std::error::Error;
 
-fn main() -> Result<(), Box<dyn Error + Sync + Send>> {
+pub fn main() -> Result<(), Box<dyn Error>> {
     let lsp = lsp85::build()
         .stdio()
         .enable_hover()
@@ -55,43 +55,10 @@ fn main() -> Result<(), Box<dyn Error + Sync + Send>> {
                 }
                 eprintln!("got request: {:?}", req);
 
-                // let req = match cast::<Completion>(req) {
-                //     Ok((id, params)) => {
-                //         eprintln!("got completion request #{}: {:?}", id, params);
-                //         let sample_responses = vec![
-                //             CompletionItem::new_simple(
-                //                 "MOV".to_string(),
-                //                 "Move instruction".to_string(),
-                //             ),
-                //             CompletionItem::new_simple(
-                //                 "SUB".to_string(),
-                //                 "Subtract instruction".to_string(),
-                //             ),
-                //             CompletionItem::new_simple("ADD".to_string(), "Add values".to_string()),
-                //         ];
-                //         let result = CompletionResponse::Array(sample_responses);
-                //         let result = serde_json::to_value(&result).unwrap();
-                //         let resp = Response {
-                //             id,
-                //             result: Some(result),
-                //             error: None,
-                //         };
-                //         lsp.conn.as_ref().unwrap().sender.send(Message::Response(resp))?;
-                //         continue;
-                //     }
-                //     Err(err @ ExtractError::JsonError { .. }) => panic!("{:?}", err),
-                //     Err(ExtractError::MethodMismatch(req)) => req,
-                // };
                 lsp_router!(req,lsp,{
                     Completion=>handlers::completion_handler,
                     HoverRequest=>handlers::hover_handler,
                 });
-                // let req = match cast::<lsp_types::request::HoverRequest>(req) {
-                //     Ok((id, params)) => {
-                //     }
-                //     Err(err @ ExtractError::JsonError { .. }) => panic!("{:?}", err),
-                //     Err(ExtractError::MethodMismatch(req)) => req,
-                // };
             }
             Message::Response(rs) => {
                 eprintln!("response: {:?}", rs);
@@ -142,10 +109,3 @@ fn main() -> Result<(), Box<dyn Error + Sync + Send>> {
 //     }
 // }
 
-fn cast<R>(req: Request) -> Result<(RequestId, R::Params), ExtractError<Request>>
-where
-    R: lsp_types::request::Request,
-    R::Params: serde::de::DeserializeOwned,
-{
-    req.extract(R::METHOD)
-}

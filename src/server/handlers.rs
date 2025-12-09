@@ -6,7 +6,10 @@ use lsp_types::{
 };
 use serde_json;
 
-pub fn completion_handler(id: &RequestId, params: CompletionParams) -> serde_json::Value {
+use wasm_bindgen::prelude::*;
+
+#[wasm_bindgen]
+pub fn completion_handler(id: &JsValue, params: JsValue) -> Result<JsValue,JsValue> {
     eprintln!("got completion request #{}: {:?}", id, params);
     let responses = vec![
                     CompletionItem {
@@ -213,10 +216,19 @@ pub fn completion_handler(id: &RequestId, params: CompletionParams) -> serde_jso
                 ];
 
     let result = CompletionResponse::Array(responses);
-    let result = serde_json::to_value(&result).unwrap();
-    return result;
+    let result = serde_json::to_string(&result);
+    let result = match serde_json::to_string(&result){
+        Ok(result)=>{
+            return result;
+        }
+        Err(e)=>{
+            return Err(e);
+        }
+    }
 }
-pub fn hover_handler(id: &RequestId, params: HoverParams) -> serde_json::Value {
+
+#[wasm_bindgen]
+pub fn hover_handler(id: &JsValue, params: JsValue) -> Result<JsValue,JsValue>{
     eprintln!("hovr request {}: {:?}", id, params);
 
     let hover_result = lsp_types::Hover {
@@ -226,6 +238,12 @@ pub fn hover_handler(id: &RequestId, params: HoverParams) -> serde_json::Value {
         range: None,
     };
 
-    let result = serde_json::to_value(&hover_result).unwrap();
-    return result;
+    let result = match serde_json::to_string(&hover_result){
+        Ok(result)=>{
+            return result;
+        }
+        Err(e)=>{
+            return Err(e);
+        }
+    }
 }
