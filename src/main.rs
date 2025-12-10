@@ -12,6 +12,7 @@ use lsp_types::{
     request::{Completion, HoverRequest},
 };
 use server::{handlers, lsp85, routers};
+use server::bindings::{wasm_completion_handler,wasm_hover_handler};
 use std::error::Error;
 
 pub fn main() -> Result<(), Box<dyn Error>> {
@@ -86,7 +87,8 @@ pub fn main() -> Result<(), Box<dyn Error>> {
     }
 
     Ok(())
-} // if let Some(source) = get_source_buffer("test_value.asm") {
+}
+// if let Some(source) = get_source_buffer("test_value.asm") {
 //     // buffered reading
 //     let mut ast_list: Vec<Option<Node>> = vec![];
 //     for (line_no, read_buf) in source {

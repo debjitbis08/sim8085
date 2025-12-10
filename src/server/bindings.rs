@@ -1,3 +1,4 @@
+use wasm_bindgen::prelude::*;
 use lsp_server::{ExtractError, Message, Notification, Request, RequestId, Response};
 use lsp_types::CompletionItemKind;
 use lsp_types::{
@@ -5,9 +6,11 @@ use lsp_types::{
     MarkupContent, MarkupKind,
 };
 
+use wasm_bindgen::prelude::*;
 
-pub fn completion_handler(id: &RequestId, params: CompletionParams ) -> Result<serde_json::Value,serde_json::Error> {
-    eprintln!("got completion request #{}: {:?}", id, params);
+#[wasm_bindgen]
+pub fn wasm_completion_handler(id: JsValue, params: JsValue) -> Result<JsValue,JsValue> {
+    // eprintln!("got completion request #{}: {:?}", id, params);
     let responses = vec![
                     CompletionItem {
                         label: "MOV".to_string(),
@@ -215,17 +218,18 @@ pub fn completion_handler(id: &RequestId, params: CompletionParams ) -> Result<s
     let result = CompletionResponse::Array(responses);
     let result = match serde_json::to_string(&result){
         Ok(result)=>{
-            serde_json::to_value(&result)
+            result
         }
         Err(e)=>{
-           Err(e) 
+            "[ERROR] failed to convert JSON-2-String".to_string().into()
         }
     };
-    return Ok(result?);
+    return Ok(serde_wasm_bindgen::to_value(&result)?);
 }
 
-pub fn hover_handler(id: &RequestId, params: HoverParams ) -> Result<serde_json::Value,serde_json::Error>{
-    eprintln!("hovr request {}: {:?}", id, params);
+#[wasm_bindgen]
+pub fn wasm_hover_handler(id: JsValue, params:JsValue ) -> Result<JsValue,JsValue>{
+    // eprintln!("hovr request {}: {:?}", id, params);
 
     let hover_result = lsp_types::Hover {
         contents: lsp_types::HoverContents::Scalar(lsp_types::MarkedString::String(
@@ -236,11 +240,11 @@ pub fn hover_handler(id: &RequestId, params: HoverParams ) -> Result<serde_json:
 
     let result = match serde_json::to_string(&hover_result){
         Ok(result)=>{
-            serde_json::to_value(&result)
+            result
         }
-        Err(e)=>{
-          Err(e) 
+        Err(_)=>{
+            return Err("[ERROR] failed to convert JSON-2-String".to_string().into())
         }
     };
-    return Ok(result?);
+    return Ok(serde_wasm_bindgen::to_value(&result)?);
 }

@@ -1,5 +1,6 @@
 pub mod handlers;
 pub mod routers;
+pub mod bindings;
 
 use lsp_server::{Connection, IoThreads, Message, Notification, Request, RequestId};
 use lsp_types::{
