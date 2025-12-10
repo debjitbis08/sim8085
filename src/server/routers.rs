@@ -12,7 +12,7 @@ where
 #[macro_export]
 macro_rules! wasm_lsp_router {
     (
-        $req:ident, $state:ident, {
+        $req:ident, {
             $( $method:ty => $handler:path ),* $(,)?
         }
     ) => {{
@@ -26,8 +26,7 @@ $(
                             id,
                             error: None,
                         };
-                        $state.conn.as_ref().expect("[ERROR] Expected valid connection!").sender.send(Message::Response(resp));
-                        continue;
+                        return resp;
                     },
                     Err(err @ ExtractError::JsonError { .. }) => panic!("{:?}", err),
                     Err(ExtractError::MethodMismatch(req)) => req,

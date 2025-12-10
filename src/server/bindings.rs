@@ -9,6 +9,40 @@ use lsp_types::{
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
+pub fn wasm_request_handler (req: JsValue)->Result<JsValue,JsValue>{
+
+    let msg = serde_wasm_bindgen::from_value(req)
+        .map_error(|e| JsValue::from_str(&format!("Invalid request: {:?}",e)))?;
+    match msg {
+        Message::Request(req) => {
+            eprintln!("got request: {:?}", req);
+            wasm_lsp_router!(req,{
+                Completion=>handlers::completion_handler,
+                HoverRequest=>handlers::hover_handler,
+            });
+        }
+        Message::Response(rs) => {
+            eprintln!("response: {:?}", rs);
+        }
+        Message::Notification(n) => {
+            match &n {
+                Notification { method, .. }
+                    if *method == String::from("textDocument/didSave") =>
+                {
+                    eprintln!("File saved!");
+                }
+                e => {
+                    eprintln!("unimplemented {:?}", e);
+                }
+            }
+            eprintln!("notification: {:?}", n);
+        }
+    }
+
+}
+
+
+#[wasm_bindgen]
 pub fn wasm_completion_handler(id: JsValue, params: JsValue) -> Result<JsValue,JsValue> {
     // eprintln!("got completion request #{}: {:?}", id, params);
     let responses = vec![
