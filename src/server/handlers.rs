@@ -213,15 +213,14 @@ pub fn completion_handler(id: &RequestId, params: CompletionParams ) -> Result<s
                 ];
 
     let result = CompletionResponse::Array(responses);
-    let result = match serde_json::to_string(&result){
+    let result = match serde_json::to_value(&result){
         Ok(result)=>{
-            serde_json::to_value(&result)
+            return Ok(result)
         }
         Err(e)=>{
-           Err(e) 
+           return Err(e) 
         }
     };
-    return Ok(result?);
 }
 
 pub fn hover_handler(id: &RequestId, params: HoverParams ) -> Result<serde_json::Value,serde_json::Error>{
@@ -234,13 +233,12 @@ pub fn hover_handler(id: &RequestId, params: HoverParams ) -> Result<serde_json:
         range: None,
     };
 
-    let result = match serde_json::to_string(&hover_result){
+    let result = match serde_json::to_value(&hover_result){
         Ok(result)=>{
-            serde_json::to_value(&result)
+            return Ok(result);
         }
         Err(e)=>{
-          Err(e) 
+          return Err(e);
         }
     };
-    return Ok(result?);
 }
