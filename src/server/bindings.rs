@@ -5,37 +5,41 @@ use lsp_types::{
     CompletionItem, CompletionParams, CompletionResponse, Documentation, HoverParams,
     MarkupContent, MarkupKind,
 };
-
+use crate::server::handlers;
+use lsp_types::request::{Completion, HoverRequest};
 use wasm_bindgen::prelude::*;
+
 
 #[wasm_bindgen]
 pub fn wasm_request_handler (req: JsValue)->Result<JsValue,JsValue>{
 
     let msg = serde_wasm_bindgen::from_value(req)
-        .map_error(|e| JsValue::from_str(&format!("Invalid request: {:?}",e)))?;
+        .map_err(|e| JsValue::from_str(&format!("Invalid request: {:?}",e)))?;
     match msg {
         Message::Request(req) => {
-            eprintln!("got request: {:?}", req);
+            // eprintln!("got request: {:?}", req);
             wasm_lsp_router!(req,{
                 Completion=>handlers::completion_handler,
                 HoverRequest=>handlers::hover_handler,
             });
+            return Ok(format!("Request: {:?}",req).into());
         }
         Message::Response(rs) => {
-            eprintln!("response: {:?}", rs);
+            // eprintln!("response: {:?}", rs);
+            return Ok(format!("Response: {:?}",rs).into());
         }
         Message::Notification(n) => {
             match &n {
                 Notification { method, .. }
                     if *method == String::from("textDocument/didSave") =>
                 {
-                    eprintln!("File saved!");
+                    return Ok(format!("File saved!").into());
                 }
                 e => {
-                    eprintln!("unimplemented {:?}", e);
+                    return Err(format!("Error in saving file!").into());
                 }
             }
-            eprintln!("notification: {:?}", n);
+                return Ok(format!("notification: {:?}",n).into());
         }
     }
 
