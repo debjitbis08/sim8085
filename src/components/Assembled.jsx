@@ -1,7 +1,7 @@
 import { createEffect, createSignal, onMount, Show } from "solid-js";
 import { store } from "../store/store.js";
 import { toByteString } from "../utils/NumberFormat.js";
-import { FiAlertTriangle } from "solid-icons/fi";
+import { FiAlertTriangle, FiDownload } from "solid-icons/fi";
 import CopyComponent from "./CopyComponent.jsx";
 import { Tooltip } from "./generic/Tooltip.jsx";
 import styles from "./Assembled.module.css";
@@ -21,15 +21,30 @@ export function Assembled(props) {
             <div class="flex flex-col h-full">
                 <div class="flex items-start gap-2">
                     <h2 class={`md:text-xl pb-4`}>{store.errors.length ? "Assembler Errors" : "Machine Code"}</h2>
-                    <div class={`${store.assembled.length && store.errors.length === 0 ? "" : "hidden"} pt-1`}>
+                    <div
+                        class={`${
+                            store.assembled.length && store.errors.length === 0 ? "" : "hidden"
+                        } pt-1 flex items-center gap-2`}
+                    >
                         <Tooltip placement="right">
-                            <Tooltip.Trigger class="tooltip__trigger">
-                                <CopyComponent getTextToCopy={() => copyOutputAsText(lines())} />
+                            <Tooltip.Trigger class="tooltip__trigger cursor-pointer">
+                                <CopyComponent getTextToCopy={() => copyOutputAsText(lines())} class="cursor-pointer" />
                             </Tooltip.Trigger>
                             <Tooltip.Portal>
                                 <Tooltip.Content class="tooltip__content">
                                     <Tooltip.Arrow />
                                     <p>Copy machine codes</p>
+                                </Tooltip.Content>
+                            </Tooltip.Portal>
+                        </Tooltip>
+                        <Tooltip placement="right">
+                            <Tooltip.Trigger class="tooltip__trigger cursor-pointer" onClick={downloadBinary}>
+                                <FiDownload class="cursor-pointer" />
+                            </Tooltip.Trigger>
+                            <Tooltip.Portal>
+                                <Tooltip.Content class="tooltip__content">
+                                    <Tooltip.Arrow />
+                                    <p>Download binary (.bin)</p>
                                 </Tooltip.Content>
                             </Tooltip.Portal>
                         </Tooltip>
@@ -65,7 +80,9 @@ export function Assembled(props) {
                                                                             .split("0x")[0]
                                                                     }
                                                                 </span>
-                                                                {`0x${code[0].currentAddress.toString(16).toUpperCase()}`}
+                                                                {`0x${code[0].currentAddress
+                                                                    .toString(16)
+                                                                    .toUpperCase()}`}
                                                             </span>
                                                         ) : (
                                                             <span class="opacity-0">0x0000</span>
@@ -120,8 +137,7 @@ export function Assembled(props) {
                                                 {e.hint.length ? null : (
                                                     <span>
                                                         Line <span class="text-yellow-foreground">{e.line}</span>,
-                                                        Column: <span class="text-yellow-foreground">{e.column}</span>
-                                                        :{" "}
+                                                        Column: <span class="text-yellow-foreground">{e.column}</span>:{" "}
                                                     </span>
                                                 )}
                                                 <span class=""> {e.msg} </span>{" "}
@@ -156,7 +172,7 @@ export function Assembled(props) {
                                                             "^".repeat(
                                                                 line.length - startColMinusOne > 0
                                                                     ? line.length - startColMinusOne
-                                                                    : 0,
+                                                                    : 0
                                                             );
                                                         return (
                                                             <div key={index}>
@@ -218,7 +234,9 @@ export function Assembled(props) {
                             </Show>
                         </div>
                         <div
-                            class={`${store.assembled.length || store.errors.length ? "hidden" : ""} max-w-full overflow-x-auto text-sm`}
+                            class={`${
+                                store.assembled.length || store.errors.length ? "hidden" : ""
+                            } max-w-full overflow-x-auto text-sm`}
                         >
                             <p class="text-gray-500">Load or Run the program to view machine codes.</p>
                         </div>
@@ -297,4 +315,25 @@ function copyOutputAsText(lines) {
     });
 
     return output.join("\n");
+}
+
+function downloadBinary() {
+    // 64KB memory size
+    const memSize = 65536;
+    const buffer = new Uint8Array(memSize);
+
+    // store.memory is an array of numbers (0-255)
+    for (let i = 0; i < memSize; i++) {
+        buffer[i] = store.memory[i] || 0;
+    }
+
+    const blob = new Blob([buffer], { type: "application/octet-stream" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "program.bin";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
 }

@@ -25,10 +25,10 @@ export function DonationPlea() {
                                     Your Support Keeps Sim8085 Running — Please Help 🙏!
                                 </h2>
                                 <div class="my-4">
-                                    <p class="my-4">I wouldn’t show you this dialog if there were another way.</p>
+                                    <p class="my-4">I wouldn't show you this dialog if there were another way.</p>
                                     <div class="my-4">
                                         Sim8085 has been a labor of love, but without some monetary help, I'll have to
-                                        shift my focus elsewhere — and that would mean this project slows down or
+                                        shift my focus elsewhere, and that would mean this project slows down or
                                         stagnates. I have significant plans for Sim8085:
                                         <ol class="list-disc list-inside my-2">
                                             <li>Step-by-step tutorials</li>
