@@ -1,3 +1,10 @@
+# [2.19.0](https://github.com/debjitbis08/sim8085/compare/v2.18.23...v2.19.0) (2025-12-14)
+
+
+### Features
+
+* Add download for compiles binary file ([10bce3d](https://github.com/debjitbis08/sim8085/commit/10bce3d31d3f0f350c5b4818f7aec0c800fd601b))
+
 ## [2.18.23](https://github.com/debjitbis08/sim8085/compare/v2.18.22...v2.18.23) (2025-07-06)
 
 
