@@ -1,53 +1,46 @@
-use wasm_bindgen::prelude::*;
+use crate::server::handlers;
 use lsp_server::{ExtractError, Message, Notification, Request, RequestId, Response};
 use lsp_types::CompletionItemKind;
+use lsp_types::request::{Completion, HoverRequest};
 use lsp_types::{
     CompletionItem, CompletionParams, CompletionResponse, Documentation, HoverParams,
     MarkupContent, MarkupKind,
 };
-use crate::server::handlers;
-use lsp_types::request::{Completion, HoverRequest};
+use wasm_bindgen::prelude::*;
 use wasm_bindgen::prelude::*;
 
-
 #[wasm_bindgen]
-pub fn wasm_request_handler (req: JsValue)->Result<JsValue,JsValue>{
-
+pub fn wasm_request_handler(req: JsValue) -> Result<JsValue, JsValue> {
     let msg = serde_wasm_bindgen::from_value(req)
-        .map_err(|e| JsValue::from_str(&format!("Invalid request: {:?}",e)))?;
+        .map_err(|e| JsValue::from_str(&format!("Invalid request: {:?}", e)))?;
     match msg {
         Message::Request(req) => {
             // eprintln!("got request: {:?}", req);
             wasm_lsp_router!(req,{
-                Completion=>handlers::completion_handler,
-                HoverRequest=>handlers::hover_handler,
+                Completion=>wasm_completion_handler,
+                HoverRequest=>wasm_hover_handler,
             });
-            return Ok(format!("Request: {:?}",req).into());
+            return Ok(format!("Request handled and routed!").into());
         }
         Message::Response(rs) => {
             // eprintln!("response: {:?}", rs);
-            return Ok(format!("Response: {:?}",rs).into());
+            return Ok(format!("Response: {:?}", rs).into());
         }
         Message::Notification(n) => {
             match &n {
-                Notification { method, .. }
-                    if *method == String::from("textDocument/didSave") =>
-                {
+                Notification { method, .. } if *method == String::from("textDocument/didSave") => {
                     return Ok(format!("File saved!").into());
                 }
                 e => {
                     return Err(format!("Error in saving file!").into());
                 }
             }
-                return Ok(format!("notification: {:?}",n).into());
+            return Ok(format!("notification: {:?}", n).into());
         }
     }
-
 }
 
-
-#[wasm_bindgen]
-pub fn wasm_completion_handler(id: JsValue, params: JsValue) -> Result<JsValue,JsValue> {
+pub fn wasm_completion_handler(id: &RequestId, params: &CompletionParams) -> Result<JsValue, JsValue> {
     // eprintln!("got completion request #{}: {:?}", id, params);
     let responses = vec![
                     CompletionItem {
@@ -254,19 +247,14 @@ pub fn wasm_completion_handler(id: JsValue, params: JsValue) -> Result<JsValue,J
                 ];
 
     let result = CompletionResponse::Array(responses);
-    let result = match serde_json::to_string(&result){
-        Ok(result)=>{
-            result
-        }
-        Err(e)=>{
-            "[ERROR] failed to convert JSON-2-String".to_string().into()
-        }
+    let result = match serde_json::to_string(&result) {
+        Ok(result) => result,
+        Err(e) => "[ERROR] failed to convert JSON-2-String".to_string().into(),
     };
     return Ok(serde_wasm_bindgen::to_value(&result)?);
 }
 
-#[wasm_bindgen]
-pub fn wasm_hover_handler(id: JsValue, params:JsValue ) -> Result<JsValue,JsValue>{
+pub fn wasm_hover_handler(id: &RequestId, params: &HoverParams) -> Result<JsValue, JsValue> {
     // eprintln!("hovr request {}: {:?}", id, params);
 
     let hover_result = lsp_types::Hover {
@@ -276,13 +264,9 @@ pub fn wasm_hover_handler(id: JsValue, params:JsValue ) -> Result<JsValue,JsValu
         range: None,
     };
 
-    let result = match serde_json::to_string(&hover_result){
-        Ok(result)=>{
-            result
-        }
-        Err(_)=>{
-            return Err("[ERROR] failed to convert JSON-2-String".to_string().into())
-        }
+    let result = match serde_json::to_string(&hover_result) {
+        Ok(result) => result,
+        Err(_) => return Err("[ERROR] failed to convert JSON-2-String".to_string().into()),
     };
     return Ok(serde_wasm_bindgen::to_value(&result)?);
 }

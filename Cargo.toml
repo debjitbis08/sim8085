@@ -1,6 +1,6 @@
 [lib]
 crate-type = ["cdylib", "rlib"]
-path = "src/server/bindings.rs"
+path = "src/lib.rs"
 
 [package]
 name = "lsp85"

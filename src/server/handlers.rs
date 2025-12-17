@@ -5,8 +5,10 @@ use lsp_types::{
     MarkupContent, MarkupKind,
 };
 
-
-pub fn completion_handler(id: &RequestId, params: CompletionParams ) -> Result<serde_json::Value,serde_json::Error> {
+pub fn completion_handler(
+    id: &RequestId,
+    params: CompletionParams,
+) -> Result<serde_json::Value, serde_json::Error> {
     eprintln!("got completion request #{}: {:?}", id, params);
     let responses = vec![
                     CompletionItem {
@@ -213,17 +215,16 @@ pub fn completion_handler(id: &RequestId, params: CompletionParams ) -> Result<s
                 ];
 
     let result = CompletionResponse::Array(responses);
-    let result = match serde_json::to_value(&result){
-        Ok(result)=>{
-            return Ok(result)
-        }
-        Err(e)=>{
-           return Err(e) 
-        }
+    let result = match serde_json::to_value(&result) {
+        Ok(result) => return Ok(result),
+        Err(e) => return Err(e),
     };
 }
 
-pub fn hover_handler(id: &RequestId, params: HoverParams ) -> Result<serde_json::Value,serde_json::Error>{
+pub fn hover_handler(
+    id: &RequestId,
+    params: HoverParams,
+) -> Result<serde_json::Value, serde_json::Error> {
     eprintln!("hovr request {}: {:?}", id, params);
 
     let hover_result = lsp_types::Hover {
@@ -233,12 +234,12 @@ pub fn hover_handler(id: &RequestId, params: HoverParams ) -> Result<serde_json:
         range: None,
     };
 
-    let result = match serde_json::to_value(&hover_result){
-        Ok(result)=>{
+    let result = match serde_json::to_value(&hover_result) {
+        Ok(result) => {
             return Ok(result);
         }
-        Err(e)=>{
-          return Err(e);
+        Err(e) => {
+            return Err(e);
         }
     };
 }

@@ -1,7 +1,7 @@
 #[macro_use]
 pub mod routers;
-pub mod handlers;
 pub mod bindings;
+pub mod handlers;
 
 use lsp_server::{Connection, IoThreads, Message, Notification, Request, RequestId};
 use lsp_types::{
@@ -43,23 +43,23 @@ impl lsp85 {
 
     // expects self.connection defined before hand
     fn populate_client_cap(&mut self) {
-            match self
+        match self
             .conn
             .as_ref()
             .expect("[ERROR] Connection not initialized!")
-            .initialize_start(){
-                Ok((id,params))=>{ 
-                    self.id = Some(id);
+            .initialize_start()
+        {
+            Ok((id, params)) => {
+                self.id = Some(id);
 
-                    let init_params: InitializeParams = serde_json::from_value(params)
-                        .expect("[[ERROR] Failed to parse initialization params!");
-                    self.client_cap = Some(init_params.capabilities);
-
-                },
-                Err(e)=>{
-                    eprintln!("[ERROR] Failed to initialize LSP");
-                }
+                let init_params: InitializeParams = serde_json::from_value(params)
+                    .expect("[[ERROR] Failed to parse initialization params!");
+                self.client_cap = Some(init_params.capabilities);
             }
+            Err(e) => {
+                eprintln!("[ERROR] Failed to initialize LSP");
+            }
+        }
     }
     pub fn enable_completion(mut self) -> Self {
         self.server_cap
@@ -79,7 +79,6 @@ impl lsp85 {
 
     // expects self.connection and self.id
     pub fn initialize(self) -> Result<Self, Box<dyn Error + Sync + Send>> {
-
         let initialize_data = serde_json::json!({
             "capabilities": self.server_cap,
             "serverInfo": {

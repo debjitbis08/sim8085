@@ -11,8 +11,8 @@ use lsp_types::{
     CompletionItem, CompletionResponse,
     request::{Completion, HoverRequest},
 };
+use server::bindings::{wasm_completion_handler, wasm_hover_handler};
 use server::{handlers, lsp85, routers};
-use server::bindings::{wasm_completion_handler,wasm_hover_handler};
 use std::error::Error;
 
 pub fn main() -> Result<(), Box<dyn Error>> {
@@ -110,4 +110,3 @@ pub fn main() -> Result<(), Box<dyn Error>> {
 //         println!("{:?}",ast_list);
 //     }
 // }
-

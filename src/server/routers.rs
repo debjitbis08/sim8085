@@ -1,4 +1,4 @@
-use lsp_server::{Request, RequestId, ExtractError};
+use lsp_server::{ExtractError, Request, RequestId};
 use serde::de::DeserializeOwned;
 
 pub fn cast<R>(req: Request) -> Result<(RequestId, R::Params), ExtractError<Request>>
@@ -22,11 +22,12 @@ $(
                 let $req = match cast::<$method>($req) {
                     Ok((id, params)) => {
                         let resp = Response {
-                            result: Some(serde_wasm_bindgen::from_value($handler(serde_wasm_bindgen::to_value(&serde_json::to_string(&id)?)?,serde_wasm_bindgen::to_value(&serde_json::to_string(&params)?)?).expect("[ERROR] Failure in communication!"))?) ,
+                            result: Some(
+                                        serde_wasm_bindgen::from_value( $handler( &id ,&params).expect("[ERROR] Failure in communication!"))?) ,
                             id,
                             error: None,
                         };
-                        return resp;
+                        return Ok(serde_wasm_bindgen::to_value(&resp)?);
                     },
                     Err(err @ ExtractError::JsonError { .. }) => panic!("{:?}", err),
                     Err(ExtractError::MethodMismatch(req)) => req,
@@ -34,7 +35,6 @@ $(
 )*
     }};
 }
-
 
 #[macro_export]
 macro_rules! lsp_router {
