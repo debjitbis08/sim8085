@@ -356,6 +356,16 @@ export function FileActions() {
 
     const tryShare = async () => {
         const { id: userId } = (await fetchUserId()) || { id: null };
+
+        if (store.tier !== "PLUS") {
+            window.dispatchEvent(
+                new CustomEvent("showPlusDialog", {
+                    detail: { reason: "shareLink" },
+                }),
+            );
+            return;
+        }
+
         if (!userId || !store.activeFile.workspaceItemId) {
             setIsCantShareDialogOpen(true);
             return;
