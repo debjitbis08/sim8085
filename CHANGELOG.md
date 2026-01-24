@@ -1,3 +1,10 @@
+## [2.19.1](https://github.com/debjitbis08/sim8085/compare/v2.19.0...v2.19.1) (2026-01-24)
+
+
+### Bug Fixes
+
+* Fix plus status page ([233fa77](https://github.com/debjitbis08/sim8085/commit/233fa77ee51966ffe677590b749fae3bdb75801d))
+
 # [2.19.0](https://github.com/debjitbis08/sim8085/compare/v2.18.23...v2.19.0) (2025-12-14)
 
 
