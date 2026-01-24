@@ -61,8 +61,8 @@ export function PlusDialog(props) {
                                 <h2 class="text-xl md:text-2xl font-bold mb-4">{titleMap[dialogReason()]}</h2>
                                 <p class="mb-2 text-secondary-foreground">{subtitleMap[dialogReason()]}</p>
                                 <p class="mb-4 md:mb-8 font-semibold text-lg">
-                                    <span class="text-yellow-foreground">Just $0.66/month</span>
-                                    <span> — one-time $4 payment for 6 months. No subscription.</span>
+                                    <span class="text-yellow-foreground">Just $1.33/month</span>
+                                    <span> — one-time $8 payment for 6 months. No subscription.</span>
                                 </p>
                                 <div class="my-4">
                                     <div class="flex items-start md:items-center gap-4 pb-4 md:pb-8">
@@ -143,20 +143,13 @@ export function PlusDialog(props) {
                                         <div class="text-center md:text-left">
                                             <p>
                                                 Just{" "}
-                                                <span class="text-secondary-foreground line-through decoration-double decoration-red-500 text-lg">
-                                                    $8
-                                                </span>
-                                                <span class="font-bold"> $4</span> for 6 months.
+                                                <span class="font-bold"> $8</span> for 6 months.
                                             </p>
                                             <p class="text-secondary-foreground text-sm mt-2">
                                                 No subscription. No auto-renewal.
                                             </p>
                                         </div>
                                     </div>
-                                    <p class="mx-auto mt-2 text-secondary-foreground text-center md:text-left">
-                                        Upgrade now and get <span class="text-red-foreground">50% OFF</span> for a
-                                        limited time!
-                                    </p>
                                 </div>
                                 <span class="flex items-center my-4">
                                     <span class="pr-6 text-secondary-foreground">OR</span>
