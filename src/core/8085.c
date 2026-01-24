@@ -82,8 +82,24 @@ typedef struct State8085
 
 typedef struct ExecutionStats8085 {
     uint64_t total_tstates;
+    uint16_t min_sp;
+    bool min_sp_set;
     // future fields: total_instructions, memory_reads, etc.
 } ExecutionStats8085;
+
+static uint64_t last_total_tstates = 0;
+static uint16_t last_min_sp = 0xFFFF;
+static uint16_t last_start_sp = 0xFFFF;
+
+EMSCRIPTEN_KEEPALIVE
+uint64_t get_last_total_tstates() {
+    return last_total_tstates;
+}
+
+EMSCRIPTEN_KEEPALIVE
+uint32_t get_last_max_stack_bytes() {
+    return last_start_sp >= last_min_sp ? (uint32_t)(last_start_sp - last_min_sp) : 0;
+}
 
 
 int parity(int x, int size)
@@ -2602,6 +2618,11 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
 		break;
 	}
 
+    if (!stats->min_sp_set || state->sp < stats->min_sp) {
+        stats->min_sp = state->sp;
+        stats->min_sp_set = true;
+    }
+
     stats->total_tstates += states;
 
 	return 0;
@@ -2677,12 +2698,17 @@ int ExecuteProgramUntil(State8085 *state, uint16_t offset, uint16_t startAt, uin
 	if(offset == startAt)
 		state->sp = 0xFFFF;
 	state->pc = startAt;
+    stats.min_sp = state->sp;
+    stats.min_sp_set = true;
 	printf("Pause At: %d\n", pauseAt);
 	while (done == 0 && state->pc < pauseAt)
 	{
 		done = Emulate8085Op(state, offset, &stats);
 		printf("PC in C %d", state->pc);
 	}
+    last_total_tstates = stats.total_tstates;
+    last_start_sp = 0xFFFF;
+    last_min_sp = stats.min_sp;
     // if (sim_options.timing_enabled) {
     //     float t_state_duration_ms = 1000.0f / sim_options.clock_frequency_hz;
     //     float delay_ms = stats.total_tstates * t_state_duration_ms;
@@ -2709,6 +2735,8 @@ State8085 *ExecuteProgram(State8085 *state, uint16_t offset)
 	printf("Offset %u\n", offset);
 	state->pc = offset;
 	state->sp = 0xFFFF;
+    stats.min_sp = state->sp;
+    stats.min_sp_set = true;
 	printf("Memory at offset %u\n", state->memory[offset]);
 	printf("Memory at offset + 1 %u\n", state->memory[offset + 1]);
 
@@ -2719,6 +2747,9 @@ State8085 *ExecuteProgram(State8085 *state, uint16_t offset)
 		done = Emulate8085Op(state, offset, &stats);
 		cycles++;
 	}
+    last_total_tstates = stats.total_tstates;
+    last_start_sp = 0xFFFF;
+    last_min_sp = stats.min_sp;
 
     // if (sim_options.timing_enabled) {
     //     float t_state_duration_ms = 1000.0f / sim_options.clock_frequency_hz;
@@ -2749,6 +2780,10 @@ void ExecuteProgramSlice(State8085 *state, int offset, uint16_t sliceSize, Slice
     if (offset >= 0) {
         state->pc = offset;
         state->sp = 0xFFFF;
+        last_start_sp = state->sp;
+        last_min_sp = state->sp;
+        stats.min_sp = state->sp;
+        stats.min_sp_set = true;
     }
 
 	while (done == 0 && stats.total_tstates < sliceSize)
@@ -2777,6 +2812,9 @@ void ExecuteProgramSlice(State8085 *state, int offset, uint16_t sliceSize, Slice
 	// return done;
     resultOut->halted = done;
     resultOut->total_tstates = stats.total_tstates;
+    if (stats.min_sp_set && stats.min_sp < last_min_sp) {
+        last_min_sp = stats.min_sp;
+    }
 }
 
 int InterruptToHalt(State8085 *state) {
