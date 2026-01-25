@@ -1,3 +1,10 @@
+# [2.20.0](https://github.com/debjitbis08/sim8085/compare/v2.19.1...v2.20.0) (2026-01-25)
+
+
+### Features
+
+* Introduce metric data ([62ea991](https://github.com/debjitbis08/sim8085/commit/62ea991db24e6254e9d4e6aca49502935dffbb5b))
+
 ## [2.19.1](https://github.com/debjitbis08/sim8085/compare/v2.19.0...v2.19.1) (2026-01-24)
 
 
