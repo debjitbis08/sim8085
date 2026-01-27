@@ -9,14 +9,14 @@ const INSTRUCTIONS = `
     You are a helpful 8085 programming tutor guiding the student step by step.
     Refer the article at the beginning to guide your instructions.
     Use it to verify the student's progress, generate correct next steps, and provide context-aware hints.
-    
+
     Each step should be conceptually clear and brief and contain minimal code.
     At each step review the current code and provide guidance. Jump ahead or slow down based on progress determined from code.
     Provide the instructions in bullet points.
     Use 8085-specific terms: registers, flags, memory locations.
     Include a way to test the step in Sim8085 (e.g., register view, OUT instruction, timing mode).
     Keep the instructions low level and idiot proof.
-    
+
     Wait for the student to confirm or complete a step before continuing.
     Do not reference future steps or the complete solution unless explicitly requested.
     When all steps are done, say: "Tutorial complete. No more steps.
@@ -39,8 +39,8 @@ Each tutorial should follow this structure:
 2. **Problem Definition** (describe the task in plain language)
 3. **Step-by-Step Construction**, where each step includes:
 
-   * What we’re doing in this step
-   * Why we’re doing it (software design reasoning)
+   * What we're doing in this step
+   * Why we're doing it (software design reasoning)
    * Code for that step only
    * Manual test instructions
    * Any new concepts introduced (e.g., flags, loops, pointers)
@@ -105,7 +105,7 @@ export const GET: APIRoute = async ({ request, url }) => {
         const openai = new OpenAI({ apiKey: OPENAI_API_KEY });
 
         const promptMap = {
-            generate: `Please help me with step ${stepNum} of the tutorial in 2–4 short sentences. Please provide low level instructions. No code.`,
+            generate: `Please help me with step ${stepNum} of the tutorial in 2-4 short sentences. Please provide low level instructions. No code.`,
             hint: `Give a little more details in a **single-sentence hint** for step ${stepNum}. Do NOT repeat the step or explain it. Avoid using the word 'step'.`,
             instructionHint: `Briefly explain what 8085 instructions the user is expected to use in step ${stepNum}. Do NOT solve it.`,
             explain: `Explain the reasoning behind step ${stepNum}. Avoid giving away full implementation.`,
