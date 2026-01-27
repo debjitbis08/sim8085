@@ -1,3 +1,10 @@
+## [2.20.1](https://github.com/debjitbis08/sim8085/compare/v2.20.0...v2.20.1) (2026-01-27)
+
+
+### Bug Fixes
+
+* Add simple way to copy binary value ([5b1a912](https://github.com/debjitbis08/sim8085/commit/5b1a91250159c96d52c179b49907a275a0eb4607))
+
 # [2.20.0](https://github.com/debjitbis08/sim8085/compare/v2.19.1...v2.20.0) (2026-01-25)
 
 
