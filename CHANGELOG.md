@@ -1,3 +1,10 @@
+## [2.20.2](https://github.com/debjitbis08/sim8085/compare/v2.20.1...v2.20.2) (2026-01-30)
+
+
+### Bug Fixes
+
+* Update AI models ([45c9402](https://github.com/debjitbis08/sim8085/commit/45c94025525094b20e7a97c8e2f7bf2976bb344b))
+
 ## [2.20.1](https://github.com/debjitbis08/sim8085/compare/v2.20.0...v2.20.1) (2026-01-27)
 
 
