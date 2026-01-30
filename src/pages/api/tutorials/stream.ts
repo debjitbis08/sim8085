@@ -116,7 +116,7 @@ export const GET: APIRoute = async ({ request, url }) => {
         let internalResponse;
         if (!previousResponseId) {
             internalResponse = await openai.responses.create({
-                model: "gpt-4.1",
+                model: "gpt-5.2",
                 instructions: ARTICLE_INSTRUCTIONS,
                 input: `Write and article for the problem: "${problem}".`,
                 tools: [
@@ -133,7 +133,7 @@ export const GET: APIRoute = async ({ request, url }) => {
         }
 
         const responseStream = await openai.responses.create({
-            model: "gpt-4o",
+            model: "gpt-5.2",
             ...(stepNum === 1 ? { instructions: INSTRUCTIONS } : {}),
             input: prompt,
             stream: true,
