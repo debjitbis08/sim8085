@@ -1,3 +1,10 @@
+## [2.20.3](https://github.com/debjitbis08/sim8085/compare/v2.20.2...v2.20.3) (2026-02-04)
+
+
+### Bug Fixes
+
+* Show better instructions for Tutor tab ([83e9fc2](https://github.com/debjitbis08/sim8085/commit/83e9fc290d3b0823b333becd031d8444026e92fc))
+
 ## [2.20.2](https://github.com/debjitbis08/sim8085/compare/v2.20.1...v2.20.2) (2026-01-30)
 
 
