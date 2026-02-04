@@ -1,3 +1,10 @@
+## [2.20.4](https://github.com/debjitbis08/sim8085/compare/v2.20.3...v2.20.4) (2026-02-04)
+
+
+### Bug Fixes
+
+* Fix title for search engines ([be45452](https://github.com/debjitbis08/sim8085/commit/be4545237c835b25a07a7d9a8c3975e75f1bd6d2))
+
 ## [2.20.3](https://github.com/debjitbis08/sim8085/compare/v2.20.2...v2.20.3) (2026-02-04)
 
 
