@@ -22,6 +22,86 @@ const INSTRUCTIONS = `
     When all steps are done, say: "Tutorial complete. No more steps.
 `;
 
+const GENERAL_HELP_INSTRUCTIONS = `
+    You are helping with Sim8085 interface and general usage questions.
+    Be concise, actionable, and avoid step-by-step program tutorials or code.
+    If the question is not about using Sim8085, say this tutor is for step-by-step 8085 programming and suggest using the help/docs.
+    End your response with: "Tutorial complete. No more steps."
+`;
+
+const INTERFACE_KEYWORDS = [
+    "sim8085",
+    "simulator",
+    "interface",
+    "ui",
+    "app",
+    "website",
+    "tab",
+    "panel",
+    "toolbar",
+    "menu",
+    "button",
+    "editor",
+    "settings",
+    "theme",
+    "account",
+    "login",
+    "signup",
+    "subscription",
+    "plus",
+    "ads",
+    "register view",
+    "memory view",
+    "timing mode",
+    "run",
+    "assemble",
+    "load",
+    "save",
+];
+
+const PROGRAM_KEYWORDS = [
+    "8085",
+    "assembly",
+    "alp",
+    "program",
+    "routine",
+    "register",
+    "memory",
+    "flag",
+    "stack",
+    "loop",
+    "counter",
+    "addition",
+    "subtraction",
+    "multiply",
+    "division",
+    "sort",
+    "search",
+    "array",
+    "string",
+    "bcd",
+    "hex",
+    "carry",
+];
+
+const isGeneralHelpRequest = (problem: string) => {
+    const normalized = problem.toLowerCase();
+    const hasInterface = INTERFACE_KEYWORDS.some((keyword) => normalized.includes(keyword));
+    const hasProgram = PROGRAM_KEYWORDS.some((keyword) => normalized.includes(keyword));
+    const generalPhrases = [
+        "how do i",
+        "how to",
+        "where is",
+        "where do i",
+        "can't",
+        "cannot",
+        "doesn't work",
+        "not working",
+    ];
+    const hasGeneralPhrase = generalPhrases.some((phrase) => normalized.includes(phrase));
+    return (hasInterface || hasGeneralPhrase) && !hasProgram;
+};
+
 const ARTICLE_INSTRUCTIONS = `
 ### ✅ Prompt: Create a Step-by-Step 8085 Tutorial
 
@@ -86,6 +166,7 @@ export const GET: APIRoute = async ({ request, url }) => {
     const previousResponseId = url.searchParams.get("previousResponseId") || null;
     const currentCode = url.searchParams.get("currentCode") || "";
     const problem = url.searchParams.get("problem") || "";
+    const isGeneralHelp = isGeneralHelpRequest(problem);
 
     if (!OPENAI_API_KEY) {
         return new Response(JSON.stringify({ error: "OpenAI not configured" }), {
@@ -111,10 +192,12 @@ export const GET: APIRoute = async ({ request, url }) => {
             explain: `Explain the reasoning behind step ${stepNum}. Avoid giving away full implementation.`,
             stuck: `I am stuck. Please check my current code and let me know the way forward. Do not provide full code, only guidance.`,
         };
-        const prompt = `Problem I am trying to solve:\n${problem}\n\n${promptMap[mode] || promptMap.generate}\n\nMy code till now:\n${currentCode}`;
+        const prompt = isGeneralHelp
+            ? `General help request about Sim8085/interface:\n${problem}\n\nRespond in 2-6 short sentences with actionable guidance.`
+            : `Problem I am trying to solve:\n${problem}\n\n${promptMap[mode] || promptMap.generate}\n\nMy code till now:\n${currentCode}`;
 
         let internalResponse;
-        if (!previousResponseId) {
+        if (!previousResponseId && !isGeneralHelp) {
             internalResponse = await openai.responses.create({
                 model: "gpt-5.2",
                 instructions: ARTICLE_INSTRUCTIONS,
@@ -134,7 +217,8 @@ export const GET: APIRoute = async ({ request, url }) => {
 
         const responseStream = await openai.responses.create({
             model: "gpt-5.2",
-            ...(stepNum === 1 ? { instructions: INSTRUCTIONS } : {}),
+            ...(!isGeneralHelp && stepNum === 1 ? { instructions: INSTRUCTIONS } : {}),
+            ...(isGeneralHelp ? { instructions: GENERAL_HELP_INSTRUCTIONS } : {}),
             input: prompt,
             stream: true,
             ...(previousResponseId

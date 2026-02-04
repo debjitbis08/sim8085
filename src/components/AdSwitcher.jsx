@@ -3,14 +3,14 @@ import LambdaClassesPoster from "./LambdaClassesPoster.jsx";
 import AdSenseAd from "./AdSenseAd.jsx";
 
 export default function AdSwitcher(props) {
-    const [showPoster, setShowPoster] = createSignal(false);
+    const [showPoster, setShowPoster] = createSignal(isIndia(getCachedCountry()));
 
     function updateFromCountry(country) {
-        setShowPoster((country || "").toUpperCase() === "IN");
+        setShowPoster(isIndia(country));
     }
 
     onMount(() => {
-        const cached = localStorage.getItem("user_country");
+        const cached = getCachedCountry();
         if (cached) updateFromCountry(cached);
 
         const handler = (e) => {
@@ -43,4 +43,17 @@ export default function AdSwitcher(props) {
     ) : (
         <AdSenseAd isHidden={props.isHidden} />
     );
+}
+
+function normalizeCountry(country) {
+    return String(country || "").trim().replace(/^"+|"+$/g, "").toUpperCase();
+}
+
+function isIndia(country) {
+    return normalizeCountry(country) === "IN";
+}
+
+function getCachedCountry() {
+    if (typeof window === "undefined") return "";
+    return localStorage.getItem("user_country") || "";
 }
