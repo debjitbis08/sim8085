@@ -457,8 +457,23 @@ export function FileActions() {
     createShortcut(["Control", "n"], createNewFile);
     createShortcut(["Control", "s"], saveFile);
 
-    createEffect(() => {
-        document.title = `${fileName()}${store.activeFile.unsavedChanges ? "*" : ""} - Sim8085`;
+    const defaultTitle = "Sim8085 | A 8085 microprocessor simulator";
+
+    onMount(() => {
+        createEffect(() => {
+            const name = fileName();
+            const isDefaultFile = /^untitled-\\d+\\.asm$/.test(name);
+            const isHome = window.location.pathname === "/";
+
+            if (isHome && isDefaultFile && !store.activeFile.unsavedChanges) {
+                if (document.title !== defaultTitle) {
+                    document.title = defaultTitle;
+                }
+                return;
+            }
+
+            document.title = `${name}${store.activeFile.unsavedChanges ? "*" : ""} - Sim8085`;
+        });
     });
 
     return (
