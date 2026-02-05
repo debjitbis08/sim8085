@@ -1,6 +1,7 @@
 import { createSignal, onCleanup, onMount } from "solid-js";
-import LambdaClassesPoster from "./LambdaClassesPoster.jsx";
+import DirectAd from "./DirectAd.jsx";
 import AdSenseAd from "./AdSenseAd.jsx";
+import { DIRECT_ADS } from "../config/directAds.js";
 
 export default function AdSwitcher(props) {
     const [showPoster, setShowPoster] = createSignal(isIndia(getCachedCountry()));
@@ -39,7 +40,7 @@ export default function AdSwitcher(props) {
     });
 
     return showPoster() ? (
-        <LambdaClassesPoster isHidden={props.isHidden} />
+        <DirectAd isHidden={props.isHidden} ad={DIRECT_ADS.lambdaClasses} />
     ) : (
         <AdSenseAd isHidden={props.isHidden} />
     );
