@@ -1,3 +1,10 @@
+## [2.20.5](https://github.com/debjitbis08/sim8085/compare/v2.20.4...v2.20.5) (2026-02-23)
+
+
+### Bug Fixes
+
+* Update ads to use generic component ([54afcfe](https://github.com/debjitbis08/sim8085/commit/54afcfe8dbdcc5efa9f144347aadd8b6d751a5af))
+
 ## [2.20.4](https://github.com/debjitbis08/sim8085/compare/v2.20.3...v2.20.4) (2026-02-04)
 
 
