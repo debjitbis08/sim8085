@@ -5,7 +5,6 @@ import { FiAlertTriangle, FiDownload } from "solid-icons/fi";
 import CopyComponent from "./CopyComponent.jsx";
 import { Tooltip } from "./generic/Tooltip.jsx";
 import styles from "./Assembled.module.css";
-import LambdaClassesPoster from "./LambdaClassesPoster.jsx";
 import ExplainErrorButton from "./ExplainErrorButton.jsx";
 import AdSwitcher from "./AdSwitcher.jsx";
 
