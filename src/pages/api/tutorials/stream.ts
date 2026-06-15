@@ -9,18 +9,98 @@ const INSTRUCTIONS = `
     You are a helpful 8085 programming tutor guiding the student step by step.
     Refer the article at the beginning to guide your instructions.
     Use it to verify the student's progress, generate correct next steps, and provide context-aware hints.
-    
+
     Each step should be conceptually clear and brief and contain minimal code.
     At each step review the current code and provide guidance. Jump ahead or slow down based on progress determined from code.
     Provide the instructions in bullet points.
     Use 8085-specific terms: registers, flags, memory locations.
     Include a way to test the step in Sim8085 (e.g., register view, OUT instruction, timing mode).
     Keep the instructions low level and idiot proof.
-    
+
     Wait for the student to confirm or complete a step before continuing.
     Do not reference future steps or the complete solution unless explicitly requested.
     When all steps are done, say: "Tutorial complete. No more steps.
 `;
+
+const GENERAL_HELP_INSTRUCTIONS = `
+    You are helping with Sim8085 interface and general usage questions.
+    Be concise, actionable, and avoid step-by-step program tutorials or code.
+    If the question is not about using Sim8085, say this tutor is for step-by-step 8085 programming and suggest using the help/docs.
+    End your response with: "Tutorial complete. No more steps."
+`;
+
+const INTERFACE_KEYWORDS = [
+    "sim8085",
+    "simulator",
+    "interface",
+    "ui",
+    "app",
+    "website",
+    "tab",
+    "panel",
+    "toolbar",
+    "menu",
+    "button",
+    "editor",
+    "settings",
+    "theme",
+    "account",
+    "login",
+    "signup",
+    "subscription",
+    "plus",
+    "ads",
+    "register view",
+    "memory view",
+    "timing mode",
+    "run",
+    "assemble",
+    "load",
+    "save",
+];
+
+const PROGRAM_KEYWORDS = [
+    "8085",
+    "assembly",
+    "alp",
+    "program",
+    "routine",
+    "register",
+    "memory",
+    "flag",
+    "stack",
+    "loop",
+    "counter",
+    "addition",
+    "subtraction",
+    "multiply",
+    "division",
+    "sort",
+    "search",
+    "array",
+    "string",
+    "bcd",
+    "hex",
+    "carry",
+];
+
+const isGeneralHelpRequest = (problem: string) => {
+    const normalized = problem.toLowerCase();
+    const hasInterface = INTERFACE_KEYWORDS.some((keyword) => normalized.includes(keyword));
+    const hasProgram = PROGRAM_KEYWORDS.some((keyword) => normalized.includes(keyword));
+    const generalPhrases = [
+        "how do i",
+        "how to",
+        "where is",
+        "where do i",
+        "can't",
+        "cannot",
+        "doesn't work",
+        "not working",
+    ];
+    const hasGeneralPhrase = generalPhrases.some((phrase) => normalized.includes(phrase));
+    return (hasInterface || hasGeneralPhrase) && !hasProgram;
+};
 
 const ARTICLE_INSTRUCTIONS = `
 ### ✅ Prompt: Create a Step-by-Step 8085 Tutorial
@@ -39,8 +119,8 @@ Each tutorial should follow this structure:
 2. **Problem Definition** (describe the task in plain language)
 3. **Step-by-Step Construction**, where each step includes:
 
-   * What we’re doing in this step
-   * Why we’re doing it (software design reasoning)
+   * What we're doing in this step
+   * Why we're doing it (software design reasoning)
    * Code for that step only
    * Manual test instructions
    * Any new concepts introduced (e.g., flags, loops, pointers)
@@ -86,6 +166,7 @@ export const GET: APIRoute = async ({ request, url }) => {
     const previousResponseId = url.searchParams.get("previousResponseId") || null;
     const currentCode = url.searchParams.get("currentCode") || "";
     const problem = url.searchParams.get("problem") || "";
+    const isGeneralHelp = isGeneralHelpRequest(problem);
 
     if (!OPENAI_API_KEY) {
         return new Response(JSON.stringify({ error: "OpenAI not configured" }), {
@@ -105,18 +186,20 @@ export const GET: APIRoute = async ({ request, url }) => {
         const openai = new OpenAI({ apiKey: OPENAI_API_KEY });
 
         const promptMap = {
-            generate: `Please help me with step ${stepNum} of the tutorial in 2–4 short sentences. Please provide low level instructions. No code.`,
+            generate: `Please help me with step ${stepNum} of the tutorial in 2-4 short sentences. Please provide low level instructions. No code.`,
             hint: `Give a little more details in a **single-sentence hint** for step ${stepNum}. Do NOT repeat the step or explain it. Avoid using the word 'step'.`,
             instructionHint: `Briefly explain what 8085 instructions the user is expected to use in step ${stepNum}. Do NOT solve it.`,
             explain: `Explain the reasoning behind step ${stepNum}. Avoid giving away full implementation.`,
             stuck: `I am stuck. Please check my current code and let me know the way forward. Do not provide full code, only guidance.`,
         };
-        const prompt = `Problem I am trying to solve:\n${problem}\n\n${promptMap[mode] || promptMap.generate}\n\nMy code till now:\n${currentCode}`;
+        const prompt = isGeneralHelp
+            ? `General help request about Sim8085/interface:\n${problem}\n\nRespond in 2-6 short sentences with actionable guidance.`
+            : `Problem I am trying to solve:\n${problem}\n\n${promptMap[mode] || promptMap.generate}\n\nMy code till now:\n${currentCode}`;
 
         let internalResponse;
-        if (!previousResponseId) {
+        if (!previousResponseId && !isGeneralHelp) {
             internalResponse = await openai.responses.create({
-                model: "gpt-4.1",
+                model: "gpt-5.2",
                 instructions: ARTICLE_INSTRUCTIONS,
                 input: `Write and article for the problem: "${problem}".`,
                 tools: [
@@ -133,8 +216,9 @@ export const GET: APIRoute = async ({ request, url }) => {
         }
 
         const responseStream = await openai.responses.create({
-            model: "gpt-4o",
-            ...(stepNum === 1 ? { instructions: INSTRUCTIONS } : {}),
+            model: "gpt-5.2",
+            ...(!isGeneralHelp && stepNum === 1 ? { instructions: INSTRUCTIONS } : {}),
+            ...(isGeneralHelp ? { instructions: GENERAL_HELP_INSTRUCTIONS } : {}),
             input: prompt,
             stream: true,
             ...(previousResponseId

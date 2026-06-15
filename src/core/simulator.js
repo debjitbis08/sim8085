@@ -16,6 +16,8 @@ let load8085Program = null;
 let unload8085Program = null;
 let execute8085ProgramUntil = null;
 let interruptToHalt = null;
+let getLastTotalTstates = null;
+let getLastMaxStackBytes = null;
 let statePointer = null;
 
 export const setIOWriteCallback = (function () {
@@ -46,6 +48,12 @@ export async function initSimulator() {
     load8085Program = simulator.cwrap("LoadProgram", "number", ["number", "array", "number", "number"]);
     unload8085Program = simulator.cwrap("UnloadProgram", "number", ["number", "array", "number", "number"]);
     interruptToHalt = simulator.cwrap("InterruptToHalt", "number", ["number"]);
+    getLastTotalTstates = simulator._get_last_total_tstates
+        ? simulator.cwrap("get_last_total_tstates", "number", [])
+        : null;
+    getLastMaxStackBytes = simulator._get_last_max_stack_bytes
+        ? simulator.cwrap("get_last_max_stack_bytes", "number", [])
+        : null;
 
     // Initialize the state pointer
     statePointer = simulator._Init8085();
@@ -160,6 +168,8 @@ export function runProgram(store) {
         const end = performance.now();
         console.log("Execution Time", end - start);
         const outputState = getStateFromPtr(simulator, newStatePointer);
+        const tstates = getLastTotalTstates ? getLastTotalTstates() : null;
+        const maxStackBytes = getLastMaxStackBytes ? getLastMaxStackBytes() : null;
 
         return {
             accumulator: outputState.a,
@@ -183,6 +193,10 @@ export function runProgram(store) {
             memory: outputState.memory,
             io: outputState.io,
             statePointer: newStatePointer,
+            metrics: {
+                totalTstates: tstates,
+                maxStackBytes,
+            },
         };
     } catch (e) {
         console.error("Execution failed:", e);
@@ -210,6 +224,8 @@ export function runProgramInSlices(store, onStateUpdate) {
 
     let lastSliceMs = 200;
 
+    let totalTstates = 0;
+
     function step(isFirst) {
         const start = performance.now();
         try {
@@ -224,6 +240,9 @@ export function runProgramInSlices(store, onStateUpdate) {
 
             const halted = simulator.getValue(resultPtr, "i32");
             const tstates = simulator.getValue(resultPtr + 4, "i32");
+            totalTstates += tstates;
+
+            const maxStackBytes = getLastMaxStackBytes ? getLastMaxStackBytes() : null;
 
             onStateUpdate(halted, {
                 accumulator: outputState.a,
@@ -247,6 +266,11 @@ export function runProgramInSlices(store, onStateUpdate) {
                 memory: outputState.memory,
                 io: outputState.io,
                 statePointer: store.statePointer,
+                metrics: {
+                    lastSliceTstates: tstates,
+                    totalTstates,
+                    maxStackBytes,
+                },
             });
 
             if (!halted) {

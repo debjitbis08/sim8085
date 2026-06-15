@@ -1,0 +1,377 @@
+---
+title: 8085 Program to Compute Factorial of a Number
+description: An 8085 assembly program that computes the factorial of an 8-bit number using repeated addition and stores the 16-bit result in memory.
+---
+
+import AdBlock from "../../../../../components/AdBlock.astro";
+
+Write an 8085 assembly program to compute the factorial of a number stored in memory. The result should be stored as a 16-bit value across two memory locations.
+
+* Input:
+
+  * `2500H` = number N (0 to 8 recommended)
+* Output:
+
+  * `3000H` = factorial result (low byte)
+  * `3001H` = factorial result (high byte)
+
+<AdBlock adSlot="7634600323" fullWidthResponsive={false} textAlign="left" />
+
+---
+
+## ⚡ TL;DR — Final Working Code
+
+```asm
+        ; Interface
+        INPUT_ADDR  EQU 2500H
+        RESULT_LO   EQU 3000H
+        RESULT_HI   EQU 3001H
+
+        ; Step 1: Load N
+        LXI H, INPUT_ADDR
+        MOV B, M             ; B ← N
+
+        ; Step 2: Initialize result = 1
+        LXI H, 0001H         ; HL ← 1 (result)
+
+        ; Handle N = 0 or 1
+        MOV A, B
+        CPI 01H
+        JC DONE              ; If N = 0
+        JZ DONE              ; If N = 1
+
+FACTORIAL_LOOP:
+        ; Multiply HL by B using repeated addition
+        MOV D, H
+        MOV E, L             ; DE ← current result
+        LXI H, 0000H         ; HL ← accumulator = 0
+        MOV C, B             ; C ← multiplier
+
+MUL_LOOP:
+        DAD D                ; HL ← HL + DE
+        DCR C
+        JNZ MUL_LOOP
+
+        DCR B
+        MOV A, B
+        CPI 01H
+        JNZ FACTORIAL_LOOP
+
+DONE:
+        MOV A, L
+        STA RESULT_LO        ; Store low byte
+        MOV A, H
+        STA RESULT_HI        ; Store high byte
+        HLT
+```
+
+---
+
+## 🧱 Step 1: Define the Interface
+
+We need a clean interface so we can test the program quickly and keep inputs and outputs separate.
+
+| Address | Purpose                         |
+| ------- | ------------------------------- |
+| `2500H` | Input number N (0 to 8)         |
+| `3000H` | Output: factorial low byte      |
+| `3001H` | Output: factorial high byte     |
+
+This layout keeps the input untouched and stores the final result in a predictable location.
+
+---
+
+### 🧾 Code (Load the Input Only)
+
+```asm
+LXI H, 2500H     ; HL → input address
+MOV B, M         ; B ← N
+HLT
+```
+
+---
+
+### 🧪 Manual Test
+
+Set:
+
+```
+2500H = 04H
+```
+
+Expected:
+
+* Register `B` = `04H`
+
+Now we can build the factorial logic on top of this input.
+
+---
+
+## 🧱 Step 2: Initialize Result and Handle Base Cases
+
+Factorial starts from 1, so we begin with:
+
+```
+result = 1
+```
+
+If `N` is 0 or 1, the answer is immediately 1, so we can skip the loop.
+
+---
+
+### 🧾 Code (Setup + Base Case Check)
+
+```asm
+LXI H, 0001H     ; HL ← 1 (result)
+MOV A, B
+CPI 01H
+JC DONE          ; N = 0
+JZ DONE          ; N = 1
+```
+
+---
+
+### 🧪 Manual Test
+
+Set:
+
+```
+2500H = 00H
+```
+
+Expected:
+
+* Result should remain `0001H` (0! = 1)
+
+Try:
+
+```
+2500H = 01H
+```
+
+Expected:
+
+* Result should remain `0001H` (1! = 1)
+
+---
+
+<AdBlock adSlot="3777463403" layout="in-article" />
+
+## 🧱 Step 3: Multiply Once (Single Step)
+
+To compute factorial, we repeatedly multiply the running result by the current counter:
+
+```
+result = result × N
+result = result × (N - 1)
+...
+```
+
+Before we loop, let’s do **one multiplication step** so the idea is clear. This uses the same repeated-addition approach as the dedicated multiplication program:
+
+- [Multiply Two 8-bit Numbers](/docs/en/programs/multiply-8bit-numbers/)
+
+We’ll use `DAD` to add a 16-bit register pair into `HL`.
+
+---
+
+### 🧾 Code (One Multiplication Step)
+
+```asm
+    MOV D, H         ; DE ← current result
+    MOV E, L
+    LXI H, 0000H     ; HL ← 0 (accumulator)
+    MOV C, B         ; C ← multiplier
+
+MUL_LOOP:
+    DAD D            ; HL ← HL + DE
+    DCR C
+    JNZ MUL_LOOP
+```
+
+After this block, `HL = (old HL) × B`.
+
+---
+
+### 🧪 Manual Test
+
+Set:
+
+```
+2500H = 04H
+```
+
+Expected:
+
+* If `HL` started at `0001H`, the new `HL` should be `0004H`
+
+Try:
+
+```
+2500H = 05H
+```
+
+Expected:
+
+* If `HL` started at `0001H`, the new `HL` should be `0005H`
+
+---
+
+## 🧱 Step 4: Repeat Multiplication Until B = 1
+
+Now wrap the single-step multiplication inside a loop and decrement `B` each time.
+
+---
+
+### 🧾 Code (Factorial Loop)
+
+```asm
+FACTORIAL_LOOP:
+    MOV D, H
+    MOV E, L         ; DE ← current result
+    LXI H, 0000H     ; HL ← 0 (accumulator)
+    MOV C, B         ; C ← multiplier
+
+MUL_LOOP:
+    DAD D            ; HL ← HL + DE
+    DCR C
+    JNZ MUL_LOOP
+
+    DCR B
+    MOV A, B
+    CPI 01H
+    JNZ FACTORIAL_LOOP
+```
+
+---
+
+### 🧪 Manual Test
+
+Set:
+
+```
+2500H = 04H
+```
+
+Expected:
+
+* Result = `0018H` (24 decimal)
+
+Try:
+
+```
+2500H = 05H
+```
+
+Expected:
+
+* Result = `0078H` (120 decimal)
+
+---
+
+## 🧱 Step 5: Store the 16-bit Result in Memory
+
+The final result is in `HL`. Store both bytes so the value is preserved after halt.
+
+---
+
+### 🧾 Code (Store Output)
+
+```asm
+MOV A, L
+STA 3000H     ; Low byte
+MOV A, H
+STA 3001H     ; High byte
+HLT
+```
+
+---
+
+### 🧪 Manual Test
+
+Set:
+
+```
+2500H = 06H
+```
+
+Expected:
+
+```
+3000H = D0H
+3001H = 02H
+```
+
+(`06H` = 6, `6!` = 720 = `02D0H`)
+
+---
+
+## 🧠 Why Not Use a Subroutine?
+
+You can move the repeated-addition block into a `MULT16` subroutine for clarity and reuse. This article keeps it inline so the data flow is visible in one place while you learn the control flow.
+
+If you do use a subroutine, make sure to:
+
+* Define a clear calling convention (inputs/outputs)
+* Preserve registers the caller expects with `PUSH`/`POP`
+* Return with `RET` and keep `SP` consistent
+
+---
+
+## 🧱 Step 6: Refactor with a Multiplication Subroutine
+
+Once you understand the flow, refactor the repeated-addition block into a `MULT16` subroutine. This keeps the main loop short and makes the multiply logic reusable.
+
+---
+
+### 🧾 Code (Factorial + MULT16)
+
+```asm
+        ; Interface
+        INPUT_ADDR  EQU 2500H
+        RESULT_LO   EQU 3000H
+        RESULT_HI   EQU 3001H
+
+        LXI H, INPUT_ADDR
+        MOV B, M             ; B ← N
+        LXI H, 0001H         ; HL ← 1 (result)
+
+        MOV A, B
+        CPI 01H
+        JC DONE
+        JZ DONE
+
+FACT_LOOP:
+        CALL MULT16          ; HL = HL * B
+        DCR B
+        MOV A, B
+        CPI 01H
+        JNZ FACT_LOOP
+
+DONE:
+        MOV A, L
+        STA RESULT_LO
+        MOV A, H
+        STA RESULT_HI
+        HLT
+
+; --- MULT16: HL = HL * B (B is 8-bit multiplier) ---
+MULT16:
+        PUSH D
+        PUSH B
+        MOV D, H
+        MOV E, L             ; DE ← multiplicand
+        LXI H, 0000H         ; HL ← accumulator
+        MOV C, B             ; C ← multiplier
+
+MUL_LOOP:
+        DAD D
+        DCR C
+        JNZ MUL_LOOP
+
+        POP B
+        POP D
+        RET
+```
+
+This version keeps all multiplication details inside `MULT16` and leaves the factorial loop clean and focused.

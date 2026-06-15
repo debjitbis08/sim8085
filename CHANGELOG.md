@@ -1,3 +1,52 @@
+## [2.20.5](https://github.com/debjitbis08/sim8085/compare/v2.20.4...v2.20.5) (2026-02-23)
+
+
+### Bug Fixes
+
+* Update ads to use generic component ([54afcfe](https://github.com/debjitbis08/sim8085/commit/54afcfe8dbdcc5efa9f144347aadd8b6d751a5af))
+
+## [2.20.4](https://github.com/debjitbis08/sim8085/compare/v2.20.3...v2.20.4) (2026-02-04)
+
+
+### Bug Fixes
+
+* Fix title for search engines ([be45452](https://github.com/debjitbis08/sim8085/commit/be4545237c835b25a07a7d9a8c3975e75f1bd6d2))
+
+## [2.20.3](https://github.com/debjitbis08/sim8085/compare/v2.20.2...v2.20.3) (2026-02-04)
+
+
+### Bug Fixes
+
+* Show better instructions for Tutor tab ([83e9fc2](https://github.com/debjitbis08/sim8085/commit/83e9fc290d3b0823b333becd031d8444026e92fc))
+
+## [2.20.2](https://github.com/debjitbis08/sim8085/compare/v2.20.1...v2.20.2) (2026-01-30)
+
+
+### Bug Fixes
+
+* Update AI models ([45c9402](https://github.com/debjitbis08/sim8085/commit/45c94025525094b20e7a97c8e2f7bf2976bb344b))
+
+## [2.20.1](https://github.com/debjitbis08/sim8085/compare/v2.20.0...v2.20.1) (2026-01-27)
+
+
+### Bug Fixes
+
+* Add simple way to copy binary value ([5b1a912](https://github.com/debjitbis08/sim8085/commit/5b1a91250159c96d52c179b49907a275a0eb4607))
+
+# [2.20.0](https://github.com/debjitbis08/sim8085/compare/v2.19.1...v2.20.0) (2026-01-25)
+
+
+### Features
+
+* Introduce metric data ([62ea991](https://github.com/debjitbis08/sim8085/commit/62ea991db24e6254e9d4e6aca49502935dffbb5b))
+
+## [2.19.1](https://github.com/debjitbis08/sim8085/compare/v2.19.0...v2.19.1) (2026-01-24)
+
+
+### Bug Fixes
+
+* Fix plus status page ([233fa77](https://github.com/debjitbis08/sim8085/commit/233fa77ee51966ffe677590b749fae3bdb75801d))
+
 # [2.19.0](https://github.com/debjitbis08/sim8085/compare/v2.18.23...v2.19.0) (2025-12-14)
 
 

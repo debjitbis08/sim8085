@@ -1,75 +1,83 @@
 ---
-import Layout from '../layouts/Layout.astro';
-import { FaSolidFileContract, FaSolidCircleCheck  } from 'solid-icons/fa'
+import Layout from "../layouts/Layout.astro";
+import { FaSolidFileContract, FaSolidCircleCheck } from "solid-icons/fa";
 ---
 
-<Layout title="Sim8085 Plus – Status" showActions={false} fullwidth={false} fullHeight={false}>
-  <main class="mx-auto px-4 py-8" x-data="subscriptionStatus" x-init="init">
+<Layout title="Sim8085 Plus - Status" showActions={false} fullwidth={false} fullHeight={false}>
+    <main class="mx-auto px-4 py-8" x-data="subscriptionStatus" x-init="init">
         <h1 class="text-2xl font-bold mb-4 flex items-center gap-2">
-<FaSolidFileContract />
-            <span>
-            Your Subscription Status
-            </span>
+            <FaSolidFileContract />
+            <span> Your Subscription Status </span>
         </h1>
 
-    <template x-if="isLoading">
-      <p class="text-sm text-muted-foreground">Loading your subscription details...</p>
-    </template>
+        <template x-if="isLoading">
+            <p class="text-sm text-muted-foreground">Loading your subscription details...</p>
+        </template>
 
-    <template x-if="!isLoading && !user">
-      <p class="text-red-foreground">You're not logged in. <a href="/login/" class="underline text-blue-foreground">Login</a> to view your subscription status.</p>
-    </template>
+        <template x-if="!isLoading && !user">
+            <p class="text-red-foreground">
+                You're not logged in. <a href="/login/" class="underline text-blue-foreground">Login</a> to view your subscription
+                status.
+            </p>
+        </template>
 
-    <template x-if="user && tier === 'FREE'">
-      <div class="mt-4">
-        <p class="text-yellow-700 mb-2">You're currently on the <strong>FREE</strong> tier.</p>
-        <a href="/upgrade/" class="inline-block mt-2 px-4 py-2 bg-terminal-700 text-white rounded">Upgrade to Plus</a>
-      </div>
-    </template>
+        <template x-if="user && tier === 'FREE'">
+            <div class="mt-4">
+                <p class="text-yellow-700 mb-2">You're currently on the <strong>FREE</strong> tier.</p>
+                <a href="/upgrade/" class="inline-block mt-2 px-4 py-2 bg-terminal-700 text-white rounded"
+                    >Upgrade to Plus</a
+                >
+            </div>
+        </template>
 
-    <template x-if="user && tier === 'PLUS'">
-      <div class="mt-4">
+        <template x-if="user && tier === 'PLUS'">
+            <div class="mt-4">
                 <p class="text-terminal mb-1 font-medium flex items-center gap-2">
                     <FaSolidCircleCheck />
                     <span>You're on the <strong>Plus</strong> plan.</span>
                 </p>
-        <p class="text-sm text-secondary-foreground">Valid until: <strong x-text="expiresAt"></strong></p>
-      </div>
-    </template>
-  </main>
+                <p class="text-sm text-secondary-foreground">Valid until: <strong x-text="expiresAt"></strong></p>
+            </div>
+        </template>
+    </main>
 </Layout>
 
 <script>
-import Alpine from 'alpinejs';
-import { getUser } from '../lib/supabase.js';
-import { getUserTierWithExpiry } from '../lib/subscription.js';
+    import Alpine from "alpinejs";
+    import { getUser } from "../lib/supabase.js";
+    import { getUserTierWithExpiry } from "../lib/subscription.js";
 
-document.addEventListener('alpine:init', () => {
-  Alpine.data('subscriptionStatus', () => ({
-    isLoading: true,
-    user: null,
-    tier: null,
-    expiresAt: null,
+    document.addEventListener("alpine:init", () => {
+        Alpine.data("subscriptionStatus", () => ({
+            isLoading: true,
+            user: null,
+            tier: null,
+            expiresAt: null,
 
-    async init() {
-      const { user } = await getUser();
-      this.user = user;
+            async init() {
+                const { user } = await getUser();
+                this.user = user;
 
-      if (!user) {
-        this.isLoading = false;
-        return;
-      }
+                if (!user) {
+                    this.isLoading = false;
+                    return;
+                }
 
-      const { tier, subscription_expires_at } = await getUserTierWithExpiry();
+                const { tier, subscription_expires_at } = await getUserTierWithExpiry();
 
-      this.tier = tier;
-      this.expiresAt = subscription_expires_at
-        ? new Date(subscription_expires_at).toLocaleDateString()
-        : null;
+                console.log(tier, subscription_expires_at);
 
-      this.isLoading = false;
-    }
-  }));
-});
+                this.tier = tier;
+                this.expiresAt = subscription_expires_at
+                    ? new Date(subscription_expires_at).toLocaleDateString("en-US", {
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
+                      })
+                    : null;
+
+                this.isLoading = false;
+            },
+        }));
+    });
 </script>
-

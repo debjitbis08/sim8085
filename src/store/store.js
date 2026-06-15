@@ -127,6 +127,17 @@ export const [store, setStore] = createStore({
     },
     breakpoints: [],
     errors: [],
+    metrics: {
+        performance: {
+            totalTstates: null,
+            maxStackBytes: null,
+            programSizeBytes: 0,
+            inputSizeBytes: 0,
+            memoryChangedBytes: null,
+            memoryChangedOutsideProgramBytes: null,
+            registersUsed: [],
+        },
+    },
     activeFile: getInitialActiveFile(),
     homeFolderId: null,
     settings: structuredClone(DEFAULT_SETTINGS),

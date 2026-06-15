@@ -2,6 +2,7 @@ import { createEffect, createSignal, onMount, onCleanup, lazy, Suspense } from "
 import { Tabs } from "./generic/Tabs";
 import { Tooltip } from "./generic/Tooltip.jsx";
 import { Assembled } from "./Assembled";
+import { MetricsPanel } from "./MetricsPanel.jsx";
 import { BiRegularDockRight, BiSolidDockRight } from "solid-icons/bi";
 import { VsLoading } from "solid-icons/vs";
 import debounce from "debounce";
@@ -124,12 +125,15 @@ export function RightPanel() {
                 }}
             ></button>
             <Tabs aria-label="right panel navigation" class={`tabs ${expanded() ? "" : "hidden"} flex flex-col`}>
-                <Tabs.List class="tabs__list">
+                <Tabs.List class="tabs__list mr-12 border-b-0!">
                     <Tabs.Trigger class={`tabs__trigger ${expanded() ? "" : "hidden"}`} value="machine-code">
                         Machine Code
                     </Tabs.Trigger>
                     <Tabs.Trigger class={`tabs__trigger ${expanded() ? "" : "hidden"}`} value="led-array">
                         LED Array
+                    </Tabs.Trigger>
+                    <Tabs.Trigger class={`tabs__trigger ${expanded() ? "" : "hidden"}`} value="metrics">
+                        Metrics
                     </Tabs.Trigger>
                     {isOpenAiEnabled && (
                         <Tabs.Trigger class={`tabs__trigger ${expanded() ? "" : "hidden"}`} value="step-guide">
@@ -138,16 +142,19 @@ export function RightPanel() {
                     )}
                     <Tabs.Indicator class="tabs__indicator" />
                 </Tabs.List>
-                <Tabs.Content class="tabs__content flex-grow overflow-y-auto overflow-x-auto" value="machine-code">
+                <Tabs.Content class="tabs__content flex-grow overflow-y-auto overflow-x-auto border-t border-t-inactive-border" value="machine-code">
                     <Assembled isPanelExpanded={expanded()} />
                 </Tabs.Content>
-                <Tabs.Content class="tabs__content flex-grow overflow-y-auto overflow-x-auto" value="led-array">
+                <Tabs.Content class="tabs__content flex-grow overflow-y-auto overflow-x-auto border-t border-t-inactive-border" value="led-array">
                     <Suspense fallback={<VsLoading class="animate-spin" />}>
                         <LEDArray />
                     </Suspense>
                 </Tabs.Content>
+                <Tabs.Content class="tabs__content flex-grow overflow-y-auto overflow-x-auto border-t border-t-inactive-border" value="metrics">
+                    <MetricsPanel />
+                </Tabs.Content>
                 {isOpenAiEnabled && (
-                    <Tabs.Content class="tabs__content flex-grow overflow-y-auto overflow-x-auto" value="step-guide">
+                    <Tabs.Content class="tabs__content flex-grow overflow-y-auto overflow-x-auto border-t border-t-inactive-border" value="step-guide">
                         <Suspense fallback={<VsLoading class="animate-spin" />}>
                             <Tutor />
                         </Suspense>

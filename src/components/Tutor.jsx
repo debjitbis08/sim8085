@@ -179,10 +179,25 @@ export default function StepByStepGuide() {
                     when={tier() === "PLUS"}
                     fallback={
                         <div class="p-4">
-                            <p class="mb-4">Step-by-step tutorials are available for Plus users.</p>
+                            <p class="mb-2 font-semibold">Step-by-step 8085 tutorials are a Plus feature.</p>
+                            <p class="mb-2 text-secondary-foreground">
+                                This tutor walks you through building an 8085 assembly program step by step. It is not
+                                for general app or interface help.
+                            </p>
+                            <p class="mb-4 text-secondary-foreground">
+                                Example prompts: "Write an 8085 program to add two 16-bit numbers", "Create a routine to find the largest of 10 numbers", "Design
+                                an 8085 program to count the number of 1s in a byte".
+                            </p>
+                            <p class="mb-4 text-secondary-foreground">
+                                The Tutor will provide step-by-step instructions to help you implement the program in assembly language without
+                                writing the complete code for you. This incremental approach helps you to better retain the concepts and logic behind 8085 programming.
+                            </p>
+                            <p class="mb-4 text-secondary-foreground">
+                                Check the sample programs in the docs to have an idea of what kind of content the AI might generate.
+                            </p>
                             <button
                                 type="button"
-                                class="border border-terminal text-terminal rounded px-4 py-2 hover:bg-active-background"
+                                class="border border-terminal text-terminal rounded px-4 py-2 hover:bg-active-background cursor-pointer"
                                 onClick={openPlusDialog}
                             >
                                 Learn More
@@ -192,11 +207,26 @@ export default function StepByStepGuide() {
                 >
                     <Show when={!store.tutorial.problem}>
                         <div class="mb-4">
-                            <label class="block mb-2 font-semibold">What are you trying to code?</label>
+                            <label class="block mb-2 font-semibold">What 8085 program are you trying to implement?</label>
+                            <p class="mb-2 text-secondary-foreground">
+                                This tutor gives step-by-step 8085 assembly instructions only. It is not for general
+                                app or interface help.
+                            </p>
+                            <p class="mb-4 text-secondary-foreground">
+                                Example prompts: "Write an 8085 program to add two 16-bit numbers", "Create a routine to find the largest of 10 numbers", "Design
+                                an 8085 program to count the number of 1s in a byte".
+                            </p>
+                            <p class="mb-4 text-secondary-foreground">
+                                The Tutor will provide step-by-step instructions to help you implement the program in assembly language without
+                                writing the complete code for you. This incremental approach helps you to better retain the concepts and logic behind 8085 programming.
+                            </p>
+                            <p class="mb-4 text-secondary-foreground">
+                                Check the sample programs in the docs to have an idea of what kind of content the AI might generate.
+                            </p>
                             <textarea
                                 class="w-full p-2 border border-secondary-border rounded resize-none"
                                 rows="4"
-                                placeholder="Describe the problem you want help with..."
+                                placeholder='Describe the 8085 program you want to implement (e.g., "Add two 16-bit numbers stored at 2000H and 2002H")...'
                                 value={store.tutorial.problem}
                                 onInput={(e) => setProblemInput(e.currentTarget.value)}
                             ></textarea>

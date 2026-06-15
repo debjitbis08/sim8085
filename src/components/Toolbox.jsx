@@ -103,6 +103,11 @@ function BinaryConverter() {
         });
     };
 
+    const binaryValue = () => {
+        const value = getValue();
+        return value === 0 ? "0" : value.toString(2);
+    };
+
     return (
         <div>
             <h2 class="text-lg mb-2 flex items-center gap-2">
@@ -144,6 +149,16 @@ function BinaryConverter() {
                             <div class="text-sm text-secondary-foreground">{8 + 7 - index}</div>
                         </div>
                     ))}
+            </div>
+
+            <div class="flex items-center gap-2 border-b pb-1 mb-2">
+                <input
+                    type="text"
+                    class="w-full bg-transparent outline-none font-mono"
+                    value={binaryValue()}
+                    readonly
+                />
+                <span class="text-sm text-secondary-foreground">Binary</span>
             </div>
 
             <div class="flex items-end gap-2 border-b">

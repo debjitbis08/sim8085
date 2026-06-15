@@ -53,10 +53,11 @@ export async function getUserTier({ forceRefresh = false } = {}) {
 }
 
 export async function getUserTierWithExpiry() {
+    const { tier } = await getUserTier();
     const res = await supabase.from("customers").select("subscription_tier, subscription_expires_at").single();
 
     return {
-        tier: res.data?.subscription_tier ?? "FREE",
+        tier,
         subscription_expires_at: res.data?.subscription_expires_at ?? null,
     };
 }
