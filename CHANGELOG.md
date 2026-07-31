@@ -1,3 +1,17 @@
+# [2.21.0](https://github.com/debjitbis08/sim8085/compare/v2.20.5...v2.21.0) (2026-07-31)
+
+
+### Bug Fixes
+
+* Honor cookie consent and cut PostHog autocapture volume ([1d77d18](https://github.com/debjitbis08/sim8085/commit/1d77d18430d4f7408f3245157acc5f38ca85ad0b))
+* Send custom events to the initialized PostHog instance ([97465b4](https://github.com/debjitbis08/sim8085/commit/97465b4beb055a5faf25b6ba891f1fc774cb33d0))
+* Surface AI failures, upgrade models and cut OpenAI cost ([dc936e3](https://github.com/debjitbis08/sim8085/commit/dc936e3e104c9365f712d68fa437339fbcf74772))
+
+
+### Features
+
+* Render AI responses as sanitized markdown ([ff2a12b](https://github.com/debjitbis08/sim8085/commit/ff2a12b79e44b928e6fcdb20a0a3cdbf0f5fe12a))
+
 ## [2.20.5](https://github.com/debjitbis08/sim8085/compare/v2.20.4...v2.20.5) (2026-02-23)
 
 
