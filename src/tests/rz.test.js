@@ -11,6 +11,13 @@ describe('RZ Instruction Property-Based Tests', () => {
                 fc.integer({ min: 0x0005, max: 0xFFFE }), // Random return address
                 fc.boolean(), // Random zero flag state
                 async (stackPointer, returnAddress, zeroFlag) => {
+                    // The return address bytes are written to memory *after* the program
+                    // is loaded, so a return address overlapping either stack slot would
+                    // overwrite the HLT placed at `org returnAddress`. The CPU would then
+                    // execute that data byte and run past the expected stop, failing the
+                    // assertion for reasons unrelated to the instruction under test.
+                    fc.pre(returnAddress !== stackPointer && returnAddress !== stackPointer + 1);
+
                     const lowByte = returnAddress & 0xFF;
                     const highByte = (returnAddress >> 8) & 0xFF;
 
