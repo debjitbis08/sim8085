@@ -74,3 +74,95 @@
         --sm-editor-punctuation: 156 163 175;
     }
 }
+
+/* Rendered AI output (tutor steps, error explanations).
+   Preflight strips list markers and heading sizes, so restore them locally
+   rather than globally. Colors reuse the theme variables so this follows
+   light/dark like the rest of the app. */
+.ai-markdown {
+    line-height: 1.55;
+    overflow-wrap: anywhere;
+}
+.ai-markdown > *:first-child {
+    margin-top: 0;
+}
+.ai-markdown > *:last-child {
+    margin-bottom: 0;
+}
+.ai-markdown p,
+.ai-markdown ul,
+.ai-markdown ol,
+.ai-markdown blockquote,
+.ai-markdown pre,
+.ai-markdown table {
+    margin-block: 0.6em;
+}
+.ai-markdown h1,
+.ai-markdown h2,
+.ai-markdown h3,
+.ai-markdown h4 {
+    font-weight: 700;
+    margin-block: 0.9em 0.4em;
+    line-height: 1.3;
+}
+.ai-markdown h1 { font-size: 1.25em; }
+.ai-markdown h2 { font-size: 1.15em; }
+.ai-markdown h3 { font-size: 1.05em; }
+.ai-markdown h4 { font-size: 1em; }
+.ai-markdown ul,
+.ai-markdown ol {
+    padding-inline-start: 1.5em;
+}
+.ai-markdown ul { list-style: disc; }
+.ai-markdown ol { list-style: decimal; }
+.ai-markdown li { margin-block: 0.25em; }
+.ai-markdown strong { font-weight: 700; }
+.ai-markdown em { font-style: italic; }
+.ai-markdown a {
+    color: rgb(var(--sm-blue-foreground));
+    text-decoration: underline;
+}
+.ai-markdown code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.9em;
+    background-color: rgb(var(--sm-secondary-background));
+    border: 1px solid rgb(var(--sm-inactive-border));
+    border-radius: 0.25rem;
+    padding: 0.05em 0.3em;
+}
+.ai-markdown pre {
+    background-color: rgb(var(--sm-secondary-background));
+    border: 1px solid rgb(var(--sm-inactive-border));
+    border-radius: 0.375rem;
+    padding: 0.6em 0.75em;
+    overflow-x: auto;
+}
+/* The <pre> already carries the frame; the inner <code> must not double it. */
+.ai-markdown pre code {
+    background: none;
+    border: 0;
+    padding: 0;
+    white-space: pre;
+}
+.ai-markdown blockquote {
+    border-inline-start: 3px solid rgb(var(--sm-secondary-border));
+    padding-inline-start: 0.75em;
+    color: rgb(var(--sm-secondary-foreground));
+}
+.ai-markdown table {
+    border-collapse: collapse;
+    display: block;
+    overflow-x: auto;
+}
+.ai-markdown th,
+.ai-markdown td {
+    border: 1px solid rgb(var(--sm-inactive-border));
+    padding: 0.3em 0.5em;
+    text-align: left;
+}
+.ai-markdown th { font-weight: 700; }
+.ai-markdown hr {
+    border: 0;
+    border-top: 1px solid rgb(var(--sm-secondary-border));
+    margin-block: 0.9em;
+}

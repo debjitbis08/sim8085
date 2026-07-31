@@ -1,12 +1,14 @@
 import { createSignal, onMount, Show, createEffect, onCleanup } from "solid-js";
 import { supabase, getUser, getSession } from "../lib/supabase.js";
 import { HiSolidSparkles } from "solid-icons/hi";
+import { renderMarkdown } from "../lib/render-markdown.js";
 import { FaSolidRobot } from "solid-icons/fa";
 
 export default function ExplainErrorButton(props) {
     const [tier, setTier] = createSignal("FREE");
     const [isLoading, setIsLoading] = createSignal(false);
     const [explanation, setExplanation] = createSignal("");
+    const [errorMessage, setErrorMessage] = createSignal("");
     const isOpenAiEnabled = import.meta.env.PUBLIC_OPENAI_ENABLED === "true";
 
     onMount(async () => {
@@ -23,6 +25,8 @@ export default function ExplainErrorButton(props) {
 
     async function explain() {
         setIsLoading(true);
+        setErrorMessage("");
+        setExplanation("");
         try {
             const { session } = await getSession();
             const headers = { "Content-Type": "application/json" };
@@ -37,10 +41,14 @@ export default function ExplainErrorButton(props) {
                     error: props.error.msg,
                 }),
             });
-            const data = await response.json();
-            setExplanation(data.explanation ?? "");
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok || !data.explanation) {
+                setErrorMessage(data.error || "Could not get a response from the AI. Please try again.");
+                return;
+            }
+            setExplanation(data.explanation);
         } catch (_) {
-            setExplanation("Failed to fetch explanation.");
+            setErrorMessage("Failed to fetch explanation.");
         } finally {
             setIsLoading(false);
         }
@@ -148,7 +156,12 @@ export default function ExplainErrorButton(props) {
                 </button>
                 <Show when={explanation()}>
                     <div class="bg-secondary-background p-2 rounded border border-inactive-border mt-2">
-                        <pre class="mt-2 whitespace-pre-wrap text-sm">{explanation()}</pre>
+                        <div class="ai-markdown mt-2 text-sm" innerHTML={renderMarkdown(explanation())} />
+                    </div>
+                </Show>
+                <Show when={errorMessage()}>
+                    <div class="bg-secondary-background p-2 rounded border border-red-500 mt-2">
+                        <p class="text-sm text-red-500">{errorMessage()}</p>
                     </div>
                 </Show>
             </div>

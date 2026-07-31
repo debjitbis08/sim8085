@@ -4,6 +4,7 @@ import { getUserTier } from "../lib/subscription.js";
 import { store, setStore } from "../store/store.js";
 import { produce } from "solid-js/store";
 import { getSession } from "../lib/supabase.js";
+import { renderMarkdown } from "../lib/render-markdown.js";
 
 export default function StepByStepGuide() {
     const [tier, setTier] = createSignal("FREE");
@@ -60,6 +61,19 @@ export default function StepByStepGuide() {
 
         evt.addEventListener("responseId", (e) => {
             setStore("tutorial", "latestResponseId", e.data);
+        });
+
+        // Named `apiError`, not `error`, so it does not collide with
+        // EventSource's built-in error event and get clobbered by onerror.
+        evt.addEventListener("apiError", (e) => {
+            evt.close();
+            setStore(
+                "tutorial",
+                produce((tutorial) => {
+                    tutorial.stepIndex = stepNum;
+                    tutorial.step = e.data;
+                }),
+            );
         });
 
         evt.addEventListener("done", () => {
@@ -264,13 +278,17 @@ export default function StepByStepGuide() {
                             <h3 class="font-bold mb-2">Step {store.tutorial.stepIndex}</h3>
                             <Show when={store.tutorial.step}>
                                 <div class="mt-2 text-primary-foreground">
-                                    <pre class="text-sm whitespace-pre-wrap">{store.tutorial.step}</pre>
+                                    <div
+                                        class="ai-markdown text-sm"
+                                        innerHTML={renderMarkdown(store.tutorial.step)}
+                                    />
                                 </div>
                             </Show>
                             <Show when={store.tutorial.stepHint}>
-                                <pre class="text-sm whitespace-pre-wrap border-t border-secondary-border mt-4 pt-4">
-                                    {store.tutorial.stepHint}
-                                </pre>
+                                <div
+                                    class="ai-markdown text-sm border-t border-secondary-border mt-4 pt-4"
+                                    innerHTML={renderMarkdown(store.tutorial.stepHint)}
+                                />
                             </Show>
                             <Show when={store.tutorial.stepInstructionHint}>
                                 <p class="mt-2 text-secondary-foreground">{store.tutorial.stepInstructionHint}</p>
