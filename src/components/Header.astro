@@ -255,7 +255,6 @@ const avatarUrl = user?.user_metadata?.avatar_url; // Default avatar if none exi
 </style>
 <script>
     import Alpine from 'alpinejs';
-    import posthog from 'posthog-js';
     import {supabase, getUserFromSession, signOut, getUser} from '../lib/supabase.js';
     import { getUserTier } from '../lib/subscription.js';
 
@@ -284,7 +283,9 @@ const avatarUrl = user?.user_metadata?.avatar_url; // Default avatar if none exi
             async logout() {
                 await signOut();
                 localStorage.removeItem("activeFile");
-                posthog.reset();
+                // Must be the global instance (see analytics/tracker.js) or the
+                // logged-in identity is never actually cleared.
+                if (window.posthog) window.posthog.reset();
                 window.location.reload(); // Refresh the page after logout
             },
 
