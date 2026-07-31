@@ -71,7 +71,12 @@
                 localStorage.setItem('cookie_consent', 'no');
                 window.dispatchEvent(new CustomEvent('adsConsentGiven', { detail: { country, consent: 'no' } }));
                 this.showBanner = false;
-                import('./identify.js').then(mod => mod.identifyUser());
+                if (window.posthog) {
+                    // Mirror of acceptCookies(): keep PostHog out of localStorage and
+                    // cookies for anyone who declined.
+                    posthog.set_config({ persistence: 'memory' });
+                    import('./identify.js').then(mod => mod.identifyUser());
+                }
             }
         }));
     });

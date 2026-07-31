@@ -1,9 +1,11 @@
 import { getSession } from "../../lib/supabase.js";
 
+// Anonymous visitors are identified on purpose: a fingerprint (consent declined) or a
+// stored random id (consent given) is how we keep continuity for people without a
+// PostHog cookie. This means their events bill as identified rather than anonymous,
+// which is a deliberate tradeoff for that continuity.
 export async function identifyUser() {
     const cookieConsent = localStorage.getItem("cookie_consent");
-
-    console.log("cookieConsent", cookieConsent);
 
     const { session, error } = await getSession();
 
