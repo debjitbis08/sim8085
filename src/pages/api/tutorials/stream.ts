@@ -2,8 +2,27 @@ import type { APIRoute } from "astro";
 import { OPENAI_API_KEY } from "astro:env/server";
 import OpenAI from "openai";
 import { getUserFromRequest } from "../../../lib/supabase-server.js";
+import { openAiThrownErrorMessage } from "../../../lib/openai-errors.js";
 
 export const prerender = false;
+
+// Full step generation gets the stronger model; hints and interface questions
+// are a sentence or two and do not need it.
+const REASONING_MODEL = "gpt-5.5";
+const FAST_MODEL = "gpt-4.1-mini";
+
+const FAST_MODES = new Set(["hint", "instructionHint", "explain", "stuck"]);
+
+// User-supplied text goes straight into the prompt, so bound it.
+const MAX_PROBLEM_CHARS = 2_000;
+const MAX_CODE_CHARS = 8_000;
+
+// The seed article is an expensive file_search call whose only use is as
+// conversation context, and it depends solely on the problem text — so reuse it
+// across tutorials on the same problem. Per-instance and ephemeral on Netlify,
+// same as any module-level cache here; a miss just costs what it costs today.
+const articleResponseIds = new Map<string, string>();
+const MAX_CACHED_ARTICLES = 200;
 
 const INSTRUCTIONS = `
     You are a helpful 8085 programming tutor guiding the student step by step.
@@ -164,8 +183,8 @@ export const GET: APIRoute = async ({ request, url }) => {
     const mode = url.searchParams.get("mode") || "generate";
     const conversationId = url.searchParams.get("conversationId") || null;
     const previousResponseId = url.searchParams.get("previousResponseId") || null;
-    const currentCode = url.searchParams.get("currentCode") || "";
-    const problem = url.searchParams.get("problem") || "";
+    const currentCode = (url.searchParams.get("currentCode") || "").slice(0, MAX_CODE_CHARS);
+    const problem = (url.searchParams.get("problem") || "").slice(0, MAX_PROBLEM_CHARS);
     const isGeneralHelp = isGeneralHelpRequest(problem);
 
     if (!OPENAI_API_KEY) {
@@ -196,35 +215,45 @@ export const GET: APIRoute = async ({ request, url }) => {
             ? `General help request about Sim8085/interface:\n${problem}\n\nRespond in 2-6 short sentences with actionable guidance.`
             : `Problem I am trying to solve:\n${problem}\n\n${promptMap[mode] || promptMap.generate}\n\nMy code till now:\n${currentCode}`;
 
-        let internalResponse;
+        let seedResponseId: string | null = null;
         if (!previousResponseId && !isGeneralHelp) {
-            internalResponse = await openai.responses.create({
-                model: "gpt-5.2",
-                instructions: ARTICLE_INSTRUCTIONS,
-                input: `Write and article for the problem: "${problem}".`,
-                tools: [
-                    {
-                        type: "file_search",
-                        vector_store_ids: [
-                            "vs_685fc63cec708191b08a5113e9231a0f",
-                            "vs_685e9a397ca48191b926b950e9da3881",
-                        ],
-                    },
-                ],
-            });
-            console.log(internalResponse.output_text);
+            const cacheKey = problem.trim().toLowerCase();
+            seedResponseId = articleResponseIds.get(cacheKey) ?? null;
+
+            if (!seedResponseId) {
+                const internalResponse = await openai.responses.create({
+                    model: REASONING_MODEL,
+                    instructions: ARTICLE_INSTRUCTIONS,
+                    input: `Write and article for the problem: "${problem}".`,
+                    tools: [
+                        {
+                            type: "file_search",
+                            vector_store_ids: [
+                                "vs_685fc63cec708191b08a5113e9231a0f",
+                                "vs_685e9a397ca48191b926b950e9da3881",
+                            ],
+                        },
+                    ],
+                });
+                seedResponseId = internalResponse.id;
+
+                if (articleResponseIds.size >= MAX_CACHED_ARTICLES) {
+                    articleResponseIds.delete(articleResponseIds.keys().next().value as string);
+                }
+                articleResponseIds.set(cacheKey, seedResponseId);
+            }
         }
 
         const responseStream = await openai.responses.create({
-            model: "gpt-5.2",
+            model: isGeneralHelp || FAST_MODES.has(mode) ? FAST_MODEL : REASONING_MODEL,
             ...(!isGeneralHelp && stepNum === 1 ? { instructions: INSTRUCTIONS } : {}),
             ...(isGeneralHelp ? { instructions: GENERAL_HELP_INSTRUCTIONS } : {}),
             input: prompt,
             stream: true,
             ...(previousResponseId
                 ? { previous_response_id: previousResponseId }
-                : internalResponse != null
-                  ? { previous_response_id: internalResponse.id }
+                : seedResponseId
+                  ? { previous_response_id: seedResponseId }
                   : {}),
             // tools: [
             //     {
@@ -271,9 +300,17 @@ export const GET: APIRoute = async ({ request, url }) => {
         });
     } catch (err) {
         console.error("Streaming error:", err);
-        return new Response(JSON.stringify({ error: "Failed to stream step" }), {
-            status: 500,
-            headers: { "Content-Type": "application/json" },
+
+        // EventSource cannot read the body of a non-2xx response, so the reason
+        // has to travel as an SSE event or the client only ever sees "failed".
+        const message = openAiThrownErrorMessage(err);
+        const body = `event: apiError\ndata: ${message}\n\nevent: done\ndata: [DONE]\n\n`;
+        return new Response(encoder.encode(body), {
+            headers: {
+                "Content-Type": "text/event-stream",
+                "Cache-Control": "no-cache",
+                Connection: "keep-alive",
+            },
         });
     }
 };

@@ -1,5 +1,6 @@
 import { OPENAI_API_KEY } from "astro:env/server";
 import { getUserFromRequest } from "../../lib/supabase-server.js";
+import { openAiErrorMessage } from "../../lib/openai-errors.js";
 
 export const prerender = false;
 
@@ -46,21 +47,43 @@ export async function POST({ request }) {
                 Authorization: `Bearer ${apiKey}`,
             },
             body: JSON.stringify({
-                model: "gpt-4.1-mini",
+                model: "gpt-5.5",
                 messages: [
                     {
                         role: "system",
-                        content: "You are an 8085 assembler expert helping users understand errors.",
+                        content:
+                            "You are an 8085 assembler expert helping users understand errors. " +
+                            "Explain the cause, then give a concrete fix. " +
+                            "Use markdown, with assembly in fenced code blocks. Keep it under 150 words.",
                     },
                     { role: "user", content: `Code:\n${code}\n\nError: ${error}` },
                 ],
             }),
         });
         const data = await res.json();
-        return new Response(JSON.stringify({ explanation: data.choices?.[0]?.message?.content ?? "" }), {
+
+        if (!res.ok) {
+            console.error("OpenAI error", res.status, data?.error?.code, data?.error?.message);
+            return new Response(JSON.stringify({ error: openAiErrorMessage(res.status, data?.error?.code) }), {
+                status: 502,
+                headers: { "Content-Type": "application/json" },
+            });
+        }
+
+        const explanation = data.choices?.[0]?.message?.content ?? "";
+        if (!explanation) {
+            console.error("OpenAI returned no explanation", JSON.stringify(data).slice(0, 500));
+            return new Response(JSON.stringify({ error: "AI returned an empty response. Please try again." }), {
+                status: 502,
+                headers: { "Content-Type": "application/json" },
+            });
+        }
+
+        return new Response(JSON.stringify({ explanation }), {
             headers: { "Content-Type": "application/json" },
         });
     } catch (err) {
+        console.error("Failed to fetch explanation", err);
         return new Response(JSON.stringify({ error: "Failed to fetch explanation" }), {
             status: 500,
             headers: { "Content-Type": "application/json" },
