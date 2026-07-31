@@ -44,7 +44,7 @@
         "debounce": "^2.2.0",
         "jsonwebtoken": "^9.0.2",
         "openai": "^5.8.1",
-        "posthog-js": "^1.239.1",
+        "posthog-js": "^1.409.1",
         "razorpay": "^2.9.6",
         "solid-devtools": "^0.30.1",
         "solid-icons": "^1.1.0",
