@@ -18,7 +18,8 @@
         "build": "node scripts/generate-ads-txt.js && astro build",
         "preview": "astro preview",
         "astro": "astro",
-        "build-emulator": "./scripts/build-emulator.sh"
+        "build-emulator": "./scripts/build-emulator.sh",
+        "supabase": "./scripts/supabase.sh"
     },
     "dependencies": {
         "@astrojs/alpinejs": "^0.4.8",

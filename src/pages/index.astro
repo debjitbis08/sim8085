@@ -9,6 +9,15 @@ import { DonationPlea } from '../components/DonationPlea.jsx';
 import { NatoryAd } from '../components/NatoryAd.jsx';
 import { UnsavedFileDialog } from '../components/UnsavedFileDialog.jsx';
 import { DODO_DONATION_PAYMENT_LINK } from 'astro:env/client';
+import { getCollection } from 'astro:content';
+import { buildCatalogue } from '../lib/practice/catalogue.js';
+
+// The practice problems are listed in the left panel, so they are reachable
+// from inside the simulator rather than only from /practice.
+const catalogue = buildCatalogue(
+    await getCollection('practiceProblems'),
+    await getCollection('practiceSteps'),
+);
 ---
 
 <Layout title="Sim8085 | A 8085 microprocessor simulator" showActions={true} fullwidth={true} fullHeight={true} smallFooter={true}>
@@ -22,7 +31,7 @@ import { DODO_DONATION_PAYMENT_LINK } from 'astro:env/client';
                 id="left-panel"
                 class="absolute md:static z-10 min-w-max max-w-[400px] hidden md:block"
             >
-                <LeftPanel client:idle />
+                <LeftPanel client:idle catalogue={catalogue} />
             </div>
 
             <!-- Middle Panel that can grow, but with a min and max width to remain stable -->

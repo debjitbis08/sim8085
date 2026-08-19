@@ -8,6 +8,7 @@ import { Tooltip } from "./generic/Tooltip.jsx";
 import { BiRegularDockLeft, BiSolidDockLeft } from "solid-icons/bi";
 import {
     FaRegularLightbulb,
+    FaSolidGraduationCap,
     FaSolidLightbulb,
     FaSolidScrewdriverWrench,
     FaSolidTriangleExclamation,
@@ -23,11 +24,26 @@ const Workspace = lazy(() => import("./Workspace.jsx"));
 const IOPorts = lazy(() => import("./IOPorts.jsx"));
 const MemoryList = lazy(() => import("./MemoryList.jsx"));
 const Toolbox = lazy(() => import("./Toolbox.jsx"));
+// Imported eagerly, unlike the tabs below. On a practice page this tab is the
+// one that starts active, so it renders during hydration; behind lazy() the
+// dynamic import resolves after hydration has already walked past it and Solid
+// throws "Unable to find DOM nodes for hydration key", leaving the panel's
+// handlers unattached and the Check button dead. The other lazy tabs are safe
+// because KeepAlive renders nothing for them until they are first opened.
+import { PracticePanel } from "./practice/PracticePanel.jsx";
+import { PracticeBrowser } from "./practice/PracticeBrowser.jsx";
 
-export function LeftPanel() {
-    const [activeTab, setActiveTab] = createSignal("cpu");
+export function LeftPanel(props) {
+    // A practice page opens on the exercise; everywhere else opens on the CPU.
+    const [activeTab, setActiveTab] = createSignal(props.practice ? "practice" : "cpu");
+    // On a step page the practice tab shows either the exercise or the problem
+    // list. "All problems" swaps between them in place rather than navigating
+    // away, which would discard whatever is in the editor.
+    const [showProblemList, setShowProblemList] = createSignal(false);
     const [expanded, setExpanded] = createSignal(true);
-    const [width, setWidth] = createSignal(300);
+    // A step brief is prose and needs more room than the register grid. This
+    // width includes the icon rail, so the readable column is ~60px narrower.
+    const [width, setWidth] = createSignal(props.practice ? 520 : 300);
     const [isOnline, setIsOnline] = createSignal(false);
     const [workspaceEnabled, setWorkspaceEnabled] = createSignal(true);
     const [noSession, setNoSession] = createSignal(true);
@@ -154,6 +170,14 @@ export function LeftPanel() {
                     onClick={() => showTab("io")}
                     title="Input Output Ports"
                 />
+                <Show when={props.practice || props.catalogue?.length}>
+                    <PanelButton
+                        icon={<FaSolidGraduationCap class="text-[18px]" />}
+                        isActive={isActive("practice")}
+                        onClick={() => showTab("practice")}
+                        title={props.practice ? props.practice.step.title : "Practice problems"}
+                    />
+                </Show>
                 <PanelButton
                     icon={<FaSolidScrewdriverWrench class="text-[18px]" />}
                     isActive={isActive("toolbox")}
@@ -242,6 +266,32 @@ export function LeftPanel() {
                             <Toolbox />
                         </KeepAlive>
                     </Suspense>
+                    <Show when={props.practice || props.catalogue?.length}>
+                        <KeepAlive active={activeTab() === "practice"}>
+                            {/* Inside a step the exercise is the whole tab;
+                                the catalogue would push the working surface
+                                off screen. "All problems" swaps to the list. */}
+                            {/* Both stay mounted once seen, so stepping out to
+                                the problem list and back does not throw away
+                                check results, revealed hints or scroll. */}
+                            <Show when={props.practice}>
+                                <KeepAlive active={!showProblemList()}>
+                                    <PracticePanel
+                                        {...props.practice}
+                                        onBack={() => setShowProblemList(true)}
+                                    />
+                                </KeepAlive>
+                            </Show>
+                            <KeepAlive active={!props.practice || showProblemList()}>
+                                <PracticeBrowser
+                                    catalogue={props.catalogue}
+                                    currentProblemSlug={props.practice?.stepKey?.split("/")[0]}
+                                    onBackToStep={props.practice ? () => setShowProblemList(false) : null}
+                                    backToStepTitle={props.practice?.step?.title}
+                                />
+                            </KeepAlive>
+                        </KeepAlive>
+                    </Show>
                 </div>
                 <div class="grow"></div>
             </div>

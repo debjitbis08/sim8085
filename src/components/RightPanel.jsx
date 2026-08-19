@@ -14,6 +14,15 @@ const Tutor = lazy(() => import("./Tutor.jsx"));
 
 const isOpenAiEnabled = import.meta.env.PUBLIC_OPENAI_ENABLED === "true";
 
+// The AI Tutor is superseded by the deterministic, checked exercises at
+// /practice, so its tab is hidden. Nothing has been deleted: Tutor.jsx, the
+// /api/tutorials/stream endpoint and the `tutorial` slice of the store are all
+// still here, and setting this back to true restores the tab unchanged.
+//
+// Deliberately a separate switch from PUBLIC_OPENAI_ENABLED, which also gates
+// the "Explain this error" button — that feature stays on.
+const SHOW_TUTOR = false;
+
 export function RightPanel() {
     let [expanded, setExpanded] = createSignal(true);
     const [width, setWidth] = createSignal(300);
@@ -135,7 +144,7 @@ export function RightPanel() {
                     <Tabs.Trigger class={`tabs__trigger ${expanded() ? "" : "hidden"}`} value="metrics">
                         Metrics
                     </Tabs.Trigger>
-                    {isOpenAiEnabled && (
+                    {SHOW_TUTOR && isOpenAiEnabled && (
                         <Tabs.Trigger class={`tabs__trigger ${expanded() ? "" : "hidden"}`} value="step-guide">
                             Tutor
                         </Tabs.Trigger>
@@ -153,7 +162,7 @@ export function RightPanel() {
                 <Tabs.Content class="tabs__content flex-grow overflow-y-auto overflow-x-auto border-t border-t-inactive-border" value="metrics">
                     <MetricsPanel />
                 </Tabs.Content>
-                {isOpenAiEnabled && (
+                {SHOW_TUTOR && isOpenAiEnabled && (
                     <Tabs.Content class="tabs__content flex-grow overflow-y-auto overflow-x-auto border-t border-t-inactive-border" value="step-guide">
                         <Suspense fallback={<VsLoading class="animate-spin" />}>
                             <Tutor />

@@ -1,4 +1,4 @@
-import { createSignal, onMount, Show } from "solid-js";
+import { createSignal, onCleanup, onMount, Show } from "solid-js";
 import { VsDebug, VsDebugStepOver, VsQuestion } from "solid-icons/vs";
 import { HiSolidPlay, HiSolidStop, HiSolidWrench } from "solid-icons/hi";
 import { produce } from "solid-js/store";
@@ -10,6 +10,8 @@ import {
     runProgramInSlices,
     setAllMemoryLocations,
     setFlags,
+    setIOPort,
+    setMemoryLocation,
     setPC,
     setRegisters,
     startDebug,
@@ -724,6 +726,82 @@ export default function Actions() {
             run();
         }
     };
+
+    /**
+     * Load a failing practice case into the live simulator and stop at the
+     * first instruction, so the learner can single-step the exact scenario
+     * that failed.
+     *
+     * This deliberately does not go through beforeRun(): that clears flags and
+     * registers by default, which would discard the case's preconditions.
+     */
+    const debugPracticeCase = (setup, caseName) => {
+        if (store.programState !== "Idle") unload();
+
+        setStore("memory", (memory) => memory.map(() => 0));
+        setAllMemoryLocations(store);
+        setStore("assembled", []);
+        setStore("programState", "Idle");
+
+        load();
+        if (store.errors.length > 0) return;
+
+        const pc = setup.pc ?? store.pcStartValue;
+
+        setStore(
+            produce((draftStore) => {
+                draftStore.accumulator = setup.registers?.a ?? 0;
+                draftStore.registers.bc.high = setup.registers?.b ?? 0;
+                draftStore.registers.bc.low = setup.registers?.c ?? 0;
+                draftStore.registers.de.high = setup.registers?.d ?? 0;
+                draftStore.registers.de.low = setup.registers?.e ?? 0;
+                draftStore.registers.hl.high = setup.registers?.h ?? 0;
+                draftStore.registers.hl.low = setup.registers?.l ?? 0;
+
+                draftStore.flags.z = setup.flags?.z ?? false;
+                draftStore.flags.s = setup.flags?.s ?? false;
+                draftStore.flags.p = setup.flags?.p ?? false;
+                draftStore.flags.c = setup.flags?.cy ?? false;
+                draftStore.flags.ac = setup.flags?.ac ?? false;
+
+                draftStore.stackPointer = setup.sp ?? 0xffff;
+                draftStore.programCounter = pc;
+                draftStore.programState = "Paused";
+            }),
+        );
+
+        for (const [address, value] of Object.entries(setup.memory ?? {})) {
+            const location = Number(address);
+            setStore("memory", location, value);
+            setMemoryLocation(store, location, value);
+        }
+        for (const [port, value] of Object.entries(setup.io ?? {})) {
+            const location = Number(port);
+            setStore("io", location, value);
+            setIOPort(store, location, value);
+        }
+
+        setRegisters(store);
+        setFlags(store);
+        setPC(store, pc);
+        startDebug(store);
+
+        window.dispatchEvent(new CustomEvent("showLeftPanel", { detail: {} }));
+
+        showToaster(
+            "info",
+            "Case loaded",
+            caseName
+                ? `"${caseName}" is set up and paused at the first instruction. Step with F10, or run it.`
+                : "Set up and paused at the first instruction. Step with F10, or run it.",
+        );
+    };
+
+    onMount(() => {
+        const onDebugCase = (event) => debugPracticeCase(event.detail?.setup ?? {}, event.detail?.name);
+        window.addEventListener("practice:debug-case", onDebugCase);
+        onCleanup(() => window.removeEventListener("practice:debug-case", onDebugCase));
+    });
 
     const setPCStartValue = (value) => {
         setStore("pcStartValue", parseInt(value || "0", 16) % 65536);

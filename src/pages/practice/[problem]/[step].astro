@@ -1,0 +1,131 @@
+---
+import { getCollection } from "astro:content";
+import { marked } from "marked";
+import Layout from "../../../layouts/Layout.astro";
+import { LeftPanel } from "../../../components/LeftPanel.jsx";
+import { RightPanel } from "../../../components/RightPanel.jsx";
+import { CodingArea } from "../../../components/CodingArea.jsx";
+import { PlusDialog } from "../../../components/PlusDialog.jsx";
+import { UnsavedFileDialog } from "../../../components/UnsavedFileDialog.jsx";
+import { loadStep } from "../../../lib/practice/content.js";
+import { parseStepKey } from "../../../lib/practice/step-key.js";
+import { buildCatalogue, isPublished, stepsForProblem } from "../../../lib/practice/catalogue.js";
+import { seal } from "../../../lib/practice/access.js";
+import { DODO_DONATION_PAYMENT_LINK } from "astro:env/client";
+import "../../../components/styles.css";
+
+export async function getStaticPaths() {
+    const problems = (await getCollection("practiceProblems")).filter(isPublished);
+    const allSteps = await getCollection("practiceSteps");
+
+    return problems.flatMap((problem) =>
+        stepsForProblem(allSteps, problem.id).map((step) => ({
+            params: { problem: problem.id, step: parseStepKey(step.id).step },
+            props: { problemId: problem.id },
+        })),
+    );
+}
+
+const { problem: problemSlug, step: stepSlug } = Astro.params;
+const stepKey = `${problemSlug}/${stepSlug}`;
+
+const problem = (await getCollection("practiceProblems")).find((p) => p.id === problemSlug);
+const allSteps = await getCollection("practiceSteps");
+const siblings = stepsForProblem(allSteps, problemSlug);
+
+const index = siblings.findIndex((s) => s.id === stepKey);
+const step = siblings[index];
+const previous = index > 0 ? siblings[index - 1] : null;
+const next = index < siblings.length - 1 ? siblings[index + 1] : null;
+
+const { starterCode, cases, constraints } = loadStep(stepKey);
+
+// First-party markdown authored in this repo, so it is rendered rather than
+// sanitized. Never pass learner-supplied text through here.
+const briefHtml = marked.parse(step.body ?? "", { async: false, gfm: true });
+
+const catalogue = buildCatalogue(await getCollection("practiceProblems"), allSteps);
+
+const href = (entry) => `/practice/${problemSlug}/${parseStepKey(entry.id).step}/`;
+
+const isPaid = problem.data.access === "plus";
+
+// Everything a learner is only entitled to once they can access the step.
+// Astro server-renders islands, so anything left unsealed here would appear
+// verbatim in the static HTML of a paid page.
+const content = {
+    briefHtml,
+    cases,
+    constraints,
+    starterCode,
+    hints: step.data.hints,
+};
+
+const practice = {
+    stepKey,
+    // Every step of this problem, in order, so the panel can work out what is
+    // unlocked without another round trip.
+    orderedStepKeys: siblings.map((entry) => entry.id),
+    problem: { title: problem.data.title },
+    step: {
+        title: step.data.title,
+        stepNumber: step.data.stepNumber,
+    },
+    totalSteps: siblings.length,
+    access: problem.data.access,
+    // Free steps ship their content plainly, so they keep working offline via
+    // the service worker. Paid steps ship it sealed; see access.js.
+    content: isPaid ? null : content,
+    sealed: isPaid ? seal(content) : null,
+    budgetTstates: step.data.budgetTstates,
+    problemHref: "/practice/",
+    prevHref: previous ? href(previous) : null,
+    nextHref: next ? href(next) : null,
+};
+---
+
+<Layout
+    title={`${step.data.title} | ${problem.data.title} | Sim8085 Practice`}
+    showActions={true}
+    fullwidth={true}
+    fullHeight={true}
+    smallFooter={true}
+>
+    <main class="relative h-full">
+        <div class="flex items-start h-full md:h-[calc(100vh-6.2rem)]">
+            <div id="left-panel" class="absolute md:static z-10 min-w-max max-w-[520px] hidden md:block">
+                <LeftPanel client:idle practice={practice} catalogue={catalogue} />
+            </div>
+
+            <div
+                class="px-2 md:px-0 md:pr-0 md:pl-0 border-y border-y-main-border bg-main-background md:bg-secondary-background flex-grow min-w-0 h-full"
+            >
+                <CodingArea
+                    client:load
+                    practiceStepKey={stepKey}
+                    starterCode={isPaid ? null : starterCode}
+                    carryForwardFrom={previous ? previous.id : null}
+                />
+            </div>
+
+            <div
+                id="right-panel"
+                class="hidden md:flex min-w-max items-start h-full md:h-[calc(100vh-6.2rem)] overflow-x-hidden overflow-y-hidden absolute md:static right-0"
+            >
+                <RightPanel client:idle />
+            </div>
+        </div>
+
+        <PlusDialog client:idle DODO_DONATION_PAYMENT_LINK={DODO_DONATION_PAYMENT_LINK} />
+        <UnsavedFileDialog client:idle />
+    </main>
+</Layout>
+
+<script>
+    window.addEventListener("showLeftPanel", () => {
+        document.getElementById("left-panel")?.classList.remove("hidden");
+    });
+    window.addEventListener("showRightPanel", () => {
+        document.getElementById("right-panel")?.classList.toggle("hidden");
+    });
+</script>

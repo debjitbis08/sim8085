@@ -1,0 +1,123 @@
+---
+import { getCollection } from "astro:content";
+import Layout from "../../layouts/Layout.astro";
+import { allTags, isPublished, sortProblems, stepsForProblem } from "../../lib/practice/catalogue.js";
+import { parseStepKey } from "../../lib/practice/step-key.js";
+
+const problems = sortProblems((await getCollection("practiceProblems")).filter(isPublished));
+const allSteps = await getCollection("practiceSteps");
+const tags = allTags(problems);
+
+const entries = problems.map((problem) => {
+    const steps = stepsForProblem(allSteps, problem.id);
+    const first = steps[0];
+    return {
+        id: problem.id,
+        data: problem.data,
+        stepCount: steps.length,
+        href: first ? `/practice/${problem.id}/${parseStepKey(first.id).step}/` : null,
+    };
+});
+
+const difficultyClass = {
+    beginner: "text-green-foreground border-green-foreground",
+    intermediate: "text-yellow-foreground border-yellow-foreground",
+    advanced: "text-red-foreground border-red-foreground",
+};
+---
+
+<Layout title="Practice | Sim8085" smallFooter={true}>
+    <main class="max-w-4xl mx-auto px-4 py-10">
+        <header class="mb-8">
+            <h1 class="text-3xl mb-2">Practice</h1>
+            <p class="text-secondary-foreground max-w-2xl">
+                Short, checked exercises. You write 8085 assembly in the full simulator, press Check, and
+                get told exactly which case failed and why, then step through that case in the debugger.
+            </p>
+        </header>
+
+        {
+            tags.length > 0 && (
+                <div class="flex flex-wrap gap-2 mb-8" data-tag-filter>
+                    <button
+                        type="button"
+                        class="text-xs px-2 py-1 rounded border border-terminal text-terminal cursor-pointer"
+                        data-tag="all"
+                    >
+                        All
+                    </button>
+                    {tags.map((tag) => (
+                        <button
+                            type="button"
+                            class="text-xs px-2 py-1 rounded border border-inactive-border text-inactive-foreground hover:border-active-border cursor-pointer"
+                            data-tag={tag}
+                        >
+                            {tag}
+                        </button>
+                    ))}
+                </div>
+            )
+        }
+
+        <ul class="flex flex-col gap-3">
+            {
+                entries.map((entry) => (
+                    <li data-tags={entry.data.tags.join(" ")}>
+                        <a
+                            href={entry.href}
+                            class="block border border-main-border rounded p-4 hover:border-terminal transition-colors"
+                        >
+                            <div class="flex items-center gap-2 mb-1 flex-wrap">
+                                <span
+                                    class={`text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded border ${difficultyClass[entry.data.difficulty]}`}
+                                >
+                                    {entry.data.difficulty}
+                                </span>
+                                {entry.data.access === "plus" && (
+                                    <span class="text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded border border-yellow-foreground text-yellow-foreground">
+                                        Plus
+                                    </span>
+                                )}
+                                <span class="text-xs text-inactive-foreground font-mono">
+                                    {entry.stepCount} {entry.stepCount === 1 ? "step" : "steps"}
+                                </span>
+                            </div>
+                            <h2 class="text-lg">{entry.data.title}</h2>
+                            <p class="text-sm text-secondary-foreground mt-1">{entry.data.description}</p>
+                            <div class="flex gap-2 mt-2 flex-wrap">
+                                {entry.data.tags.map((tag) => (
+                                    <span class="text-xs text-inactive-foreground font-mono">#{tag}</span>
+                                ))}
+                            </div>
+                        </a>
+                    </li>
+                ))
+            }
+        </ul>
+
+        {entries.length === 0 && <p class="text-inactive-foreground">No problems published yet.</p>}
+    </main>
+</Layout>
+
+<script>
+    const filter = document.querySelector("[data-tag-filter]");
+    filter?.addEventListener("click", (event) => {
+        const button = (event.target as HTMLElement).closest("[data-tag]") as HTMLElement | null;
+        if (!button) return;
+        const selected = button.dataset.tag;
+
+        filter.querySelectorAll("[data-tag]").forEach((el) => {
+            const active = (el as HTMLElement).dataset.tag === selected;
+            el.classList.toggle("border-terminal", active);
+            el.classList.toggle("text-terminal", active);
+            el.classList.toggle("border-inactive-border", !active);
+            el.classList.toggle("text-inactive-foreground", !active);
+        });
+
+        document.querySelectorAll("li[data-tags]").forEach((item) => {
+            const tags = (item as HTMLElement).dataset.tags?.split(" ") ?? [];
+            const show = selected === "all" || tags.includes(selected!);
+            (item as HTMLElement).style.display = show ? "" : "none";
+        });
+    });
+</script>

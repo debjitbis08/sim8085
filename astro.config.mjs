@@ -157,6 +157,14 @@ export default defineConfig({
     }),
     vite: {
         plugins: [peggy(), tailwindcss()],
+        // Workers are bundled through their own plugin pipeline, which does not
+        // inherit the plugins above. The verification worker reaches the peggy
+        // grammar via the simulator, so peggy has to be registered here too or
+        // the production build fails to parse 8085.pegjs.
+        worker: {
+            format: "es",
+            plugins: () => [peggy()],
+        },
         ssr: {
             noExternal: ["nanoid", "@astrojs/starlight-tailwind"],
         },

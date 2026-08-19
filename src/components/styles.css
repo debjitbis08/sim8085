@@ -1,0 +1,137 @@
+/*
+ * Typography for practice step briefs.
+ *
+ * The briefs are rendered markdown, and the panel has no prose styling of its
+ * own, so headings, lists and code all arrived looking like flat body text.
+ * These rules are written against the app's own theme tokens rather than
+ * pulling in the typography plugin, which is tuned for full-width article
+ * layouts and reads badly in a ~400px panel.
+ */
+
+.practice-brief {
+    line-height: 1.65;
+}
+
+.practice-brief > * + * {
+    margin-top: 0.85em;
+}
+
+.practice-brief h1,
+.practice-brief h2,
+.practice-brief h3,
+.practice-brief h4 {
+    font-weight: 600;
+    line-height: 1.3;
+    color: rgb(var(--sm-active-foreground));
+}
+
+/* Section headings sit close to the text they introduce and further from the
+   paragraph above, so the brief reads as grouped sections rather than an
+   undifferentiated column. */
+.practice-brief > * + :is(h1, h2, h3, h4) {
+    margin-top: 1.6em;
+}
+
+.practice-brief :is(h1, h2, h3, h4) + * {
+    margin-top: 0.5em;
+}
+
+.practice-brief h1 {
+    font-size: 1.15rem;
+}
+
+.practice-brief h2 {
+    font-size: 1.05rem;
+}
+
+.practice-brief h3,
+.practice-brief h4 {
+    font-size: 0.95rem;
+}
+
+.practice-brief ul,
+.practice-brief ol {
+    padding-left: 1.15rem;
+}
+
+.practice-brief ul {
+    list-style: disc;
+}
+
+.practice-brief ol {
+    list-style: decimal;
+}
+
+.practice-brief li + li {
+    margin-top: 0.3em;
+}
+
+.practice-brief li::marker {
+    color: rgb(var(--sm-inactive-foreground));
+}
+
+.practice-brief strong {
+    font-weight: 600;
+    color: rgb(var(--sm-active-foreground));
+}
+
+.practice-brief em {
+    font-style: italic;
+}
+
+/* Inline code is dense with register and address names — 2000H, MOV A, M — so
+   it needs to be distinguishable without turning the paragraph into confetti. */
+.practice-brief code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.875em;
+    padding: 0.1em 0.3em;
+    border-radius: 0.2rem;
+    background-color: rgb(var(--sm-main-background));
+    border: 1px solid rgb(var(--sm-inactive-border));
+    white-space: nowrap;
+}
+
+.practice-brief pre {
+    padding: 0.7rem;
+    border-radius: 0.3rem;
+    overflow-x: auto;
+    background-color: rgb(var(--sm-main-background));
+    border: 1px solid rgb(var(--sm-inactive-border));
+}
+
+/* A code block already has its own frame; the inline treatment would double it. */
+.practice-brief pre code {
+    padding: 0;
+    border: 0;
+    background: none;
+    white-space: pre;
+}
+
+.practice-brief a {
+    text-decoration: underline;
+    color: rgb(var(--sm-primary));
+}
+
+.practice-brief hr {
+    border: 0;
+    border-top: 1px solid rgb(var(--sm-inactive-border));
+    margin-top: 1.4em;
+}
+
+.practice-brief blockquote {
+    padding-left: 0.8rem;
+    border-left: 2px solid rgb(var(--sm-inactive-border));
+    color: rgb(var(--sm-secondary-foreground));
+}
+
+.practice-brief table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9em;
+}
+
+.practice-brief :is(th, td) {
+    padding: 0.3em 0.5em;
+    border: 1px solid rgb(var(--sm-inactive-border));
+    text-align: left;
+}

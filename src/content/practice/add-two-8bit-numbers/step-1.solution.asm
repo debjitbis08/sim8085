@@ -1,0 +1,5 @@
+LXI H, 2000H
+MOV A, M
+INX H
+MOV B, M
+HLT

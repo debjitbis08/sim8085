@@ -20,6 +20,11 @@ let getLastTotalTstates = null;
 let getLastMaxStackBytes = null;
 let statePointer = null;
 
+// ExecuteProgramSlice takes its budget as a uint16_t, so a single slice can
+// spend at most 65535 T-states; runProgramWithBudget loops over slices.
+const SLICE_TSTATES = 0xf000;
+const DEFAULT_TSTATE_BUDGET = 5_000_000;
+
 export const setIOWriteCallback = (function () {
     let callback = null;
 
@@ -296,6 +301,78 @@ export function runProgramInSlices(store, onStateUpdate) {
     }
 
     step(true);
+}
+
+/**
+ * Run the loaded program to completion under a T-state budget.
+ *
+ * Unlike `runProgram`, this never calls into `ExecuteProgram`, whose fixed
+ * 100000-instruction cap raises `exit(2)`. It drives `ExecuteProgramSlice`
+ * instead, which stops cleanly once a slice's T-state budget is spent, so a
+ * program that never halts comes back as `exhausted` rather than as an
+ * exception. Intended for automated checking, where the caller needs a
+ * verdict rather than an animation.
+ *
+ * The slice offset is always -1. `Emulate8085Op` resets SP to 0xFFFF whenever
+ * PC equals the offset it is given, so passing -1 keeps the caller's PC and SP
+ * exactly as `store` specifies.
+ */
+export function runProgramWithBudget(store, options = {}) {
+    const maxTstates = options.maxTstates ?? DEFAULT_TSTATE_BUDGET;
+
+    const inputState = getCpuState(store);
+    setState(simulator, store.statePointer, inputState);
+
+    const resultPtr = simulator._malloc(8);
+    let totalTstates = 0;
+    let halted = false;
+
+    try {
+        while (!halted && totalTstates < maxTstates) {
+            execute8085ProgramSlice(store.statePointer, -1, SLICE_TSTATES, resultPtr);
+
+            halted = simulator.getValue(resultPtr, "i32") !== 0;
+            const sliceTstates = simulator.getValue(resultPtr + 4, "i32");
+            totalTstates += sliceTstates;
+
+            // A slice that halts reports 0 T-states; one that neither halts nor
+            // advances would spin forever, so treat it as exhausted.
+            if (sliceTstates <= 0 && !halted) break;
+        }
+    } finally {
+        simulator._free(resultPtr);
+    }
+
+    const outputState = getStateFromPtr(simulator, store.statePointer);
+
+    return {
+        accumulator: outputState.a,
+        registers: {
+            bc: { high: outputState.b, low: outputState.c },
+            de: { high: outputState.d, low: outputState.e },
+            hl: { high: outputState.h, low: outputState.l },
+        },
+        flags: {
+            z: outputState.flags.z || false,
+            s: outputState.flags.s || false,
+            p: outputState.flags.p || false,
+            c: outputState.flags.cy || false,
+            ac: outputState.flags.ac || false,
+        },
+        interruptsEnabled: outputState.interruptsEnabled,
+        interruptMasks: outputState.interruptMasks,
+        pendingInterrupts: outputState.pendingInterrupts,
+        stackPointer: outputState.sp,
+        programCounter: outputState.pc,
+        memory: outputState.memory,
+        io: outputState.io,
+        statePointer: store.statePointer,
+        halted,
+        exhausted: !halted,
+        metrics: {
+            totalTstates,
+        },
+    };
 }
 
 export function runSingleInstruction(store) {
