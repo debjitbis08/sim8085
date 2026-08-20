@@ -1449,6 +1449,7 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
 		break;
 	case 0x27: // DAA
 	{
+		uint8_t accBeforeAdjust = state->a;
 		uint16_t res = state->a;
 		// printf("value of a %d\n", res);
 
@@ -1479,6 +1480,11 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
 		}
 
 		// printf("Final value %d\n", res);
+		{
+			uint8_t adjustment = (uint8_t)(res - accBeforeAdjust);
+			setVKFlags(state, ((accBeforeAdjust & 0x7f) + (adjustment & 0x7f)) >> 7,
+			           ((uint16_t)accBeforeAdjust + adjustment) >> 8, (uint8_t)res);
+		}
 		ArithFlagsA(state, res, UPDATE_CARRY);
 		state->a = (uint8_t)res;
         states = 4;
@@ -2306,18 +2312,10 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
 	}
 	break;
 	case 0xc6: // ADI byte
-	{
-		uint16_t x = (uint16_t)state->a + (uint16_t)opcode[1];
-		state->cc.z = ((x & 0xff) == 0);
-		state->cc.s = (0x80 == (x & 0x80));
-		state->cc.p = parity((x & 0xff), 8);
-		state->cc.cy = (x > 0xff);
-	    state->cc.ac = (((state->a & 0x0f) + (opcode[1] & 0x0f)) > 0x0f);
-		state->a = (uint8_t)x;
+		state->a = addByte(state, state->a, opcode[1], UPDATE_CARRY);
 		state->pc++;
         states = 7;
-	}
-	break;
+		break;
 	case 0xc7: // RST 0
         rst(state, 0, 0);
         states = 12;
@@ -2757,17 +2755,15 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
         }
 		break;
 	case 0xfe: // CPI d8
-	{
-		uint8_t x = state->a - opcode[1];
-		state->cc.z = (x == 0);
-		state->cc.s = (0x80 == (x & 0x80));
-		state->cc.p = parity(x, 8);
-		state->cc.cy = (state->a < opcode[1]);
-        state->cc.ac = 0;
+		// The manual documents CPI as affecting Z, S, P, CY and AC, and
+		// describes the comparison as an internal subtraction — the same one
+		// CMP performs. Sharing subtractByte keeps the two consistent and
+		// picks up the undocumented V and K with them; the result is
+		// discarded, since a comparison leaves the accumulator alone.
+		subtractByte(state, state->a, opcode[1], UPDATE_CARRY);
 		state->pc++;
         states = 7;
-	}
-	break;
+		break;
 	case 0xff: // RST 7
         rst(state, 7, 0);
         states = 12;

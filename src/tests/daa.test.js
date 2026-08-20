@@ -144,3 +144,20 @@ describe('DAA Instruction Manual Example', () => {
         expect(result.flags.ac).toBe(true);
     });
 });
+
+describe('DAA Instruction Undocumented Flags', () => {
+    // Shirriff notes that "the V flag for DAA can also be understood in terms
+    // of the underlying addition", so DAA writes V and K from the adjustment
+    // it applies rather than leaving them stale.
+    test('DAA: does not leave V and K stale from a previous instruction', async () => {
+        // 12H is already valid BCD, so no adjustment is added and the sum
+        // 12H + 00H cannot overflow.
+        const result = await runAndGetState('daa\nhlt', {
+            accumulator: 0x12,
+            flags: { v: true, k: true },
+        });
+
+        expect(result.flags.v).toBe(false);
+        expect(result.flags.k).toBe(false);
+    });
+});

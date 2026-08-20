@@ -21,6 +21,11 @@ describe("CPI Instruction Tests", () => {
                     // Calculate expected flags
                     const zeroFlag = result === 0;
                     const carryFlag = accumulator < immediateValue;
+                    // The manual lists AC among the flags CPI affects, and
+                    // describes the comparison as an internal subtraction, so
+                    // AC is the half-borrow that subtraction produces.
+                    const auxCarryFlag =
+                        (accumulator & 0x0f) + ((~immediateValue + 1) & 0x0f) > 0x0f;
 
                     const code = `
                       org 0x0000
@@ -53,7 +58,7 @@ describe("CPI Instruction Tests", () => {
                                     2 ===
                                 0, // Parity flag based on even/odd 1 bits
                             c: carryFlag, // Carry flag based on the comparison
-                            ac: false, // Auxiliary carry flag is reset
+                            ac: auxCarryFlag,
                         },
                         programCounter: 0x0003, // PC should increment by 2 after CPI (2-byte instruction)
                     };
@@ -82,5 +87,70 @@ describe('CPI Instruction Manual Example', () => {
 
         const notEqual = await runAndGetState("cpi 'C'\nhlt", { accumulator: 0x42 });
         expect(notEqual.flags.z).toBe(false);
+    });
+});
+
+describe('CPI Instruction Undocumented Flags', () => {
+    // CPI had the same defect as ADI: it wrote only the five documented flags.
+    // K after a comparison is the signed less-than that JX5/JNX5 test.
+    test.each([
+        // accumulator, immediate, V, K
+        [0x7f, 0xff, true, false], // 127 - (-1) overflows; 127 is not the smaller
+        [0x80, 0x01, true, true], // -128 - 1 overflows; -128 is the smaller
+        [0x05, 0x03, false, false], // 5 - 3 is positive, no overflow
+        [0x03, 0x05, false, true], // 3 - 5 is negative: K marks the smaller
+    ])('CPI %i against %i sets V=%s K=%s', async (a, imm, v, k) => {
+        const literal = `0${imm.toString(16).padStart(2, '0')}H`;
+        const result = await runAndGetState(`cpi ${literal}\nhlt`, { accumulator: a });
+
+        expect(result.flags.v).toBe(v);
+        expect(result.flags.k).toBe(k);
+    });
+
+    test('CPI: K reports a signed less-than that JX5 can branch on', async () => {
+        const code = `
+            cpi 05H
+            jx5 smaller
+            mvi a, 00H
+            hlt
+  smaller:  mvi a, 0FFH
+            hlt
+        `;
+
+        const lower = await runAndGetState(code, { accumulator: 0x03 });
+        expect(lower.accumulator).toBe(0xff);
+
+        const higher = await runAndGetState(code, { accumulator: 0x07 });
+        expect(higher.accumulator).toBe(0x00);
+    });
+});
+
+describe('CPI and CMP consistency', () => {
+    // The manual documents both as Z,S,P,CY,AC and describes each as the same
+    // internal subtraction, so comparing a value immediately and comparing it
+    // out of a register must set identical flags. CPI used to force AC to
+    // zero while CMP computed it, and the two disagreed.
+    test('CPI and CMP set the same flags for the same operands', async () => {
+        for (const [a, operand] of [
+            [0x10, 0x01],
+            [0x00, 0x01],
+            [0x43, 0x43],
+            [0x80, 0x7f],
+            [0xff, 0x0f],
+            [0x3a, 0x2b],
+        ]) {
+            const literal = `0${operand.toString(16).padStart(2, '0')}H`;
+            const immediate = await runAndGetState(`cpi ${literal}\nhlt`, { accumulator: a });
+            const register = await runAndGetState('cmp b\nhlt', {
+                accumulator: a,
+                registers: { bc: { high: operand, low: 0x00 } },
+            });
+
+            expect(immediate.flags, `CPI ${literal} against ${a.toString(16)}`).toEqual(
+                register.flags,
+            );
+            // A comparison leaves the accumulator alone.
+            expect(immediate.accumulator).toBe(a);
+        }
     });
 });

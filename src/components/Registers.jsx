@@ -97,14 +97,15 @@ export function Registers() {
                                 settings of the condition flags.
                             </p>
                             <p class="mb-1">
-                                Since there are only 5 condition flags, the PSW is calculated by filling in bits 3, 5
-                                &amp; 1. 8080 uses 0, 0 &amp; 1 for bits 3, 5 &amp; 1, whereas for 8085 these are
-                                undefined. I have chosen to use the 8080 convention.
+                                The 8085 lays the flags out as S Z K AC 0 P V C. Alongside the five documented
+                                flags it carries two Intel never published: V (overflow) in bit 1 and K in bit 5.
+                                Both are real flag state, and RSTV, JX5 and JNX5 branch on them, so the PSW shows
+                                them rather than filler. Only bit 3 is always zero.
                             </p>
                             <p class="mb-1">
-                                This is the reason you see 2 in the lower byte of PSW which is the flags register when
-                                all the flags are reset. It cannot be edited. Please use the flags section for that
-                                purpose.
+                                The lower byte of the PSW is the flags register, and it reads 0 when every flag is
+                                reset. Note that an 8080 would instead show 2, since it keeps bit 1 set and has no
+                                V or K. It cannot be edited here. Please use the flags section for that purpose.
                             </p>
                         </>
                     }
