@@ -1,6 +1,6 @@
-import { describe, test } from "vitest";
+import { describe, test, expect } from "vitest";
 import * as fc from "fast-check";
-import { runTest } from "./test-utils";
+import { runTest, setupSimulator } from "./test-utils";
 
 describe("ORI Instruction Tests", () => {
     test("ORI: Performs logical OR between accumulator and immediate data, resets carry and auxiliary carry flags", async () => {
@@ -66,4 +66,22 @@ describe("ORI Instruction Tests", () => {
             { verbose: true, numRuns: 100 }, // Run 100 variations for ORI instruction
         );
     });
+});
+
+// Worked example from the Intel 8080/8085 Assembly Language Programming Manual, Chapter 3.
+describe('ORI Instruction Manual Example', () => {
+    // "The following examples show a number of methods for defining immediate
+    // data in the ORI instruction. All of the examples generate the bit
+    // pattern for the ASCII character A." The manual lists six notations; the
+    // character literal ('A') and the expression form (5+30*2) are omitted
+    // here because the assembler does not yet evaluate them correctly.
+    test.each([['01000001B'], ['41H'], ['101Q'], ['65']])(
+        'ORI %s assembles the immediate byte 41H',
+        async (literal) => {
+            const { assembled } = await setupSimulator(`ori ${literal}\nhlt`);
+            const bytes = assembled.filter((a) => a.kind !== 'label').map((a) => a.data);
+
+            expect(bytes.slice(0, 2)).toEqual([0xf6, 0x41]);
+        },
+    );
 });

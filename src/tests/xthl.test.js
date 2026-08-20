@@ -1,6 +1,6 @@
-import { describe, test } from 'vitest';
+import { describe, test, expect } from 'vitest';
 import * as fc from 'fast-check';
-import { runTest } from './test-utils';
+import { runTest, runAndGetState } from './test-utils';
 
 describe('XTHL Instruction Property-Based Tests', () => {
     test('XTHL: Exchanges contents of H/L with top of stack without modifying flags', async () => {
@@ -62,5 +62,26 @@ describe('XTHL Instruction Property-Based Tests', () => {
             ),
             { verbose: true, numRuns: 100 }
         );
+    });
+});
+
+// Worked example from the Intel 8080/8085 Assembly Language Programming Manual, Chapter 3.
+describe('XTHL Instruction Manual Example', () => {
+    // "Assume that the stack pointer register contains 10ADH; register H
+    // contains OBH and L contains 3CH; and memory locations 10ADH and 10AEH
+    // contain FOH and ODH, respectively." The manual's table shows H and L
+    // becoming 0DH and F0H, memory becoming 3CH and 0BH, and notes that "the
+    // stack pointer register remains unchanged".
+    test('XTHL: exchanges HL with the two bytes on top of the stack', async () => {
+        const result = await runAndGetState('lxi sp, 10ADH\nxthl\nhlt', {
+            registers: { hl: { high: 0x0b, low: 0x3c } },
+            memory: { 0x10ad: 0xf0, 0x10ae: 0x0d },
+        });
+
+        expect(result.registers.hl.high).toBe(0x0d);
+        expect(result.registers.hl.low).toBe(0xf0);
+        expect(result.memory[0x10ad]).toBe(0x3c);
+        expect(result.memory[0x10ae]).toBe(0x0b);
+        expect(result.stackPointer).toBe(0x10ad);
     });
 });

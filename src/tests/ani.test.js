@@ -1,6 +1,6 @@
-import { describe, test } from "vitest";
+import { describe, test, expect } from "vitest";
 import * as fc from "fast-check";
-import { runTest } from "./test-utils";
+import { runTest, runAndGetState, setupSimulator } from "./test-utils";
 
 describe("ANI Instruction Tests", () => {
     test("ANI: Performs logical AND between accumulator and immediate data, resets carry flag", async () => {
@@ -65,5 +65,19 @@ describe("ANI Instruction Tests", () => {
             ),
             { verbose: true, numRuns: 100 }, // Run 100 variations for ANI instruction
         );
+    });
+});
+
+// Worked example from the Intel 8080/8085 Assembly Language Programming Manual, Chapter 3.
+describe('ANI Instruction Manual Example', () => {
+    // "The following instruction is used to reset OFF bit six of the byte in
+    // the accumulator: ANI 10111111B"
+    test('ANI 10111111B: assembles to E6 BF and clears only bit 6', async () => {
+        const { assembled } = await setupSimulator('ani 10111111B\nhlt');
+        const bytes = assembled.filter((a) => a.kind !== 'label').map((a) => a.data);
+        expect(bytes.slice(0, 2)).toEqual([0xe6, 0xbf]);
+
+        const result = await runAndGetState('ani 10111111B\nhlt', { accumulator: 0xff });
+        expect(result.accumulator).toBe(0xbf);
     });
 });

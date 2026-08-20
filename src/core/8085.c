@@ -990,6 +990,14 @@ void ArithFlagsA(State8085 *state, uint16_t res, should_preserve_carry preserveC
 //
 // Sources consulted, and where they disagree:
 //
+//   * Wolfgang Dehnhardt and Villy M. Sorensen, "Unspecified 8085 op codes
+//     enhance programming" (Electronics, January 1979). The original
+//     publication of these opcodes, and the primary source. Gives the condition
+//     code format as S Z X5 AC 0 P V C, the per-instruction flag lists and the
+//     T-state counts used below, and states that X5's only known use is as an
+//     unsigned overflow indicator on INX (FFFF to 0000) and underflow on DCX
+//     (0000 to FFFF). Its published X5 formula, a majority function over the
+//     operand and result signs, agrees with V xor sign for subtraction.
 //   * Ken Shirriff's silicon reverse-engineering of the 8085 flag circuits
 //     (righto.com, Feb 2013). States V is "the exclusive-or of the carry into
 //     the top bit and the carry out of the top bit", K is "the exclusive-or of
@@ -998,10 +1006,10 @@ void ArithFlagsA(State8085 *state, uint16_t res, should_preserve_carry preserveC
 //     This is the model implemented below.
 //   * MAME's 8085 core (src/devices/cpu/i8085/i8085.cpp). Agrees on the PSW
 //     bit positions, on INX/DCX setting K from the incrementer carry, and on
-//     clearing V for the logical operations. It disagrees on general
-//     arithmetic, where it simply sets V on every subtract-type operation and
-//     clears it on adds rather than computing signed overflow. Shirriff's
-//     analysis is taken as authoritative there since it comes from the silicon.
+//     clearing V for the logical operations. It disagrees twice: it sets V on
+//     every subtract-type operation and clears it on adds rather than computing
+//     signed overflow, and it leaves parity untouched and K clear after DSUB.
+//     The two documentation sources are followed over MAME on both counts.
 //   * Intel's own manuals document none of this: neither the MCS-80/85 Family
 //     User's Manual nor the 8080/8085 Assembly Language Programming Manual
 //     mentions these opcodes or flags, and Intel never published them later.
@@ -1204,14 +1212,16 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
 	break;
 	case 0x08: // DSUB (undocumented): HL = HL - BC
 	{
-		// The 8085 runs this as two byte subtractions through the same ALU, so
-		// the flags come from the high-byte pass, with Z taken from the full
-		// 16-bit result. Parity is not updated. This mirrors MAME's core;
-		// no primary Intel documentation for DSUB exists.
+		// Dehnhardt and Sorensen, who first published these opcodes
+		// (Electronics, January 1979), list DSUB as affecting Z, S, P, CY, AC,
+		// X5 and V — every flag. The 8085 performs it as two byte subtractions
+		// through the same ALU, so the surviving S, P, AC, CY, V and K are
+		// those of the high-byte pass, while Z covers the full 16-bit result.
+		// MAME's core additionally leaves parity untouched and clears K; the
+		// primary source is followed here instead.
 		uint16_t lowResult = (uint16_t)(state->l - state->c);
 		uint8_t resLow = lowResult & 0xff;
 		uint8_t borrow = (lowResult >> 8) & 1;
-		state->cc.ac = ((state->l ^ resLow ^ state->c) & 0x10) != 0;
 		state->l = resLow;
 
 		uint16_t highResult = (uint16_t)(state->h - state->b - borrow);
@@ -1219,8 +1229,9 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
 		state->cc.cy = (highResult >> 8) & 1;
 		state->cc.ac = ((state->h ^ resHigh ^ state->b) & 0x10) != 0;
 		state->cc.s = (resHigh & 0x80) != 0;
+		state->cc.p = parity(resHigh, 8);
 		state->cc.v = (((state->b ^ state->h) & (state->h ^ resHigh) & 0x80) != 0);
-		state->cc.k = 0;
+		state->cc.k = state->cc.v ^ (state->cc.s ? 1 : 0);
 		state->h = resHigh;
 
 		state->cc.z = ((state->h | state->l) == 0);

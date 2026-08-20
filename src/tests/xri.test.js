@@ -1,6 +1,6 @@
-import { describe, test } from "vitest";
+import { describe, test, expect } from "vitest";
 import * as fc from "fast-check";
-import { runTest } from "./test-utils";
+import { runTest, runAndGetState } from "./test-utils";
 
 describe("XRI Instruction Tests", () => {
     test("XRI: Performs logical XOR between accumulator and immediate data, resets carry and auxiliary carry flags", async () => {
@@ -65,5 +65,17 @@ describe("XRI Instruction Tests", () => {
             ),
             { verbose: true, numRuns: 100 }, // Run 100 variations for XRI instruction
         );
+    });
+});
+
+// Worked example from the Intel 8080/8085 Assembly Language Programming Manual, Chapter 3.
+describe('XRI Instruction Manual Example', () => {
+    // "Assume that the control flag byte is positioned normally in the
+    // accumulator, and the program must set OFF bit 6 and set bit 7 ON...
+    // Accumulator 01001100, Immediate data 11000000, result 10001100"
+    test('XRI: 4CH exclusive-ORed with C0H is 8CH', async () => {
+        const result = await runAndGetState('xri 0C0H\nhlt', { accumulator: 0x4c });
+
+        expect(result.accumulator).toBe(0x8c);
     });
 });
