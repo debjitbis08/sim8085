@@ -118,6 +118,8 @@ function buildStore(statePointer, memoryImage, setup, defaultPc) {
             p: setup.flags.p ?? false,
             c: setup.flags.cy ?? false,
             ac: setup.flags.ac ?? false,
+            v: setup.flags.v ?? false,
+            k: setup.flags.k ?? false,
         },
         programState: "Loaded",
         settings: { run: { enableTiming: false, clockFrequency: "3072000" } },

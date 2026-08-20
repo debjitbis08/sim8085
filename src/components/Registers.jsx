@@ -305,11 +305,11 @@ function getPSW(flags) {
     return (
         ((flags.s ? 1 : 0) << 7) | // Sign flag at bit 7
         ((flags.z ? 1 : 0) << 6) | // Zero flag at bit 6
-        (0 << 5) | // Bit 5 is always 0
+        ((flags.k ? 1 : 0) << 5) | // K flag at bit 5 (undocumented)
         ((flags.ac ? 1 : 0) << 4) | // Auxiliary carry flag at bit 4
         (0 << 3) | // Bit 3 is always 0
         ((flags.p ? 1 : 0) << 2) | // Parity flag at bit 2
-        (1 << 1) | // Bit 1 is always 1
+        ((flags.v ? 1 : 0) << 1) | // Overflow flag at bit 1 (undocumented)
         (flags.c ? 1 : 0)
     ); // Carry flag at bit 0
 }

@@ -1,5 +1,5 @@
-import { describe, test } from "vitest";
-import { runTest } from "./test-utils";
+import { describe, test, expect } from "vitest";
+import { runTest, runAndGetState } from './test-utils';
 
 describe("STAX Instruction Tests", () => {
     test("STAX B: Stores value from A register into memory using BC pair", async () => {
@@ -50,5 +50,20 @@ describe("STAX Instruction Tests", () => {
             },
         };
         await runTest(code, {}, expectedCpuState);
+    });
+});
+
+// Worked example from the Intel 8080/8085 Assembly Language Programming Manual, Chapter 3.
+describe('STAX Instruction Manual Example', () => {
+    // "If register B contains 3FH and register C contains 16H, the following
+    // instruction stores a copy of the contents of the accumulator at memory
+    // location 3F16H: STAX B"
+    test('STAX B: stores the accumulator at 3F16H', async () => {
+        const result = await runAndGetState('stax b\nhlt', {
+            accumulator: 0x39,
+            registers: { bc: { high: 0x3f, low: 0x16 } },
+        });
+
+        expect(result.memory[0x3f16]).toBe(0x39);
     });
 });

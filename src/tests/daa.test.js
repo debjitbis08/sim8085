@@ -1,5 +1,5 @@
-import { describe, test } from 'vitest';
-import { runTest } from './test-utils';
+import { describe, test, expect } from 'vitest';
+import { runTest, runAndGetState } from './test-utils';
 
 describe('DAA Instruction Tests', () => {
 
@@ -129,4 +129,18 @@ describe('DAA Instruction Tests', () => {
     await runTest(code, {}, expectedCpuState);
   });
 
+});
+
+// Worked example from the Intel 8080/8085 Assembly Language Programming Manual, Chapter 3.
+describe('DAA Instruction Manual Example', () => {
+    // "Assume that the accumulator contains the value 9BH... When the DAA has
+    // finished, the accumulator contains the value 01 in a BCD format; both
+    // the carry and auxiliary carry flags are set ON."
+    test('DAA: 9BH adjusts to 01H with carry and auxiliary carry set', async () => {
+        const result = await runAndGetState('daa\nhlt', { accumulator: 0x9b });
+
+        expect(result.accumulator).toBe(0x01);
+        expect(result.flags.c).toBe(true);
+        expect(result.flags.ac).toBe(true);
+    });
 });

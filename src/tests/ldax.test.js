@@ -1,6 +1,6 @@
-import { describe, test } from 'vitest';
+import { describe, test, expect } from 'vitest';
 import * as fc from 'fast-check';
-import { runTest } from './test-utils';
+import { runTest, runAndGetState } from './test-utils';
 
 describe('LDAX Instruction Property-Based Tests', () => {
     test('LDAX B: Property-based memory loading preserves flags', async () => {
@@ -108,5 +108,20 @@ describe('LDAX Instruction Property-Based Tests', () => {
                 numRuns: 100
             }
         );
+    });
+});
+
+// Worked example from the Intel 8080/8085 Assembly Language Programming Manual, Chapter 3.
+describe('LDAX Instruction Manual Example', () => {
+    // "Assume that register D contains 93H and register E contains BBH. The
+    // following instruction loads the accumulator with the contents of memory
+    // location 93BBH: LDAX D"
+    test('LDAX D: loads the accumulator from 93BBH', async () => {
+        const result = await runAndGetState('ldax d\nhlt', {
+            registers: { de: { high: 0x93, low: 0xbb } },
+            memory: { 0x93bb: 0x7e },
+        });
+
+        expect(result.accumulator).toBe(0x7e);
     });
 });

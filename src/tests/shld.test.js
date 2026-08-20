@@ -1,6 +1,6 @@
-import { describe, test } from "vitest";
+import { describe, test, expect } from "vitest";
 import * as fc from "fast-check";
-import { runTest } from "./test-utils";
+import { runTest, runAndGetState } from './test-utils';
 
 describe("SHLD Instruction Tests", () => {
     test("SHLD: Stores L and H register values into specified memory locations", async () => {
@@ -51,5 +51,20 @@ describe("SHLD Instruction Tests", () => {
             ),
             { verbose: true, numRuns: 100 }, // Run 100 variations for SHLD instruction
         );
+    });
+});
+
+// Worked example from the Intel 8080/8085 Assembly Language Programming Manual, Chapter 3.
+describe('SHLD Instruction Manual Example', () => {
+    // "Assume that the H and L registers contain OAEH and 29H, respectively."
+    // The manual's memory table shows 10AH holding 29 and 10BH holding AE
+    // after SHLD 10AH.
+    test('SHLD 10AH: writes L to 010AH and H to 010BH', async () => {
+        const result = await runAndGetState('shld 10AH\nhlt', {
+            registers: { hl: { high: 0xae, low: 0x29 } },
+        });
+
+        expect(result.memory[0x010a]).toBe(0x29);
+        expect(result.memory[0x010b]).toBe(0xae);
     });
 });

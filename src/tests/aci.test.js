@@ -1,6 +1,6 @@
-import { describe, test } from "vitest";
+import { describe, test, expect } from "vitest";
 import * as fc from "fast-check";
-import { runTest } from "./test-utils";
+import { runTest, runAndGetState } from './test-utils';
 
 describe("ACI Instruction Tests", () => {
     test("ACI: Adds immediate data and carry to accumulator, updates flags", async () => {
@@ -69,5 +69,20 @@ describe("ACI Instruction Tests", () => {
             ),
             { verbose: true, numRuns: 100 }, // Run 100 variations for the ACI instruction
         );
+    });
+});
+
+// Worked example from the Intel 8080/8085 Assembly Language Programming Manual, Chapter 3.
+describe('ACI Instruction Manual Example', () => {
+    // "Assume that the accumulator contains the value 14H and that the carry
+    // bit is set to one. The instruction ACI 66 has the following effect:
+    // ... 0101 0111"
+    test('ACI: 14H + 42H + carry = 57H', async () => {
+        const result = await runAndGetState('aci 42H\nhlt', {
+            accumulator: 0x14,
+            flags: { c: true },
+        });
+
+        expect(result.accumulator).toBe(0x57);
     });
 });

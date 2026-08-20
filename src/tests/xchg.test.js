@@ -1,6 +1,6 @@
-import { describe, test } from 'vitest';
+import { describe, test, expect } from 'vitest';
 import * as fc from 'fast-check';
-import { runTest } from './test-utils';
+import { runTest, runAndGetState } from './test-utils';
 
 describe('XCHG Instruction Property-Based Tests', () => {
     test('XCHG: Exchanges contents of H/L with D/E without modifying flags', async () => {
@@ -52,5 +52,22 @@ describe('XCHG Instruction Property-Based Tests', () => {
             ),
             { verbose: true, numRuns: 100 }
         );
+    });
+});
+
+// Worked example from the Intel 8080/8085 Assembly Language Programming Manual, Chapter 3.
+describe('XCHG Instruction Manual Example', () => {
+    // "Assume that the H and L registers contain 1234H, and the D and E
+    // registers contain OABCDH. Following execution of the XCHG instruction,
+    // H and L contain OABCDH, and D and E contain 1234H."
+    test('XCHG: swaps HL and DE', async () => {
+        const result = await runAndGetState('xchg\nhlt', {
+            registers: { hl: { high: 0x12, low: 0x34 }, de: { high: 0xab, low: 0xcd } },
+        });
+
+        expect(result.registers.hl.high).toBe(0xab);
+        expect(result.registers.hl.low).toBe(0xcd);
+        expect(result.registers.de.high).toBe(0x12);
+        expect(result.registers.de.low).toBe(0x34);
     });
 });

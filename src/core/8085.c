@@ -54,10 +54,12 @@ typedef struct Flags
 	uint8_t p : 1;
 	uint8_t cy : 1;
 	uint8_t ac : 1;
-	uint8_t pad : 3;
+	uint8_t v : 1;
+	uint8_t k : 1;
+	uint8_t pad : 1;
 } Flags;
 
-Flags CC_ZSPAC = {0, 0, 0, 0, 0};
+Flags CC_ZSPAC = {0, 0, 0, 0, 0, 0, 0};
 
 typedef struct State8085
 {
@@ -150,7 +152,7 @@ int Disassemble8085Op(unsigned char *codebuffer, int pc)
 		printf("RLC");
 		break;
 	case 0x08:
-		printf("NOP");
+		printf("DSUB");
 		break;
 	case 0x09:
 		printf("DAD    B");
@@ -176,7 +178,7 @@ int Disassemble8085Op(unsigned char *codebuffer, int pc)
 		break;
 
 	case 0x10:
-		printf("NOP");
+		printf("ARHL");
 		break;
 	case 0x11:
 		printf("LXI    D,#$%02x%02x", code[2], code[1]);
@@ -202,7 +204,7 @@ int Disassemble8085Op(unsigned char *codebuffer, int pc)
 		printf("RAL");
 		break;
 	case 0x18:
-		printf("NOP");
+		printf("RDEL");
 		break;
 	case 0x19:
 		printf("DAD    D");
@@ -255,7 +257,8 @@ int Disassemble8085Op(unsigned char *codebuffer, int pc)
 		printf("DAA");
 		break;
 	case 0x28:
-		printf("NOP");
+		printf("LDHI   #$%02x", code[1]);
+		opbytes = 2;
 		break;
 	case 0x29:
 		printf("DAD    H");
@@ -308,7 +311,8 @@ int Disassemble8085Op(unsigned char *codebuffer, int pc)
 		printf("STC");
 		break;
 	case 0x38:
-		printf("NOP");
+		printf("LDSI   #$%02x", code[1]);
+		opbytes = 2;
 		break;
 	case 0x39:
 		printf("DAD    SP");
@@ -765,8 +769,7 @@ int Disassemble8085Op(unsigned char *codebuffer, int pc)
 		opbytes = 3;
 		break;
 	case 0xcb:
-		printf("JMP    $%02x%02x", code[2], code[1]);
-		opbytes = 3;
+		printf("RSTV");
 		break;
 	case 0xcc:
 		printf("CZ     $%02x%02x", code[2], code[1]);
@@ -816,7 +819,7 @@ int Disassemble8085Op(unsigned char *codebuffer, int pc)
 		printf("RC");
 		break;
 	case 0xd9:
-		printf("RET");
+		printf("SHLX");
 		break;
 	case 0xda:
 		printf("JC     $%02x%02x", code[2], code[1]);
@@ -831,7 +834,7 @@ int Disassemble8085Op(unsigned char *codebuffer, int pc)
 		opbytes = 3;
 		break;
 	case 0xdd:
-		printf("CALL   $%02x%02x", code[2], code[1]);
+		printf("JNX5   $%02x%02x", code[2], code[1]);
 		opbytes = 3;
 		break;
 	case 0xde:
@@ -887,8 +890,7 @@ int Disassemble8085Op(unsigned char *codebuffer, int pc)
 		opbytes = 3;
 		break;
 	case 0xed:
-		printf("CALL   $%02x%02x", code[2], code[1]);
-		opbytes = 3;
+		printf("LHLX");
 		break;
 	case 0xee:
 		printf("XRI    #$%02x", code[1]);
@@ -943,7 +945,7 @@ int Disassemble8085Op(unsigned char *codebuffer, int pc)
 		opbytes = 3;
 		break;
 	case 0xfd:
-		printf("CALL   $%02x%02x", code[2], code[1]);
+		printf("JX5    $%02x%02x", code[2], code[1]);
 		opbytes = 3;
 		break;
 	case 0xfe:
@@ -970,6 +972,8 @@ void LogicFlagsA(State8085 *state, uint8_t ac)
 	state->cc.z = (state->a == 0);
 	state->cc.s = (0x80 == (state->a & 0x80));
 	state->cc.p = parity(state->a, 8);
+	state->cc.v = 0;
+	state->cc.k = state->cc.s;
 }
 
 void ArithFlagsA(State8085 *state, uint16_t res, should_preserve_carry preserveCarry)
@@ -979,6 +983,45 @@ void ArithFlagsA(State8085 *state, uint16_t res, should_preserve_carry preserveC
 	state->cc.z = ((res & 0xff) == 0);
 	state->cc.s = (0x80 == (res & 0x80));
 	state->cc.p = parity(res & 0xff, 8);
+}
+
+// The 8085 carries two flags Intel never documented: V (overflow, PSW bit 1)
+// and K (PSW bit 5). RSTV branches on V, JX5/JNX5 on K.
+//
+// Sources consulted, and where they disagree:
+//
+//   * Ken Shirriff's silicon reverse-engineering of the 8085 flag circuits
+//     (righto.com, Feb 2013). States V is "the exclusive-or of the carry into
+//     the top bit and the carry out of the top bit", K is "the exclusive-or of
+//     the V flag and the sign bit of the result", V is 0 for RRC/RAR/AND/OR/
+//     XOR, RLC and RAL behave as A+A, and DAD sets V from 16-bit overflow.
+//     This is the model implemented below.
+//   * MAME's 8085 core (src/devices/cpu/i8085/i8085.cpp). Agrees on the PSW
+//     bit positions, on INX/DCX setting K from the incrementer carry, and on
+//     clearing V for the logical operations. It disagrees on general
+//     arithmetic, where it simply sets V on every subtract-type operation and
+//     clears it on adds rather than computing signed overflow. Shirriff's
+//     analysis is taken as authoritative there since it comes from the silicon.
+//   * Intel's own manuals document none of this: neither the MCS-80/85 Family
+//     User's Manual nor the 8080/8085 Assembly Language Programming Manual
+//     mentions these opcodes or flags, and Intel never published them later.
+//     The instructions were documented by Sehnhardt and Sorensen in Electronics
+//     magazine, January 1979.
+//
+// Where no source states a behaviour, nothing is updated here rather than
+// guessing: ARHL and the rotates leave K alone, and DAD leaves K alone.
+void setVKFlags(State8085 *state, uint8_t carryIn, uint8_t carryOut, uint8_t res)
+{
+	state->cc.v = (carryIn ^ carryOut) & 1;
+	state->cc.k = state->cc.v ^ ((res & 0x80) ? 1 : 0);
+}
+
+// DAD runs the same carry chain sixteen bits wide, so V is 16-bit signed
+// overflow. K is left alone: no source documents DAD touching it.
+void setDadV(State8085 *state, uint32_t lhs, uint32_t rhs, uint32_t res)
+{
+	uint8_t carryIn = (((lhs & 0x7fff) + (rhs & 0x7fff)) >> 15) & 1;
+	state->cc.v = carryIn ^ ((res >> 16) & 1);
 }
 
 void UnimplementedInstruction(State8085 *state)
@@ -1005,6 +1048,7 @@ uint8_t addByte(State8085 *state, uint8_t lhs, uint8_t rhs, should_preserve_carr
 {
 	uint16_t res = lhs + rhs;
 	state->cc.ac = (lhs & 0xf) + (rhs & 0xf) > 0xf;
+	setVKFlags(state, ((lhs & 0x7f) + (rhs & 0x7f)) >> 7, res >> 8, (uint8_t)res);
 	ArithFlagsA(state, res, preserveCarry);
 	return (uint8_t)res;
 }
@@ -1014,6 +1058,7 @@ uint8_t addByteWithCarry(State8085 *state, uint8_t lhs, uint8_t rhs, should_pres
     uint8_t carry = state->cc.cy ? 1 : 0;
 	uint16_t res = lhs + rhs + carry;
 	state->cc.ac = (lhs & 0xf) + (rhs & 0xf) + carry > 0xf;
+	setVKFlags(state, ((lhs & 0x7f) + (rhs & 0x7f) + carry) >> 7, res >> 8, (uint8_t)res);
 	ArithFlagsA(state, res, preserveCarry);
 	return (uint8_t)res;
 }
@@ -1022,6 +1067,8 @@ uint8_t subtractByte(State8085 *state, uint8_t lhs, uint8_t rhs, should_preserve
 {
 	uint16_t res = lhs - rhs;
 	state->cc.ac = (lhs & 0xf) + ((~rhs + 1) & 0xf) > 0xf;
+	setVKFlags(state, ((lhs & 0x7f) + ((uint8_t)~rhs & 0x7f) + 1) >> 7,
+	           ((uint16_t)lhs + (uint8_t)~rhs + 1) >> 8, (uint8_t)res);
 	ArithFlagsA(state, res, preserveCarry);
 	return (uint8_t)res;
 }
@@ -1031,6 +1078,8 @@ uint8_t subtractByteWithBorrow(State8085 *state, uint8_t lhs, uint8_t rhs, shoul
 	uint16_t res = lhs - rhs - (state->cc.cy ? 1 : 0);
     uint8_t carry = state->cc.cy ? 1 : 0;
     state->cc.ac = (lhs & 0x0F) + ((~(rhs + carry) + 1) & 0x0f) > 0x0f;
+	setVKFlags(state, ((lhs & 0x7f) + ((uint8_t)~rhs & 0x7f) + (1 - carry)) >> 7,
+	           ((uint16_t)lhs + (uint8_t)~rhs + (1 - carry)) >> 8, (uint8_t)res);
 	ArithFlagsA(state, res, preserveCarry);
 	return (uint8_t)res;
 }
@@ -1128,6 +1177,7 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
 		state->c++;
 		if (state->c == 0)
 			state->b++;
+		state->cc.k = (state->b == 0 && state->c == 0);
         states = 6;
 		break;
 	case 0x04: //INR B
@@ -1148,12 +1198,35 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
 		uint8_t x = state->a;
 		state->a = ((x & 0x80) >> 7) | (x << 1);
 		state->cc.cy = (1 == ((x & 0x80) >> 7));
+		state->cc.v = ((x >> 7) ^ (x >> 6)) & 1;
         states = 4;
 	}
 	break;
-	case 0x08:
-		InvalidInstruction(state);
-		break;
+	case 0x08: // DSUB (undocumented): HL = HL - BC
+	{
+		// The 8085 runs this as two byte subtractions through the same ALU, so
+		// the flags come from the high-byte pass, with Z taken from the full
+		// 16-bit result. Parity is not updated. This mirrors MAME's core;
+		// no primary Intel documentation for DSUB exists.
+		uint16_t lowResult = (uint16_t)(state->l - state->c);
+		uint8_t resLow = lowResult & 0xff;
+		uint8_t borrow = (lowResult >> 8) & 1;
+		state->cc.ac = ((state->l ^ resLow ^ state->c) & 0x10) != 0;
+		state->l = resLow;
+
+		uint16_t highResult = (uint16_t)(state->h - state->b - borrow);
+		uint8_t resHigh = highResult & 0xff;
+		state->cc.cy = (highResult >> 8) & 1;
+		state->cc.ac = ((state->h ^ resHigh ^ state->b) & 0x10) != 0;
+		state->cc.s = (resHigh & 0x80) != 0;
+		state->cc.v = (((state->b ^ state->h) & (state->h ^ resHigh) & 0x80) != 0);
+		state->cc.k = 0;
+		state->h = resHigh;
+
+		state->cc.z = ((state->h | state->l) == 0);
+        states = 10;
+	}
+	break;
 	case 0x09: // DAD B
 	{
 		uint32_t hl = (state->h << 8) | state->l;
@@ -1162,6 +1235,7 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
 		state->h = (res & 0xff00) >> 8;
 		state->l = res & 0xff;
 		state->cc.cy = ((res & 0xffff0000) > 0);
+		setDadV(state, hl, bc, res);
         states = 10;
 	}
 	break;
@@ -1176,6 +1250,7 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
 		state->c--;
 		if (state->c == 0xFF)
 			state->b--;
+		state->cc.k = (state->b == 0xff && state->c == 0xff);
         states = 6;
 		break;
 	case 0x0c: //INR C
@@ -1198,12 +1273,20 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
 		uint8_t x = state->a;
 		state->a = ((x & 1) << 7) | (x >> 1);
 		state->cc.cy = (1 == (x & 1));
+		state->cc.v = 0;
         states = 4;
 	}
 	break;
-	case 0x10:
-		InvalidInstruction(state);
-		break;
+	case 0x10: // ARHL (undocumented): HL >>= 1, arithmetic, sign preserved
+	{
+		uint16_t hl = (state->h << 8) | state->l;
+		state->cc.cy = hl & 0x1;
+		hl = (hl >> 1) | (hl & 0x8000);
+		state->h = (hl >> 8) & 0xff;
+		state->l = hl & 0xff;
+        states = 7;
+	}
+	break;
 	case 0x11: //LXI	D,word
 		state->e = opcode[1];
 		state->d = opcode[2];
@@ -1217,6 +1300,7 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
 		state->e++;
 		if (state->e == 0)
 			state->d++;
+		state->cc.k = (state->d == 0 && state->e == 0);
         states = 6;
 		break;
 	case 0x14: //INR D
@@ -1237,12 +1321,22 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
 		uint8_t x = state->a;
 		state->a = state->cc.cy | (x << 1);
 		state->cc.cy = (1 == ((x & 0x80) >> 7));
+		state->cc.v = ((x >> 7) ^ (x >> 6)) & 1;
         states = 4;
 	}
 	break;
-	case 0x18:
-		InvalidInstruction(state);
-		break;
+	case 0x18: // RDEL (undocumented): rotate DE left through carry
+	{
+		uint16_t de = (state->d << 8) | state->e;
+		uint8_t carryOut = (de & 0x8000) ? 1 : 0;
+		uint16_t res = (de << 1) | (state->cc.cy ? 1 : 0);
+		state->cc.cy = carryOut;
+		state->cc.v = carryOut ^ ((de & 0x4000) ? 1 : 0);
+		state->d = (res >> 8) & 0xff;
+		state->e = res & 0xff;
+        states = 10;
+	}
+	break;
 	case 0x19: //DAD D
 	{
 		uint32_t hl = (state->h << 8) | state->l;
@@ -1251,6 +1345,7 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
 		state->h = (res & 0xff00) >> 8;
 		state->l = res & 0xff;
 		state->cc.cy = ((res & 0xffff0000) != 0);
+		setDadV(state, hl, de, res);
         states = 10;
 	}
 	break;
@@ -1265,6 +1360,7 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
 		state->e--;
 		if (state->e == 0xFF)
 			state->d--;
+		state->cc.k = (state->d == 0xff && state->e == 0xff);
         states = 6;
 		break;
 	case 0x1c: //INR E
@@ -1285,6 +1381,7 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
 		uint8_t x = state->a;
 		state->a = (x >> 1) | (state->cc.cy << 7); /* From a number with higest bit as carry value */
 		state->cc.cy = (1 == (x & 1));
+		state->cc.v = 0;
         states = 4;
 	}
 	break;
@@ -1322,6 +1419,7 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
 		state->l++;
 		if (state->l == 0)
 			state->h++;
+		state->cc.k = (state->h == 0 && state->l == 0);
         states = 6;
 		break;
 	case 0x24: //INR H
@@ -1375,9 +1473,15 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
         states = 4;
 	}
 	break;
-	case 0x28:
-		InvalidInstruction(state);
-		break;
+	case 0x28: // LDHI d8 (undocumented): DE = HL + d8
+	{
+		uint16_t res = ((state->h << 8) | state->l) + opcode[1];
+		state->d = (res >> 8) & 0xff;
+		state->e = res & 0xff;
+		state->pc++;
+        states = 10;
+	}
+	break;
 	case 0x29: // DAD H
 	{
 		uint32_t hl = (state->h << 8) | state->l;
@@ -1385,6 +1489,7 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
 		state->h = (res & 0xff00) >> 8;
 		state->l = res & 0xff;
 		state->cc.cy = ((res & 0xffff0000) != 0);
+		setDadV(state, hl, hl, res);
         states = 10;
 	}
 	break;
@@ -1404,6 +1509,7 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
 		state->l--;
 		if (state->l == 0xFF)
 			state->h--;
+		state->cc.k = (state->h == 0xff && state->l == 0xff);
         states = 6;
 		break;
 	case 0x2c: //INR L
@@ -1466,6 +1572,7 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
 	break;
 	case 0x33: // INX SP
 		state->sp++;
+		state->cc.k = (state->sp == 0);
         states = 6;
 		break;
 	case 0x34: // INR M
@@ -1495,9 +1602,15 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
 		state->cc.cy = 1;
         states = 4;
 		break; // STC
-	case 0x38:
-		InvalidInstruction(state);
-		break;
+	case 0x38: // LDSI d8 (undocumented): DE = SP + d8
+	{
+		uint16_t res = state->sp + opcode[1];
+		state->d = (res >> 8) & 0xff;
+		state->e = res & 0xff;
+		state->pc++;
+        states = 10;
+	}
+	break;
 	case 0x39: // DAD SP
 	{
 		uint16_t hl = (state->h << 8) | state->l;
@@ -1506,6 +1619,7 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
 		state->h = (res & 0xff00) >> 8;
 		state->l = res & 0xff;
 		state->cc.cy = ((res & 0xffff0000) > 0);
+		setDadV(state, hl, sp, res);
         states = 10;
 	}
 	break;
@@ -1520,6 +1634,7 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
 	break;
 	case 0x3b: // DCX SP
 		state->sp--;
+		state->cc.k = (state->sp == 0xffff);
         states = 6;
 		break;
 	case 0x3c: // INR A
@@ -2217,8 +2332,12 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
             states = 7;
         }
 		break;
-	case 0xcb:
-		InvalidInstruction(state);
+	case 0xcb: // RSTV (undocumented): RST 8 (0x0040) when V is set
+        states = 6;
+		if (1 == state->cc.v) {
+			rst(state, 8, 0);
+            states = 12;
+        }
 		break;
 	case 0xcc: // CZ Addr
 		if (1 == state->cc.z) {
@@ -2308,9 +2427,14 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
 			returnToCaller(state, offset);
         }
 		break;
-	case 0xd9:
-		InvalidInstruction(state);
-		break;
+	case 0xd9: // SHLX (undocumented): store HL at (DE)
+	{
+		uint16_t addr = (state->d << 8) | state->e;
+		state->memory[addr] = state->l;
+		state->memory[(uint16_t)(addr + 1)] = state->h;
+        states = 10;
+	}
+	break;
 	case 0xda: // JC Addr
 		if (1 == state->cc.cy) {
 			state->pc = ((opcode[2] << 8) | opcode[1]);
@@ -2336,8 +2460,15 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
             states = 9;
         }
 		break;
-	case 0xdd:
-		InvalidInstruction(state);
+	case 0xdd: // JNX5 (undocumented): jump when K is clear
+		if (0 == state->cc.k) {
+			state->pc = ((opcode[2] << 8) | opcode[1]);
+            states = 10;
+        }
+		else {
+			state->pc += 2;
+            states = 7;
+        }
 		break;
 	case 0xde: // SBI d8
 		state->a = subtractByteWithBorrow(state, state->a, opcode[1], UPDATE_CARRY);
@@ -2456,9 +2587,14 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
             states = 9;
         }
 		break;
-	case 0xed:
-		InvalidInstruction(state);
-		break;
+	case 0xed: // LHLX (undocumented): load HL from (DE)
+	{
+		uint16_t addr = (state->d << 8) | state->e;
+		state->l = state->memory[addr];
+		state->h = state->memory[(uint16_t)(addr + 1)];
+        states = 10;
+	}
+	break;
 	case 0xee: // XRI d8
 		state->a = state->a ^ opcode[1];
 		LogicFlagsA(state, 0);
@@ -2483,7 +2619,9 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
 
         // Step 2: Extract the condition flags from the PSW byte
         state->cc.cy = (psw & 0x01);  // Carry flag (bit 0)
+        state->cc.v = (psw & 0x02) >> 1;  // Overflow flag (bit 1, undocumented)
         state->cc.p = (psw & 0x04) >> 2;  // Parity flag (bit 2)
+        state->cc.k = (psw & 0x20) >> 5;  // K flag (bit 5, undocumented)
         state->cc.ac = (psw & 0x10) >> 4;  // Auxiliary carry flag (bit 4)
         state->cc.z = (psw & 0x40) >> 6;  // Zero flag (bit 6)
         state->cc.s = (psw & 0x80) >> 7;  // Sign flag (bit 7)
@@ -2535,14 +2673,14 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
         // Step 3: Decrement the stack pointer again
         state->sp--;
 
-        // Step 4: Construct the PSW byte (format: s z 0 ac 0 p 1 c)
+        // Step 4: Construct the PSW byte (format: s z k ac 0 p v c)
         uint8_t psw = (state->cc.s << 7) |  // Sign flag (bit 7)
                       (state->cc.z << 6) |  // Zero flag (bit 6)
-                      (0 << 5) |            // Bit 5 is always 0
+                      (state->cc.k << 5) |  // K flag (bit 5, undocumented)
                       (state->cc.ac << 4) | // Auxiliary carry (bit 4)
                       (0 << 3) |            // Bit 3 is always 0
                       (state->cc.p << 2) |  // Parity flag (bit 2)
-                      (1 << 1) |            // Bit 1 is always 1
+                      (state->cc.v << 1) |  // Overflow flag (bit 1, undocumented)
                       (state->cc.cy);       // Carry flag (bit 0)
 
         // Step 5: Store the PSW byte at the new stack pointer location
@@ -2597,8 +2735,15 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
             states = 9;
         }
 		break;
-	case 0xfd:
-		InvalidInstruction(state);
+	case 0xfd: // JX5 (undocumented): jump when K is set
+		if (1 == state->cc.k) {
+			state->pc = ((opcode[2] << 8) | opcode[1]);
+            states = 10;
+        }
+		else {
+			state->pc += 2;
+            states = 7;
+        }
 		break;
 	case 0xfe: // CPI d8
 	{

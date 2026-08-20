@@ -1,6 +1,6 @@
-import { describe, test } from "vitest";
+import { describe, test, expect } from "vitest";
 import * as fc from "fast-check";
-import { runTest } from "./test-utils";
+import { runTest, runAndGetState, setupSimulator } from './test-utils';
 
 describe("STA Instruction Tests", () => {
     test("STA: Stores accumulator value in specified memory location", async () => {
@@ -49,5 +49,18 @@ describe("STA Instruction Tests", () => {
             ),
             { verbose: true, numRuns: 100 }, // Run 100 variations for STA instruction
         );
+    });
+});
+
+// Worked example from the Intel 8080/8085 Assembly Language Programming Manual, Chapter 3.
+describe('STA Instruction Manual Example', () => {
+    // "When assembled, the previous instruction has the hexadecimal value
+    // 32 B3 05. Notice that the assembler inverts the high and low order
+    // address bytes for proper storage in memory."
+    test('STA 5B3H assembles to the bytes 32 B3 05', async () => {
+        const { assembled } = await setupSimulator('sta 5B3H\nhlt');
+        const bytes = assembled.filter((a) => a.kind !== 'label').map((a) => a.data);
+
+        expect(bytes.slice(0, 3)).toEqual([0x32, 0xb3, 0x05]);
     });
 });

@@ -110,6 +110,8 @@ export const [store, setStore] = createStore({
         ac: false,
         p: false,
         c: false,
+        v: false,
+        k: false,
     },
     memory: Array(65536).fill(0),
     io: Array(256).fill(0),

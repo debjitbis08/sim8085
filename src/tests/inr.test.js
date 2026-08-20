@@ -1,6 +1,6 @@
-import { describe, test } from 'vitest';
+import { describe, test, expect } from 'vitest';
 import * as fc from 'fast-check';
-import { runTest } from './test-utils';
+import { runTest, runAndGetState } from './test-utils';
 
 describe('INR Instruction Property-Based Tests', () => {
     test('INR: Increment all registers and memory with correct flags', async () => {
@@ -96,5 +96,29 @@ describe('INR Instruction Property-Based Tests', () => {
             ),
             { verbose: true, numRuns: 100 }
         );
+    });
+});
+
+// Worked examples from the Intel 8080/8085 Assembly Language Programming Manual, Chapter 3.
+describe('INR Instruction Manual Examples', () => {
+    // "If register C contains 99H, the instruction INR C increments the
+    // contents of the register to 9AH."
+    test('INR C: 99H increments to 9AH', async () => {
+        const result = await runAndGetState('inr c\nhlt', {
+            registers: { bc: { high: 0x00, low: 0x99 } },
+        });
+
+        expect(result.registers.bc.low).toBe(0x9a);
+    });
+
+    // "By contrast, the INR E instruction ignores the carry out of the
+    // low-order byte and produces a result of 0100H."
+    test('INR E: 01FFH becomes 0100H because the carry is not propagated', async () => {
+        const result = await runAndGetState('inr e\nhlt', {
+            registers: { de: { high: 0x01, low: 0xff } },
+        });
+
+        expect(result.registers.de.high).toBe(0x01);
+        expect(result.registers.de.low).toBe(0x00);
     });
 });

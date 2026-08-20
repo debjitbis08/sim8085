@@ -13,7 +13,7 @@ const EXPECT_KEYS = [...SETUP_KEYS, "halted", "maxTstates"];
 
 // The store spells the carry flag "c"; 8085 documentation spells it "CY".
 // Accept both from authors, normalize to "cy".
-const FLAG_ALIASES = { c: "cy", cy: "cy", z: "z", s: "s", p: "p", ac: "ac" };
+const FLAG_ALIASES = { c: "cy", cy: "cy", z: "z", s: "s", p: "p", ac: "ac", v: "v", k: "k" };
 
 export class SpecError extends Error {}
 
@@ -216,6 +216,8 @@ export function normalizeFinalState(result) {
             p: result.flags.p,
             cy: result.flags.c,
             ac: result.flags.ac,
+            v: result.flags.v,
+            k: result.flags.k,
         },
         sp: result.stackPointer,
         pc: result.programCounter,

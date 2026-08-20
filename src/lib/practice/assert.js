@@ -7,7 +7,7 @@
  */
 
 export const REGISTER_KEYS = ["a", "b", "c", "d", "e", "h", "l"];
-export const FLAG_KEYS = ["z", "s", "p", "cy", "ac"];
+export const FLAG_KEYS = ["z", "s", "p", "cy", "ac", "v", "k"];
 
 const FLAG_LABELS = {
     z: "Zero",
@@ -15,6 +15,8 @@ const FLAG_LABELS = {
     p: "Parity",
     cy: "Carry",
     ac: "Auxiliary Carry",
+    v: "Overflow",
+    k: "K",
 };
 
 export function hex8(n) {

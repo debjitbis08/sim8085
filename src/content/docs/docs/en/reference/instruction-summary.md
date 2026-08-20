@@ -7,6 +7,13 @@ The following is a summary of the instruction set:
 
 8080/85 CPU Instructions in Operation Code Sequence
 
+Ten of these opcodes — DSUB, ARHL, RDEL, LDHI, LDSI, RSTV, SHLX, LHLX, JX5 and
+JNX5 — were never documented by Intel, but the 8085 executes them and older
+code sometimes relies on them. They are assembled and simulated here. Two
+matching undocumented flags come with them: V (overflow, PSW bit 1) and
+K (PSW bit 5), which RSTV and JX5/JNX5 branch on. Note that these opcodes do
+not exist on the 8080.
+
 <div class="instruction-table">
   <div class="column">
   <div class="instruction">
@@ -74,7 +81,7 @@ The following is a summary of the instruction set:
   <div class="instruction">
     <span class="opcode">08</span>
     <span class="mnemonic">
-      <span class="operation">--</span>
+      <span class="operation">DSUB</span>
     </span>
   </div>
 
@@ -136,7 +143,7 @@ The following is a summary of the instruction set:
   <div class="instruction">
     <span class="opcode">10</span>
     <span class="mnemonic">
-      <span class="operation">--</span>
+      <span class="operation">ARHL</span>
     </span>
   </div>
 
@@ -198,7 +205,7 @@ The following is a summary of the instruction set:
   <div class="instruction">
     <span class="opcode">18</span>
     <span class="mnemonic">
-      <span class="operation">--</span>
+      <span class="operation">RDEL</span>
     </span>
   </div>
 
@@ -322,7 +329,8 @@ The following is a summary of the instruction set:
   <div class="instruction">
     <span class="opcode">28</span>
     <span class="mnemonic">
-      <span class="operation">--</span>
+      <span class="operation">LDHI</span>
+      <span class="operands">D8</span>
     </span>
   </div>
 
@@ -446,7 +454,8 @@ The following is a summary of the instruction set:
   <div class="instruction">
     <span class="opcode">38</span>
     <span class="mnemonic">
-      <span class="operation">--</span>
+      <span class="operation">LDSI</span>
+      <span class="operands">D8</span>
     </span>
   </div>
 
@@ -1622,7 +1631,7 @@ The following is a summary of the instruction set:
   <div class="instruction">
     <span class="opcode">CB</span>
     <span class="mnemonic">
-      <span class="operation">--</span>
+      <span class="operation">RSTV</span>
     </span>
   </div>
 
@@ -1731,7 +1740,7 @@ The following is a summary of the instruction set:
   <div class="instruction">
     <span class="opcode">D9</span>
     <span class="mnemonic">
-      <span class="operation">--</span>
+      <span class="operation">SHLX</span>
     </span>
   </div>
 
@@ -1762,7 +1771,8 @@ The following is a summary of the instruction set:
   <div class="instruction">
     <span class="opcode">DD</span>
     <span class="mnemonic">
-      <span class="operation">--</span>
+      <span class="operation">JNX5</span>
+      <span class="operands">Adr</span>
     </span>
   </div>
 
@@ -1884,7 +1894,7 @@ The following is a summary of the instruction set:
   <div class="instruction">
     <span class="opcode">ED</span>
     <span class="mnemonic">
-      <span class="operation">--</span>
+      <span class="operation">LHLX</span>
     </span>
   </div>
 
@@ -2006,7 +2016,8 @@ The following is a summary of the instruction set:
   <div class="instruction">
     <span class="opcode">FD</span>
     <span class="mnemonic">
-      <span class="operation">--</span>
+      <span class="operation">JX5</span>
+      <span class="operands">Adr</span>
     </span>
   </div>
 

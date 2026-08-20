@@ -11,6 +11,7 @@
         "dcr b"     : {code:0x05,size:1},
         "mvi b,d8"  : {code:0x06,size:2},
         "rlc"       : {code:0x07,size:1},
+        "dsub"      : {code:0x08,size:1},
         "dad b"     : {code:0x09,size:1},
         "ldax b"    : {code:0x0A,size:1},
         "dcx b"     : {code:0x0B,size:1},
@@ -18,6 +19,7 @@
         "dcr c"     : {code:0x0D,size:1},
         "mvi c,d8"  : {code:0x0E,size:2},
         "rrc"       : {code:0x0F,size:1},
+        "arhl"      : {code:0x10,size:1},
         "lxi d,d16" : {code:0x11,size:3},
         "stax d"    : {code:0x12,size:1},
         "inx d"     : {code:0x13,size:1},
@@ -25,6 +27,7 @@
         "dcr d"     : {code:0x15,size:1},
         "mvi d,d8"  : {code:0x16,size:2},
         "ral"       : {code:0x17,size:1},
+        "rdel"      : {code:0x18,size:1},
         "dad d"     : {code:0x19,size:1},
         "ldax d"    : {code:0x1A,size:1},
         "dcx d"     : {code:0x1B,size:1},
@@ -40,6 +43,7 @@
         "dcr h"     : {code:0x25,size:1},
         "mvi h,d8"  : {code:0x26,size:2},
         "daa"       : {code:0x27,size:1},
+        "ldhi d8"   : {code:0x28,size:2},
         "dad h"     : {code:0x29,size:1},
         "lhld adr"  : {code:0x2A,size:3},
         "dcx h"     : {code:0x2B,size:1},
@@ -55,6 +59,7 @@
         "dcr m"     : {code:0x35,size:1},
         "mvi m,d8"  : {code:0x36,size:2},
         "stc"       : {code:0x37,size:1},
+        "ldsi d8"   : {code:0x38,size:2},
         "dad sp"    : {code:0x39,size:1},
         "lda adr"   : {code:0x3A,size:3},
         "dcx sp"    : {code:0x3B,size:1},
@@ -201,6 +206,7 @@
         "rz"        : {code:0xC8,size:1},
         "ret"       : {code:0xC9,size:1},
         "jz adr"    : {code:0xCA,size:3},
+        "rstv"      : {code:0xCB,size:1},
         "cz adr"    : {code:0xCC,size:3},
         "call adr"  : {code:0xCD,size:3},
         "aci d8"    : {code:0xCE,size:2},
@@ -214,9 +220,11 @@
         "sui d8"    : {code:0xD6,size:2},
         "rst 2"     : {code:0xD7,size:1},
         "rc"        : {code:0xD8,size:1},
+        "shlx"      : {code:0xD9,size:1},
         "jc adr"    : {code:0xDA,size:3},
         "in d8"     : {code:0xDB,size:2},
         "cc adr"    : {code:0xDC,size:3},
+        "jnx5 adr"  : {code:0xDD,size:3},
         "sbi d8"    : {code:0xDE,size:2},
         "rst 3"     : {code:0xDF,size:1},
         "rpo"       : {code:0xE0,size:1},
@@ -232,6 +240,7 @@
         "jpe adr"   : {code:0xEA,size:3},
         "xchg"      : {code:0xEB,size:1},
         "cpe adr"   : {code:0xEC,size:3},
+        "lhlx"      : {code:0xED,size:1},
         "xri d8"    : {code:0xEE,size:2},
         "rst 5"     : {code:0xEF,size:1},
         "rp"        : {code:0xF0,size:1},
@@ -248,6 +257,7 @@
         "jm adr"    : {code:0xFA,size:3},
         "ei"        : {code:0xFB,size:1},
         "cm adr"    : {code:0xFC,size:3},
+        "jx5 adr"   : {code:0xFD,size:3},
         "cpi d8"    : {code:0xFE,size:2},
         "rst 7"     : {code:0xFF,size:1}
     };
@@ -888,7 +898,7 @@ defineDirective = dir:(defineSymbol / setSymbol) whitespace* {
     };
 }
 
-operation = inst:(carryBitInstructions / singleRegInstructions / nopInstruction /
+operation = inst:(undocumentedInstructions / carryBitInstructions / singleRegInstructions / nopInstruction /
     dataTransferInstructions / regOrMemToAccInstructions / rotateAccInstructions /
     regPairInstructions / immediateInstructions / ioInstructions / directAddressingInstructions /
     jumpInstructions / callInstructions / returnInstructions / interruptInstruction / resetInstruction / haltInstruction) w:(whitespace*) {
@@ -951,6 +961,29 @@ invalidInstructionError = str:(.*) {
             ]
         }));
     }
+}
+
+// The ten opcodes Intel left out of the published instruction set. They are
+// real silicon behaviour, not extensions, and legacy code in the wild uses them.
+undocumentedInstructions = op:(op_dsub / op_arhl / op_rdel / op_rstv / op_shlx / op_lhlx /
+    op_ldhi / op_ldsi / op_jx5 / op_jnx5) {
+    var name, params, paramTypes;
+
+    if (typeof op === "string") {
+        name = op;
+        params = [];
+        paramTypes = [];
+    } else {
+        name = op[0];
+        params = [op[2]];
+        paramTypes = [name.toLowerCase() === "ldhi" || name.toLowerCase() === "ldsi" ? "d8" : "adr"];
+    }
+
+    return {
+        name: name,
+        params: params,
+        paramTypes: paramTypes
+    };
 }
 
 carryBitInstructions = op:(op_stc / op_cmc) {
@@ -1194,6 +1227,16 @@ op_daa  = "DAA"i
 op_sphl = "SPHL"i
 op_pchl = "PCHL"i
 op_hlt  = "HLT"i
+op_dsub = "DSUB"i
+op_arhl = "ARHL"i
+op_rdel = "RDEL"i
+op_rstv = "RSTV"i
+op_shlx = "SHLX"i
+op_lhlx = "LHLX"i
+op_ldhi = op:"LDHI"i operands:immediate_instruction_operands { return [op].concat(operands); }
+op_ldsi = op:"LDSI"i operands:immediate_instruction_operands { return [op].concat(operands); }
+op_jx5  = inst:("JX5"i ) operand:jump_operand { return [inst].concat(operand); }
+op_jnx5 = inst:("JNX5"i) operand:jump_operand { return [inst].concat(operand); }
 op_rlc  = "RLC"i
 op_rrc  = "RRC"i
 op_rar  = "RAR"i

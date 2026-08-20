@@ -2,7 +2,7 @@ import { For, Show, createSignal } from "solid-js";
 import { Reason } from "../../lib/practice/run-case.js";
 import { hex8, hex16 } from "../../lib/practice/assert.js";
 
-const FLAG_LABEL = { z: "Z", s: "S", p: "P", cy: "CY", ac: "AC" };
+const FLAG_LABEL = { z: "Z", s: "S", p: "P", cy: "CY", ac: "AC", v: "V", k: "K" };
 
 /**
  * Turn a setup or expectation into short, concrete pairs like "2000H = 3AH".

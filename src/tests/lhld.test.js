@@ -1,6 +1,6 @@
-import { describe, test } from "vitest";
+import { describe, test, expect } from "vitest";
 import * as fc from "fast-check";
-import { runTest } from "./test-utils";
+import { runTest, runAndGetState } from './test-utils';
 
 describe("LHLD Instruction Tests", () => {
     test("LHLD: Loads L and H register values from specified memory locations", async () => {
@@ -53,5 +53,21 @@ describe("LHLD Instruction Tests", () => {
             ),
             { verbose: true, numRuns: 100 }, // Run 100 variations for LHLD instruction
         );
+    });
+});
+
+// Worked example from the Intel 8080/8085 Assembly Language Programming Manual, Chapter 3.
+describe('LHLD Instruction Manual Example', () => {
+    // "Assume that locations 3000 and 3001H contain the address 064EH stored
+    // in the format 4E06. In the following sequence, the MOV instruction moves
+    // a copy of the byte stored at address 064E into the accumulator."
+    test('LHLD then MOV A,M: loads HL with 064EH and reads through it', async () => {
+        const result = await runAndGetState('lhld 3000H\nmov a, m\nhlt', {
+            memory: { 0x3000: 0x4e, 0x3001: 0x06, 0x064e: 0x5a },
+        });
+
+        expect(result.registers.hl.high).toBe(0x06);
+        expect(result.registers.hl.low).toBe(0x4e);
+        expect(result.accumulator).toBe(0x5a);
     });
 });

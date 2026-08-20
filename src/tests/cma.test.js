@@ -1,6 +1,6 @@
-import { describe, test } from 'vitest';
+import { describe, test, expect } from 'vitest';
 import * as fc from 'fast-check';
-import { runTest } from './test-utils';
+import { runTest, runAndGetState } from './test-utils';
 
 describe('CMA Instruction Property-Based Tests', () => {
     test('CMA: Complements the accumulator without modifying flags', async () => {
@@ -47,5 +47,16 @@ describe('CMA Instruction Property-Based Tests', () => {
                 numRuns: 100, // Test with 100 random variations
             }
         );
+    });
+});
+
+// Worked example from the Intel 8080/8085 Assembly Language Programming Manual, Chapter 3.
+describe('CMA Instruction Manual Example', () => {
+    // "Assume that the accumulator contains the value 51H; when complemented
+    // by CMA, it becomes OAEH"
+    test('CMA: 51H complements to AEH', async () => {
+        const result = await runAndGetState('cma\nhlt', { accumulator: 0x51 });
+
+        expect(result.accumulator).toBe(0xae);
     });
 });

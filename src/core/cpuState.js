@@ -32,6 +32,8 @@ export function getStateFromPtr(simulator, statePtr) {
             p: getFlagValue(flags, 2),
             cy: getFlagValue(flags, 3),
             ac: getFlagValue(flags, 4),
+            v: getFlagValue(flags, 5),
+            k: getFlagValue(flags, 6),
         },
         interruptsEnabled: getBool(13),
         interruptMasks: {
@@ -114,11 +116,12 @@ export function setState(simulator, statePtr, state) {
     simulator.setValue(statePtr + 8, state.sp, "i16", 0);
     simulator.setValue(statePtr + 10, state.pc, "i16", 0);
 
+    // Callers may omit the undocumented V and K flags, so coerce rather than
+    // letting an undefined turn the whole byte into NaN.
     var flag = parseInt(
-        [state.flags.z, state.flags.s, state.flags.p, state.flags.cy, state.flags.ac]
+        [state.flags.z, state.flags.s, state.flags.p, state.flags.cy, state.flags.ac, state.flags.v, state.flags.k]
             .reverse()
-            .map(Number)
-            .map(String)
+            .map((f) => (f ? "1" : "0"))
             .join(""),
         2,
     );
@@ -158,11 +161,12 @@ export function setRegisterState(simulator, statePtr, state) {
 }
 
 export function setFlagState(simulator, statePtr, state) {
+    // Callers may omit the undocumented V and K flags, so coerce rather than
+    // letting an undefined turn the whole byte into NaN.
     var flag = parseInt(
-        [state.flags.z, state.flags.s, state.flags.p, state.flags.cy, state.flags.ac]
+        [state.flags.z, state.flags.s, state.flags.p, state.flags.cy, state.flags.ac, state.flags.v, state.flags.k]
             .reverse()
-            .map(Number)
-            .map(String)
+            .map((f) => (f ? "1" : "0"))
             .join(""),
         2,
     );

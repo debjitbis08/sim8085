@@ -1,6 +1,6 @@
-import { describe, test } from 'vitest';
+import { describe, test, expect } from 'vitest';
 import * as fc from 'fast-check';
-import { runTest } from './test-utils';
+import { runTest, runAndGetState } from './test-utils';
 
 describe('SPHL Instruction Property-Based Tests', () => {
     test('SPHL: Sets SP to the value in HL', async () => {
@@ -48,5 +48,18 @@ describe('SPHL Instruction Property-Based Tests', () => {
                 numRuns: 100, // Test with 100 random combinations of H and L
             }
         );
+    });
+});
+
+// Worked example from the Intel 8080/8085 Assembly Language Programming Manual, Chapter 3.
+describe('SPHL Instruction Manual Example', () => {
+    // "Assume that the H and L registers contain 50H and OFFH, respectively.
+    // SPHL loads the stack pointer with the value 50FFH."
+    test('SPHL: loads the stack pointer with 50FFH', async () => {
+        const result = await runAndGetState('sphl\nhlt', {
+            registers: { hl: { high: 0x50, low: 0xff } },
+        });
+
+        expect(result.stackPointer).toBe(0x50ff);
     });
 });

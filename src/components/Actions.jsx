@@ -186,6 +186,8 @@ export default function Actions() {
                 draftStore.flags.p = outputState.flags.p;
                 draftStore.flags.c = outputState.flags.c;
                 draftStore.flags.ac = outputState.flags.ac;
+                draftStore.flags.v = outputState.flags.v;
+                draftStore.flags.k = outputState.flags.k;
                 draftStore.stackPointer = outputState.stackPointer;
                 draftStore.programCounter = outputState.programCounter;
                 draftStore.statePointer = outputState.statePointer;
@@ -763,6 +765,8 @@ export default function Actions() {
                 draftStore.flags.p = setup.flags?.p ?? false;
                 draftStore.flags.c = setup.flags?.cy ?? false;
                 draftStore.flags.ac = setup.flags?.ac ?? false;
+                draftStore.flags.v = setup.flags?.v ?? false;
+                draftStore.flags.k = setup.flags?.k ?? false;
 
                 draftStore.stackPointer = setup.sp ?? 0xffff;
                 draftStore.programCounter = pc;

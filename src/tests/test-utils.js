@@ -40,6 +40,8 @@ export function runTestProgram(state) {
             ac: false,
             p: false,
             c: false,
+            v: false,
+            k: false,
         },
         loadAddress: 0,
         settings: { run: { enableTiming: false } },
@@ -99,4 +101,20 @@ export async function runTest(code, initialState, expectedCpuState) {
 
     // Step 3: Verify the CPU state
     verifyCpuState(resultState, expectedCpuState);
+}
+
+/**
+ * Run a program and hand back the finished CPU state, for tests that assert on
+ * a few specific values rather than a whole expected state.
+ */
+export async function runAndGetState(code, initialState = {}) {
+    const { statePointer, assembled, memory } = await setupSimulator(code);
+
+    return runTestProgram({
+        statePointer,
+        assembled,
+        memory,
+        loadAddress: 0,
+        ...initialState,
+    });
 }

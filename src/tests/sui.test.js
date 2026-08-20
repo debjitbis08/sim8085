@@ -1,6 +1,6 @@
-import { describe, test } from "vitest";
+import { describe, test, expect } from "vitest";
 import * as fc from "fast-check";
-import { runTest } from "./test-utils";
+import { runTest, runAndGetState } from './test-utils';
 
 describe("SUI Instruction Tests", () => {
     test("SUI: Subtracts immediate data from accumulator and updates flags", async () => {
@@ -67,5 +67,16 @@ describe("SUI Instruction Tests", () => {
             ),
             { verbose: true, numRuns: 100 }, // Run 100 variations for SUI instruction
         );
+    });
+});
+
+// Worked example from the Intel 8080/8085 Assembly Language Programming Manual, Chapter 3.
+describe('SUI Instruction Manual Example', () => {
+    // "Assume that the accumulator contains the value 9 when the instruction
+    // SUI 1 is executed: ... 00001000 = 8H"
+    test('SUI 1: 9 minus 1 is 8H', async () => {
+        const result = await runAndGetState('sui 1\nhlt', { accumulator: 0x09 });
+
+        expect(result.accumulator).toBe(0x08);
     });
 });
