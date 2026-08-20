@@ -72,10 +72,8 @@ describe("ORI Instruction Tests", () => {
 describe('ORI Instruction Manual Example', () => {
     // "The following examples show a number of methods for defining immediate
     // data in the ORI instruction. All of the examples generate the bit
-    // pattern for the ASCII character A." The manual lists six notations; the
-    // character literal ('A') and the expression form (5+30*2) are omitted
-    // here because the assembler does not yet evaluate them correctly.
-    test.each([['01000001B'], ['41H'], ['101Q'], ['65']])(
+    // pattern for the ASCII character A." All six notations the manual lists:
+    test.each([['01000001B'], ["'A'"], ['41H'], ['101Q'], ['65'], ['5+30*2']])(
         'ORI %s assembles the immediate byte 41H',
         async (literal) => {
             const { assembled } = await setupSimulator(`ori ${literal}\nhlt`);

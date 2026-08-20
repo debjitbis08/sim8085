@@ -1,6 +1,6 @@
-import { describe, test } from "vitest";
+import { describe, test, expect } from "vitest";
 import * as fc from "fast-check";
-import { runTest } from "./test-utils";
+import { runTest, runAndGetState, setupSimulator } from "./test-utils";
 
 describe("CPI Instruction Tests", () => {
     test("CPI: Compares immediate data with accumulator and sets zero and carry flags", async () => {
@@ -63,5 +63,24 @@ describe("CPI Instruction Tests", () => {
             ),
             { verbose: true, numRuns: 100 }, // Run 100 variations for CPI instruction
         );
+    });
+});
+
+// Worked example from the Intel 8080/8085 Assembly Language Programming Manual,
+// Chapter 3.
+describe('CPI Instruction Manual Example', () => {
+    // "The instruction CPI 'C' compares the contents of the accumulator to the
+    // letter C (43H)."
+    test("CPI 'C': assembles to FE 43 and compares against 43H", async () => {
+        const { assembled } = await setupSimulator("cpi 'C'\nhlt");
+        const bytes = assembled.filter((a) => a.kind !== 'label').map((a) => a.data);
+        expect(bytes.slice(0, 2)).toEqual([0xfe, 0x43]);
+
+        // Equality is what the zero flag reports.
+        const equal = await runAndGetState("cpi 'C'\nhlt", { accumulator: 0x43 });
+        expect(equal.flags.z).toBe(true);
+
+        const notEqual = await runAndGetState("cpi 'C'\nhlt", { accumulator: 0x42 });
+        expect(notEqual.flags.z).toBe(false);
     });
 });

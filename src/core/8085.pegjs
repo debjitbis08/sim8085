@@ -308,6 +308,13 @@
     };
 
     var getSymbolValueOrValue = function (value, type, size, location) {
+        // Sub-expressions are returned as thunks so that symbols can be
+        // resolved after the whole program is parsed. An operand of an
+        // enclosing expression is therefore often a function, and has to be
+        // evaluated before it can be used as a number.
+        if (typeof value === "function") {
+            value = value();
+        }
         return typeof value === "string" ? getSymbolValue(value, type, size, location) : (
             Array.isArray(value)
                 ?  size === 16 ? (symbolEntry.value[0] << 8) | symbolEntry.value[1] : value[0]
@@ -397,6 +404,13 @@ machineCode = prg:program {
             } else if (Array.isArray(line.data)) {
                 // Handle array case, use the first element
                 dataVal = line.data[0];
+            } else if (Array.isArray(line.data.value)) {
+                // A character literal such as ORI 'A' arrives as an array of
+                // ASCII codes. Only a single character fits an 8-bit operand.
+                if (line.data.value.length !== 1) {
+                    error("8-bit data expected.", line.data.location);
+                }
+                dataVal = line.data.value[0];
             } else if (typeof line.data.value === "number") {
                 // Handle case where line.data.value is a number
                 dataVal = line.data.value;
@@ -463,9 +477,10 @@ program
 
 opWithLabel = labels:(labelPart)* op:(operation / directive) comment? {
     if (labels.length) {
+        var labelAddress = typeof op.ilcBeforeOrg === "number" ? op.ilcBeforeOrg : ilc;
         labels.forEach(function (label) {
             symbolTable[label.value] = {
-                addr: ilc,
+                addr: labelAddress,
                 value: op.data ?
                         Array.isArray(op.data) ?
                             op.data.map(function (d) {
@@ -473,7 +488,7 @@ opWithLabel = labels:(labelPart)* op:(operation / directive) comment? {
                             })
                             : op.data.value ?
                                 op.data.value : op.data
-                        : ilc
+                        : labelAddress
             };
         });
     }
@@ -883,6 +898,7 @@ directive = dir:(dataDefinition / orgDirective / endDirective) whitespace* {
         data: dir.params,
         size: opcode === "org" || opcode === 'equ' || opcode === 'end' ? 0 : dir.params.length,
         location: location(),
+        ilcBeforeOrg: dir.ilcBeforeOrg,
         dir
     };
 }
@@ -1199,10 +1215,14 @@ dataDefinition = dir:(dir_db) {
 }
 
 orgDirective = dir:(dir_org) {
+    // A label on an ORG line names the location counter as it stood before the
+    // directive, so keep that value for opWithLabel to pick up.
+    var ilcBeforeOrg = ilc;
     ilc = dir[2].value;
     return {
         name: dir,
-        params: [dir[2].value]
+        params: [dir[2].value],
+        ilcBeforeOrg: ilcBeforeOrg
     };
 }
 
