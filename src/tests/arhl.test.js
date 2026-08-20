@@ -27,15 +27,21 @@ describe('ARHL Instruction', () => {
         );
     });
 
-    test('ARHL: leaves the other documented flags untouched', async () => {
-        const result = await runAndGetState('arhl\nhlt', {
-            registers: { hl: { high: 0x40, low: 0x00 } },
-            flags: { z: true, s: true, p: true, ac: true },
-        });
+    test('ARHL: leaves every flag but carry untouched', async () => {
+        // Carry is the only flag ARHL writes, so everything else — including
+        // the undocumented V and K — has to survive in both directions.
+        for (const seeded of [true, false]) {
+            const result = await runAndGetState('arhl\nhlt', {
+                registers: { hl: { high: 0x40, low: 0x00 } },
+                flags: { z: seeded, s: seeded, p: seeded, ac: seeded, v: seeded, k: seeded },
+            });
 
-        expect(result.flags.z).toBe(true);
-        expect(result.flags.s).toBe(true);
-        expect(result.flags.p).toBe(true);
-        expect(result.flags.ac).toBe(true);
+            expect(result.flags.z).toBe(seeded);
+            expect(result.flags.s).toBe(seeded);
+            expect(result.flags.p).toBe(seeded);
+            expect(result.flags.ac).toBe(seeded);
+            expect(result.flags.v).toBe(seeded);
+            expect(result.flags.k).toBe(seeded);
+        }
     });
 });

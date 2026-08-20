@@ -149,6 +149,17 @@ describe('DAA Instruction Undocumented Flags', () => {
     // Shirriff notes that "the V flag for DAA can also be understood in terms
     // of the underlying addition", so DAA writes V and K from the adjustment
     // it applies rather than leaving them stale.
+    test('DAA: sets V when the adjustment overflows the signed range', async () => {
+        // 7AH needs the low-nibble adjustment, so the underlying addition is
+        // 7AH + 06H = 80H: 122 + 6 does not fit a signed byte, so V is set,
+        // and K is V exclusive-ored with the now-negative sign.
+        const result = await runAndGetState('daa\nhlt', { accumulator: 0x7a });
+
+        expect(result.accumulator).toBe(0x80);
+        expect(result.flags.v).toBe(true);
+        expect(result.flags.k).toBe(false);
+    });
+
     test('DAA: does not leave V and K stale from a previous instruction', async () => {
         // 12H is already valid BCD, so no adjustment is added and the sum
         // 12H + 00H cannot overflow.

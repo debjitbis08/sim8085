@@ -29,4 +29,17 @@ describe('RDEL Instruction', () => {
             { numRuns: 40 },
         );
     });
+
+    test('RDEL: writes carry and V but leaves K alone', async () => {
+        // The original publication lists RDEL as affecting only CY and V, so K
+        // has to come through untouched in both directions.
+        for (const seeded of [true, false]) {
+            const result = await runAndGetState('rdel\nhlt', {
+                registers: { de: { high: 0x40, low: 0x00 } },
+                flags: { k: seeded },
+            });
+
+            expect(result.flags.k).toBe(seeded);
+        }
+    });
 });

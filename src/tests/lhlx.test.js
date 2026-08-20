@@ -16,6 +16,24 @@ describe('LHLX Instruction', () => {
         expect(result.registers.hl.low).toBe(0xcd);
     });
 
+    test('LHLX: leaves every flag alone', async () => {
+        for (const seeded of [true, false]) {
+            const result = await runAndGetState('lhlx\nhlt', {
+                registers: { de: { high: 0x20, low: 0x10 } },
+                memory: { 0x2010: 0xcd, 0x2011: 0xab },
+                flags: { c: seeded, z: seeded, s: seeded, p: seeded, ac: seeded, v: seeded, k: seeded },
+            });
+
+            expect(result.flags.c).toBe(seeded);
+            expect(result.flags.z).toBe(seeded);
+            expect(result.flags.s).toBe(seeded);
+            expect(result.flags.p).toBe(seeded);
+            expect(result.flags.ac).toBe(seeded);
+            expect(result.flags.v).toBe(seeded);
+            expect(result.flags.k).toBe(seeded);
+        }
+    });
+
     test('SHLX then LHLX: a round trip through memory preserves HL', async () => {
         const result = await runAndGetState('shlx\nlxi h, 0000H\nlhlx\nhlt', {
             registers: { de: { high: 0x40, low: 0x00 }, hl: { high: 0xbe, low: 0xef } },

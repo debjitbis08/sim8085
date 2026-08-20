@@ -15,15 +15,23 @@ describe('SHLX Instruction', () => {
     });
 
     test('SHLX: leaves every flag alone', async () => {
-        const result = await runAndGetState('shlx\nhlt', {
-            registers: { de: { high: 0x20, low: 0x10 }, hl: { high: 0xab, low: 0xcd } },
-            flags: { c: true, z: true, s: true, p: true, ac: true },
-        });
+        // Seeded in both directions, so an instruction that always set or
+        // always cleared a flag would still fail. V and K are included: the
+        // undocumented pair is flag state like any other, and RSTV, JX5 and
+        // JNX5 read it.
+        for (const seeded of [true, false]) {
+            const result = await runAndGetState('shlx\nhlt', {
+                registers: { de: { high: 0x20, low: 0x10 }, hl: { high: 0xab, low: 0xcd } },
+                flags: { c: seeded, z: seeded, s: seeded, p: seeded, ac: seeded, v: seeded, k: seeded },
+            });
 
-        expect(result.flags.c).toBe(true);
-        expect(result.flags.z).toBe(true);
-        expect(result.flags.s).toBe(true);
-        expect(result.flags.p).toBe(true);
-        expect(result.flags.ac).toBe(true);
+            expect(result.flags.c).toBe(seeded);
+            expect(result.flags.z).toBe(seeded);
+            expect(result.flags.s).toBe(seeded);
+            expect(result.flags.p).toBe(seeded);
+            expect(result.flags.ac).toBe(seeded);
+            expect(result.flags.v).toBe(seeded);
+            expect(result.flags.k).toBe(seeded);
+        }
     });
 });
