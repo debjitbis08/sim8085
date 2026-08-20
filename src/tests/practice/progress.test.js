@@ -57,6 +57,16 @@ describe("progress (anonymous)", () => {
         expect(data.get("practice:solution:p/step-1")).toBe("HLT");
     });
 
+    test("a completed step is reported as kept locally, never as in an account", async () => {
+        const progress = await freshModule();
+        await progress.initProgress();
+        await progress.markStepComplete("p/step-1", "HLT");
+
+        // Nothing has been anywhere near a server, and the badge in the panel
+        // says so.
+        expect(progress.whereStepIsSaved("p/step-1")).toBe("local");
+    });
+
     test("progress survives a reload", async () => {
         const first = await freshModule();
         await first.initProgress();

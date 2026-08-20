@@ -1,4 +1,5 @@
 import { For, Show, createSignal, onMount } from "solid-js";
+import { FaSolidCloudArrowUp, FaSolidLaptop } from "solid-icons/fa";
 import { store } from "../../store/store.js";
 import { check } from "../../lib/practice/verify-client.js";
 import {
@@ -7,7 +8,9 @@ import {
     isStepComplete,
     markStepComplete,
     saveSolution,
+    whereStepIsSaved,
 } from "../../lib/practice/progress.js";
+import { Tooltip } from "../generic/Tooltip.jsx";
 import { isStepUnlocked } from "../../lib/practice/gating.js";
 import { canAccess, unseal } from "../../lib/practice/access.js";
 import { getUserTier } from "../../lib/subscription.js";
@@ -28,6 +31,9 @@ export function PracticePanel(props) {
     const [complete, setComplete] = createSignal(false);
     const [unlocked, setUnlocked] = createSignal(true);
     const [signedIn, setSignedIn] = createSignal(false);
+    // "account" or "local": where the passing solution actually ended up, which
+    // is not the same question as whether the learner is signed in.
+    const [savedTo, setSavedTo] = createSignal("local");
     const [hintsShown, setHintsShown] = createSignal(0);
     // null while the tier is still being determined, so a paid step shows
     // "checking" rather than flashing a paywall at someone who has paid.
@@ -37,6 +43,19 @@ export function PracticePanel(props) {
     const refreshGate = () => {
         setComplete(isStepComplete(props.stepKey));
         setUnlocked(isStepUnlocked(props.stepKey, props.orderedStepKeys, isStepComplete));
+        setSavedTo(whereStepIsSaved(props.stepKey));
+    };
+
+    /**
+     * Said in full in the tooltip, because "complete" on its own leaves the
+     * question a learner actually has — is this still here tomorrow? — to be
+     * guessed at.
+     */
+    const savedMessage = () => {
+        if (savedTo() === "account") return "Saved to your account. Sign in anywhere to pick this up.";
+        if (signedIn()) return "Kept in this tab. We could not reach your account to save it.";
+
+        return "Kept in this tab only. Sign in to save it to your account.";
     };
 
     onMount(async () => {
@@ -82,6 +101,9 @@ export function PracticePanel(props) {
                 saveSolution(props.stepKey, store.activeFile.content);
                 setComplete(true);
                 await markStepComplete(props.stepKey, store.activeFile.content);
+                // Only now is it known whether the account has it: the icon
+                // stays local until the server has actually taken the write.
+                setSavedTo(whereStepIsSaved(props.stepKey));
             }
         } catch (error) {
             // The checker is meant to resolve with a verdict rather than throw.
@@ -122,7 +144,24 @@ export function PracticePanel(props) {
                 <p class="text-xs uppercase tracking-wide text-inactive-foreground font-mono mt-3">
                     Step {props.step.stepNumber} of {props.totalSteps}
                     <Show when={complete()}>
-                        <span class="text-terminal ml-2">✓ complete</span>
+                        <Tooltip placement="bottom">
+                            <Tooltip.Trigger
+                                class={`tooltip__trigger ml-2 inline-flex items-center gap-1 align-middle ${
+                                    savedTo() === "account" ? "text-terminal" : "text-yellow-foreground"
+                                }`}
+                            >
+                                <Show when={savedTo() === "account"} fallback={<FaSolidLaptop />}>
+                                    <FaSolidCloudArrowUp />
+                                </Show>
+                                <span>complete</span>
+                            </Tooltip.Trigger>
+                            <Tooltip.Portal>
+                                <Tooltip.Content class="tooltip__content">
+                                    <Tooltip.Arrow />
+                                    <p>{savedMessage()}</p>
+                                </Tooltip.Content>
+                            </Tooltip.Portal>
+                        </Tooltip>
                     </Show>
                 </p>
                 <h2 class="text-xl mt-1">{props.step.title}</h2>

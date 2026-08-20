@@ -22,6 +22,12 @@ const SOLUTION_PREFIX = "practice:solution:";
 
 /** In-memory mirror so reads are synchronous even before storage is touched. */
 let completed = new Map();
+/**
+ * The steps the server has confirmed it holds — read back from it, or written
+ * to it without complaint. Not merely "was signed in when it happened": a
+ * write that failed leaves the step local, and the UI says so.
+ */
+let savedToAccount = new Set();
 let userId = null;
 let initialized = false;
 let initPromise = null;
@@ -126,6 +132,7 @@ async function syncWithServer() {
         const remoteKeys = new Set();
         for (const row of data ?? []) {
             remoteKeys.add(row.step_key);
+            savedToAccount.add(row.step_key);
             completed.set(row.step_key, true);
             if (row.solution) writeLocal(SOLUTION_PREFIX + row.step_key, row.solution);
         }
@@ -133,7 +140,7 @@ async function syncWithServer() {
 
         const toPush = localOnly.filter((stepKey) => !remoteKeys.has(stepKey));
         if (toPush.length) {
-            await supabase.from("practice_progress").upsert(
+            const { error: pushError } = await supabase.from("practice_progress").upsert(
                 toPush.map((stepKey) => ({
                     user_id: userId,
                     step_key: stepKey,
@@ -141,6 +148,9 @@ async function syncWithServer() {
                 })),
                 { onConflict: "user_id,step_key" },
             );
+
+            if (pushError) throw pushError;
+            for (const stepKey of toPush) savedToAccount.add(stepKey);
         }
     } catch (error) {
         // Offline, or the table is not provisioned yet. The local cache is
@@ -170,6 +180,17 @@ export function completedStepKeys() {
 }
 
 /**
+ * Where a completed step is being kept.
+ *
+ * "account" only once the server has actually accepted the write, so a step
+ * that failed to upload reads as local — which is what the learner needs to
+ * know. Everything else, including an anonymous learner, is "local".
+ */
+export function whereStepIsSaved(stepKey) {
+    return savedToAccount.has(stepKey) ? "account" : "local";
+}
+
+/**
  * Record a passing step. The local write happens first so the UI updates
  * immediately; the server write is best effort.
  */
@@ -184,7 +205,7 @@ export async function markStepComplete(stepKey, solutionCode) {
     if (!userId || !supabase) return;
 
     try {
-        await supabase.from("practice_progress").upsert(
+        const { error } = await supabase.from("practice_progress").upsert(
             {
                 user_id: userId,
                 step_key: stepKey,
@@ -193,7 +214,15 @@ export async function markStepComplete(stepKey, solutionCode) {
             },
             { onConflict: "user_id,step_key" },
         );
+
+        // A rejected write is reported in the result rather than thrown, so it
+        // has to be read: the step would otherwise be shown as kept in the
+        // account when nothing of it left the browser.
+        if (error) throw error;
+
+        savedToAccount.add(stepKey);
     } catch (error) {
+        savedToAccount.delete(stepKey);
         console.warn("Could not save practice progress to the server.", error);
     }
 }
