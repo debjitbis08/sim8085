@@ -12,6 +12,8 @@ Now finish the program. Add the two numbers and store the answer at `2002H`.
 The loading code from the previous step is already in the editor, so you only
 need the arithmetic and the store.
 
+> **The one thing:** Arithmetic always goes through `A`, and the carry flag is not an error — it is the ninth bit of an answer that outgrew the register.
+
 ### What is being checked
 
 - `2002H` holds the sum

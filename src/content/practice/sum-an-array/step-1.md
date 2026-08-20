@@ -12,6 +12,8 @@ Before adding anything, get the loop right on its own.
 The count is at `2000H`, and that many bytes follow from `2001H`. Walk across
 them without touching the values, and stop when the array is exhausted.
 
+> **The one thing:** Advance the pointer first, then decrement and test. Testing first runs the body one time too few, and on a one-element array that means not at all.
+
 ### What is being checked
 
 - `HL` finishes **just past** the last byte, at `2001H + count`

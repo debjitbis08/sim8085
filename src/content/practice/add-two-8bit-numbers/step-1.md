@@ -13,6 +13,8 @@ Load the byte at `2000H` into the accumulator `A`, and the byte at `2001H`
 into register `B`. Do not add them yet. This step is only about getting the
 values where the next step can use them.
 
+> **The one thing:** `M` is not a register. It is whatever `HL` points at right now, so reaching the next byte means moving the pointer, not naming another address.
+
 ### What is being checked
 
 - `A` holds the byte from `2000H`

@@ -10,6 +10,8 @@ hints:
 Now make the loop do some work. Add every byte in the array, leave the total
 in `A`, and store it at `2050H`.
 
+> **The one thing:** `A` does not start at zero just because it usually looks that way. Clear it yourself.
+
 ### What is being checked
 
 - `A` holds the total

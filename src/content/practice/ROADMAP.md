@@ -26,18 +26,18 @@ cross-linked.
 ## Priority for the first pass
 
 The near-term shortlist, chosen so that each one introduces exactly one new
-idea on top of the previous:
+idea on top of the previous. All ten are now authored:
 
 1. `add-two-8bit-numbers` — **live**
 2. `sum-an-array` — **live**
-3. `subtract-two-8bit-numbers` — flags in the other direction
-4. `swap-two-bytes` — the classic "you need a third place" problem
-5. `largest-in-array` — comparison inside a loop
-6. `count-ones-in-byte` — rotate + carry
-7. `add-two-16bit-numbers` — register pairs
-8. `multiply-8bit-repeated-addition` — nested control flow
-9. `block-transfer` — two pointers
-10. `ascending-sort-bubble` — the first genuinely hard one
+3. `subtract-two-8bit-numbers` — **live**
+4. `swap-two-bytes` — **live**
+5. `largest-in-array` — **live**
+6. `count-ones-in-byte` — **live**
+7. `add-two-16bit-numbers` — **live**
+8. `multiply-8bit-repeated-addition` — **live**
+9. `block-transfer` — **live**
+10. `ascending-sort-bubble` — **live**
 
 ---
 
@@ -46,11 +46,11 @@ idea on top of the previous:
 | Slug | Title | Tier | Status |
 | --- | --- | --- | --- |
 | `load-and-store-a-byte` | Copy a byte from one memory location to another | beg | todo |
-| `swap-two-bytes` | Swap two 8-bit numbers in memory | beg | doc (`swap-8bit-numbers`) |
+| `swap-two-bytes` | Swap two 8-bit numbers in memory | beg | **live** (doc: `swap-8bit-numbers`) |
 | `swap-register-pairs` | Exchange the contents of two register pairs | beg | todo |
 | `fill-a-memory-block` | Fill N bytes of memory with a constant | beg | todo |
-| `block-transfer` | Copy a block of N bytes to another address | beg | todo |
-| `block-transfer-overlapping` | Copy a block where source and destination overlap | int | todo |
+| `block-transfer` | Copy a block of N bytes to another address | beg | **live** |
+| `block-transfer-overlapping` | Copy a block where source and destination overlap | int | **live** (step 2 of `block-transfer`) |
 | `exchange-two-blocks` | Exchange two blocks of memory | int | todo |
 
 ## 2. 8-bit arithmetic
@@ -59,8 +59,8 @@ idea on top of the previous:
 | --- | --- | --- | --- |
 | `add-two-8bit-numbers` | Add two 8-bit numbers | beg | **live** |
 | `add-two-8bit-with-carry` | Add two 8-bit numbers, store the carry as a 16-bit result | beg | todo |
-| `subtract-two-8bit-numbers` | Subtract two 8-bit numbers | beg | todo |
-| `subtract-with-borrow` | Subtract and record the borrow | beg | todo |
+| `subtract-two-8bit-numbers` | Subtract two 8-bit numbers | beg | **live** |
+| `subtract-with-borrow` | Subtract and record the borrow | beg | **live** (step 2 of `subtract-two-8bit-numbers`) |
 | `twos-complement` | Find the 2's complement of a byte | beg | todo |
 | `ones-complement` | Find the 1's complement of a byte | beg | todo |
 | `increment-decrement-byte` | Increment / decrement a memory location | beg | todo |
@@ -74,7 +74,7 @@ idea on top of the previous:
 
 | Slug | Title | Tier | Status |
 | --- | --- | --- | --- |
-| `add-two-16bit-numbers` | Add two 16-bit numbers | beg | todo |
+| `add-two-16bit-numbers` | Add two 16-bit numbers | beg | **live** |
 | `subtract-two-16bit-numbers` | Subtract two 16-bit numbers | int | todo |
 | `add-16bit-with-carry-out` | 16-bit addition producing a 17th carry bit | int | todo |
 | `increment-16bit-with-flags` | Increment a 16-bit value and set flags correctly | int | todo |
@@ -86,7 +86,7 @@ idea on top of the previous:
 
 | Slug | Title | Tier | Status |
 | --- | --- | --- | --- |
-| `multiply-8bit-repeated-addition` | Multiply two 8-bit numbers by repeated addition | int | doc (`multiply-8bit-numbers`) |
+| `multiply-8bit-repeated-addition` | Multiply two 8-bit numbers by repeated addition | int | **live** (doc: `multiply-8bit-numbers`) |
 | `multiply-8bit-shift-add` | Multiply using rotate-and-add | adv | todo |
 | `divide-8bit-repeated-subtraction` | Divide by repeated subtraction (quotient + remainder) | int | todo |
 | `divide-8bit-shift` | Divide using the shift method | adv | todo |
@@ -108,10 +108,10 @@ idea on top of the previous:
 | `mask-a-nibble` | Extract the high / low nibble of a byte | beg | todo |
 | `swap-nibbles` | Swap the two nibbles of a byte | beg | todo |
 | `set-clear-test-a-bit` | Set, clear and test a given bit | beg | todo |
-| `count-ones-in-byte` | Count the 1 bits in a byte | int | doc (`count-ones-in-byte`) |
+| `count-ones-in-byte` | Count the 1 bits in a byte | int | **live** (doc: `count-ones-in-byte`) |
 | `count-zeros-in-byte` | Count the 0 bits in a byte | int | todo |
 | `find-parity` | Determine the parity of a number | int | todo |
-| `check-even-or-odd` | Test whether a number is even or odd | beg | todo |
+| `check-even-or-odd` | Test whether a number is even or odd | beg | **live** (step 1 of `count-ones-in-byte`) |
 | `rotate-byte-left-right` | Rotate a byte through / without carry | beg | todo |
 | `reverse-bits-in-byte` | Reverse the bit order of a byte | adv | todo |
 | `logical-ops-on-two-bytes` | AND / OR / XOR two bytes and store each result | beg | todo |
@@ -123,7 +123,7 @@ idea on top of the previous:
 
 | Slug | Title | Tier | Status |
 | --- | --- | --- | --- |
-| `compare-two-numbers` | Compare two bytes and store the larger | beg | todo |
+| `compare-two-numbers` | Compare two bytes and store the larger | beg | **live** (step 1 of `largest-in-array`) |
 | `largest-of-three` | Largest of three numbers | beg | todo |
 | `count-positive-negative-zero` | Count positive, negative and zero elements | int | todo |
 | `count-negative-elements` | Count negative (MSB set) elements in an array | int | doc (`count-negative-elements-in-array`) |
@@ -137,9 +137,9 @@ idea on top of the previous:
 
 | Slug | Title | Tier | Status |
 | --- | --- | --- | --- |
-| `largest-in-array` | Largest number in an array | beg | doc (`largest-number-in-array`) |
+| `largest-in-array` | Largest number in an array | beg | **live** (doc: `largest-number-in-array`) |
 | `smallest-in-array` | Smallest number in an array | beg | todo |
-| `largest-and-smallest` | Largest and smallest in one pass | int | doc (`largest-smallest-in-array`) |
+| `largest-and-smallest` | Largest and smallest in one pass | int | **live** (step 3 of `largest-in-array`) |
 | `reverse-an-array` | Reverse a block in memory in place | int | doc (`reversing-an-array`) |
 | `separate-even-and-odd` | Split an array into even and odd lists | int | todo |
 | `separate-positive-negative` | Split an array by sign | int | todo |
@@ -154,7 +154,7 @@ idea on top of the previous:
 | --- | --- | --- | --- |
 | `linear-search` | Search for a value in an array | beg | todo |
 | `binary-search` | Binary search in a sorted array | adv | todo |
-| `ascending-sort-bubble` | Sort an array in ascending order (bubble sort) | int | todo |
+| `ascending-sort-bubble` | Sort an array in ascending order (bubble sort) | int | **live** |
 | `descending-sort-bubble` | Sort an array in descending order | int | todo |
 | `selection-sort` | Sort using selection sort | adv | todo |
 | `insertion-sort` | Sort using insertion sort | adv | todo |
@@ -305,9 +305,11 @@ case.
 | `divide-by-constant` | Divide by a constant without a division loop | adv | todo |
 | `shrink-a-program` | Match a byte-count budget for a given task | adv | todo |
 
-Needs one harness addition: a **byte-size budget** alongside the existing
-T-state budget, and a step type that ships working code as the starter rather
-than a skeleton.
+Both mechanisms this section assumed are already proven in authored content:
+`ascending-sort-bubble/step-4` asserts `expect.maxTstates` to require an early
+exit, and several steps ship the previous step's working solution as their
+starter. What is still missing is a **byte-size budget** alongside the T-state
+one.
 
 ---
 
