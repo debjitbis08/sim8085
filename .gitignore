@@ -26,3 +26,6 @@ pnpm-debug.log*
 sim8085_ed25519*
 .netlify/
 public/ads.txt
+.env.local
+test-results/
+playwright-report/

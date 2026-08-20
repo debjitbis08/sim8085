@@ -1,0 +1,9 @@
+# pnpm 11 refuses to run a dependency's install scripts unless it is allowed
+# here. esbuild, sharp and the Tailwind oxide binding each install a native
+# binary in theirs; core-js only prints a banner, and is listed so a fresh
+# install has nothing left to ask about.
+allowBuilds:
+  "@tailwindcss/oxide": true
+  core-js: true
+  esbuild: true
+  sharp: true
