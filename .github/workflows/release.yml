@@ -20,13 +20,13 @@ jobs:
       matrix:
         node-version: [24] # Node 20 is deprecated on GitHub runners
     steps:
-      - uses: actions/checkout@v4 # Checkout the repository
+      - uses: actions/checkout@v5 # Checkout the repository
       - name: Install pnpm
         # No version here on purpose: the action reads packageManager from
         # package.json, so CI and local development stay on the same pnpm.
-        uses: pnpm/action-setup@v4 # Use pnpm's official GitHub Action
+        uses: pnpm/action-setup@v5 # Use pnpm's official GitHub Action
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: ${{ matrix.node-version }}
           cache: "pnpm" # Enable pnpm cache
