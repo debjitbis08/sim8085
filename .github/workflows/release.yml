@@ -18,13 +18,13 @@ jobs:
       id-token: write # to enable use of OIDC for npm provenance
     strategy:
       matrix:
-        node-version: [20] # Use the desired Node.js version
+        node-version: [24] # Node 20 is deprecated on GitHub runners
     steps:
       - uses: actions/checkout@v4 # Checkout the repository
       - name: Install pnpm
+        # No version here on purpose: the action reads packageManager from
+        # package.json, so CI and local development stay on the same pnpm.
         uses: pnpm/action-setup@v4 # Use pnpm's official GitHub Action
-        with:
-          version: 9 # Specify the pnpm version to use
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:

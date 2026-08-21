@@ -6,6 +6,7 @@
     "private": true,
     "license": "BSD-3-Clause",
     "author": "Debjit Biswas",
+    "packageManager": "pnpm@11.2.2",
     "repository": {
         "type": "git",
         "url": "https://github.com/debjitbis08/sim8085"
