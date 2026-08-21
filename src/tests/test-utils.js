@@ -1,4 +1,13 @@
-import { initSimulator, loadProgram, runProgram, setFlags, setMemoryLocation, setRegisters } from "../core/simulator";
+import {
+    initSimulator,
+    loadProgram,
+    runProgram,
+    setFlags,
+    setInterruptState,
+    setIOPort,
+    setMemoryLocation,
+    setRegisters,
+} from "../core/simulator";
 import { expect } from "vitest";
 import { deepMerge } from "../utils/deepMerge.js";
 
@@ -43,6 +52,9 @@ export function runTestProgram(state) {
             v: false,
             k: false,
         },
+        interruptsEnabled: false,
+        interruptMasks: { rst55: false, rst65: false, rst75: false },
+        pendingInterrupts: { trap: false, rst55: false, rst65: false, rst75: false },
         loadAddress: 0,
         settings: { run: { enableTiming: false } },
     };
@@ -52,12 +64,22 @@ export function runTestProgram(state) {
 
     setFlags(finalState);
     setRegisters(finalState);
+    setInterruptState(finalState);
     Object.entries(state.memory || {}).forEach(([index, value]) => {
         setMemoryLocation(
             {
                 statePointer: finalState.statePointer,
             },
             parseInt(index, 10),
+            value,
+        );
+    });
+    Object.entries(state.io || {}).forEach(([port, value]) => {
+        setIOPort(
+            {
+                statePointer: finalState.statePointer,
+            },
+            parseInt(port, 10),
             value,
         );
     });

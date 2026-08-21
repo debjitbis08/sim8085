@@ -70,4 +70,13 @@ describe('LHLD Instruction Manual Example', () => {
         expect(result.registers.hl.low).toBe(0x4e);
         expect(result.accumulator).toBe(0x5a);
     });
+
+    test('LHLD FFFFH wraps the H-byte read to 0000H', async () => {
+        const result = await runAndGetState('org 0100H\nlhld 0FFFFH\nhlt', {
+            programCounter: 0x0100,
+            memory: { 0xffff: 0xcd, 0x0000: 0xab },
+        });
+
+        expect(result.registers.hl).toEqual({ high: 0xab, low: 0xcd });
+    });
 });

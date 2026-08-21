@@ -1,6 +1,23 @@
 import { describe, test, expect } from 'vitest';
 import { runAndGetState } from './test-utils';
 
+describe('POP register-pair forms', () => {
+    test.each([
+        ['b', 'bc'],
+        ['d', 'de'],
+        ['h', 'hl'],
+    ])('POP %s loads the low byte before the high byte', async (operand, pair) => {
+        const result = await runAndGetState(`lxi sp, 2000H\npop ${operand}\nhlt`, {
+            memory: { 0x2000: 0x34, 0x2001: 0x12 },
+        });
+
+        expect(result.registers[pair]).toEqual({ high: 0x12, low: 0x34 });
+        expect(result.stackPointer).toBe(0x2002);
+        expect(result.memory[0x2000]).toBe(0x34);
+        expect(result.memory[0x2001]).toBe(0x12);
+    });
+});
+
 describe('POP PSW Instruction', () => {
     // POP PSW has to recover the undocumented V and K from bits 1 and 5,
     // otherwise saving and restoring state around a subroutine would quietly

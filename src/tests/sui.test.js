@@ -1,6 +1,7 @@
 import { describe, test, expect } from "vitest";
 import * as fc from "fast-check";
 import { runTest, runAndGetState } from './test-utils';
+import { expectedSubtraction } from "./arithmetic-reference.js";
 
 describe("SUI Instruction Tests", () => {
     test("SUI: Subtracts immediate data from accumulator and updates flags", async () => {
@@ -29,7 +30,7 @@ describe("SUI Instruction Tests", () => {
                             2 ===
                         0;
                     const carryFlag = accumulator < immediateValue;
-                    const auxCarryFlag = (accumulator & 0x0f) + ((~immediateValue + 1) & 0x0f) > 0x0f;
+                    const expectedFlags = expectedSubtraction(accumulator, immediateValue).flags;
 
                     const code = `
                       org 0x0000
@@ -57,7 +58,7 @@ describe("SUI Instruction Tests", () => {
                             s: signFlag,
                             p: parityFlag,
                             c: carryFlag, // Carry flag indicates borrow
-                            ac: auxCarryFlag, // Auxiliary carry flag indicates lower nibble borrow
+                            ac: expectedFlags.ac,
                         },
                         programCounter: 0x0003, // PC should increment by 2 after SUI (2-byte instruction)
                     };

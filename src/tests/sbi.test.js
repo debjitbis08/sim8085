@@ -1,6 +1,7 @@
 import { describe, test } from "vitest";
 import * as fc from "fast-check";
 import { runTest } from "./test-utils";
+import { expectedSubtraction } from "./arithmetic-reference.js";
 
 describe("SBI Instruction Tests", () => {
     test("SBI: Subtracts immediate data and carry from accumulator and updates flags", async () => {
@@ -35,8 +36,7 @@ describe("SBI Instruction Tests", () => {
                         0;
                     const carryFlagResult = accumulator < totalSubtraction;
 
-                    // Correct AC flag logic for two's complement subtraction
-                    const acFlag = (accumulator & 0x0f) + ((~totalSubtraction + 1) & 0x0f) > 0x0f;
+                    const expectedFlags = expectedSubtraction(accumulator, immediateValue, carry).flags;
 
                     const code = `
                       org 0x0000
@@ -66,7 +66,7 @@ describe("SBI Instruction Tests", () => {
                             s: signFlag,
                             p: parityFlag,
                             c: carryFlagResult, // Carry flag indicates borrow
-                            ac: acFlag, // Correct AC flag logic
+                            ac: expectedFlags.ac,
                         },
                         programCounter: 0x0003, // PC should increment by 2 after SBI (2-byte instruction)
                     };

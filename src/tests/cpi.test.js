@@ -1,6 +1,7 @@
 import { describe, test, expect } from "vitest";
 import * as fc from "fast-check";
 import { runTest, runAndGetState, setupSimulator } from "./test-utils";
+import { expectedSubtraction } from "./arithmetic-reference.js";
 
 describe("CPI Instruction Tests", () => {
     test("CPI: Compares immediate data with accumulator and sets zero and carry flags", async () => {
@@ -21,11 +22,7 @@ describe("CPI Instruction Tests", () => {
                     // Calculate expected flags
                     const zeroFlag = result === 0;
                     const carryFlag = accumulator < immediateValue;
-                    // The manual lists AC among the flags CPI affects, and
-                    // describes the comparison as an internal subtraction, so
-                    // AC is the half-borrow that subtraction produces.
-                    const auxCarryFlag =
-                        (accumulator & 0x0f) + ((~immediateValue + 1) & 0x0f) > 0x0f;
+                    const expectedFlags = expectedSubtraction(accumulator, immediateValue).flags;
 
                     const code = `
                       org 0x0000
@@ -58,7 +55,7 @@ describe("CPI Instruction Tests", () => {
                                     2 ===
                                 0, // Parity flag based on even/odd 1 bits
                             c: carryFlag, // Carry flag based on the comparison
-                            ac: auxCarryFlag,
+                            ac: expectedFlags.ac,
                         },
                         programCounter: 0x0003, // PC should increment by 2 after CPI (2-byte instruction)
                     };

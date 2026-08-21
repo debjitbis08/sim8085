@@ -126,6 +126,7 @@ export function setState(simulator, statePtr, state) {
         2,
     );
     simulator.setValue(statePtr + 12, flag, "i8", 0);
+    setInterruptState(simulator, statePtr, state);
 
     // Memory
     var memoryPtr = simulator._getMemory(statePtr);
@@ -142,6 +143,22 @@ export function setState(simulator, statePtr, state) {
         simulator.setValue(ioPointer + i, state.io[i], "i8", 0);
         i++;
     }
+}
+
+export function setInterruptState(simulator, statePtr, state) {
+    simulator.setValue(statePtr + 13, boolToBin(state.interruptsEnabled), "i8", 0);
+    simulator.setValue(statePtr + 14, boolToBin(state.interruptMasks?.rst55), "i8", 0);
+    simulator.setValue(statePtr + 15, boolToBin(state.interruptMasks?.rst65), "i8", 0);
+    simulator.setValue(statePtr + 16, boolToBin(state.interruptMasks?.rst75), "i8", 0);
+    simulator.setValue(statePtr + 17, boolToBin(state.pendingInterrupts?.trap), "i8", 0);
+    simulator.setValue(statePtr + 18, boolToBin(state.pendingInterrupts?.rst55), "i8", 0);
+    simulator.setValue(statePtr + 19, boolToBin(state.pendingInterrupts?.rst65), "i8", 0);
+    simulator.setValue(statePtr + 20, boolToBin(state.pendingInterrupts?.rst75), "i8", 0);
+    // Clear execution-only state so one run cannot leak EI delay or the
+    // one-shot pre-TRAP IE snapshot into another.
+    simulator.setValue(statePtr + 23, 0, "i8", 0);
+    simulator.setValue(statePtr + 24, 0, "i8", 0);
+    simulator.setValue(statePtr + 25, 0, "i8", 0);
 }
 
 export function setPCValue(simulator, statePtr, pcValue) {

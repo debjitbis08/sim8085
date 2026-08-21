@@ -30,15 +30,20 @@ describe('RDEL Instruction', () => {
         );
     });
 
-    test('RDEL: writes carry and V but leaves K alone', async () => {
-        // The original publication lists RDEL as affecting only CY and V, so K
-        // has to come through untouched in both directions.
+    test('RDEL: writes carry and V but leaves every other flag alone', async () => {
+        // The original publication lists RDEL as affecting only CY and V.
+        // Seed every preserved flag in both directions so always-setting or
+        // always-clearing any one of them is observable.
         for (const seeded of [true, false]) {
             const result = await runAndGetState('rdel\nhlt', {
                 registers: { de: { high: 0x40, low: 0x00 } },
-                flags: { k: seeded },
+                flags: { z: seeded, s: seeded, p: seeded, ac: seeded, k: seeded },
             });
 
+            expect(result.flags.z).toBe(seeded);
+            expect(result.flags.s).toBe(seeded);
+            expect(result.flags.p).toBe(seeded);
+            expect(result.flags.ac).toBe(seeded);
             expect(result.flags.k).toBe(seeded);
         }
     });

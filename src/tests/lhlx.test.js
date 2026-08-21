@@ -16,6 +16,17 @@ describe('LHLX Instruction', () => {
         expect(result.registers.hl.low).toBe(0xcd);
     });
 
+    test('LHLX: wraps the high-byte address after FFFFH', async () => {
+        const result = await runAndGetState('org 0100H\nlhlx\nhlt', {
+            programCounter: 0x0100,
+            registers: { de: { high: 0xff, low: 0xff } },
+            memory: { 0xffff: 0xcd, 0x0000: 0xab },
+        });
+
+        expect(result.registers.hl.high).toBe(0xab);
+        expect(result.registers.hl.low).toBe(0xcd);
+    });
+
     test('LHLX: leaves every flag alone', async () => {
         for (const seeded of [true, false]) {
             const result = await runAndGetState('lhlx\nhlt', {

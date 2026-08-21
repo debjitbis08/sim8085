@@ -1,6 +1,23 @@
 import { describe, test, expect } from 'vitest';
 import { runAndGetState } from './test-utils';
 
+describe('PUSH register-pair forms', () => {
+    test.each([
+        ['b', 'bc', 0x12, 0x34],
+        ['d', 'de', 0x56, 0x78],
+        ['h', 'hl', 0x9a, 0xbc],
+    ])('PUSH %s stores the high byte above the low byte', async (operand, pair, high, low) => {
+        const result = await runAndGetState(`lxi sp, 2000H\npush ${operand}\nhlt`, {
+            registers: { [pair]: { high, low } },
+        });
+
+        expect(result.memory[0x1fff]).toBe(high);
+        expect(result.memory[0x1ffe]).toBe(low);
+        expect(result.stackPointer).toBe(0x1ffe);
+        expect(result.registers[pair]).toEqual({ high, low });
+    });
+});
+
 // Worked example from the Intel 8080/8085 Assembly Language Programming Manual, Chapter 3.
 describe('PUSH Instruction Manual Example', () => {
     // "Assume that register B contains 2AH, the C register contains 4CH, and

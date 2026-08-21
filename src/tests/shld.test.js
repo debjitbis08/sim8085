@@ -67,4 +67,14 @@ describe('SHLD Instruction Manual Example', () => {
         expect(result.memory[0x010a]).toBe(0x29);
         expect(result.memory[0x010b]).toBe(0xae);
     });
+
+    test('SHLD FFFFH wraps the H-byte write to 0000H', async () => {
+        const result = await runAndGetState('org 0100H\nshld 0FFFFH\nhlt', {
+            programCounter: 0x0100,
+            registers: { hl: { high: 0xab, low: 0xcd } },
+        });
+
+        expect(result.memory[0xffff]).toBe(0xcd);
+        expect(result.memory[0x0000]).toBe(0xab);
+    });
 });

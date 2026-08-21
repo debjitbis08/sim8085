@@ -14,6 +14,15 @@ describe('SHLX Instruction', () => {
         expect(result.memory[0x2011]).toBe(0xab);
     });
 
+    test('SHLX: wraps the high-byte address after FFFFH', async () => {
+        const result = await runAndGetState('shlx\nhlt', {
+            registers: { de: { high: 0xff, low: 0xff }, hl: { high: 0xab, low: 0xcd } },
+        });
+
+        expect(result.memory[0xffff]).toBe(0xcd);
+        expect(result.memory[0x0000]).toBe(0xab);
+    });
+
     test('SHLX: leaves every flag alone', async () => {
         // Seeded in both directions, so an instruction that always set or
         // always cleared a flag would still fail. V and K are included: the

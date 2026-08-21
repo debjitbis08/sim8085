@@ -24,4 +24,36 @@ describe('RSTV Instruction', () => {
 
         expect(result.stackPointer).toBe(0xffff);
     });
+
+    test('RSTV: wraps its stack push when SP is 0000H', async () => {
+        const result = await runAndGetState('org 0100H\nlxi sp, 0000H\nrstv\nhlt', {
+            programCounter: 0x0100,
+            flags: { v: true },
+            memory: { 0x40: 0x76 },
+        });
+
+        // RSTV is at 0103H, so its one-byte return address is 0104H.
+        expect(result.stackPointer).toBe(0xfffe);
+        expect(result.memory[0xfffe]).toBe(0x04);
+        expect(result.memory[0xffff]).toBe(0x01);
+    });
+
+    test('RSTV: leaves flags untouched whether or not the restart is taken', async () => {
+        for (const taken of [true, false]) {
+            const result = await runAndGetState('rstv\nhlt', {
+                flags: { c: true, z: true, s: true, p: true, ac: true, v: taken, k: true },
+                memory: { 0x40: 0x76 },
+            });
+
+            expect(result.flags).toMatchObject({
+                c: true,
+                z: true,
+                s: true,
+                p: true,
+                ac: true,
+                v: taken,
+                k: true,
+            });
+        }
+    });
 });

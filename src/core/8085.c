@@ -78,6 +78,11 @@ typedef struct State8085
     uint8_t pending_trap, pending_r5, pending_r6, r7_latch;
     uint8_t sod_line;
     uint8_t hlt_enable;
+    uint8_t ei_delay;
+    // The first RIM executed after TRAP reports the interrupt-enable state
+    // that existed immediately before TRAP was accepted.
+    uint8_t trap_ie_copy;
+    uint8_t trap_ie_valid;
 	uint8_t *memory;
 	uint8_t *io;
 } State8085;
@@ -1074,7 +1079,11 @@ uint8_t addByteWithCarry(State8085 *state, uint8_t lhs, uint8_t rhs, should_pres
 uint8_t subtractByte(State8085 *state, uint8_t lhs, uint8_t rhs, should_preserve_carry preserveCarry)
 {
 	uint16_t res = lhs - rhs;
-	state->cc.ac = (lhs & 0xf) + ((~rhs + 1) & 0xf) > 0xf;
+	// The 8085 subtracts by adding the one's complement of rhs plus one.
+	// AC is the carry out of bit 3 from that addition. Keep the +1 outside
+	// the nibble mask: folding it into (~rhs + 1) loses the carry whenever
+	// rhs has a zero low nibble (for example, 42H - 10H).
+	state->cc.ac = (lhs & 0xf) + ((~rhs) & 0xf) + 1 > 0xf;
 	setVKFlags(state, ((lhs & 0x7f) + ((uint8_t)~rhs & 0x7f) + 1) >> 7,
 	           ((uint16_t)lhs + (uint8_t)~rhs + 1) >> 8, (uint8_t)res);
 	ArithFlagsA(state, res, preserveCarry);
@@ -1085,7 +1094,10 @@ uint8_t subtractByteWithBorrow(State8085 *state, uint8_t lhs, uint8_t rhs, shoul
 {
 	uint16_t res = lhs - rhs - (state->cc.cy ? 1 : 0);
     uint8_t carry = state->cc.cy ? 1 : 0;
-    state->cc.ac = (lhs & 0x0F) + ((~(rhs + carry) + 1) & 0x0f) > 0x0f;
+	// A - rhs - borrow is A + ~rhs + (1 - borrow). This is the same
+	// carry-chain model used below for V/K and avoids dropping the bit-3
+	// carry when masking the complemented operand to a nibble.
+	state->cc.ac = (lhs & 0x0f) + ((~rhs) & 0x0f) + (1 - carry) > 0x0f;
 	setVKFlags(state, ((lhs & 0x7f) + ((uint8_t)~rhs & 0x7f) + (1 - carry)) >> 7,
 	           ((uint16_t)lhs + (uint8_t)~rhs + (1 - carry)) >> 8, (uint8_t)res);
 	ArithFlagsA(state, res, preserveCarry);
@@ -1095,55 +1107,65 @@ uint8_t subtractByteWithBorrow(State8085 *state, uint8_t lhs, uint8_t rhs, shoul
 void call(State8085 *state, uint16_t offset, uint16_t addr)
 {
 	uint16_t pc = state->pc + 2;
-	state->memory[state->sp - 1] = (pc >> 8) & 0xff;
-	state->memory[state->sp - 2] = (pc & 0xff);
+	state->memory[(uint16_t)(state->sp - 1)] = (pc >> 8) & 0xff;
+	state->memory[(uint16_t)(state->sp - 2)] = (pc & 0xff);
 	state->sp = state->sp - 2;
 	state->pc = addr;
 }
 
 void returnToCaller(State8085 *state, uint16_t offset)
 {
-	state->pc = (state->memory[state->sp] | (state->memory[state->sp + 1] << 8));
+	state->pc = (state->memory[state->sp] | (state->memory[(uint16_t)(state->sp + 1)] << 8));
 	state->sp += 2;
 }
 
 void rst(State8085 *state, uint8_t rst_number, uint8_t half)
 {
     uint16_t pc = state->pc;  // PC has already been incremented by Emulate8085Op
-    state->memory[state->sp - 1] = (pc >> 8) & 0xff;
-    state->memory[state->sp - 2] = (pc & 0xff);
+    state->memory[(uint16_t)(state->sp - 1)] = (pc >> 8) & 0xff;
+    state->memory[(uint16_t)(state->sp - 2)] = (pc & 0xff);
     state->sp = state->sp - 2;
     state->pc = rst_number * 8 + half * 4;
 }
 
 void checkInterrupts(State8085 *state)
 {
-    if (state->int_enable == 0)
-        return;
-
-    // Highest priority first
+    // TRAP is non-maskable and is recognized regardless of INTE. The caller
+    // separately protects the execution of DI and EI themselves, as required
+    // by the Intel manual.
     if (state->pending_trap) {
         state->pending_trap = 0;
+        state->trap_ie_copy = state->int_enable;
+        state->trap_ie_valid = 1;
         state->int_enable = 0;
+        state->ei_delay = 0;
         rst(state, 4, 1); // RST 4.5 = 0x24
         return;
     }
 
+    if (state->int_enable == 0 || state->ei_delay != 0)
+        return;
+
+    // Highest maskable priority first
+
     if (state->r7_latch && !state->r7_mask) {
         state->r7_latch = 0;
         state->int_enable = 0;
+        state->ei_delay = 0;
         rst(state, 7, 1); // RST 7.5 = 0x3C
         return;
     }
 
     if (state->pending_r6 && !state->r6_mask) {
         state->int_enable = 0;
+        state->ei_delay = 0;
         rst(state, 6, 1); // RST 6.5 = 0x34
         return;
     }
 
     if (state->pending_r5 && !state->r5_mask) {
         state->int_enable = 0;
+        state->ei_delay = 0;
         rst(state, 5, 1); // RST 5.5 = 0x2C
         return;
     }
@@ -1157,12 +1179,18 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
 		state->sp = 0xFFFF;
     }
 
-    checkInterrupts(state);
+    // No interrupt, including TRAP, may interrupt DI or EI itself. Peek at
+    // the next opcode before allowing recognition; checkInterrupts may change
+    // PC to a vector, so the opcode pointer is built afterwards.
+    uint8_t next_opcode = state->memory[state->pc];
+    if (next_opcode != 0xf3 && next_opcode != 0xfb)
+        checkInterrupts(state);
 
     unsigned char *opcode = &state->memory[state->pc];
     uint8_t current_opcode = *opcode;
 
     int states = 4; // default fallback
+    int done = 0;
 
 	// Disassemble8085Op(state->memory, state->pc);
 
@@ -1176,6 +1204,7 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
 		state->c = opcode[1];
 		state->b = opcode[2];
 		state->pc += 2;
+		states = 10;
 		break;
 	case 0x02: // STAX B
 		state->memory[(state->b << 8) | state->c] = state->a;
@@ -1199,7 +1228,7 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
 	case 0x06: // MVI B, byte
 		state->b = opcode[1];
 		state->pc++;
-        states = 10;
+        states = 7;
 		break;
 	case 0x07: //RLC
 	{
@@ -1277,7 +1306,7 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
 	case 0x0e: // MVI C, byte
 		state->c = opcode[1];
 		state->pc++;
-        states = 10;
+        states = 7;
 		break;
 	case 0x0f: //RRC
 	{
@@ -1302,6 +1331,7 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
 		state->e = opcode[1];
 		state->d = opcode[2];
 		state->pc += 2;
+		states = 10;
 		break;
 	case 0x12:  // STAX D
 		state->memory[(state->d << 8) + state->e] = state->a;
@@ -1325,7 +1355,7 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
 	case 0x16: // MVI D, byte
 		state->d = opcode[1];
 		state->pc++;
-        states = 10;
+        states = 7;
 		break;
 	case 0x17: // RAL
 	{
@@ -1385,7 +1415,7 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
 	case 0x1e: //MVI E, byte
 		state->e = opcode[1];
 		state->pc++;
-        states = 10;
+        states = 7;
 		break;
 	case 0x1f: // RAR
 	{
@@ -1400,15 +1430,21 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
     {
         uint8_t result = 0;
 
-        result |= (state->int_enable ? 1 : 0) << 7;
-        result |= (state->r7_mask ? 1 : 0) << 6;
-        result |= (state->r6_mask ? 1 : 0) << 5;
-        result |= (state->r5_mask ? 1 : 0) << 4;
-        result |= (state->r7_latch ? 1 : 0) << 2;
-        result |= (state->pending_r6 ? 1 : 0) << 1;
-        result |= (state->pending_r5 ? 1 : 0) << 0;
+        // D7 is SID (not currently modelled); D6-D4 are pending
+        // RST7.5/RST6.5/RST5.5 requests, D3 is IE, and D2-D0 are masks.
+        // Keeping the masks in the low three bits makes RIM -> set MSE -> SIM
+        // a lossless read-modify-write sequence.
+        result |= (state->r7_latch ? 1 : 0) << 6;
+        result |= (state->pending_r6 ? 1 : 0) << 5;
+        result |= (state->pending_r5 ? 1 : 0) << 4;
+        uint8_t reported_ie = state->trap_ie_valid ? state->trap_ie_copy : state->int_enable;
+        result |= (reported_ie ? 1 : 0) << 3;
+        result |= (state->r7_mask ? 1 : 0) << 2;
+        result |= (state->r6_mask ? 1 : 0) << 1;
+        result |= (state->r5_mask ? 1 : 0) << 0;
 
         state->a = result;
+        state->trap_ie_valid = 0;
         states = 4;
     }
     break;
@@ -1416,12 +1452,13 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
 		state->l = opcode[1];
 		state->h = opcode[2];
 		state->pc += 2;
+		states = 10;
 		break;
 	case 0x22: //SHLD word
 	{
 		uint16_t offset = (opcode[2] << 8) | opcode[1];
 		state->memory[offset] = state->l;
-		state->memory[offset + 1] = state->h;
+		state->memory[(uint16_t)(offset + 1)] = state->h;
 		state->pc += 2;
         states = 16;
 	}
@@ -1445,7 +1482,7 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
 	case 0x26: //MVI H, byte
 		state->h = opcode[1];
 		state->pc++;
-        states = 10;
+        states = 7;
 		break;
 	case 0x27: // DAA
 	{
@@ -1514,7 +1551,7 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
 	{
 		uint16_t offset = (opcode[2] << 8) | (opcode[1]);
 		uint8_t l = state->memory[offset];
-		uint8_t h = state->memory[offset + 1];
+		uint8_t h = state->memory[(uint16_t)(offset + 1)];
 		uint16_t v = h << 8 | l;
 		state->h = v >> 8 & 0xFF;
 		state->l = v & 0xFF;
@@ -1541,7 +1578,7 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
 	case 0x2e: // MVI L,byte
 		state->l = opcode[1];
 		state->pc++;
-        states = 10;
+        states = 7;
 		break;
 	case 0x2f: // CMA
 		state->a ^= 0xFF;
@@ -1665,7 +1702,7 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
 	case 0x3e: // MVI A, byte
 		state->a = opcode[1];
 		state->pc++;
-        states = 10;
+        states = 7;
 		break;
 	case 0x3f: // CMC
 		if (0 == state->cc.cy)
@@ -1929,7 +1966,7 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
 	case 0x76:  // HLT
         states = 5;
         // TODO Add delay right here.
-		return 1;
+		done = 1;
 		break;
 	case 0x77: // MOV M, A
 	{
@@ -2274,7 +2311,7 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
 	case 0xc1: // POP B
 	{
 		state->c = state->memory[state->sp];
-		state->b = state->memory[state->sp + 1];
+		state->b = state->memory[(uint16_t)(state->sp + 1)];
 		state->sp += 2;
         states = 10;
 	}
@@ -2299,16 +2336,17 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
 			call(state, offset, (opcode[2] << 8) | opcode[1]);
             states = 18;
 		}
-		else
+		else {
 			state->pc += 2;
             states = 9;
+		}
 		break;
 	case 0xc5: // PUSH   B
 	{
-		state->memory[state->sp - 1] = state->b;
-		state->memory[state->sp - 2] = state->c;
+		state->memory[(uint16_t)(state->sp - 1)] = state->b;
+		state->memory[(uint16_t)(state->sp - 2)] = state->c;
 		state->sp = state->sp - 2;
-        states = 13;
+        states = 12;
 	}
 	break;
 	case 0xc6: // ADI byte
@@ -2381,7 +2419,7 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
 	case 0xd1: // POP D
 	{
 		state->e = state->memory[state->sp];
-		state->d = state->memory[state->sp + 1];
+		state->d = state->memory[(uint16_t)(state->sp + 1)];
 		state->sp += 2;
         states = 10;
 	}
@@ -2414,10 +2452,10 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
 		break;
 	case 0xd5: //PUSH   D
 	{
-		state->memory[state->sp - 1] = state->d;
-		state->memory[state->sp - 2] = state->e;
+		state->memory[(uint16_t)(state->sp - 1)] = state->d;
+		state->memory[(uint16_t)(state->sp - 2)] = state->e;
 		state->sp = state->sp - 2;
-        states = 13;
+        states = 12;
 	}
 	break;
 	case 0xd6: // SUI d8
@@ -2498,7 +2536,7 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
 	case 0xe1: // POP H
 	{
 		state->l = state->memory[state->sp];
-		state->h = state->memory[state->sp + 1];
+		state->h = state->memory[(uint16_t)(state->sp + 1)];
 		state->sp += 2;
         states = 10;
 	}
@@ -2516,9 +2554,9 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
 	case 0xe3: // XTHL
 	{
 		uint16_t spL = state->memory[state->sp];
-		uint16_t spH = state->memory[state->sp + 1];
+		uint16_t spH = state->memory[(uint16_t)(state->sp + 1)];
 		state->memory[state->sp] = state->l;
-		state->memory[state->sp + 1] = state->h;
+		state->memory[(uint16_t)(state->sp + 1)] = state->h;
 		state->h = spH;
 		state->l = spL;
         states = 16;
@@ -2536,10 +2574,10 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
 		break;
 	case 0xe5: // PUSH H
 	{
-		state->memory[state->sp - 1] = state->h;
-		state->memory[state->sp - 2] = state->l;
+		state->memory[(uint16_t)(state->sp - 1)] = state->h;
+		state->memory[(uint16_t)(state->sp - 2)] = state->l;
 		state->sp = state->sp - 2;
-        states = 13;
+        states = 12;
 	}
 	break;
 	case 0xe6: // ANI byte
@@ -2659,6 +2697,7 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
 		break;
 	case 0xf3: // DI
 		state->int_enable = 0;
+        state->ei_delay = 0;
         states = 4;
 		break;
 	case 0xf4: // CP Addr
@@ -2695,7 +2734,7 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
         // Step 5: Store the PSW byte at the new stack pointer location
         state->memory[state->sp] = psw;
 
-        states = 13;
+        states = 12;
 	}
 	break;
 	case 0xf6: // ORI d8
@@ -2731,7 +2770,10 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
 		break;
 
 	case 0xfb: // EI
-		state->int_enable = 1;
+        // Interrupts become enabled only after the following instruction.
+        // checkInterrupts also blocks maskable recognition while this delay
+        // is nonzero.
+        state->ei_delay = 1;
         states = 4;
 		break;
 	case 0xfc: // CM Addr
@@ -2777,7 +2819,13 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
 
     stats->total_tstates += states;
 
-	return 0;
+    if (state->ei_delay != 0 && current_opcode != 0xfb) {
+        state->ei_delay--;
+        if (state->ei_delay == 0)
+            state->int_enable = 1;
+    }
+
+	return done;
 }
 
 State8085 *Init8085(void)

@@ -3,6 +3,7 @@ import {
     getInterruptStateFromPtr,
     getStateFromPtr,
     setFlagState,
+    setInterruptState as setInterruptStateFromPtr,
     setPCValue,
     setRegisterState,
     setState,
@@ -339,8 +340,8 @@ export function runProgramWithBudget(store, options = {}) {
             const sliceTstates = simulator.getValue(resultPtr + 4, "i32");
             totalTstates += sliceTstates;
 
-            // A slice that halts reports 0 T-states; one that neither halts nor
-            // advances would spin forever, so treat it as exhausted.
+            // A slice that neither halts nor advances would spin forever, so
+            // treat it as exhausted.
             if (sliceTstates <= 0 && !halted) break;
         }
     } finally {
@@ -445,6 +446,9 @@ export function getCpuState(store) {
             v: store.flags.v,
             k: store.flags.k,
         },
+        interruptsEnabled: store.interruptsEnabled ?? false,
+        interruptMasks: store.interruptMasks ?? { rst55: false, rst65: false, rst75: false },
+        pendingInterrupts: store.pendingInterrupts ?? { trap: false, rst55: false, rst65: false, rst75: false },
         memory: store.memory,
         io: store.io,
         ptr: store.statePointer,
@@ -496,6 +500,10 @@ export function setRegisters(store) {
 
 export function setFlags(store) {
     setFlagState(simulator, store.statePointer, getCpuState(store));
+}
+
+export function setInterruptState(store) {
+    setInterruptStateFromPtr(simulator, store.statePointer, getCpuState(store));
 }
 
 export function halt(store) {
