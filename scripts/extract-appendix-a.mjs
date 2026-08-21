@@ -92,6 +92,29 @@ for (let i = start; i < Math.min(start + 400, lines.length); i++) {
     }
 }
 
+// RIM and SIM are 8085-only, so Appendix A -- the 8080 instruction summary --
+// has no row for them. Their timings come from the per-instruction entries in
+// Chapter 3, where the absence of an 8080 column makes the figure unambiguous.
+const eightyFiveOnly = /^(RIM|SIM)\s*\(\s*8085\s+PROCESSOR\s+ON\s*L?\s*Y\s*\)/i;
+for (let i = 0; i < lines.length; i++) {
+    const m = lines[i].match(eightyFiveOnly);
+    if (!m) continue;
+    const mnemonic = m[1].toUpperCase();
+    if (entries.has(mnemonic)) continue;
+    for (let j = i; j < Math.min(i + 80, lines.length); j++) {
+        const st = lines[j].match(/^\s*States:\s*(\d+)\s*$/);
+        if (!st) continue;
+        entries.set(mnemonic, {
+            states8080: null, // does not exist on the 8080
+            states8085: st[1],
+            line: j + 1,
+            printed: lines[j].trim().replace(/\s+/g, " "),
+            from: "Chapter 3 instruction description",
+        });
+        break;
+    }
+}
+
 if (conflicts.length) {
     console.error("Rows disagree with each other, refusing to write the fixture:");
     for (const c of conflicts) console.error(" ", JSON.stringify(c));
@@ -104,9 +127,10 @@ const fixture = {
     note: [
         "Two timing columns: the 8080 and the 8085 differ on 27 mnemonics.",
         "Where a count is written a/b, a is the condition-not-met path and b the condition-met path.",
-        "RIM and SIM do not appear: this is the 8080 instruction summary with an 8085 column added,",
-        "and neither instruction exists on the 8080. The ten undocumented 8085 opcodes are absent",
-        "for the same reason.",
+        "RIM and SIM have no Appendix A row -- this is the 8080 instruction summary with an 8085",
+        "column added, and neither exists on the 8080 -- so they are taken from their Chapter 3",
+        "instruction descriptions instead and carry a from field saying so. The ten undocumented",
+        "8085 opcodes are absent for the same reason and are not recoverable from this manual at all.",
     ].join(" "),
     entries: Object.fromEntries([...entries].sort(([a], [b]) => a.localeCompare(b))),
 };

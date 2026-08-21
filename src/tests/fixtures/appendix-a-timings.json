@@ -1,7 +1,7 @@
 {
   "source": "Intel 8080/8085 Assembly Language Programming Manual, Appendix A (Instruction Summary)",
   "generatedBy": "scripts/extract-appendix-a.mjs",
-  "note": "Two timing columns: the 8080 and the 8085 differ on 27 mnemonics. Where a count is written a/b, a is the condition-not-met path and b the condition-met path. RIM and SIM do not appear: this is the 8080 instruction summary with an 8085 column added, and neither instruction exists on the 8080. The ten undocumented 8085 opcodes are absent for the same reason.",
+  "note": "Two timing columns: the 8080 and the 8085 differ on 27 mnemonics. Where a count is written a/b, a is the condition-not-met path and b the condition-met path. RIM and SIM have no Appendix A row -- this is the 8080 instruction summary with an 8085 column added, and neither exists on the 8080 -- so they are taken from their Chapter 3 instruction descriptions instead and carry a from field saying so. The ten undocumented 8085 opcodes are absent for the same reason and are not recoverable from this manual at all.",
   "entries": {
     "ACI": {
       "states8080": "7",
@@ -393,6 +393,13 @@
       "line": 10412,
       "printed": "RET 1 1 0 0 1 0 0 1 10 10"
     },
+    "RIM": {
+      "states8080": null,
+      "states8085": "4",
+      "line": 5683,
+      "printed": "States: 4",
+      "from": "Chapter 3 instruction description"
+    },
     "RLC": {
       "states8080": "4",
       "states8085": "4",
@@ -476,6 +483,13 @@
       "states8085": "16",
       "line": 10554,
       "printed": "SHLD 0 0 1 0 0 0 1 0 16 16"
+    },
+    "SIM": {
+      "states8080": null,
+      "states8085": "4",
+      "line": 6351,
+      "printed": "States: 4",
+      "from": "Chapter 3 instruction description"
     },
     "SPHL": {
       "states8080": "5",

@@ -10,10 +10,10 @@ import { OPCODE_INVENTORY, UNDOCUMENTED_OPCODES } from "./opcode-inventory.js";
 const fixture = JSON.parse(readFileSync(new URL("./fixtures/appendix-a-timings.json", import.meta.url)));
 
 // Appendix A is the 8080 instruction summary with an 8085 column added, so it
-// covers neither the two 8085-only interrupt instructions nor the ten
-// undocumented opcodes. Those timings come from other sources and are checked
-// by undocumented-timing.test.js.
-const NOT_IN_APPENDIX_A = new Set(["rim", "sim"]);
+// has no row for the ten undocumented opcodes. Their timings come from
+// Dehnhardt and Sorensen and stay with undocumented-timing.test.js. RIM and
+// SIM are 8085-only too, but the manual describes them in Chapter 3, so the
+// fixture carries them and they are checked here like everything else.
 
 const OPERAND_MATTERS = new Set(["inr", "dcr", "add", "adc", "sub", "sbb", "ana", "xra", "ora", "cmp"]);
 
@@ -35,9 +35,7 @@ function appendixKey({ source }) {
 // "9/18" is the condition-not-met path followed by the condition-met path.
 const parseStates = (s) => s.split("/").map(Number).sort((a, b) => a - b);
 
-const checked = OPCODE_INVENTORY.filter(
-    (e) => !UNDOCUMENTED_OPCODES.has(e.opcode) && !NOT_IN_APPENDIX_A.has(e.source.split(/[\s,]/, 1)[0]),
-);
+const checked = OPCODE_INVENTORY.filter((e) => !UNDOCUMENTED_OPCODES.has(e.opcode));
 
 // Appendix A prints 9/17 for CPE alone, where all seven other conditional
 // calls are 9/18. CPE takes the same execution path as the rest, so the
@@ -66,10 +64,13 @@ describe("Cycle counts against Intel's Appendix A", () => {
     });
 
     test("coverage is what the suite claims", () => {
-        expect(checked).toHaveLength(244);
+        expect(checked).toHaveLength(246);
         const skipped = OPCODE_INVENTORY.filter((e) => !checked.includes(e)).map((e) => e.source.split(/[\s,]/, 1)[0]);
         expect(new Set(skipped)).toEqual(
-            new Set(["rim", "sim", "dsub", "arhl", "rdel", "ldhi", "ldsi", "rstv", "shlx", "jnx5", "lhlx", "jx5"]),
+            new Set(["dsub", "arhl", "rdel", "ldhi", "ldsi", "rstv", "shlx", "jnx5", "lhlx", "jx5"]),
         );
+        // RIM and SIM are the two rows that do not come from Appendix A.
+        expect(fixture.entries.RIM.from).toMatch(/Chapter 3/);
+        expect(fixture.entries.SIM.from).toMatch(/Chapter 3/);
     });
 });

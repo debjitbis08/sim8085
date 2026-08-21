@@ -32,6 +32,12 @@ jobs:
           cache: "pnpm" # Enable pnpm cache
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+      # Nothing gated a release on the suite before this. The exerciser suite
+      # in src/tests/exerciser compiles the emulator core with the host
+      # compiler, which ubuntu-latest provides; 8080EXM stays opt-in behind
+      # RUN_8080EXM and is not run here.
+      - name: Test
+        run: pnpm test
       # - name: Verify the integrity of provenance attestations and registry signatures for installed dependencies
       #   run: pnpm audit
       - name: Release
