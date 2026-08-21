@@ -93,7 +93,7 @@ function fixedTiming(source, mnemonic) {
     if (source === "lhld 2000H") setup = { memory: { 0x2000: 0x11, 0x2001: 0x22 } };
     if (source === "lda 2000H") setup = { memory: { 0x2000: 0x11 } };
     if (source === "in 01H") setup = { io: { 0x01: 0x5a } };
-    return [{ description: `${cycles} T-states`, program: `${source}\nhlt`, expected: cycles + 5, setup }];
+    return [{ description: `${cycles} T-states`, program: `${source}\nhlt`, expected: cycles + 5, setup, tstates: cycles }];
 }
 
 const conditions = {
@@ -106,10 +106,10 @@ const conditions = {
 };
 
 function controlTiming(opcode, source, mnemonic) {
-    if (mnemonic === "hlt") return [{ description: "5 T-states", program: "hlt", expected: 5, setup: {} }];
-    if (mnemonic === "jmp") return [{ description: "10 T-states", program: `${source}\nhlt\norg 2000H\nhlt`, expected: 15, setup: {} }];
-    if (mnemonic === "call") return [{ description: "18 T-states", program: `${source}\nhlt\norg 2000H\nhlt`, expected: 23, setup: {} }];
-    if (mnemonic === "ret") return [{ description: "10 T-states", program: "ret\nhlt\norg 0100H\nhlt", expected: 15, setup: { sp: 0x2000, memory: { 0x2000: 0x00, 0x2001: 0x01 } } }];
+    if (mnemonic === "hlt") return [{ description: "5 T-states", program: "hlt", expected: 5, setup: {}, tstates: 5 }];
+    if (mnemonic === "jmp") return [{ description: "10 T-states", program: `${source}\nhlt\norg 2000H\nhlt`, expected: 15, setup: {}, tstates: 10 }];
+    if (mnemonic === "call") return [{ description: "18 T-states", program: `${source}\nhlt\norg 2000H\nhlt`, expected: 23, setup: {}, tstates: 18 }];
+    if (mnemonic === "ret") return [{ description: "10 T-states", program: "ret\nhlt\norg 0100H\nhlt", expected: 15, setup: { sp: 0x2000, memory: { 0x2000: 0x00, 0x2001: 0x01 } }, tstates: 10 }];
     if (conditions[mnemonic]) {
         const [flag, takenValue] = conditions[mnemonic];
         const isReturn = mnemonic.startsWith("r");
@@ -119,37 +119,37 @@ function controlTiming(opcode, source, mnemonic) {
         const takenCycles = isReturn ? 12 : isCall ? 18 : 10;
         const notTakenCycles = isReturn ? 6 : isCall ? 9 : 7;
         return [
-            { description: `taken in ${takenCycles} T-states`, program, expected: takenCycles + 5, setup: { ...stack, flags: { [flag]: takenValue } } },
-            { description: `not taken in ${notTakenCycles} T-states`, program, expected: notTakenCycles + 5, setup: { ...stack, flags: { [flag]: !takenValue } } },
+            { description: `taken in ${takenCycles} T-states`, program, expected: takenCycles + 5, setup: { ...stack, flags: { [flag]: takenValue } }, tstates: takenCycles },
+            { description: `not taken in ${notTakenCycles} T-states`, program, expected: notTakenCycles + 5, setup: { ...stack, flags: { [flag]: !takenValue } }, tstates: notTakenCycles },
         ];
     }
-    if (mnemonic === "pchl") return [{ description: "6 T-states", program: "pchl\norg 0100H\nhlt", expected: 11, setup: { registers: { h: 0x01, l: 0x00 } } }];
-    if (mnemonic === "push") return [{ description: "12 T-states", program: `${source}\nhlt`, expected: 17, setup: {} }];
-    if (mnemonic === "pop") return [{ description: "10 T-states", program: `${source}\nhlt`, expected: 15, setup: { sp: 0x2000, memory: { 0x2000: 0x00, 0x2001: 0x00 } } }];
-    if (mnemonic === "xthl") return [{ description: "16 T-states", program: "xthl\nhlt", expected: 21, setup: { sp: 0x2000, memory: { 0x2000: 0x12, 0x2001: 0x34 } } }];
-    if (mnemonic === "sphl") return [{ description: "6 T-states", program: "sphl\nhlt", expected: 11, setup: { registers: { h: 0x20, l: 0x00 } } }];
+    if (mnemonic === "pchl") return [{ description: "6 T-states", program: "pchl\norg 0100H\nhlt", expected: 11, setup: { registers: { h: 0x01, l: 0x00 } }, tstates: 6 }];
+    if (mnemonic === "push") return [{ description: "12 T-states", program: `${source}\nhlt`, expected: 17, setup: {}, tstates: 12 }];
+    if (mnemonic === "pop") return [{ description: "10 T-states", program: `${source}\nhlt`, expected: 15, setup: { sp: 0x2000, memory: { 0x2000: 0x00, 0x2001: 0x00 } }, tstates: 10 }];
+    if (mnemonic === "xthl") return [{ description: "16 T-states", program: "xthl\nhlt", expected: 21, setup: { sp: 0x2000, memory: { 0x2000: 0x12, 0x2001: 0x34 } }, tstates: 16 }];
+    if (mnemonic === "sphl") return [{ description: "6 T-states", program: "sphl\nhlt", expected: 11, setup: { registers: { h: 0x20, l: 0x00 } }, tstates: 6 }];
     if (mnemonic === "rst") {
         const vector = opcode & 0x38;
-        return [{ description: "12 T-states", program: `org 0100H\n${source}\nhlt\norg ${vector.toString(16)}H\nhlt`, expected: 17, setup: { pc: 0x0100 } }];
+        return [{ description: "12 T-states", program: `org 0100H\n${source}\nhlt\norg ${vector.toString(16)}H\nhlt`, expected: 17, setup: { pc: 0x0100 }, tstates: 12 }];
     }
     return [];
 }
 
 function undocumentedTiming(source, mnemonic) {
     if (mnemonic === "rstv") return [
-        { description: "6 T-states when V is clear", program: "rstv\nhlt", expected: 11, setup: { flags: { v: false } } },
-        { description: "12 T-states when V is set", program: "rstv\nhlt", expected: 17, setup: { flags: { v: true }, memory: { 0x40: 0x76 } } },
+        { description: "6 T-states when V is clear", program: "rstv\nhlt", expected: 11, setup: { flags: { v: false } }, tstates: 6 },
+        { description: "12 T-states when V is set", program: "rstv\nhlt", expected: 17, setup: { flags: { v: true }, memory: { 0x40: 0x76 } }, tstates: 12 },
     ];
     if (mnemonic === "jx5" || mnemonic === "jnx5") {
         const takenValue = mnemonic === "jx5";
         return [
-            { description: "10 T-states when taken", program: `${source}\nhlt\norg 2000H\nhlt`, expected: 15, setup: { flags: { k: takenValue } } },
-            { description: "7 T-states when not taken", program: `${source}\nhlt\norg 2000H\nhlt`, expected: 12, setup: { flags: { k: !takenValue } } },
+            { description: "10 T-states when taken", program: `${source}\nhlt\norg 2000H\nhlt`, expected: 15, setup: { flags: { k: takenValue } }, tstates: 10 },
+            { description: "7 T-states when not taken", program: `${source}\nhlt\norg 2000H\nhlt`, expected: 12, setup: { flags: { k: !takenValue } }, tstates: 7 },
         ];
     }
     const cycles = { dsub: 10, arhl: 7, rdel: 10, ldhi: 10, ldsi: 10, shlx: 10, lhlx: 10 }[mnemonic];
     const setup = mnemonic === "shlx" ? { registers: { d: 0x20, e: 0x00 } } : {};
-    return [{ description: `${cycles} T-states`, program: `${source}\nhlt`, expected: cycles + 5, setup }];
+    return [{ description: `${cycles} T-states`, program: `${source}\nhlt`, expected: cycles + 5, setup, tstates: cycles }];
 }
 
 export const OPCODE_INVENTORY = sources.map((source, opcode) => {
@@ -171,5 +171,6 @@ export const OPCODE_INVENTORY = sources.map((source, opcode) => {
         semanticSuite: semanticSuites[mnemonic],
         timingSuite,
         timingCases,
+        tstates: timingCases.map((c) => c.tstates),
     };
 });

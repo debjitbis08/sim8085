@@ -1,0 +1,553 @@
+{
+  "source": "Intel 8080/8085 Assembly Language Programming Manual, Appendix A (Instruction Summary)",
+  "generatedBy": "scripts/extract-appendix-a.mjs",
+  "note": "Two timing columns: the 8080 and the 8085 differ on 27 mnemonics. Where a count is written a/b, a is the condition-not-met path and b the condition-met path. RIM and SIM do not appear: this is the 8080 instruction summary with an 8085 column added, and neither instruction exists on the 8080. The ten undocumented 8085 opcodes are absent for the same reason.",
+  "entries": {
+    "ACI": {
+      "states8080": "7",
+      "states8085": "7",
+      "line": 10513,
+      "printed": "ACI 1 1 0 0 1 1 1 0 7 7"
+    },
+    "ADC M": {
+      "states8080": "7",
+      "states8085": "7",
+      "line": 10505,
+      "printed": "ADC M 1 0 0 0 1 1 1 0 7 7"
+    },
+    "ADC r": {
+      "states8080": "4",
+      "states8085": "4",
+      "line": 10497,
+      "printed": "ADC r 1 0 0 0 1 S S S 4 4"
+    },
+    "ADD M": {
+      "states8080": "7",
+      "states8085": "7",
+      "line": 10504,
+      "printed": "ADD M 1 0 0 0 0 1 1 0 7 7"
+    },
+    "ADD r": {
+      "states8080": "4",
+      "states8085": "4",
+      "line": 10496,
+      "printed": "ADD r 1 0 0 0 0 S S S 4 4"
+    },
+    "ADI": {
+      "states8080": "7",
+      "states8085": "7",
+      "line": 10512,
+      "printed": "ADI 1 1 0 0 0 1 1 0 7 7"
+    },
+    "ANA M": {
+      "states8080": "7",
+      "states8085": "7",
+      "line": 10508,
+      "printed": "AND M 1 0 1 0 0 1 1 0 7 7"
+    },
+    "ANA r": {
+      "states8080": "4",
+      "states8085": "4",
+      "line": 10500,
+      "printed": "AND r 1 0 1 0 0 S S S 4 4"
+    },
+    "ANI": {
+      "states8080": "7",
+      "states8085": "7",
+      "line": 10516,
+      "printed": "ANI 1 1 1 0 0 1 1 0 7 7"
+    },
+    "CALL": {
+      "states8080": "17",
+      "states8085": "18",
+      "line": 10403,
+      "printed": "CALL 1 1 0 0 1 1 0 1 17 18"
+    },
+    "CC": {
+      "states8080": "11/17",
+      "states8085": "9/18",
+      "line": 10404,
+      "printed": "CC 1 1 0 1 1 1 0 0 11/17 9/18"
+    },
+    "CM": {
+      "states8080": "11/17",
+      "states8085": "9/18",
+      "line": 10409,
+      "printed": "CM 1 1 1 1 1 1 0 0 11/17 9/18"
+    },
+    "CMA": {
+      "states8080": "4",
+      "states8085": "4",
+      "line": 10550,
+      "printed": "CMA 0 0 1 0 1 1 1 1 4 4"
+    },
+    "CMC": {
+      "states8080": "4",
+      "states8085": "4",
+      "line": 10552,
+      "printed": "CMC 0 0 1 1 1 1 1 1 4 4"
+    },
+    "CMP M": {
+      "states8080": "7",
+      "states8085": "7",
+      "line": 10511,
+      "printed": "CMP M 1 0 1 1 1 1 1 0 7 7"
+    },
+    "CMP r": {
+      "states8080": "4",
+      "states8085": "4",
+      "line": 10503,
+      "printed": "CMPr 1 0 1 1 1 S S S 4 4"
+    },
+    "CNC": {
+      "states8080": "11/17",
+      "states8085": "9/18",
+      "line": 10405,
+      "printed": "CNC 1 1 0 1 0 1 0 0 11/17 9/18"
+    },
+    "CNZ": {
+      "states8080": "11/17",
+      "states8085": "9/18",
+      "line": 10407,
+      "printed": "CNZ 1 1 0 0 0 1 0 0 11/17 9/18"
+    },
+    "CP": {
+      "states8080": "11/17",
+      "states8085": "9/18",
+      "line": 10408,
+      "printed": "CP 1 1 1 1 0 1 0 0 11/17 9/18"
+    },
+    "CPE": {
+      "states8080": "11/17",
+      "states8085": "9/17",
+      "line": 10410,
+      "printed": "CPE 1 1 1 0 1 1 0 0 11/17 9/17"
+    },
+    "CPI": {
+      "states8080": "7",
+      "states8085": "7",
+      "line": 10519,
+      "printed": "CPI 1 1 1 1 1 1 1 0 7 7"
+    },
+    "CPO": {
+      "states8080": "11/17",
+      "states8085": "9/18",
+      "line": 10411,
+      "printed": "CPO 1 1 1 0 0 1 0 0 11/17 9/18"
+    },
+    "CZ": {
+      "states8080": "11/17",
+      "states8085": "9/18",
+      "line": 10406,
+      "printed": "CZ 1 1 0 0 1 1 0 0 11/17 9/18"
+    },
+    "DAA": {
+      "states8080": "4",
+      "states8085": "4",
+      "line": 10553,
+      "printed": "DAA 0 0 1 0 0 1 1 1 4 4"
+    },
+    "DAD": {
+      "states8080": "10",
+      "states8085": "10",
+      "line": 10459,
+      "printed": "DAD B 0 0 0 0 1 0 0 1 10 10"
+    },
+    "DCR M": {
+      "states8080": "10",
+      "states8085": "10",
+      "line": 10495,
+      "printed": "OCR M 0 0 1 1 0 1 0 1 10 10"
+    },
+    "DCR r": {
+      "states8080": "5",
+      "states8085": "4",
+      "line": 10478,
+      "printed": "DCR 0 0 D D D 1 0 1 5 4"
+    },
+    "DCX": {
+      "states8080": "5",
+      "states8085": "6",
+      "line": 10533,
+      "printed": "DCX B 0 0 0 0 1 0 1 1 5 6"
+    },
+    "DI": {
+      "states8080": "4",
+      "states8085": "4",
+      "line": 10559,
+      "printed": "01 1 1 1 1 0 0 1 1 4 4"
+    },
+    "EI": {
+      "states8080": "4",
+      "states8085": "4",
+      "line": 10558,
+      "printed": "EI 1 1 1 1 1 0 1 1 4 4"
+    },
+    "HLT": {
+      "states8080": "7",
+      "states8085": "5",
+      "line": 10474,
+      "printed": "HLT 0 1 1 1 0 1 1 0 7 5"
+    },
+    "IN": {
+      "states8080": "10",
+      "states8085": "10",
+      "line": 10439,
+      "printed": "IN 1 1 0 1 1 0 1 1 10 10"
+    },
+    "INR M": {
+      "states8080": "10",
+      "states8085": "10",
+      "line": 10494,
+      "printed": "INR M 0 0 1 1 0 1 0 0 10 10"
+    },
+    "INR r": {
+      "states8080": "5",
+      "states8085": "4",
+      "line": 10477,
+      "printed": "INR 0 0 D D D 1 0 0 5 4"
+    },
+    "INX": {
+      "states8080": "5",
+      "states8085": "6",
+      "line": 10467,
+      "printed": "INX B 0 0 0 0 0 0 1 1 5 6"
+    },
+    "JC": {
+      "states8080": "10",
+      "states8085": "7/10",
+      "line": 10525,
+      "printed": "jC 1 1 0 1 1 0 1 0 10 7/10"
+    },
+    "JM": {
+      "states8080": "10",
+      "states8085": "7/10",
+      "line": 10530,
+      "printed": "JM 1 1 1 1 1 0 1 0 10 7/10"
+    },
+    "JMP": {
+      "states8080": "10",
+      "states8085": "10",
+      "line": 10524,
+      "printed": "jMP 1 1 0 0 0 0 1 1 10 10"
+    },
+    "JNC": {
+      "states8080": "10",
+      "states8085": "7/10",
+      "line": 10526,
+      "printed": "JNC 1 1 0 1 0 0 1 0 10 7/10"
+    },
+    "JNZ": {
+      "states8080": "10",
+      "states8085": "7/10",
+      "line": 10528,
+      "printed": "JNZ 1 1 0 0 0 0 1 0 10 7/10"
+    },
+    "JP": {
+      "states8080": "10",
+      "states8085": "7/10",
+      "line": 10529,
+      "printed": "JP 1 1 1 1 0 0 1 0 10 7/10"
+    },
+    "JPE": {
+      "states8080": "10",
+      "states8085": "7/10",
+      "line": 10531,
+      "printed": "jPE 1 1 1 0 1 0 1 0 10 7/10"
+    },
+    "JPO": {
+      "states8080": "10",
+      "states8085": "7/10",
+      "line": 10532,
+      "printed": "JPO 1 1 1 0 0 0 1 0 10 7/10"
+    },
+    "JZ": {
+      "states8080": "10",
+      "states8085": "7/10",
+      "line": 10527,
+      "printed": "jZ 1 1 0 0 1 0 1 0 10 7/10"
+    },
+    "LDA": {
+      "states8080": "13",
+      "states8085": "13",
+      "line": 10454,
+      "printed": "LDA 0 0 1 1 1 0 1 0 13 13"
+    },
+    "LDAX": {
+      "states8080": "7",
+      "states8085": "7",
+      "line": 10465,
+      "printed": "LDAX B 0 0 0 0 1 0 1 0 7 7"
+    },
+    "LHLD": {
+      "states8080": "16",
+      "states8085": "16",
+      "line": 10555,
+      "printed": "LHLD 0 0 1 0 1 0 1 0 16 16"
+    },
+    "LXI": {
+      "states8080": "10",
+      "states8085": "10",
+      "line": 10441,
+      "printed": "LXI B 0 0 0 0 0 0 0 1 10 10"
+    },
+    "MOV M,r": {
+      "states8080": "7",
+      "states8085": "7",
+      "line": 10472,
+      "printed": "MOV M,r 0 1 1 1 0 S S S 7 7"
+    },
+    "MOV r,M": {
+      "states8080": "7",
+      "states8085": "7",
+      "line": 10473,
+      "printed": "MOV r,M 0 1 D D D 1 1 0 7 7"
+    },
+    "MOV r1,r2": {
+      "states8080": "5",
+      "states8085": "4",
+      "line": 10471,
+      "printed": "MOV Q,r2 0 1 D D D S S S 5 4"
+    },
+    "MVI M": {
+      "states8080": "10",
+      "states8085": "10",
+      "line": 10476,
+      "printed": "MVIM 0 0 1 1 0 1 1 0 10 10"
+    },
+    "MVI r": {
+      "states8080": "7",
+      "states8085": "7",
+      "line": 10475,
+      "printed": "MVI r 0 0 D D D 1 1 0 7 7"
+    },
+    "NOP": {
+      "states8080": "4",
+      "states8085": "4",
+      "line": 10560,
+      "printed": "NOP 0 0 0 0 0 0 0 0 4 4"
+    },
+    "ORA M": {
+      "states8080": "7",
+      "states8085": "7",
+      "line": 10510,
+      "printed": "ORA M 1 0 1 1 0 1 1 0 7 7"
+    },
+    "ORA r": {
+      "states8080": "4",
+      "states8085": "4",
+      "line": 10502,
+      "printed": "ORA r 1 0 1 1 0 S S S 4 4"
+    },
+    "ORI": {
+      "states8080": "7",
+      "states8085": "7",
+      "line": 10518,
+      "printed": "ORI 1 1 1 1 0 1 1 0 7 7"
+    },
+    "OUT": {
+      "states8080": "10",
+      "states8085": "10",
+      "line": 10440,
+      "printed": "OUT 1 1 0 1 0 0 1 1 10 10"
+    },
+    "PCHL": {
+      "states8080": "5",
+      "states8085": "6",
+      "line": 10458,
+      "printed": "PCHL 1 1 1 0 1 0 0 1 5 6"
+    },
+    "POP": {
+      "states8080": "10",
+      "states8085": "10",
+      "line": 10449,
+      "printed": "POP B 1 1 0 0 0 0 0 1 10 10"
+    },
+    "PUSH": {
+      "states8080": "11",
+      "states8085": "12",
+      "line": 10445,
+      "printed": "PUSH B 1 1 0 0 0 1 0 1 11 12"
+    },
+    "RAL": {
+      "states8080": "4",
+      "states8085": "4",
+      "line": 10522,
+      "printed": "RAL 0 0 0 1 0 1 1 1 4 4"
+    },
+    "RAR": {
+      "states8080": "4",
+      "states8085": "4",
+      "line": 10523,
+      "printed": "RAR 0 0 0 1 1 1 1 1 4 4"
+    },
+    "RC": {
+      "states8080": "5/11",
+      "states8085": "6/12",
+      "line": 10413,
+      "printed": "RC 1 1 0 1 1 0 0 0 5/11 6/12"
+    },
+    "RET": {
+      "states8080": "10",
+      "states8085": "10",
+      "line": 10412,
+      "printed": "RET 1 1 0 0 1 0 0 1 10 10"
+    },
+    "RLC": {
+      "states8080": "4",
+      "states8085": "4",
+      "line": 10520,
+      "printed": "RLC 0 0 0 0 0 1 1 1 4 4"
+    },
+    "RM": {
+      "states8080": "5/11",
+      "states8085": "6/12",
+      "line": 10435,
+      "printed": "RM 1 1 1 1 1 0 0 0 5/11 6/12"
+    },
+    "RNC": {
+      "states8080": "5/11",
+      "states8085": "6/12",
+      "line": 10415,
+      "printed": "RNC 1 1 0 1 0 0 0 0 5/11 6/12"
+    },
+    "RNZ": {
+      "states8080": "5/11",
+      "states8085": "6/12",
+      "line": 10433,
+      "printed": "RNZ 1 1 0 0 0 0 0 0 5/11 6/12"
+    },
+    "RP": {
+      "states8080": "5/11",
+      "states8085": "6/12",
+      "line": 10434,
+      "printed": "RP 1 1 1 1 0 0 0 0 5/11 6/12"
+    },
+    "RPE": {
+      "states8080": "5/11",
+      "states8085": "6/12",
+      "line": 10436,
+      "printed": "RPE 1 1 1 0 1 0 0 0 5/11 6/12"
+    },
+    "RPO": {
+      "states8080": "5/11",
+      "states8085": "6/12",
+      "line": 10437,
+      "printed": "RPO 1 1 1 0 0 0 0 0 5/11 6/12"
+    },
+    "RRC": {
+      "states8080": "4",
+      "states8085": "4",
+      "line": 10521,
+      "printed": "RRC 0 0 0 0 1 1 1 1 4 4"
+    },
+    "RST": {
+      "states8080": "11",
+      "states8085": "12",
+      "line": 10438,
+      "printed": "RST 1 1 A A A 1 1 1 11 12"
+    },
+    "RZ": {
+      "states8080": "5/11",
+      "states8085": "6/12",
+      "line": 10416,
+      "printed": "RZ 1 1 0 0 1 0 0 0 5/11 6/12"
+    },
+    "SBB M": {
+      "states8080": "7",
+      "states8085": "7",
+      "line": 10507,
+      "printed": "SBB M 1 0 0 1 1 1 1 0 7 7"
+    },
+    "SBB r": {
+      "states8080": "4",
+      "states8085": "4",
+      "line": 10499,
+      "printed": "SBB r 1 0 0 1 1 S S S 4 4"
+    },
+    "SBI": {
+      "states8080": "7",
+      "states8085": "7",
+      "line": 10515,
+      "printed": "SBI 1 1 0 1 1 1 1 0 7 7"
+    },
+    "SHLD": {
+      "states8080": "16",
+      "states8085": "16",
+      "line": 10554,
+      "printed": "SHLD 0 0 1 0 0 0 1 0 16 16"
+    },
+    "SPHL": {
+      "states8080": "5",
+      "states8085": "6",
+      "line": 10457,
+      "printed": "SPHL 1 1 1 1 1 0 0 1 5 6"
+    },
+    "STA": {
+      "states8080": "13",
+      "states8085": "13",
+      "line": 10453,
+      "printed": "STA 0 0 1 1 0 0 1 0 13 13"
+    },
+    "STAX": {
+      "states8080": "7",
+      "states8085": "7",
+      "line": 10463,
+      "printed": "STAX B 0 0 0 0 0 0 1 0 7 7"
+    },
+    "STC": {
+      "states8080": "4",
+      "states8085": "4",
+      "line": 10551,
+      "printed": "STC 0 0 1 1 0 1 1 1 4 4"
+    },
+    "SUB M": {
+      "states8080": "7",
+      "states8085": "7",
+      "line": 10506,
+      "printed": "SUB M 1 0 0 1 0 1 1 0 7 7"
+    },
+    "SUB r": {
+      "states8080": "4",
+      "states8085": "4",
+      "line": 10498,
+      "printed": "SUB r 1 0 0 1 0 S S S 4 4"
+    },
+    "SUI": {
+      "states8080": "7",
+      "states8085": "7",
+      "line": 10514,
+      "printed": "SUI 1 1 0 1 0 1 1 0 7 7"
+    },
+    "XCHG": {
+      "states8080": "4",
+      "states8085": "4",
+      "line": 10455,
+      "printed": "XCHG 1 1 1 0 1 0 1 1 4 4"
+    },
+    "XRA M": {
+      "states8080": "7",
+      "states8085": "7",
+      "line": 10509,
+      "printed": "XRA M 1 0 1 0 1 1 1 0 7 7"
+    },
+    "XRA r": {
+      "states8080": "4",
+      "states8085": "4",
+      "line": 10501,
+      "printed": "XRA r 1 0 1 0 1 S S S 4 4"
+    },
+    "XRI": {
+      "states8080": "7",
+      "states8085": "7",
+      "line": 10517,
+      "printed": "XRI 1 1 1 0 1 1 1 0 7 7"
+    },
+    "XTHL": {
+      "states8080": "18",
+      "states8085": "16",
+      "line": 10456,
+      "printed": "XTHL 1 \"I 1 0 0 0 \"I 1 18 16"
+    }
+  }
+}
