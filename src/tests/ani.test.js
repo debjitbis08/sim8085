@@ -3,7 +3,7 @@ import * as fc from "fast-check";
 import { runTest, runAndGetState, setupSimulator } from "./test-utils";
 
 describe("ANI Instruction Tests", () => {
-    test("ANI: Performs logical AND between accumulator and immediate data, resets carry flag", async () => {
+    test("ANI: Performs logical AND between accumulator and immediate data, resets carry and sets auxiliary carry", async () => {
         await fc.assert(
             fc.asyncProperty(
                 fc.integer({ min: 0x00, max: 0xff }), // Random 8-bit accumulator value
@@ -55,7 +55,12 @@ describe("ANI Instruction Tests", () => {
                             s: signFlag,
                             p: parityFlag,
                             c: false, // Carry flag is always reset to 0 by ANI
-                            ac: false, // Auxiliary carry is always reset to 0 by ANI
+                            // The 8085 logical AND instructions always set the auxiliary
+                            // carry, per the Intel 8080/8085 Assembly Language Programming
+                            // Manual. (The 8080 instead reports the logical OR of bit 3 of
+                            // the two operands -- see the 8080 compatibility switch used by
+                            // the CP/M exercisers in src/tests/exerciser.)
+                            ac: true,
                         },
                         programCounter: 0x0003,
                     };

@@ -172,3 +172,36 @@ describe('DAA Instruction Undocumented Flags', () => {
         expect(result.flags.k).toBe(false);
     });
 });
+
+// Every other DAA test starts from the default all-clear flags, so the cases
+// where DAA has to *clear* a flag its predecessor left set were unreachable.
+// Both bugs below were found by the CP/M exercisers in src/tests/exerciser.
+describe('DAA Instruction Stale Flags', () => {
+    test('DAA: clears a stale auxiliary carry when the adjustment does not half-carry', async () => {
+        // With AC set on entry DAA adds six to the low nibble, but 6 + 6 = 12
+        // produces no carry out of bit 3, so AC has to come back down. The
+        // implementation only ever assigned AC = 1, so the incoming set flag
+        // survived; CPUTEST caught it as "REGISTER f CONTAINS 16H BUT SHOULD
+        // CONTAIN 06H".
+        const result = await runAndGetState('daa\nhlt', {
+            accumulator: 0x56,
+            flags: { ac: true },
+        });
+
+        expect(result.accumulator).toBe(0x5c);
+        expect(result.flags.ac).toBe(false);
+    });
+
+    test('DAA: preserves a carry that was already set on entry', async () => {
+        // DAA only ever sets the carry; one standing on entry must survive.
+        // Recomputing the flag from the result cleared it whenever the
+        // adjustment itself did not carry out of bit 7.
+        const result = await runAndGetState('daa\nhlt', {
+            accumulator: 0x00,
+            flags: { c: true },
+        });
+
+        expect(result.accumulator).toBe(0x60);
+        expect(result.flags.c).toBe(true);
+    });
+});

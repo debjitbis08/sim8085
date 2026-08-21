@@ -17,6 +17,23 @@ SimulatorOptions sim_options = {
     .clock_frequency_hz = 3072000.0f, // default 3.072 MHz
 };
 
+// Intel 8080 compatibility. The CP/M exerciser ROMs CRC the whole PSW byte and
+// were written against an 8080, so the two places the 8085 diverges -- the K
+// and V flag bits in PSW, and the auxiliary carry set by logical AND -- have to
+// report 8080 values while they run. Off in normal operation; see
+// src/tests/exerciser/README.md.
+static bool i8080_compat = false;
+
+EMSCRIPTEN_KEEPALIVE
+void set_8080_compat(int enabled) {
+    i8080_compat = (enabled != 0);
+}
+
+EMSCRIPTEN_KEEPALIVE
+int get_8080_compat() {
+    return i8080_compat ? 1 : 0;
+}
+
 // --- Setter Functions ---
 EMSCRIPTEN_KEEPALIVE
 void set_timing_enabled(int enabled) {
@@ -970,15 +987,30 @@ typedef enum { PRESERVE_CARRY, UPDATE_CARRY } should_preserve_carry;
 
 void LogicFlagsA(State8085 *state, uint8_t ac)
 {
-    // Verified in OpenSimH code, that both
-    // carry and aux carry are reset.
+    // Carry is always reset by the logical instructions. Auxiliary carry is
+    // not: OR and exclusive-OR reset it, but AND sets it (see ana()), so the
+    // caller passes the value in.
 	state->cc.cy = 0;
-	state->cc.ac = 0;
+	state->cc.ac = ac;
 	state->cc.z = (state->a == 0);
 	state->cc.s = (0x80 == (state->a & 0x80));
 	state->cc.p = parity(state->a, 8);
 	state->cc.v = 0;
 	state->cc.k = state->cc.s;
+}
+
+// Logical AND of the accumulator with `operand`.
+//
+// The auxiliary carry is the one documented 8080/8085 incompatibility in the
+// logical group. Per the Intel 8080/8085 Assembly Language Programming Manual:
+// "The 8085 logical AND instructions always set the auxiliary flag ON. The 8080
+// logical AND instructions set the flag to reflect the logical OR of bit 3 of
+// the values involved in the AND operation."
+void ana(State8085 *state, uint8_t operand)
+{
+	uint8_t ac = i8080_compat ? (((state->a | operand) >> 3) & 1) : 1;
+	state->a = state->a & operand;
+	LogicFlagsA(state, ac);
 }
 
 void ArithFlagsA(State8085 *state, uint16_t res, should_preserve_carry preserveCarry)
@@ -1493,17 +1525,26 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
 		uint8_t least_four_bits = state->a & 0x0f;
 		// printf("least four bits %d\n", least_four_bits);
 
+		// DAA is the one instruction whose auxiliary carry reports the carry
+		// out of bit 3 of the adjustment itself. When no six is added to the
+		// low nibble there is no half-carry, so AC is cleared rather than left
+		// holding whatever the previous instruction put there.
+		uint8_t half_carry = 0;
 		if (state->cc.ac == 1 || least_four_bits > 9) {
 		    // printf("Adding 6 to a\n");
 			res = state->a + 6;
 
-    		if (least_four_bits + 6 > 0xf)
-    			state->cc.ac = 1;
+    		half_carry = (least_four_bits + 6) > 0xf;
 		}
+		state->cc.ac = half_carry;
 
+		// DAA only ever sets the carry; a carry already standing on entry
+		// survives the instruction, so it is tracked here rather than being
+		// recomputed from the result.
+		uint8_t carry_out = state->cc.cy;
 		if (res > 0xff) {
 		    // printf("Setting carry flag\n");
-    		state->cc.cy = 1;
+    		carry_out = 1;
 		}
 
 		res = res & 0xff;
@@ -1511,10 +1552,13 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
 		least_four_bits = res & 0x0f;
 		uint8_t most_four_bits = (res >> 4) & 0x0f;
 
-		if (state->cc.cy == 1 || most_four_bits > 9) {
+		if (carry_out == 1 || most_four_bits > 9) {
 		    // printf("Adding 6 to high bits %d\n", res);
-    		res = ((most_four_bits + 6) << 4) | least_four_bits;
+    		res = ((uint16_t)(most_four_bits + 6) << 4) | least_four_bits;
 		}
+
+		if (res > 0xff)
+			carry_out = 1;
 
 		// printf("Final value %d\n", res);
 		{
@@ -1522,7 +1566,8 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
 			setVKFlags(state, ((accBeforeAdjust & 0x7f) + (adjustment & 0x7f)) >> 7,
 			           ((uint16_t)accBeforeAdjust + adjustment) >> 8, (uint8_t)res);
 		}
-		ArithFlagsA(state, res, UPDATE_CARRY);
+		ArithFlagsA(state, res, PRESERVE_CARRY);
+		state->cc.cy = carry_out;
 		state->a = (uint8_t)res;
         states = 4;
 	}
@@ -2145,46 +2190,38 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
         states = 4;
 		break;
 	case 0xa0: // ANA B
-		state->a = state->a & state->b;
-		LogicFlagsA(state, 1);
+		ana(state, state->b);
         states = 4;
 		break;
 	case 0xa1: // ANA C
-		state->a = state->a & state->c;
-		LogicFlagsA(state, 1);
+		ana(state, state->c);
         states = 4;
 		break;
 	case 0xa2: // ANA D
-		state->a = state->a & state->d;
-		LogicFlagsA(state, 1);
+		ana(state, state->d);
         states = 4;
 		break;
 	case 0xa3: // ANA E
-		state->a = state->a & state->e;
-		LogicFlagsA(state, 1);
+		ana(state, state->e);
         states = 4;
 		break;
 	case 0xa4: // ANA H
-		state->a = state->a & state->h;
-		LogicFlagsA(state, 1);
+		ana(state, state->h);
         states = 4;
 		break;
 	case 0xa5: // ANA L
-		state->a = state->a & state->l;
-		LogicFlagsA(state, 1);
+		ana(state, state->l);
         states = 4;
 		break;
 	case 0xa6: // ANA M
 	{
 		uint16_t offset = (state->h << 8) | (state->l);
-		state->a = state->a & state->memory[offset];
-		LogicFlagsA(state, 1);
+		ana(state, state->memory[offset]);
         states = 7;
 	}
 	break;
 	case 0xa7: // ANA A
-		state->a = state->a & state->a;
-		LogicFlagsA(state, 1);
+		ana(state, state->a);
         states = 4;
 		break;
 	case 0xa8:
@@ -2582,8 +2619,7 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
 	break;
 	case 0xe6: // ANI byte
 	{
-		state->a = state->a & opcode[1];
-		LogicFlagsA(state, 1);
+		ana(state, opcode[1]);
 		state->pc++;
         states = 7;
 	}
@@ -2666,9 +2702,9 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
 
         // Step 2: Extract the condition flags from the PSW byte
         state->cc.cy = (psw & 0x01);  // Carry flag (bit 0)
-        state->cc.v = (psw & 0x02) >> 1;  // Overflow flag (bit 1, undocumented)
+        state->cc.v = i8080_compat ? 0 : (psw & 0x02) >> 1;  // Overflow flag (bit 1, undocumented)
         state->cc.p = (psw & 0x04) >> 2;  // Parity flag (bit 2)
-        state->cc.k = (psw & 0x20) >> 5;  // K flag (bit 5, undocumented)
+        state->cc.k = i8080_compat ? 0 : (psw & 0x20) >> 5;  // K flag (bit 5, undocumented)
         state->cc.ac = (psw & 0x10) >> 4;  // Auxiliary carry flag (bit 4)
         state->cc.z = (psw & 0x40) >> 6;  // Zero flag (bit 6)
         state->cc.s = (psw & 0x80) >> 7;  // Sign flag (bit 7)
@@ -2722,13 +2758,17 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
         state->sp--;
 
         // Step 4: Construct the PSW byte (format: s z k ac 0 p v c)
+        // On the 8080 bits 5 and 1 are not flags at all: bit 5 reads 0 and bit
+        // 1 reads 1. The 8085 reuses them for the undocumented K and V flags.
+        uint8_t bit5 = i8080_compat ? 0 : state->cc.k;
+        uint8_t bit1 = i8080_compat ? 1 : state->cc.v;
         uint8_t psw = (state->cc.s << 7) |  // Sign flag (bit 7)
                       (state->cc.z << 6) |  // Zero flag (bit 6)
-                      (state->cc.k << 5) |  // K flag (bit 5, undocumented)
+                      (bit5 << 5) |         // K flag (bit 5, undocumented)
                       (state->cc.ac << 4) | // Auxiliary carry (bit 4)
                       (0 << 3) |            // Bit 3 is always 0
                       (state->cc.p << 2) |  // Parity flag (bit 2)
-                      (state->cc.v << 1) |  // Overflow flag (bit 1, undocumented)
+                      (bit1 << 1) |         // Overflow flag (bit 1, undocumented)
                       (state->cc.cy);       // Carry flag (bit 0)
 
         // Step 5: Store the PSW byte at the new stack pointer location
