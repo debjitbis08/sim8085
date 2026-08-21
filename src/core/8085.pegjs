@@ -891,6 +891,19 @@ eol "line end" = "\n" / "\r\n" / "\r" / "\u2028" / "\u2029"
 
 whitespace "whitespace" = [ \t\v\f\u00A0\uFEFF\u1680\u180E\u2000-\u200A\u202F\u205F\u3000]
 
+// error() is fatal, so every ordered instruction choice must keep a longer
+// mnemonic before any mnemonic that is its prefix (for example, INR before IN).
+// Directives intentionally retain their existing, directive-specific parsing.
+requiredOperandWhitespace "space between instruction and operands"
+  = whitespace+
+  / !eol !";" &. {
+    error(JSON.stringify({
+        type: "Invalid Operands",
+        message: "Missing space between the instruction and its operands",
+        hint: ["Add at least one space after the instruction name."]
+    }));
+  }
+
 directive = dir:(dataDefinition / orgDirective / endDirective) whitespace* {
     var opcode = dir.name[0].toLowerCase();
     return {
@@ -1280,7 +1293,7 @@ op_nop  = "NOP"i
 
 op_rst  = op:"RST"i operands:rstOperand { return [op].concat(operands); }
 
-rstOperand = w:whitespace+ code:rstCode { return [w, code]; } / rstOperandError
+rstOperand = w:requiredOperandWhitespace code:rstCode { return [w, code]; } / rstOperandError
 
 rstCode "Code" = n:(expressionImmediate / data8) {
     return n;
@@ -1305,7 +1318,7 @@ op_xra  = op:"XRA"i operands:singleRegisterOperand { return [op].concat(operands
 op_ora  = op:"ORA"i operands:singleRegisterOperand { return [op].concat(operands); }
 op_cmp  = op:"CMP"i operands:singleRegisterOperand { return [op].concat(operands); }
 
-singleRegisterOperand = w:whitespace+ r:register { return [w, r]; } / singleRegisterOperandError
+singleRegisterOperand = w:requiredOperandWhitespace r:register { return [w, r]; } / singleRegisterOperandError
 
 singleRegisterOperandError = .* {
     error(`{
@@ -1318,7 +1331,7 @@ singleRegisterOperandError = .* {
 op_stax = op:"STAX"i operands:ldaxStaxOperands { return [op].concat(operands); }
 op_ldax = op:"LDAX"i operands:ldaxStaxOperands { return [op].concat(operands); }
 
-ldaxStaxOperands = w:whitespace+ r:(registerPairB / registerPairD) {
+ldaxStaxOperands = w:requiredOperandWhitespace r:(registerPairB / registerPairD) {
     return [w, r];
 } / ldaxStaxOperandError
 
@@ -1333,7 +1346,7 @@ ldaxStaxOperandError = .* {
 op_push = op:"PUSH"i operands:pushPopOperands { return [op].concat(operands); }
 op_pop  = op:"POP"i  operands:pushPopOperands { return [op].concat(operands); }
 
-pushPopOperands = w:whitespace+ r:(registerPair / registerPairPSW) {
+pushPopOperands = w:requiredOperandWhitespace r:(registerPair / registerPairPSW) {
     return [w, r];
 } / pushPopOperandError
 
@@ -1349,7 +1362,7 @@ op_dad  = op:"DAD"i operands:registerPairOrStackPointerOperand { return [op].con
 op_inx  = op:"INX"i operands:registerPairOrStackPointerOperand { return [op].concat(operands); }
 op_dcx  = op:"DCX"i operands:registerPairOrStackPointerOperand { return [op].concat(operands); }
 
-registerPairOrStackPointerOperand = w:whitespace+ o:(registerPair / stackPointer) {
+registerPairOrStackPointerOperand = w:requiredOperandWhitespace o:(registerPair / stackPointer) {
     return [w, o];
 } / registerPairOrStackPointerOperandError
 
@@ -1372,7 +1385,7 @@ op_cpi  = op:"CPI"i operands:immediate_instruction_operands { return [op].concat
 op_in   = op:"IN"i  operands:immediate_instruction_operands { return [op].concat(operands); }
 op_out  = op:"OUT"i operands:immediate_instruction_operands { return [op].concat(operands); }
 
-immediate_instruction_operands = w:whitespace+ o:(expressionImmediate / data8 / labelImmediate) {
+immediate_instruction_operands = w:requiredOperandWhitespace o:(expressionImmediate / data8 / labelImmediate) {
     return [w, o]
 } / immediate_instruction_operands_error
 
@@ -1389,7 +1402,7 @@ op_lda  = op:"LDA"i operands:loadStoreOperands { return [op].concat(operands); }
 op_shld = op:"SHLD"i operands:loadStoreOperands { return [op].concat(operands); }
 op_lhld = op:"LHLD"i operands:loadStoreOperands { return [op].concat(operands); }
 
-loadStoreOperands = w:whitespace+ operand:(expressionDirect / data16 / labelDirect) {
+loadStoreOperands = w:requiredOperandWhitespace operand:(expressionDirect / data16 / labelDirect) {
     return [w, operand];
 } / loadStoreOperandError
 
@@ -1411,9 +1424,9 @@ op_jp   = inst:("JP"   / "jp"  ) operand:jump_operand { return [inst].concat(ope
 op_jpe  = inst:("JPE"  / "jpe" ) operand:jump_operand { return [inst].concat(operand); }
 op_jpo  = inst:("JPO"  / "jpo" ) operand:jump_operand { return [inst].concat(operand); }
 
-jump_operand = w:whitespace+ operand:(expressionDirect / labelDirect / data16) / jump_operand_error {
+jump_operand = w:requiredOperandWhitespace operand:(expressionDirect / labelDirect / data16) {
     return [w, operand]
-}
+} / jump_operand_error
 
 jump_operand_error = .* {
     error(`{
@@ -1433,9 +1446,9 @@ op_cp   = inst:"CP"i operands:call_operand { return [inst].concat(operands); }
 op_cpe  = inst:"CPE"i operands:call_operand { return [inst].concat(operands); }
 op_cpo  = inst:"CPO"i operands:call_operand { return [inst].concat(operands); }
 
-call_operand = w:whitespace+ operand:(expressionDirect / data16 / labelDirect) / call_operand_error {
+call_operand = w:requiredOperandWhitespace operand:(expressionDirect / data16 / labelDirect) {
     return [w, operand];
-}
+} / call_operand_error
 
 call_operand_error = .* {
     error(`{
@@ -1449,7 +1462,7 @@ op_mov = inst:"MOV"i operands:movOperands {
     return [inst].concat(operands);
 }
 
-movOperands = w:whitespace+ dest:register w1:whitespace* ',' w2:whitespace* src:register {
+movOperands = w:requiredOperandWhitespace dest:register w1:whitespace* ',' w2:whitespace* src:register {
     if (dest === src && dest.toLowerCase() === "m") {
         error(`{
             "type": "Invalid Operands",
@@ -1476,7 +1489,7 @@ movOperandsError = .* {
 
 op_lxi  = op:"LXI"i operands:lxiOperands { return [op].concat(operands); }
 
-lxiOperands = w1:whitespace+ r:(registerPair / stackPointer) w2:whitespace* c:[,] w3:whitespace* d:(expressionDirect / data16 / labelDirect) {
+lxiOperands = w1:requiredOperandWhitespace r:(registerPair / stackPointer) w2:whitespace* c:[,] w3:whitespace* d:(expressionDirect / data16 / labelDirect) {
     return [w1, r, w2, c, w3, d];
 } / whitespace+ (registerPair / stackPointer) whitespace* whitespace* (expressionDirect / data16 / labelDirect) {
     error(`{
@@ -1496,7 +1509,7 @@ op_mvi  = inst:"MVI"i operands:mvi_operands {
     return [inst].concat(operands);
 }
 
-mvi_operands = w1:whitespace+ dest:register w2:whitespace* c:[,] w3:whitespace* data:(expressionImmediate / data8 / labelImmediate) {
+mvi_operands = w1:requiredOperandWhitespace dest:register w2:whitespace* c:[,] w3:whitespace* data:(expressionImmediate / data8 / labelImmediate) {
     return [w1, dest, w2, c, w3, data];
 } / whitespace+ r:register whitespace* data:(expressionImmediate / data8 / labelImmediate) {
     error(`{
