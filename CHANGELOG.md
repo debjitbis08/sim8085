@@ -1,3 +1,20 @@
+# [2.22.0](https://github.com/debjitbis08/sim8085/compare/v2.21.0...v2.22.0) (2026-08-21)
+
+
+### Bug Fixes
+
+* Correct DSUB flags against the original 1979 publication ([cee70fa](https://github.com/debjitbis08/sim8085/commit/cee70fad659c1ca0d7a6cc6e587a8f98c9af2c5f))
+* Correct three assembler defects found by the Intel manual examples ([26698ff](https://github.com/debjitbis08/sim8085/commit/26698ff5880ca7645a9bb29159a9da454ca057c2))
+* Write V and K from ADI, CPI and DAA, and correct CPI's AC flag ([b5f6ab2](https://github.com/debjitbis08/sim8085/commit/b5f6ab28518fdf6508bc5fe248711e09a1f44ea0))
+
+
+### Features
+
+* Add deterministic step-by-step practice exercises ([ca8c6eb](https://github.com/debjitbis08/sim8085/commit/ca8c6eb76d7ee79c7288dd6184ac467fb190415f))
+* Add the eight remaining priority practice problems ([8119df8](https://github.com/debjitbis08/sim8085/commit/8119df8e99e670e6a04b1651e0c9f2056177ced6))
+* Say where a completed step was saved ([117dcce](https://github.com/debjitbis08/sim8085/commit/117dcce79651fc96cadff8c4106b5b001be39ffb))
+* Support the ten undocumented 8085 instructions ([a69c38e](https://github.com/debjitbis08/sim8085/commit/a69c38ed176c1007ecd81bec3c12a7b4dce70ea0)), closes [#16](https://github.com/debjitbis08/sim8085/issues/16)
+
 # [2.21.0](https://github.com/debjitbis08/sim8085/compare/v2.20.5...v2.21.0) (2026-07-31)
 
 
