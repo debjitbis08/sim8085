@@ -3177,13 +3177,19 @@ static void clearInterruptPins(State8085 *state) {
 }
 
 EMSCRIPTEN_KEEPALIVE
+void detachSDK85(State8085 *state);
+
+EMSCRIPTEN_KEEPALIVE
 int attachSDK85(State8085 *state) {
 	if (!state->board) {
 		state->board = calloc(1, sizeof(SDK85));
 		if (!state->board) return 0;
 	}
 	// sdk85_attach resets the parts, so an attach always starts a cold board.
-	sdk85_attach((SDK85 *)state->board, &state->bus, state->memory, state->io);
+	if (!sdk85_attach((SDK85 *)state->board, &state->bus, state->memory, state->io)) {
+		detachSDK85(state);
+		return 0;
+	}
 	clearInterruptPins(state);
 	state->machine = MACHINE_SDK85;
 	return 1;

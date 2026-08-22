@@ -45,6 +45,21 @@ describe("The port space", () => {
     });
 });
 
+describe("Device registration", () => {
+    // The registry is what gets clocked and polled, so a chip belongs in it
+    // once however many places it answers. An 8155 spans both address spaces
+    // once its RAM is the device's, and a timer counting the processor's clock
+    // would run at double speed if it were registered twice.
+    test.each([
+        "a device in both address spaces is registered once",
+        "a device in both address spaces is clocked once per instruction",
+        "the registry accepts no more than it can clock",
+        "a device that could not be registered is not mapped either",
+    ])("%s", (name) => {
+        expect(results.get(name)).toBe(true);
+    });
+});
+
 describe("Interrupt lines driven by a device", () => {
     // RST 5.5 is level sensitive, so the input is whatever the device is
     // asserting. A device that has stopped asking is no longer pending, which

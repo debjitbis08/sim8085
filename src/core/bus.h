@@ -80,16 +80,33 @@ static inline void bus_map_memory(Bus *bus, uint8_t *backing, int first_page, in
     }
 }
 
-static inline void bus_map_device(Bus *bus, Device *device, int first_page, int pages) {
-    if (bus->device_count < BUS_MAX_DEVICES) {
-        bus->devices[bus->device_count++] = device;
+// The registry is what gets clocked and polled for interrupts, so a chip
+// belongs in it exactly once however many places it answers. A part that
+// decodes in both address spaces -- an 8155, once its RAM is the device's
+// rather than plain memory -- would otherwise be ticked twice per instruction,
+// and a timer counting the processor's clock would run at double speed.
+//
+// Returns the registry slot, or -1 when there is no room. Nothing is mapped
+// against a device that could not be registered: a chip that answers but is
+// never clocked or polled is worse than one that is absent.
+static inline int bus_register_device(Bus *bus, Device *device) {
+    for (int i = 0; i < bus->device_count; i++) {
+        if (bus->devices[i] == device) return i;
     }
+    if (bus->device_count >= BUS_MAX_DEVICES) return -1;
+    bus->devices[bus->device_count] = device;
+    return bus->device_count++;
+}
+
+static inline int bus_map_device(Bus *bus, Device *device, int first_page, int pages) {
+    if (bus_register_device(bus, device) < 0) return 0;
     for (int i = 0; i < pages; i++) {
         int page = (first_page + i) & (BUS_PAGES - 1);
         bus->read_page[page] = NULL;
         bus->write_page[page] = NULL;
         bus->device_page[page] = device;
     }
+    return 1;
 }
 
 // The default machine: 64K of read/write memory and no peripherals, which is
@@ -126,13 +143,12 @@ static inline void bus_map_ports(Bus *bus, uint8_t *backing) {
     bus->port_memory = backing;
 }
 
-static inline void bus_map_port_device(Bus *bus, Device *device, int first_port, int ports) {
-    if (bus->device_count < BUS_MAX_DEVICES) {
-        bus->devices[bus->device_count++] = device;
-    }
+static inline int bus_map_port_device(Bus *bus, Device *device, int first_port, int ports) {
+    if (bus_register_device(bus, device) < 0) return 0;
     for (int i = 0; i < ports; i++) {
         bus->port_device[(first_port + i) & 0xff] = device;
     }
+    return 1;
 }
 
 static inline uint8_t bus_port_read(Bus *bus, uint8_t port) {

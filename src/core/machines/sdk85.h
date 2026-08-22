@@ -34,7 +34,9 @@ typedef struct {
 
 // `backing` is the 64K store the ROM and RAM pages are cut from, so that a
 // loader can put an image into ROM space the way burning the part would.
-static inline void sdk85_attach(SDK85 *board, Bus *bus, uint8_t *backing, uint8_t *ports) {
+// Returns 0 if a part could not be placed on the bus, which would leave the
+// board incomplete rather than merely different.
+static inline int sdk85_attach(SDK85 *board, Bus *bus, uint8_t *backing, uint8_t *ports) {
     bus_reset(bus);
     bus_map_ports(bus, ports);
 
@@ -43,13 +45,15 @@ static inline void sdk85_attach(SDK85 *board, Bus *bus, uint8_t *backing, uint8_
 
     i8279_reset(&board->keyboard);
     board->keyboard_device = i8279_device(&board->keyboard);
-    bus_map_device(bus, &board->keyboard_device, I8279_BASE >> 8, I8279_PAGES);
+    if (!bus_map_device(bus, &board->keyboard_device, I8279_BASE >> 8, I8279_PAGES)) return 0;
 
     // The 8155's RAM is mapped above as ordinary memory; this is the rest of
     // the part -- its command register, ports and timer -- on the port space.
     i8155_reset(&board->support);
     board->support_device = i8155_device(&board->support);
-    bus_map_port_device(bus, &board->support_device, I8155_PORT_BASE, I8155_PORT_COUNT);
+    if (!bus_map_port_device(bus, &board->support_device, I8155_PORT_BASE, I8155_PORT_COUNT)) return 0;
+
+    return 1;
 }
 
 #endif

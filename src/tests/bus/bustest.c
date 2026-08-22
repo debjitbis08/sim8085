@@ -29,6 +29,7 @@ typedef struct {
     uint8_t last_value;
     int reads;
     int queued;
+    int ticks;
 } Fake;
 
 static uint8_t fake_read(Device *self, uint16_t address) {
@@ -55,6 +56,11 @@ static uint8_t fake_irq(Device *self) {
 static uint8_t fake_irq_r75(Device *self) {
     Fake *f = self->ctx;
     return f->queued > 0 ? IRQ_RST75 : 0;
+}
+
+static void fake_tick(Device *self, uint32_t tstates) {
+    (void)tstates;
+    ((Fake *)self->ctx)->ticks++;
 }
 
 static State8085 *fresh(void) {
@@ -196,6 +202,46 @@ int main(void) {
     memset(&stats, 0, sizeof(stats));
     for (int i = 0; i < 5000; i++) Emulate8085Op(edge_cpu, 0xFFFF, &stats);
     check("a held RST 7.5 line latches once", edge_cpu->memory[0x0100], 1);
+
+    // One chip answering in both address spaces is still one chip. Registering
+    // it twice would clock it twice per instruction, and a timer counting the
+    // processor's clock would then run at double speed.
+    State8085 *both_cpu = fresh();
+    Fake both;
+    memset(&both, 0, sizeof(both));
+    Device both_device = { "both", &both, fake_read, fake_write, NULL, fake_tick };
+    bus_map_device(&both_cpu->bus, &both_device, 0x50, 1);
+    bus_map_port_device(&both_cpu->bus, &both_device, 0x50, 1);
+    check("a device in both address spaces is registered once", both_cpu->bus.device_count, 1);
+    memset(&stats, 0, sizeof(stats));
+    for (int i = 0; i < 100; i++) Emulate8085Op(both_cpu, 0xFFFF, &stats);
+    check("a device in both address spaces is clocked once per instruction", both.ticks, 100);
+
+    // The registry is finite, and a chip that answers but is never clocked or
+    // polled is worse than one that is absent, so mapping fails rather than
+    // half succeeding.
+    State8085 *full_cpu = fresh();
+    static Fake spares[BUS_MAX_DEVICES + 1];
+    static Device spare_devices[BUS_MAX_DEVICES + 1];
+    int mapped = 0;
+    for (int i = 0; i <= BUS_MAX_DEVICES; i++) {
+        memset(&spares[i], 0, sizeof(Fake));
+        spare_devices[i].name = "spare";
+        spare_devices[i].ctx = &spares[i];
+        spare_devices[i].read = fake_read;
+        spare_devices[i].write = fake_write;
+        spare_devices[i].irq = NULL;
+        spare_devices[i].tick = NULL;
+        mapped += bus_map_device(&full_cpu->bus, &spare_devices[i], 0x60 + i, 1);
+    }
+    check("the registry accepts no more than it can clock", mapped, BUS_MAX_DEVICES);
+    // The page it would have taken still behaves as it did before: writing and
+    // reading back gives the byte, where the device would have answered with
+    // the low half of the address instead.
+    uint16_t refused = (uint16_t)(((0x60 + BUS_MAX_DEVICES) << 8) | 0x12);
+    mem_write(full_cpu, refused, 0x5a);
+    check("a device that could not be registered is not mapped either",
+          mem_read(full_cpu, refused), 0x5a);
 
     printf("%s\n", failures ? "RESULT FAIL" : "RESULT OK");
     return failures ? 1 : 0;
