@@ -71,3 +71,48 @@ describe("Operator words against symbol names", () => {
         expect(bytes("JMP AHa\nAHa: NOP")).toEqual([0xc3, 0x03, 0x00, 0x00]);
     });
 });
+
+describe("The location counter", () => {
+    test.each([
+        ["", 0],
+        ["NOP\n", 1],
+        ["NOP\nNOP\n", 2],
+        ["ORG 10H\nNOP\n", 0x11],
+    ])("$ after %j is %i", (prefix, expected) => {
+        expect(bytes(`${prefix}HERE EQU $\nMVI A, HERE`).slice(-1)[0]).toBe(expected);
+    });
+
+    test("measures the size of a table", () => {
+        // The idiom the SDK-85 monitor uses to count a table's entries.
+        expect(bytes("TBL: DB 1,2,3\nN EQU $-TBL\nMVI A, N").slice(-1)[0]).toBe(3);
+    });
+});
+
+describe("An instruction in parentheses", () => {
+    // ASM80 lets an operandless instruction stand for its opcode byte, which
+    // the SDK-85 monitor uses to test a fetched byte against DI and EI.
+    test.each([
+        ["(DI)", 0xf3],
+        ["(EI)", 0xfb],
+        ["(NOP)", 0x00],
+        ["(XCHG)", 0xeb],
+    ])("CPI %s compares against %i", (expression, expected) => {
+        expect(bytes(`CPI ${expression}`)).toEqual([0xfe, expected]);
+    });
+
+    test("a parenthesised label is still a label", () => {
+        expect(bytes("CPI (LBL)\nLBL: NOP")).toEqual([0xfe, 0x02, 0x00]);
+    });
+});
+
+describe("A label alone on its line", () => {
+    test("names the current address when followed by an EQU", () => {
+        // opWithLabel binds a label to the instruction below it, but an EQU is
+        // not an instruction, so this needs a rule of its own.
+        expect(bytes("NOP\nHERE:\nN EQU $\nMVI A, N")).toEqual([0x00, 0x3e, 0x01]);
+    });
+
+    test("names the current address when followed by a comment", () => {
+        expect(bytes("NOP\nHERE:   ; nothing here\nDW HERE")).toEqual([0x00, 0x01, 0x00]);
+    });
+});

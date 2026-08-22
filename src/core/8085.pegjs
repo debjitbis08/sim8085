@@ -322,6 +322,26 @@
         );
     };
 
+    // Conditional assembly. IF has to be resolved in the first pass, while
+    // addresses are still being handed out, so the condition may only use
+    // symbols that are already defined above it.
+    var conditionalStack = [];
+
+    var assemblingDisabled = function () {
+        for (var i = 0; i < conditionalStack.length; i += 1) {
+            if (!conditionalStack[i].assembling) return true;
+        }
+        return false;
+    };
+
+    // Reduces a parsed operand to a number, resolving a thunk or a symbol.
+    var evaluateNow = function (operand, location) {
+        var v = operand && typeof operand === "object" && typeof operand.value !== "undefined" ? operand.value : operand;
+        if (typeof v === "function") v = v();
+        if (typeof v === "string") v = getSymbolValue(v, "immediate", 16, location);
+        return Number(v);
+    };
+
     var applyOperator = function (op, l, r) {
         switch (op) {
             case "+":   return l + r;
@@ -365,6 +385,9 @@
  * code and symbol table.
  */
 machineCode = prg:program {
+    if (conditionalStack.length) {
+        error("IF without a matching ENDIF.");
+    }
     var i = 0,
         line,
         lines = prg.length,
@@ -399,17 +422,25 @@ machineCode = prg:program {
             if (line.opcode === "equ" || line.opcode === 'set') {
                 var data = line.data[0];
                 var label = line.label;
-                if (symbolTable[label.value] && symbolTable[label.value].immutable) {
+                if (symbolTable[label.value] && symbolTable[label.value].immutable && !symbolTable[label.value].provisional) {
                     error("Cannot redefine symbols defined with EQU. Use SET for that purpose. Trying to redefine " + label.value, line.location);
                 }
                 var value = typeof data === 'function' ? data() : data;
                 symbolTable[label.value] = {
                     addr: value,
                     value: value,
-                    immutable: line.opcode === 'equ'
+                    immutable: line.opcode === 'equ',
+                    provisional: false
                 };
                 continue;
             }
+            // DS reserves space: the location counter steps over it and no
+            // object code is produced for it.
+            if (line.opcode === "ds") {
+                currentAddress += line.dir.reserved;
+                continue;
+            }
+
             // DW stores each value low byte first. Symbols are resolved here
             // rather than at parse time so that a word may name a label
             // defined further down the program.
@@ -427,8 +458,11 @@ machineCode = prg:program {
             }
         	if (Array.isArray(line.data)) {
             	objCode = objCode.concat(line.data.map(function (d) {
+                    var raw = (d && typeof d === "object" && typeof d.value !== "undefined") ? d.value : d;
+                    if (typeof raw === "function") raw = raw();
+                    if (typeof raw === "string") raw = getSymbolValue(raw, "immediate", 8, (d && d.location) || line.location);
                     var ret = {
-                        data: typeof d.value !== "undefined" ? d.value : d,
+                        data: raw,
                         kind: typeof line.opcode === "string" ? line.opcode : "data",
                         currentAddress: currentAddress,
                         location: typeof d.location !== "undefined" ? d.location : line.location
@@ -528,6 +562,10 @@ program
     }
 
 opWithLabel = labels:(labelPart)* op:(operation / directive) comment? {
+    // Inside a false IF the line is parsed but contributes nothing: no label,
+    // no object code, and no movement of the location counter.
+    if (assemblingDisabled()) return null;
+
     if (labels.length) {
         var labelAddress = typeof op.ilcBeforeOrg === "number" ? op.ilcBeforeOrg : ilc;
         labels.forEach(function (label) {
@@ -552,10 +590,41 @@ opWithLabel = labels:(labelPart)* op:(operation / directive) comment? {
 }
 
 defineSymbolWithLabel = label:labelPartWithOptionalColon op:defineDirective comment? {
+    if (assemblingDisabled()) return null;
+
+    // The value is recorded here as well as in machineCode so that a later IF
+    // can test it. A forward reference cannot be resolved this early; it is
+    // left for the second pass, and simply cannot be used in a condition.
+    try {
+        var value = evaluateNow(op.data[0], label.location);
+        if (!Number.isNaN(value)) {
+            symbolTable[label.value] = {
+                addr: value,
+                value: value,
+                immutable: op.opcode === "equ",
+                provisional: true
+            };
+        }
+    } catch (e) {
+        // Resolved in the second pass instead.
+    }
+
     return { ...op, label };
 }
 
-line = op:(defineSymbolWithLabel / opWithLabel) / (comment:comment) / w:((whitespace / eol)+) / lineError
+conditionalLine = (dir_if / dir_else / dir_endif) whitespace* comment? { return null; }
+
+// A label alone on its line names the current address. opWithLabel reaches
+// across the line ending to bind a label to the instruction below it, which
+// covers the common case, but not when what follows is an EQU or the end of
+// the program -- the monitor's jump tables are labelled that way.
+labelOnlyLine = lbl:label ":" whitespace* comment? {
+    if (assemblingDisabled()) return null;
+    symbolTable[lbl.value] = { addr: ilc, value: ilc };
+    return null;
+}
+
+line = conditionalLine / op:(defineSymbolWithLabel / opWithLabel) / labelOnlyLine / (comment:comment) / w:((whitespace / eol)+) / lineError
 
 lineError "Error in this line now" = lineWithError:.* {
     var content = lineWithError.join("");
@@ -626,6 +695,21 @@ label "label" = first:[a-zA-Z?@] rest:([a-zA-Z0-9_]*) {
 	return { value: first + rest.join(""), location: location() };
 }
 
+instructionValue "instruction in parentheses"
+  = "(" whitespace* name:$(identLetter+) whitespace* ")" &{ return Object.prototype.hasOwnProperty.call(mnemonics, name.toLowerCase()); } {
+    // ASM80 lets an instruction stand in for its opcode byte when it is
+    // parenthesised, which the SDK-85 monitor uses to test a fetched byte
+    // against DI and EI. Only operandless instructions can be written this way,
+    // and those are exactly the mnemonics table keys without a space in them.
+    return { value: mnemonics[name.toLowerCase()].code, location: location() };
+}
+
+locationCounter "$" = "$" {
+    // ASM80 spells the current location counter "$". Its value is taken now,
+    // while the line is being parsed, because ilc moves on afterwards.
+    return { value: ilc, location: location() };
+}
+
 labelImmediate "label" = lbl:label {
     return { value: lbl.value, location: lbl.location, type: "immediate" }
 }
@@ -657,8 +741,12 @@ stackPointer "Stack Pointer (written as, SP or sp)" =
     l:("SP" / "sp") !identLetter { return l.toLowerCase(); }
 
 expression_list "comma separated expression" = d:expressionImmediate ds:("," __ expressionImmediate)* {
+    // Values are left as they are -- a thunk stays a thunk, a symbol stays a
+    // string -- so that machineCode can resolve them once the whole program has
+    // been parsed. Evaluating here would break a DB or DW that names a symbol
+    // defined further down.
     return {
-        value: [typeof d.value === 'function' ? d.value() : d.value].concat(ds.map(function (d_) { return d_[2].value; }).flat()).flat(),
+        value: [d.value].concat(ds.map(function (d_) { return d_[2].value; }).flat()).flat(),
         location: location(),
         text: [d.text].concat(ds.map(function (d_) { return d_[2].text; }))
     };
@@ -773,31 +861,33 @@ expressionImmediate "expression" = logicalOrImmediate
 //   OR XOR  <  AND  <  NOT  <  + -  <  * / MOD SHL SHR  <  HIGH LOW  <  ( )
 //
 // Every binary level is left associative and folded iteratively, so 10-3-2 is
-// 5 and 20/2/5 is 2. The word operators demand whitespace on both sides, which
+// 5 and 20/2/5 is 2. A label appearing inside a compound expression resolves to
+// its address rather than to the data stored there, which is what ASM80 does
+// and what "NUMRG EQU $-RGTBL" needs; a bare label operand is untouched. The word operators demand whitespace on both sides, which
 // is what stops a symbol such as ORG or NOTE from being read as one.
 
 logicalOrImmediate "OR expression"
   = first:logicalAndImmediate rest:(whitespace+ op:("OR"i / "XOR"i) whitespace+ operand:logicalAndImmediate { return { op: op.toUpperCase(), operand: operand }; })* {
-      return foldExpression(first, rest, 'immediate', 8, location(), text());
+      return foldExpression(first, rest, 'direct', 8, location(), text());
   }
 
 logicalAndImmediate "AND expression"
   = first:logicalNotImmediate rest:(whitespace+ "AND"i whitespace+ operand:logicalNotImmediate { return { op: "AND", operand: operand }; })* {
-      return foldExpression(first, rest, 'immediate', 8, location(), text());
+      return foldExpression(first, rest, 'direct', 8, location(), text());
   }
 
 logicalNotImmediate "NOT expression"
   = "NOT"i whitespace+ operand:logicalNotImmediate {
       var loc = location(), src = text();
       return { value: function () {
-          return (~getSymbolValueOrValue(operand.value, 'immediate', 16, loc)) & 0xFFFF;
+          return (~getSymbolValueOrValue(operand.value, 'direct', 16, loc)) & 0xFFFF;
       }, location: loc, text: src };
   }
   / additiveImmediate
 
 additiveImmediate "Addition or subtraction"
   = first:multiplicativeImmediate rest:(whitespace* op:("+" / "-") whitespace* operand:multiplicativeImmediate { return { op: op, operand: operand }; })* {
-      return foldExpression(first, rest, 'immediate', 8, location(), text());
+      return foldExpression(first, rest, 'direct', 8, location(), text());
   }
 
 multiplicativeImmediate "Multiplication, division, modulo or shift"
@@ -805,21 +895,23 @@ multiplicativeImmediate "Multiplication, division, modulo or shift"
         whitespace* op:("*" / "/") whitespace* operand:unaryImmediate { return { op: op, operand: operand }; }
       / whitespace+ op:("MOD"i / "SHL"i / "SHR"i) whitespace+ operand:unaryImmediate { return { op: op.toUpperCase(), operand: operand }; }
     )* {
-      return foldExpression(first, rest, 'immediate', 8, location(), text());
+      return foldExpression(first, rest, 'direct', 8, location(), text());
   }
 
 unaryImmediate "HIGH or LOW"
   = op:("HIGH"i / "LOW"i) whitespace+ operand:unaryImmediate {
       var loc = location(), src = text(), name = op.toUpperCase();
       return { value: function () {
-          var v = getSymbolValueOrValue(operand.value, 'immediate', 16, loc) & 0xFFFF;
+          var v = getSymbolValueOrValue(operand.value, 'direct', 16, loc) & 0xFFFF;
           return name === "HIGH" ? (v >> 8) & 0xFF : v & 0xFF;
       }, location: loc, text: src };
   }
   / primaryImmediate
 
 primaryImmediate "value"
-  = "(" whitespace* e:logicalOrImmediate whitespace* ")" { return e; }
+  = instructionValue
+  / "(" whitespace* e:logicalOrImmediate whitespace* ")" { return e; }
+  / locationCounter
   // A label is tried before a numeric literal, because AHa is a label while
   // hexForm2 would otherwise read AH as 0Ah and strand the trailing a.
   / labelImmediate
@@ -879,7 +971,9 @@ unaryDirect "HIGH or LOW"
   / primaryDirect
 
 primaryDirect "value"
-  = "(" whitespace* e:logicalOrDirect whitespace* ")" { return e; }
+  = instructionValue
+  / "(" whitespace* e:logicalOrDirect whitespace* ")" { return e; }
+  / locationCounter
   / labelDirect
   / numLiteral
 
@@ -904,13 +998,14 @@ requiredOperandWhitespace "space between instruction and operands"
     }));
   }
 
-directive = dir:(dataDefinition / orgDirective / endDirective) whitespace* {
+directive = dir:(dataDefinition / storageDirective / orgDirective / endDirective) whitespace* {
     var opcode = dir.name[0].toLowerCase();
     return {
         opcode: opcode,
         data: dir.params,
         size: opcode === "org" || opcode === 'equ' || opcode === 'end'
                 ? 0
+                : opcode === 'ds' ? dir.reserved
                 : opcode === 'dw' ? dir.params.length * 2 : dir.params.length,
         location: location(),
         ilcBeforeOrg: dir.ilcBeforeOrg,
@@ -1222,6 +1317,10 @@ setSymbol = dir:(dir_set) {
     }
 }
 
+storageDirective = dir:(dir_ds) {
+    return { name: dir.name, params: dir.params, reserved: dir.reserved };
+}
+
 dataDefinition = dir:(dir_db / dir_dw) {
     return {
        name: dir,
@@ -1233,10 +1332,14 @@ orgDirective = dir:(dir_org) {
     // A label on an ORG line names the location counter as it stood before the
     // directive, so keep that value for opWithLabel to pick up.
     var ilcBeforeOrg = ilc;
-    ilc = dir[2].value;
+    // The address is resolved now rather than in the second pass: everything
+    // below an ORG is placed relative to it, so it has to be a number before
+    // the next line is parsed. That means an ORG can only name a symbol that is
+    // already defined, which is how "ORG MNSTK" works in the SDK-85 monitor.
+    ilc = evaluateNow(dir[2], location());
     return {
         name: dir,
-        params: [dir[2].value],
+        params: [ilc],
         ilcBeforeOrg: ilcBeforeOrg
     };
 }
@@ -1247,6 +1350,42 @@ endDirective = dir:(dir_end) {
         // Whitespace and value together in a single array
         params: dir[1] ? [dir[1][1].value] : []
     };
+}
+
+dir_if = "IF"i whitespace+ cond:(expressionImmediate / data16) {
+    // A nested IF inside a block that is already being skipped is pushed as
+    // false without evaluating it, because its symbols may never be defined.
+    var truthy = false;
+    if (!assemblingDisabled()) {
+        truthy = evaluateNow(cond, location()) !== 0;
+    }
+    conditionalStack.push({ assembling: truthy, taken: truthy });
+    return { name: ["if"], params: [] };
+}
+
+dir_else = "ELSE"i {
+    var top = conditionalStack[conditionalStack.length - 1];
+    if (!top) {
+        error("ELSE without a matching IF.", location());
+    }
+    top.assembling = !top.taken;
+    top.taken = true;
+    return { name: ["else"], params: [] };
+}
+
+dir_endif = "ENDIF"i {
+    if (!conditionalStack.length) {
+        error("ENDIF without a matching IF.", location());
+    }
+    conditionalStack.pop();
+    return { name: ["endif"], params: [] };
+}
+
+dir_ds = "DS"i whitespace+ count:(expressionImmediate / data16) {
+    // DS reserves storage without emitting anything, so its size has to be
+    // known now: the location counter moves past it while labels are still
+    // being assigned addresses.
+    return { name: ["ds"], params: [], reserved: evaluateNow(count, location()) };
 }
 
 dir_db  = "DB"i  whitespace+ (expression_list / data8_list)

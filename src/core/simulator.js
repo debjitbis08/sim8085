@@ -1,4 +1,5 @@
 import Module from "./8085.js";
+import { expandMacros, remapLocations } from "./macroPreprocessor.js";
 import {
     getInterruptStateFromPtr,
     getStateFromPtr,
@@ -80,9 +81,16 @@ export async function initSimulator() {
 
 // Assemble program using provided code
 export function assembleProgram(code) {
+    // Macros are expanded before parsing, which can change how many lines the
+    // grammar sees. lineMap carries the mapping back, so every location the
+    // caller receives still refers to the source the user wrote.
+    const { text, lineMap } = expandMacros(code);
     try {
-        return parse(code);
+        return remapLocations(parse(text), lineMap, code);
     } catch (e) {
+        if (lineMap && e.location) {
+            remapLocations({ location: e.location }, lineMap, code);
+        }
         console.log("Failed to assemble program:", e);
         throw e;
     }

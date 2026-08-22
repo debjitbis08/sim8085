@@ -33,3 +33,21 @@ describe("DW", () => {
         expect(bytes("DW 1FFFFH")).toEqual([0xff, 0xff]);
     });
 });
+
+describe("DS", () => {
+    test("reserves space without emitting anything", () => {
+        expect(bytes("DS 4")).toEqual([]);
+    });
+
+    test("moves the location counter past the reserved bytes", () => {
+        expect(bytes("DS 4\nHERE: NOP\nDW HERE")).toEqual([0x00, 0x04, 0x00]);
+    });
+
+    test("labels the first reserved byte", () => {
+        expect(bytes("BUF: DS 4\nDW BUF")).toEqual([0x00, 0x00]);
+    });
+
+    test("accepts an expression", () => {
+        expect(bytes("SIZE EQU 2\nDS SIZE*2\nHERE: NOP\nDW HERE")).toEqual([0x00, 0x04, 0x00]);
+    });
+});
