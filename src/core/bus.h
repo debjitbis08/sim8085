@@ -41,6 +41,10 @@ struct Device {
     void (*write)(Device *self, uint16_t address, uint8_t value);
     // Which interrupt lines this device is driving right now.
     uint8_t (*irq)(Device *self);
+    // Devices are clocked. On the SDK-85 the 8155's timer input is wired to the
+    // processor's CLK OUT, so it counts t-states, which is how the monitor
+    // arranges for a TRAP one instruction after it starts the timer.
+    void (*tick)(Device *self, uint32_t tstates);
 };
 
 #define BUS_PAGES 256
@@ -144,6 +148,13 @@ static inline void bus_port_write(Bus *bus, uint8_t port, uint8_t value) {
         return;
     }
     if (bus->port_memory) bus->port_memory[port] = value;
+}
+
+static inline void bus_tick(Bus *bus, uint32_t tstates) {
+    for (int i = 0; i < bus->device_count; i++) {
+        Device *device = bus->devices[i];
+        if (device && device->tick) device->tick(device, tstates);
+    }
 }
 
 // The interrupt inputs, as driven by everything on the bus at this instant.

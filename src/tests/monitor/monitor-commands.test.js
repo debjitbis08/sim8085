@@ -49,11 +49,15 @@ beforeAll(() => {
     for (let i = 0; i < 16; i++) segmentToCharacter.set(rom[DSPTB + i], i.toString(16).toUpperCase());
 }, 120000);
 
-function press(keys, dumps = []) {
+function press(keys, dumps = [], pokes = {}) {
     const args = [romPath];
     if (keys.length) args.push(keys.map((k) => k.toString(16)).join(","));
     else args.push("");
-    if (dumps.length) args.push(dumps.map((d) => d.toString(16)).join(","));
+    const pokeList = Object.entries(pokes);
+    if (dumps.length || pokeList.length) args.push(dumps.map((d) => d.toString(16)).join(","));
+    if (pokeList.length) {
+        args.push(pokeList.map(([a, v]) => `${Number(a).toString(16)}:${v.toString(16)}`).join(","));
+    }
 
     const output = execFileSync(harness, args, { encoding: "utf8", maxBuffer: 16 << 20 });
 
@@ -62,6 +66,7 @@ function press(keys, dumps = []) {
         [...output.matchAll(/^MEM ([0-9A-F]{4}) ([0-9A-F]{2})$/gm)].map((m) => [parseInt(m[1], 16), parseInt(m[2], 16)]),
     );
     const rom = /^ROM ([0-9A-F]{2}) ([0-9A-F]{2})$/m.exec(output);
+    const timer = /^TIMER reload=(\d+) mode=([0-9A-F]{2}) timeouts=(\d+)$/m.exec(output);
     const unmapped = /^UNMAPPED ([0-9A-F]{2})$/m.exec(output);
     const keyLines = [...output.matchAll(/^KEY ([0-9A-F]{2}) pc=([0-9A-F]{4}) curad=([0-9A-F]{4}) curdt=([0-9A-F]{2})$/gm)];
     const last = keyLines[keyLines.length - 1];
@@ -74,6 +79,7 @@ function press(keys, dumps = []) {
         boot: /^BOOT pc=([0-9A-F]{4}) sp=([0-9A-F]{4}) ibuff=([0-9A-F]{2})$/m.exec(output),
         rom: { before: parseInt(rom[1], 16), after: parseInt(rom[2], 16) },
         unmapped: parseInt(unmapped[1], 16),
+        timer: { reload: Number(timer[1]), mode: parseInt(timer[2], 16), timeouts: Number(timer[3]) },
         // The monitor complements each character before sending it, and may set
         // the decimal point bit, so both come off before the lookup.
         text: display
@@ -128,6 +134,51 @@ describe("Driving the SDK-85 monitor from the keypad", () => {
         // CMMND is doing real work rather than always landing on SUBST.
         const { display } = press([KEY.EXAM, KEY[0]]);
         expect(display.slice(0, 4)).not.toEqual([0xff, 0xff, 0xff, 0xff]);
+    });
+});
+
+// The monitor keeps the user's program counter here while it is in control.
+const PSAV = 0x20f2;
+const word = (memory, address) => memory.get(address) | (memory.get(address + 1) << 8);
+
+describe("GO", () => {
+    // MVI A,42h / STA 2060h / JMP self, so that running it leaves a mark.
+    const program = {
+        0x2050: 0x3e, 0x2051: 0x42, 0x2052: 0x32, 0x2053: 0x60, 0x2054: 0x20,
+        0x2055: 0xc3, 0x2056: 0x55, 0x2057: 0x20,
+    };
+    const keys = [KEY.GO, KEY[2], KEY[0], KEY[5], KEY[0], KEY.PERIOD];
+
+    test("runs the user program at the address given", () => {
+        expect(press(keys, [0x2060], program).memory.get(0x2060)).toBe(0x42);
+    });
+});
+
+describe("SINGLE STEP", () => {
+    // Single step works by loading the 8155's timer with a count chosen so that
+    // TIMER OUT, which is wired to TRAP, fires one user instruction after the
+    // monitor has restored the user's registers and jumped to them.
+    const step = (program) =>
+        press([KEY.STEP, KEY[2], KEY[0], KEY[5], KEY[0], KEY.COMMA], [PSAV, PSAV + 1], program);
+
+    test("executes exactly one instruction", () => {
+        const { memory } = step({ 0x2050: 0x00, 0x2051: 0x00, 0x2052: 0x00 });
+        expect(word(memory, PSAV)).toBe(0x2051);
+    });
+
+    test("follows the instruction it stepped", () => {
+        // JMP 2060h. Landing on 2060h proves one instruction ran and that the
+        // saved program counter is the user's, not a byte count.
+        const { memory } = step({ 0x2050: 0xc3, 0x2051: 0x60, 0x2052: 0x20 });
+        expect(word(memory, PSAV)).toBe(0x2060);
+    });
+
+    test("uses the 8155 timer to get there", () => {
+        const { timer } = step({ 0x2050: 0x00, 0x2051: 0x00 });
+        expect(timer.timeouts).toBeGreaterThan(0);
+        // TIMER and TMODE from the monitor source: 197 counts, square wave.
+        expect(timer.reload).toBe(197);
+        expect(timer.mode).toBe(0x40);
     });
 });
 

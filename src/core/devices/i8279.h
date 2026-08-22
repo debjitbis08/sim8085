@@ -124,6 +124,7 @@ static inline Device i8279_device(I8279 *chip) {
     device.read = i8279_bus_read;
     device.write = i8279_bus_write;
     device.irq = i8279_bus_irq;
+    device.tick = 0;
     return device;
 }
 

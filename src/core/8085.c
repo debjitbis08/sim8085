@@ -2899,6 +2899,8 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
     }
 
     stats->total_tstates += states;
+    // The devices see the same clock the processor does.
+    if (state->bus.device_count) bus_tick(&state->bus, (uint32_t)states);
 
     if (state->ei_delay != 0 && current_opcode != 0xfb) {
         state->ei_delay--;

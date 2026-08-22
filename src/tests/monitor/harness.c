@@ -59,6 +59,19 @@ int main(int argc, char **argv) {
     run(cpu, &stats, 2000000);
     printf("BOOT pc=%04X sp=%04X ibuff=%02X\n", cpu->pc, cpu->sp, cpu->memory[IBUFF]);
 
+    // Bytes placed straight into memory, for a program the test wants to run
+    // rather than key in one nibble at a time.
+    if (argc > 4) {
+        char pokes[1024];
+        snprintf(pokes, sizeof(pokes), "%s", argv[4]);
+        for (char *tok = strtok(pokes, ","); tok; tok = strtok(NULL, ",")) {
+            char *colon = strchr(tok, ':');
+            if (!colon) continue;
+            *colon = 0;
+            cpu->memory[(uint16_t)strtol(tok, NULL, 16)] = (uint8_t)strtol(colon + 1, NULL, 16);
+        }
+    }
+
     if (argc > 2) {
         char keys[512];
         snprintf(keys, sizeof(keys), "%s", argv[2]);
@@ -87,6 +100,8 @@ int main(int argc, char **argv) {
     mem_write(cpu, 0x0000, (uint8_t)(rom_before ^ 0xff));
     printf("ROM %02X %02X\n", rom_before, mem_read(cpu, 0x0000));
     printf("UNMAPPED %02X\n", mem_read(cpu, 0x8000));
+    printf("TIMER reload=%u mode=%02X timeouts=%d\n",
+           board.support.reload, board.support.mode, board.support.timeouts);
 
     printf("DISPLAY");
     for (int i = 0; i < I8279_DISPLAY_BYTES; i++) printf(" %02X", board.keyboard.display[i]);
