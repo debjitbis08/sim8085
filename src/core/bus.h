@@ -55,6 +55,11 @@ typedef struct {
     Device *device_page[BUS_PAGES];
     Device *devices[BUS_MAX_DEVICES];
     int device_count;
+    // The 8085 has a second, separate address space of 256 ports, selected by
+    // the IO/M line rather than by anything in the address itself. It decodes
+    // the same way, so it gets the same treatment.
+    uint8_t *port_memory;
+    Device *port_device[BUS_PAGES];
 } Bus;
 
 // Nothing mapped: reads float high, writes go nowhere.
@@ -111,6 +116,34 @@ static inline void bus_write(Bus *bus, uint16_t address, uint8_t value) {
     if (device && device->write) device->write(device, address, value);
     // Otherwise the page is read-only or unmapped, and the write is dropped
     // exactly as it would be on the board.
+}
+
+static inline void bus_map_ports(Bus *bus, uint8_t *backing) {
+    bus->port_memory = backing;
+}
+
+static inline void bus_map_port_device(Bus *bus, Device *device, int first_port, int ports) {
+    if (bus->device_count < BUS_MAX_DEVICES) {
+        bus->devices[bus->device_count++] = device;
+    }
+    for (int i = 0; i < ports; i++) {
+        bus->port_device[(first_port + i) & 0xff] = device;
+    }
+}
+
+static inline uint8_t bus_port_read(Bus *bus, uint8_t port) {
+    Device *device = bus->port_device[port];
+    if (device && device->read) return device->read(device, port);
+    return bus->port_memory ? bus->port_memory[port] : 0xff;
+}
+
+static inline void bus_port_write(Bus *bus, uint8_t port, uint8_t value) {
+    Device *device = bus->port_device[port];
+    if (device && device->write) {
+        device->write(device, port, value);
+        return;
+    }
+    if (bus->port_memory) bus->port_memory[port] = value;
 }
 
 // The interrupt inputs, as driven by everything on the bus at this instant.

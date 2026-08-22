@@ -1175,8 +1175,31 @@ void rst(State8085 *state, uint8_t rst_number, uint8_t half)
     state->pc = rst_number * 8 + half * 4;
 }
 
+// Samples the interrupt inputs as the devices on the bus are driving them.
+//
+// RST 5.5 and 6.5 are level sensitive: the input simply is whatever the device
+// is asserting, so a device that has stopped asking is no longer pending. That
+// is what stops one keypress being read over and over. RST 7.5 latches on an
+// edge and TRAP latches when it arrives, so both are set here and cleared by
+// the processor when it takes them.
+//
+// With no devices mapped the fields keep whatever was written to them, which is
+// how the simulator has always let a caller raise an interrupt by hand.
+static void sampleInterruptLines(State8085 *state)
+{
+    if (state->bus.device_count == 0) return;
+
+    uint8_t lines = bus_irq(&state->bus);
+    state->pending_r5 = (lines & IRQ_RST55) ? 1 : 0;
+    state->pending_r6 = (lines & IRQ_RST65) ? 1 : 0;
+    if (lines & IRQ_RST75) state->r7_latch = 1;
+    if (lines & IRQ_TRAP) state->pending_trap = 1;
+}
+
 void checkInterrupts(State8085 *state)
 {
+    sampleInterruptLines(state);
+
     // TRAP is non-maskable and is recognized regardless of INTE. The caller
     // separately protects the execution of DI and EI themselves, as required
     // by the Intel manual.
@@ -2490,7 +2513,7 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
         }
 		break;
 	case 0xd3: // OUT d8
-        state->io[mem_read(state, operand_pc)] = state->a;
+        bus_port_write(&state->bus, mem_read(state, operand_pc), state->a);
         state->pc += 1;
         states = 10;
         io_write(mem_read(state, operand_pc), state->a);
@@ -2548,7 +2571,7 @@ int Emulate8085Op(State8085 *state, uint16_t offset, ExecutionStats8085 *stats)
         }
 		break;
 	case 0xdb: // IN d8
-        state->a = state->io[mem_read(state, operand_pc)];
+        state->a = bus_port_read(&state->bus, mem_read(state, operand_pc));
         state->pc++;
         states = 10;
         break;
@@ -2898,6 +2921,7 @@ State8085 *Init8085(void)
 	// sim8085 has always been. A board with ROM or devices remaps pages over
 	// the top of this.
 	bus_map_flat_ram(&state->bus, state->memory);
+	bus_map_ports(&state->bus, state->io);
     state->pending_r5 = 0;
     state->pending_r6 = 0;
     state->r7_latch = 0;
