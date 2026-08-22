@@ -58,6 +58,11 @@ beforeAll(async () => {
 
 // Resumes from the booted state with one interrupt line asserted, and a HLT
 // planted at the handler so that `halted` says whether the vector was taken.
+//
+// The line is asserted through interruptPins, which is the half a caller owns.
+// pendingInterrupts is what the processor sees, devices included, and setting
+// that on a state read back out of the processor would be asking for whatever
+// it last saw rather than for this line.
 function interrupt(which, { masks } = {}) {
     const memory = [...booted.memory];
     memory[HANDLERS[which].entry] = HLT;
@@ -67,7 +72,7 @@ function interrupt(which, { masks } = {}) {
             statePointer,
             memory,
             interruptMasks: masks ?? booted.interruptMasks,
-            pendingInterrupts: { ...booted.pendingInterrupts, [which]: true },
+            interruptPins: { ...booted.interruptPins, [which]: true },
         }),
         { maxTstates: 400_000 },
     );

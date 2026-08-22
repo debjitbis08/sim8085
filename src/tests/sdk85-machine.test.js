@@ -80,6 +80,42 @@ describe("The SDK-85 machine from JavaScript", () => {
     });
 });
 
+describe("Resuming a paused machine", () => {
+    test("a line the 8279 was driving is not adopted by the caller", () => {
+        // pendingInterrupts is what the processor sees, devices included.
+        // Reading it out and handing it back as the state to resume from would
+        // make the caller hold a line the 8279 had merely raised, and it would
+        // still be held long after the key that caused it had been read.
+        const memory = [...booted.memory];
+        // DI / JMP self: a user program that never reads the keyboard, so the
+        // 8279 keeps its line up while this runs.
+        memory[0x2000] = 0xf3;
+        memory[0x2001] = 0xc3;
+        memory[0x2002] = 0x01;
+        memory[0x2003] = 0x20;
+
+        let state = runProgramWithBudget(
+            blankStore({ statePointer, memory, programCounter: 0x2000 }),
+            { maxTstates: 100_000 },
+        );
+        sdk85PressKey({ statePointer }, SDK85_KEYS.SUBST_MEM);
+        state = runProgramWithBudget(blankStore({ ...state, statePointer }), { maxTstates: 100_000 });
+
+        expect(state.pendingInterrupts.rst55).toBe(true);
+        expect(sdk85PendingKeys({ statePointer })).toBe(1);
+
+        // Hand the machine back to the monitor, resuming from that state as a
+        // caller would. The monitor reads the key and the 8279 drops its line.
+        state = runProgramWithBudget(
+            blankStore({ ...state, statePointer, programCounter: 0 }),
+            { maxTstates: 3_000_000 },
+        );
+
+        expect(sdk85PendingKeys({ statePointer })).toBe(0);
+        expect(state.pendingInterrupts.rst55).toBe(false);
+    });
+});
+
 describe("Attaching and detaching the machine", () => {
     test("the monitor ROM ignores writes while the board is attached", () => {
         const before = booted.memory[0x0000];

@@ -214,6 +214,7 @@ export function runProgram(store) {
             interruptsEnabled: outputState.interruptsEnabled,
             interruptMasks: outputState.interruptMasks,
             pendingInterrupts: outputState.pendingInterrupts,
+            interruptPins: outputState.interruptPins,
             stackPointer: outputState.sp,
             programCounter: outputState.pc,
             memory: outputState.memory,
@@ -289,6 +290,7 @@ export function runProgramInSlices(store, onStateUpdate) {
                 interruptsEnabled: outputState.interruptsEnabled,
                 interruptMasks: outputState.interruptMasks,
                 pendingInterrupts: outputState.pendingInterrupts,
+                interruptPins: outputState.interruptPins,
                 stackPointer: outputState.sp,
                 programCounter: outputState.pc,
                 memory: outputState.memory,
@@ -387,6 +389,7 @@ export function runProgramWithBudget(store, options = {}) {
         interruptsEnabled: outputState.interruptsEnabled,
         interruptMasks: outputState.interruptMasks,
         pendingInterrupts: outputState.pendingInterrupts,
+        interruptPins: outputState.interruptPins,
         stackPointer: outputState.sp,
         programCounter: outputState.pc,
         memory: outputState.memory,
@@ -430,6 +433,7 @@ export function runSingleInstruction(store) {
                 interruptsEnabled: outputState.interruptsEnabled,
                 interruptMasks: outputState.interruptMasks,
                 pendingInterrupts: outputState.pendingInterrupts,
+                interruptPins: outputState.interruptPins,
                 stackPointer: outputState.sp,
                 programCounter: outputState.pc,
                 memory: outputState.memory,
@@ -467,6 +471,10 @@ export function getCpuState(store) {
         interruptsEnabled: store.interruptsEnabled ?? false,
         interruptMasks: store.interruptMasks ?? { rst55: false, rst65: false, rst75: false },
         pendingInterrupts: store.pendingInterrupts ?? { trap: false, rst55: false, rst65: false, rst75: false },
+        // Passed through so that resuming from a state read out of the
+        // processor restores the pins the caller was driving, rather than
+        // whatever the processor last saw on them.
+        interruptPins: store.interruptPins,
         memory: store.memory,
         io: store.io,
         ptr: store.statePointer,

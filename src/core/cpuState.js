@@ -41,11 +41,23 @@ export function getStateFromPtr(simulator, statePtr) {
             rst65: getBool(15),
             rst75: getBool(16),
         },
+        // What the processor currently sees on its interrupt inputs: a
+        // combination of the pins below and whatever the devices are driving.
+        // Reading this and writing it back would hand a device's line to the
+        // host, which would then hold it for ever.
         pendingInterrupts: {
             trap: getBool(17),
             rst55: getBool(18),
             rst65: getBool(19),
             rst75: getBool(20),
+        },
+        // The pins as driven from outside the processor. This is the half a
+        // caller owns, and the half that survives a resume unchanged.
+        interruptPins: {
+            trap: getBool(26),
+            rst55: getBool(27),
+            rst65: getBool(28),
+            rst75: getBool(29),
         },
         memory: (function () {
             var memoryPtr = simulator._getMemory(statePtr);
@@ -94,11 +106,23 @@ export function getInterruptStateFromPtr(simulator, statePtr) {
             rst65: getBool(15),
             rst75: getBool(16),
         },
+        // What the processor currently sees on its interrupt inputs: a
+        // combination of the pins below and whatever the devices are driving.
+        // Reading this and writing it back would hand a device's line to the
+        // host, which would then hold it for ever.
         pendingInterrupts: {
             trap: getBool(17),
             rst55: getBool(18),
             rst65: getBool(19),
             rst75: getBool(20),
+        },
+        // The pins as driven from outside the processor. This is the half a
+        // caller owns, and the half that survives a resume unchanged.
+        interruptPins: {
+            trap: getBool(26),
+            rst55: getBool(27),
+            rst65: getBool(28),
+            rst75: getBool(29),
         },
     };
 
@@ -154,20 +178,30 @@ export function setInterruptState(simulator, statePtr, state) {
     simulator.setValue(statePtr + 18, boolToBin(state.pendingInterrupts?.rst55), "i8", 0);
     simulator.setValue(statePtr + 19, boolToBin(state.pendingInterrupts?.rst65), "i8", 0);
     simulator.setValue(statePtr + 20, boolToBin(state.pendingInterrupts?.rst75), "i8", 0);
-    // The same request written to the interrupt pins, which is where a caller
-    // asserting a line by hand belongs: a device on the bus drives the same
-    // pins, and the processor combines the two rather than letting either win.
-    simulator.setValue(statePtr + 26, boolToBin(state.pendingInterrupts?.trap), "i8", 0);
-    simulator.setValue(statePtr + 27, boolToBin(state.pendingInterrupts?.rst55), "i8", 0);
-    simulator.setValue(statePtr + 28, boolToBin(state.pendingInterrupts?.rst65), "i8", 0);
-    simulator.setValue(statePtr + 29, boolToBin(state.pendingInterrupts?.rst75), "i8", 0);
+    // The pins a caller is driving. These are taken from interruptPins when the
+    // caller has one -- a state read back from the processor does -- and only
+    // fall back to pendingInterrupts for a caller that asks for an interrupt
+    // without having read one out first.
+    //
+    // The distinction matters as soon as a device shares a line.
+    // pendingInterrupts is what the processor sees, devices included, so
+    // feeding it back in would make the host hold a line the 8279 had merely
+    // raised for a moment, and it would still be held long after the key that
+    // caused it had been read.
+    const pins = state.interruptPins ?? state.pendingInterrupts;
+    simulator.setValue(statePtr + 26, boolToBin(pins?.trap), "i8", 0);
+    simulator.setValue(statePtr + 27, boolToBin(pins?.rst55), "i8", 0);
+    simulator.setValue(statePtr + 28, boolToBin(pins?.rst65), "i8", 0);
+    simulator.setValue(statePtr + 29, boolToBin(pins?.rst75), "i8", 0);
     // Clear execution-only state so one run cannot leak EI delay or the
     // one-shot pre-TRAP IE snapshot into another.
     simulator.setValue(statePtr + 23, 0, "i8", 0);
     simulator.setValue(statePtr + 24, 0, "i8", 0);
     simulator.setValue(statePtr + 25, 0, "i8", 0);
-    // The remembered RST 7.5 line level is execution-only too.
-    simulator.setValue(statePtr + 30, 0, "i8", 0);
+    // Offset 30, the RST 7.5 level the devices drove last sample, is
+    // deliberately left alone. It belongs to the devices rather than to a run,
+    // and clearing it would make a line a device is simply still holding look
+    // like a fresh rising edge after every resume.
 }
 
 export function setPCValue(simulator, statePtr, pcValue) {
