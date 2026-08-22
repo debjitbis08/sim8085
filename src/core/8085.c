@@ -5,6 +5,7 @@
 #include <emscripten.h>
 
 #include "bus.h"
+#include "machines/sdk85.h"
 
 typedef struct {
     bool timing_enabled;
@@ -107,6 +108,9 @@ typedef struct State8085
 	// Appended deliberately: cpuState.js reads the fields above by fixed
 	// offset, so nothing may be inserted ahead of them.
 	Bus bus;
+	// The board this processor is plugged into, if it is plugged into one.
+	// NULL is the plain machine: 64K of RAM and no peripherals.
+	void *board;
 } State8085;
 
 // Every memory access the processor makes goes through the bus, so that a page
@@ -3114,6 +3118,52 @@ int InterruptToHalt(State8085 *state) {
 }
 
 uint8_t *getMemory(State8085 *state) { return state->memory; }
+
+// ---------------------------------------------------------------------------
+// The SDK-85.
+//
+// A board is a different machine, not a mode of this one, so attaching it
+// remaps the bus wholesale: ROM where the monitor goes, RAM where the 8155 is,
+// and the 8279 in between. detachSDK85 puts the plain 64K machine back.
+// ---------------------------------------------------------------------------
+
+EMSCRIPTEN_KEEPALIVE
+int attachSDK85(State8085 *state) {
+	if (!state->board) {
+		state->board = calloc(1, sizeof(SDK85));
+		if (!state->board) return 0;
+	}
+	sdk85_attach((SDK85 *)state->board, &state->bus, state->memory, state->io);
+	return 1;
+}
+
+EMSCRIPTEN_KEEPALIVE
+void detachSDK85(State8085 *state) {
+	bus_map_flat_ram(&state->bus, state->memory);
+	bus_map_ports(&state->bus, state->io);
+}
+
+// Queues a keypress. Returns 0 if the 8279's FIFO is full, which is what the
+// real part does with a key it has no room for.
+EMSCRIPTEN_KEEPALIVE
+int sdk85PressKey(State8085 *state, int code) {
+	if (!state->board) return 0;
+	return i8279_press(&((SDK85 *)state->board)->keyboard, (uint8_t)code);
+}
+
+// The display RAM. Six of its sixteen bytes are wired to digits on an SDK-85,
+// and each is the segment pattern the monitor sent, complemented.
+EMSCRIPTEN_KEEPALIVE
+uint8_t *sdk85Display(State8085 *state) {
+	return state->board ? ((SDK85 *)state->board)->keyboard.display : 0;
+}
+
+// How many keys are waiting to be read, so a caller can tell whether the
+// machine has caught up before sending another.
+EMSCRIPTEN_KEEPALIVE
+int sdk85PendingKeys(State8085 *state) {
+	return state->board ? ((SDK85 *)state->board)->keyboard.count : 0;
+}
 uint8_t *getIO(State8085 *state) { return state->io; }
 
 int triggerInterrupt(State8085 *state, int code, int active)

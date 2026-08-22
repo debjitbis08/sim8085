@@ -129,11 +129,53 @@ describe("Driving the SDK-85 monitor from the keypad", () => {
         expect(text.slice(0, 4)).toBe("2048");
     });
 
-    test("EXAM REG reaches the register display", () => {
-        // A different command through the same dispatch, so the table lookup in
-        // CMMND is doing real work rather than always landing on SUBST.
-        const { display } = press([KEY.EXAM, KEY[0]]);
-        expect(display.slice(0, 4)).not.toEqual([0xff, 0xff, 0xff, 0xff]);
+
+});
+
+// Where the monitor keeps each of the user's registers while it has control,
+// and the keypad key that selects it. The processor's own registers are the
+// letters; H and L are keyed as 8 and 9, since A to F are taken.
+const REGISTER = {
+    A: { key: 0x0a, save: 0x20ee },
+    B: { key: 0x0b, save: 0x20ec },
+    C: { key: 0x0c, save: 0x20eb },
+    D: { key: 0x0d, save: 0x20ea },
+    E: { key: 0x0e, save: 0x20e9 },
+    F: { key: 0x0f, save: 0x20ed },
+    H: { key: 0x08, save: 0x20f0 },
+    L: { key: 0x09, save: 0x20ef },
+};
+// CURDT, where the monitor puts whatever the data field is showing.
+const CURDT = 0x20f8;
+
+describe("EXAM REG", () => {
+    test.each(Object.entries(REGISTER))("shows the saved %s register", (_name, { key, save }) => {
+        // Each register gets a value of its own, so displaying the wrong one is
+        // visible rather than passing by coincidence.
+        const pokes = Object.fromEntries(
+            Object.values(REGISTER).map(({ save: address }, i) => [address, 0xa1 + i]),
+        );
+        const expected = pokes[save];
+        expect(press([KEY.EXAM, key], [CURDT], pokes).memory.get(CURDT)).toBe(expected);
+    });
+
+    test("writes a new value into the register", () => {
+        const { memory } = press(
+            [KEY.EXAM, REGISTER.A.key, KEY[3], KEY.C, KEY.COMMA],
+            [REGISTER.A.save],
+            { [REGISTER.A.save]: 0xa1 },
+        );
+        expect(memory.get(REGISTER.A.save)).toBe(0x3c);
+    });
+
+    test("steps to the next register", () => {
+        // A comma with no digits typed leaves A alone and moves on to B, so the
+        // data field ends up showing B's contents.
+        const { memory } = press([KEY.EXAM, REGISTER.A.key, KEY.COMMA], [CURDT], {
+            [REGISTER.A.save]: 0xa1,
+            [REGISTER.B.save]: 0xb1,
+        });
+        expect(memory.get(CURDT)).toBe(0xb1);
     });
 });
 

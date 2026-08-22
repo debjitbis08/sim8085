@@ -18,6 +18,11 @@ let load8085Program = null;
 let unload8085Program = null;
 let execute8085ProgramUntil = null;
 let interruptToHalt = null;
+let attachSDK85Machine = null;
+let detachSDK85Machine = null;
+let sdk85PressKeyRaw = null;
+let sdk85DisplayPointer = null;
+let sdk85PendingKeysRaw = null;
 let getLastTotalTstates = null;
 let getLastMaxStackBytes = null;
 let statePointer = null;
@@ -55,6 +60,11 @@ export async function initSimulator() {
     load8085Program = simulator.cwrap("LoadProgram", "number", ["number", "array", "number", "number"]);
     unload8085Program = simulator.cwrap("UnloadProgram", "number", ["number", "array", "number", "number"]);
     interruptToHalt = simulator.cwrap("InterruptToHalt", "number", ["number"]);
+    attachSDK85Machine = simulator.cwrap("attachSDK85", "number", ["number"]);
+    detachSDK85Machine = simulator.cwrap("detachSDK85", null, ["number"]);
+    sdk85PressKeyRaw = simulator.cwrap("sdk85PressKey", "number", ["number", "number"]);
+    sdk85DisplayPointer = simulator.cwrap("sdk85Display", "number", ["number"]);
+    sdk85PendingKeysRaw = simulator.cwrap("sdk85PendingKeys", "number", ["number"]);
     getLastTotalTstates = simulator._get_last_total_tstates
         ? simulator.cwrap("get_last_total_tstates", "number", [])
         : null;
@@ -536,4 +546,54 @@ export function setInterruptLine(name, active) {
 
 export function getInterruptState(store) {
     return getInterruptStateFromPtr(simulator, store.statePointer);
+}
+
+// ---------------------------------------------------------------------------
+// The SDK-85.
+//
+// A board is a different machine rather than a mode of this one: attaching it
+// remaps the address bus, putting ROM where the monitor lives, RAM where the
+// 8155 is, and the 8279 keyboard and display controller in between. The default
+// machine -- 64K of RAM and no peripherals -- is what every other caller here
+// gets, and detachSDK85 returns to it.
+// ---------------------------------------------------------------------------
+
+/** Plugs the processor into an SDK-85. */
+export function attachSDK85(store) {
+    return attachSDK85Machine(store.statePointer) !== 0;
+}
+
+/** Returns to the plain 64K machine. */
+export function detachSDK85(store) {
+    detachSDK85Machine(store.statePointer);
+}
+
+/**
+ * Queues a keypress on the 8279. Returns false if its FIFO is full, which is
+ * what the real part does with a key it has no room for.
+ *
+ * The key is not delivered here: the 8279 raises RST 5.5 and the monitor's
+ * interrupt routine reads it, so the machine has to be running for anything to
+ * happen.
+ */
+export function sdk85PressKey(store, code) {
+    return sdk85PressKeyRaw(store.statePointer, code & 0x3f) !== 0;
+}
+
+/** How many keys are still waiting to be read. */
+export function sdk85PendingKeys(store) {
+    return sdk85PendingKeysRaw(store.statePointer);
+}
+
+/**
+ * The 8279's display RAM. Six of its sixteen bytes are wired to digits on an
+ * SDK-85, and each holds the segment pattern the monitor sent, complemented --
+ * see decodeDisplay in sdk85.js.
+ */
+export function sdk85Display(store) {
+    const pointer = sdk85DisplayPointer(store.statePointer);
+    if (!pointer) return [];
+    const bytes = [];
+    for (let i = 0; i < 16; i++) bytes.push(simulator.getValue(pointer + i, "i8") & 0xff);
+    return bytes;
 }
