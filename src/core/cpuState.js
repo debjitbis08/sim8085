@@ -154,11 +154,20 @@ export function setInterruptState(simulator, statePtr, state) {
     simulator.setValue(statePtr + 18, boolToBin(state.pendingInterrupts?.rst55), "i8", 0);
     simulator.setValue(statePtr + 19, boolToBin(state.pendingInterrupts?.rst65), "i8", 0);
     simulator.setValue(statePtr + 20, boolToBin(state.pendingInterrupts?.rst75), "i8", 0);
+    // The same request written to the interrupt pins, which is where a caller
+    // asserting a line by hand belongs: a device on the bus drives the same
+    // pins, and the processor combines the two rather than letting either win.
+    simulator.setValue(statePtr + 26, boolToBin(state.pendingInterrupts?.trap), "i8", 0);
+    simulator.setValue(statePtr + 27, boolToBin(state.pendingInterrupts?.rst55), "i8", 0);
+    simulator.setValue(statePtr + 28, boolToBin(state.pendingInterrupts?.rst65), "i8", 0);
+    simulator.setValue(statePtr + 29, boolToBin(state.pendingInterrupts?.rst75), "i8", 0);
     // Clear execution-only state so one run cannot leak EI delay or the
     // one-shot pre-TRAP IE snapshot into another.
     simulator.setValue(statePtr + 23, 0, "i8", 0);
     simulator.setValue(statePtr + 24, 0, "i8", 0);
     simulator.setValue(statePtr + 25, 0, "i8", 0);
+    // The remembered RST 7.5 line level is execution-only too.
+    simulator.setValue(statePtr + 30, 0, "i8", 0);
 }
 
 export function setPCValue(simulator, statePtr, pcValue) {

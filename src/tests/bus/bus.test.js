@@ -52,6 +52,12 @@ describe("Interrupt lines driven by a device", () => {
     test.each([
         "one queued item is delivered once",
         "three queued items are delivered three times",
+        // A device and a caller using triggerInterrupt drive the same pin, so
+        // neither may overwrite the other.
+        "a hand-asserted line survives a device being attached",
+        // RST 7.5 latches on an edge, so a device holding the line high gives
+        // one interrupt rather than one on every pass round the caller's loop.
+        "a held RST 7.5 line latches once",
     ])("%s", (name) => {
         expect(results.get(name)).toBe(true);
     });

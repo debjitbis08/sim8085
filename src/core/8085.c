@@ -7,6 +7,9 @@
 #include "bus.h"
 #include "machines/sdk85.h"
 
+#define MACHINE_PLAIN 0
+#define MACHINE_SDK85 1
+
 typedef struct {
     bool timing_enabled;
     float clock_frequency_hz;
@@ -103,6 +106,20 @@ typedef struct State8085
     // that existed immediately before TRAP was accepted.
     uint8_t trap_ie_copy;
     uint8_t trap_ie_valid;
+    // The interrupt pins as driven from outside the processor, kept apart from
+    // the pending and latched state above. A device on the bus and a caller
+    // using triggerInterrupt are both driving the same pin, so neither may
+    // overwrite the other; the processor combines them when it samples.
+    uint8_t host_trap;
+    uint8_t host_r5;
+    uint8_t host_r6;
+    uint8_t host_r75;
+    // The RST 7.5 level the devices drove last sample, so that a rising edge
+    // can be told from a line that is simply still high.
+    uint8_t dev_r75;
+    // Which machine the processor is plugged into. Allocating a board is not
+    // the same as being attached to one.
+    uint8_t machine;
 	uint8_t *memory;
 	uint8_t *io;
 	// Appended deliberately: cpuState.js reads the fields above by fixed
@@ -1191,13 +1208,31 @@ void rst(State8085 *state, uint8_t rst_number, uint8_t half)
 // how the simulator has always let a caller raise an interrupt by hand.
 static void sampleInterruptLines(State8085 *state)
 {
-    if (state->bus.device_count == 0) return;
+    uint8_t lines = state->bus.device_count ? bus_irq(&state->bus) : 0;
 
-    uint8_t lines = bus_irq(&state->bus);
-    state->pending_r5 = (lines & IRQ_RST55) ? 1 : 0;
-    state->pending_r6 = (lines & IRQ_RST65) ? 1 : 0;
-    if (lines & IRQ_RST75) state->r7_latch = 1;
+    // RST 5.5 and 6.5 are levels, and a pin is high if anything is driving it.
+    // Taking the devices' output alone would drop a line a caller had asserted
+    // by hand, which is what happens the moment any device is attached.
+    state->pending_r5 = (uint8_t)(state->host_r5 || (lines & IRQ_RST55));
+    state->pending_r6 = (uint8_t)(state->host_r6 || (lines & IRQ_RST65));
+
+    // RST 7.5 latches on a rising edge. Setting the latch while the line is
+    // merely still high would re-arm it after every service, turning one edge
+    // into an interrupt on each pass round the caller's loop.
+    uint8_t r75 = (uint8_t)((lines & IRQ_RST75) ? 1 : 0);
+    if (r75 && !state->dev_r75) state->r7_latch = 1;
+    state->dev_r75 = r75;
+    if (state->host_r75) {
+        state->r7_latch = 1;
+        state->host_r75 = 0;
+    }
+
+    // TRAP latches when it arrives, from either source.
     if (lines & IRQ_TRAP) state->pending_trap = 1;
+    if (state->host_trap) {
+        state->pending_trap = 1;
+        state->host_trap = 0;
+    }
 }
 
 void checkInterrupts(State8085 *state)
@@ -3127,13 +3162,30 @@ uint8_t *getMemory(State8085 *state) { return state->memory; }
 // and the 8279 in between. detachSDK85 puts the plain 64K machine back.
 // ---------------------------------------------------------------------------
 
+// Nothing may cross a change of machine: a line a departed device was driving,
+// or a latch it caused, is not the new machine's business.
+static void clearInterruptPins(State8085 *state) {
+	state->host_trap = 0;
+	state->host_r5 = 0;
+	state->host_r6 = 0;
+	state->host_r75 = 0;
+	state->dev_r75 = 0;
+	state->pending_trap = 0;
+	state->pending_r5 = 0;
+	state->pending_r6 = 0;
+	state->r7_latch = 0;
+}
+
 EMSCRIPTEN_KEEPALIVE
 int attachSDK85(State8085 *state) {
 	if (!state->board) {
 		state->board = calloc(1, sizeof(SDK85));
 		if (!state->board) return 0;
 	}
+	// sdk85_attach resets the parts, so an attach always starts a cold board.
 	sdk85_attach((SDK85 *)state->board, &state->bus, state->memory, state->io);
+	clearInterruptPins(state);
+	state->machine = MACHINE_SDK85;
 	return 1;
 }
 
@@ -3141,13 +3193,27 @@ EMSCRIPTEN_KEEPALIVE
 void detachSDK85(State8085 *state) {
 	bus_map_flat_ram(&state->bus, state->memory);
 	bus_map_ports(&state->bus, state->io);
+	// The board keeps its allocation but not its state: a key queued on a
+	// machine that is no longer attached must not reappear on the next one.
+	if (state->board) {
+		i8279_reset(&((SDK85 *)state->board)->keyboard);
+		i8155_reset(&((SDK85 *)state->board)->support);
+	}
+	clearInterruptPins(state);
+	state->machine = MACHINE_PLAIN;
+}
+
+// True when an SDK-85 is the machine in use, which is what the calls below
+// require -- having a board allocated is not the same thing.
+static int onSDK85(State8085 *state) {
+	return state->machine == MACHINE_SDK85 && state->board != 0;
 }
 
 // Queues a keypress. Returns 0 if the 8279's FIFO is full, which is what the
 // real part does with a key it has no room for.
 EMSCRIPTEN_KEEPALIVE
 int sdk85PressKey(State8085 *state, int code) {
-	if (!state->board) return 0;
+	if (!onSDK85(state)) return 0;
 	return i8279_press(&((SDK85 *)state->board)->keyboard, (uint8_t)code);
 }
 
@@ -3155,32 +3221,34 @@ int sdk85PressKey(State8085 *state, int code) {
 // and each is the segment pattern the monitor sent, complemented.
 EMSCRIPTEN_KEEPALIVE
 uint8_t *sdk85Display(State8085 *state) {
-	return state->board ? ((SDK85 *)state->board)->keyboard.display : 0;
+	return onSDK85(state) ? ((SDK85 *)state->board)->keyboard.display : 0;
 }
 
 // How many keys are waiting to be read, so a caller can tell whether the
 // machine has caught up before sending another.
 EMSCRIPTEN_KEEPALIVE
 int sdk85PendingKeys(State8085 *state) {
-	return state->board ? ((SDK85 *)state->board)->keyboard.count : 0;
+	return onSDK85(state) ? ((SDK85 *)state->board)->keyboard.count : 0;
 }
 uint8_t *getIO(State8085 *state) { return state->io; }
 
 int triggerInterrupt(State8085 *state, int code, int active)
 {
+    // These drive the pins, not the processor's pending state, so that a
+    // device driving the same line cannot overwrite them or be overwritten.
     switch (code) {
         case 45:
-            state->pending_trap = active;
+            state->host_trap = active;
             break;
         case 55:
-            state->pending_r5 = active;
+            state->host_r5 = active;
             break;
         case 65:
-            state->pending_r6 = active;
+            state->host_r6 = active;
             break;
         case 75:
             if (active == 1) {
-                state->r7_latch = 1; // only on rising edge
+                state->host_r75 = 1; // only on rising edge
             }
             break;
         default:

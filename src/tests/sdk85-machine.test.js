@@ -8,6 +8,7 @@ import {
     detachSDK85,
     sdk85PressKey,
     sdk85PendingKeys,
+    sdk85Display,
 } from "../core/simulator.js";
 import { decodeDisplay, SDK85_KEYS } from "../core/sdk85.js";
 
@@ -89,6 +90,20 @@ describe("Attaching and detaching the machine", () => {
         // Nothing above writes to ROM, so this is really asserting the map is
         // still in place; monitor-commands.test.js writes to it and checks.
         expect(after.memory[0x0000]).toBe(before);
+    });
+
+    test("the keypad is inert once the machine is detached", () => {
+        // Having a board allocated is not the same as being plugged into one.
+        // Queued keys must not survive out of sight and reappear later.
+        expect(sdk85PressKey({ statePointer }, SDK85_KEYS[1])).toBe(true);
+        detachSDK85({ statePointer });
+
+        expect(sdk85PressKey({ statePointer }, SDK85_KEYS[2])).toBe(false);
+        expect(sdk85PendingKeys({ statePointer })).toBe(0);
+        expect(sdk85Display({ statePointer })).toEqual([]);
+
+        attachSDK85({ statePointer });
+        expect(sdk85PendingKeys({ statePointer })).toBe(0);
     });
 
     test("detaching gives back the plain 64K machine", () => {

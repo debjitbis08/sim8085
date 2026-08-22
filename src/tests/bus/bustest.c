@@ -51,6 +51,12 @@ static uint8_t fake_irq(Device *self) {
     return f->queued > 0 ? IRQ_RST55 : 0;
 }
 
+// Drives RST 7.5 rather than RST 5.5, and never lets go.
+static uint8_t fake_irq_r75(Device *self) {
+    Fake *f = self->ctx;
+    return f->queued > 0 ? IRQ_RST75 : 0;
+}
+
 static State8085 *fresh(void) {
     fflush(stdout);
     int saved = dup(STDOUT_FILENO), devnull = open("/dev/null", O_WRONLY);
@@ -138,6 +144,58 @@ int main(void) {
     keys.queued = 3;
     for (int i = 0; i < 5000; i++) Emulate8085Op(irq_cpu, 0xFFFF, &stats);
     check("three queued items are delivered three times", irq_cpu->memory[0x0100], 4);
+
+    // A line asserted by hand must survive a device being attached. The device
+    // here drives nothing, so with the two sources combined the request stands;
+    // taking the devices' output alone would erase it.
+    State8085 *host_cpu = fresh();
+    Fake quiet;
+    memset(&quiet, 0, sizeof(quiet));
+    Device quiet_device = { "quiet", &quiet, fake_read, fake_write, fake_irq };
+    bus_map_device(&host_cpu->bus, &quiet_device, 0x40, 1);
+    host_cpu->memory[0x002c] = 0x34;                      // INR M
+    host_cpu->memory[0x002d] = 0xfb;                      // EI
+    host_cpu->memory[0x002e] = 0xc9;                      // RET
+    host_cpu->memory[0x0200] = 0x21;                      // LXI H,0100h
+    host_cpu->memory[0x0201] = 0x00;
+    host_cpu->memory[0x0202] = 0x01;
+    host_cpu->memory[0x0203] = 0xfb;                      // EI
+    host_cpu->memory[0x0204] = 0xc3;                      // JMP 0204h
+    host_cpu->memory[0x0205] = 0x04;
+    host_cpu->memory[0x0206] = 0x02;
+    host_cpu->pc = 0x0200;
+    host_cpu->sp = 0x0fff;
+    host_cpu->r5_mask = 0;
+    triggerInterrupt(host_cpu, 55, 1);
+    memset(&stats, 0, sizeof(stats));
+    for (int i = 0; i < 5000; i++) Emulate8085Op(host_cpu, 0xFFFF, &stats);
+    check("a hand-asserted line survives a device being attached",
+          host_cpu->memory[0x0100] > 0, 1);
+
+    // RST 7.5 latches on an edge. A device holding the line high must produce
+    // one interrupt, not one on every pass round the loop.
+    State8085 *edge_cpu = fresh();
+    Fake held;
+    memset(&held, 0, sizeof(held));
+    held.queued = 1;                                      // drives its line for ever
+    Device held_device = { "held", &held, fake_read, fake_write, fake_irq_r75 };
+    bus_map_device(&edge_cpu->bus, &held_device, 0x40, 1);
+    edge_cpu->memory[0x003c] = 0x34;                      // INR M
+    edge_cpu->memory[0x003d] = 0xfb;                      // EI
+    edge_cpu->memory[0x003e] = 0xc9;                      // RET
+    edge_cpu->memory[0x0200] = 0x21;                      // LXI H,0100h
+    edge_cpu->memory[0x0201] = 0x00;
+    edge_cpu->memory[0x0202] = 0x01;
+    edge_cpu->memory[0x0203] = 0xfb;                      // EI
+    edge_cpu->memory[0x0204] = 0xc3;                      // JMP 0204h
+    edge_cpu->memory[0x0205] = 0x04;
+    edge_cpu->memory[0x0206] = 0x02;
+    edge_cpu->pc = 0x0200;
+    edge_cpu->sp = 0x0fff;
+    edge_cpu->r7_mask = 0;
+    memset(&stats, 0, sizeof(stats));
+    for (int i = 0; i < 5000; i++) Emulate8085Op(edge_cpu, 0xFFFF, &stats);
+    check("a held RST 7.5 line latches once", edge_cpu->memory[0x0100], 1);
 
     printf("%s\n", failures ? "RESULT FAIL" : "RESULT OK");
     return failures ? 1 : 0;
