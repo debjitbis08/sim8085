@@ -321,6 +321,43 @@
                 : value
         );
     };
+
+    var applyOperator = function (op, l, r) {
+        switch (op) {
+            case "+":   return l + r;
+            case "-":   return l - r;
+            case "*":   return l * r;
+            // ASM80 arithmetic is on 16-bit integers, so division truncates.
+            case "/":   return Math.trunc(l / r);
+            case "MOD": return l % r;
+            case "SHL": return (l << r) & 0xFFFF;
+            case "SHR": return (l & 0xFFFF) >> r;
+            case "AND": return l & r;
+            case "OR":  return l | r;
+            case "XOR": return l ^ r;
+        }
+        return 0;
+    };
+
+    // Folds a left associative run of binary operators into a single thunk, so
+    // that a symbol anywhere in the expression is still resolved after the
+    // whole program has been parsed. With no operators the operand is handed
+    // back untouched, which keeps a bare label reaching machineCode as the
+    // string it needs to be.
+    var foldExpression = function (first, rest, type, size, loc, src) {
+        if (!rest.length) return first;
+        return {
+            value: function () {
+                var acc = getSymbolValueOrValue(first.value, type, size, loc);
+                for (var i = 0; i < rest.length; i += 1) {
+                    acc = applyOperator(rest[i].op, acc, getSymbolValueOrValue(rest[i].operand.value, type, size, loc));
+                }
+                return acc;
+            },
+            location: loc,
+            text: src
+        };
+    };
 }
 
 /**
@@ -371,6 +408,21 @@ machineCode = prg:program {
                     value: value,
                     immutable: line.opcode === 'equ'
                 };
+                continue;
+            }
+            // DW stores each value low byte first. Symbols are resolved here
+            // rather than at parse time so that a word may name a label
+            // defined further down the program.
+            if (line.opcode === "dw") {
+                line.data.forEach(function (d) {
+                    var raw = (d && typeof d === "object" && typeof d.value !== "undefined") ? d.value : d;
+                    if (typeof raw === "function") raw = raw();
+                    var word = (typeof raw === "string" ? getSymbolValue(raw, "direct", 16, line.location) : Number(raw)) & 0xFFFF;
+                    objCode.push({ data: word & 0xFF, kind: "addr", currentAddress: currentAddress, location: line.location });
+                    currentAddress += 1;
+                    objCode.push({ data: (word >> 8) & 0xFF, kind: "addr", currentAddress: currentAddress, location: line.location });
+                    currentAddress += 1;
+                });
                 continue;
             }
         	if (Array.isArray(line.data)) {
@@ -714,174 +766,122 @@ hexit "hex digit" = [0-9a-fA-F]
 octit "octal digit" = [0-7]
 bit "bit" = [01]
 
-expressionImmediate "expression" = arithmeticImmediate
+expressionImmediate "expression" = logicalOrImmediate
 
-// / shift / logical / compare / byteIsolation
+// Intel ASM80 operator precedence, loosest binding first:
+//
+//   OR XOR  <  AND  <  NOT  <  + -  <  * / MOD SHL SHR  <  HIGH LOW  <  ( )
+//
+// Every binary level is left associative and folded iteratively, so 10-3-2 is
+// 5 and 20/2/5 is 2. The word operators demand whitespace on both sides, which
+// is what stops a symbol such as ORG or NOTE from being read as one.
 
-arithmeticImmediate "Arithmetic Expression" = additionImmediate
-
-additionImmediate "Addition"
-  = left:subtractionImmediate whitespace* "+" whitespace* right:additionImmediate {
-    return { value: function () {
-        var l = getSymbolValueOrValue(left.value, 'immediate', 8, location());
-        var r = getSymbolValueOrValue(right.value, 'immediate', 8, location());
-        return l + r;
-    }, location: location(), text: left + " + " + right };
+logicalOrImmediate "OR expression"
+  = first:logicalAndImmediate rest:(whitespace+ op:("OR"i / "XOR"i) whitespace+ operand:logicalAndImmediate { return { op: op.toUpperCase(), operand: operand }; })* {
+      return foldExpression(first, rest, 'immediate', 8, location(), text());
   }
-  / subtractionImmediate
 
-subtractionImmediate "Subtraction"
-  = left:multiplicationImmediate whitespace* "-" whitespace* right:subtractionImmediate {
-    return { value: function () {
-        var l = getSymbolValueOrValue(left.value, 'immediate', 8, location());
-        var r = getSymbolValueOrValue(right.value, 'immediate', 8, location());
-        return l - r;
-    }, location: location(), text: left + " - " + right };
+logicalAndImmediate "AND expression"
+  = first:logicalNotImmediate rest:(whitespace+ "AND"i whitespace+ operand:logicalNotImmediate { return { op: "AND", operand: operand }; })* {
+      return foldExpression(first, rest, 'immediate', 8, location(), text());
   }
-  / multiplicationImmediate
 
-multiplicationImmediate "Multiplication"
-  = left:divisionImmediate whitespace* "*" whitespace* right:multiplicationImmediate {
-    return { value: function () {
-        var l = getSymbolValueOrValue(left.value, 'immediate', 8, location());
-        var r = getSymbolValueOrValue(right.value, 'immediate', 8, location());
-        return l * r;
-    }, location: location(), text: left + " * " + right };
+logicalNotImmediate "NOT expression"
+  = "NOT"i whitespace+ operand:logicalNotImmediate {
+      var loc = location(), src = text();
+      return { value: function () {
+          return (~getSymbolValueOrValue(operand.value, 'immediate', 16, loc)) & 0xFFFF;
+      }, location: loc, text: src };
   }
-  / divisionImmediate
+  / additiveImmediate
 
-divisionImmediate "Division"
-  = left:moduloImmediate whitespace* "/" whitespace* right:divisionImmediate {
-    return { value: function () {
-        var l = getSymbolValueOrValue(left.value, 'immediate', 8, location());
-        var r = getSymbolValueOrValue(right.value, 'immediate', 8, location());
-        return l / r;
-    }, location: location(), text: left + " / " + right };
+additiveImmediate "Addition or subtraction"
+  = first:multiplicativeImmediate rest:(whitespace* op:("+" / "-") whitespace* operand:multiplicativeImmediate { return { op: op, operand: operand }; })* {
+      return foldExpression(first, rest, 'immediate', 8, location(), text());
   }
-  / moduloImmediate
 
-moduloImmediate "Modulo"
-  = left:(numLiteral / labelImmediate) whitespace* "MOD"i whitespace* right:moduloImmediate {
-    return { value: function () {
-        var l = getSymbolValueOrValue(left.value, 'immediate', 8, location());
-        var r = getSymbolValueOrValue(right.value, 'immediate', 8, location());
-        return l % r;
-    }, location: location(), text: left + " / " + right };
+multiplicativeImmediate "Multiplication, division, modulo or shift"
+  = first:unaryImmediate rest:(
+        whitespace* op:("*" / "/") whitespace* operand:unaryImmediate { return { op: op, operand: operand }; }
+      / whitespace+ op:("MOD"i / "SHL"i / "SHR"i) whitespace+ operand:unaryImmediate { return { op: op.toUpperCase(), operand: operand }; }
+    )* {
+      return foldExpression(first, rest, 'immediate', 8, location(), text());
   }
+
+unaryImmediate "HIGH or LOW"
+  = op:("HIGH"i / "LOW"i) whitespace+ operand:unaryImmediate {
+      var loc = location(), src = text(), name = op.toUpperCase();
+      return { value: function () {
+          var v = getSymbolValueOrValue(operand.value, 'immediate', 16, loc) & 0xFFFF;
+          return name === "HIGH" ? (v >> 8) & 0xFF : v & 0xFF;
+      }, location: loc, text: src };
+  }
+  / primaryImmediate
+
+primaryImmediate "value"
+  = "(" whitespace* e:logicalOrImmediate whitespace* ")" { return e; }
+  // A label is tried before a numeric literal, because AHa is a label while
+  // hexForm2 would otherwise read AH as 0Ah and strand the trailing a.
   / labelImmediate
   / numLiteral
   / stringLiteral
-  / shiftImmediate
-  / "(" addition:additionImmediate ")" { return addition; }
 
-shiftImmediate "Shift Expression" = shiftRightImmediate
+expressionDirect "expression" = logicalOrDirect
 
-shiftRightImmediate "Shift Right"
-  = left:shiftLeftImmediate whitespace+ "SHR"i whitespace+ right:shiftRightImmediate {
-    return { value: function () {
-        var l = getSymbolValueOrValue(left.value, 'immediate', 8, location());
-        var r = getSymbolValueOrValue(right.value, 'immediate', 8, location());
-        return l >> r;
-    }, location: location() };
+// Intel ASM80 operator precedence, loosest binding first:
+//
+//   OR XOR  <  AND  <  NOT  <  + -  <  * / MOD SHL SHR  <  HIGH LOW  <  ( )
+//
+// Every binary level is left associative and folded iteratively, so 10-3-2 is
+// 5 and 20/2/5 is 2. The word operators demand whitespace on both sides, which
+// is what stops a symbol such as ORG or NOTE from being read as one.
+
+logicalOrDirect "OR expression"
+  = first:logicalAndDirect rest:(whitespace+ op:("OR"i / "XOR"i) whitespace+ operand:logicalAndDirect { return { op: op.toUpperCase(), operand: operand }; })* {
+      return foldExpression(first, rest, 'direct', 8, location(), text());
   }
-  / shiftLeftImmediate
 
-
-shiftLeftImmediate "Shift Left"
-  = left:(numLiteral / labelImmediate) whitespace+ "SHL"i whitespace+ right:shiftLeftImmediate {
-    return { value: function () {
-        var l = getSymbolValueOrValue(left.value, 'immediate', 8, location());
-        var r = getSymbolValueOrValue(right.value, 'immediate', 8, location());
-        return l << r;
-    }, location: location() };
+logicalAndDirect "AND expression"
+  = first:logicalNotDirect rest:(whitespace+ "AND"i whitespace+ operand:logicalNotDirect { return { op: "AND", operand: operand }; })* {
+      return foldExpression(first, rest, 'direct', 8, location(), text());
   }
-  / labelImmediate
-  / numLiteral
-  / "(" shr:shiftImmediate ")" { return shr; }
 
-expressionDirect "expression" = arithmeticDirect
-
-// / shift / logical / compare / byteIsolation
-
-arithmeticDirect "Arithmetic Expression" = additionDirect
-
-additionDirect "Addition"
-  = left:subtractionDirect whitespace* "+" whitespace* right:additionDirect {
-    return { value: function () {
-        var l = getSymbolValueOrValue(left.value, 'direct', 8, location());
-        var r = getSymbolValueOrValue(right.value, 'direct', 8, location());
-        return l + r;
-    }, location: location(), text: (left.text || left.value) + " + " + (right.text || right.value) };
+logicalNotDirect "NOT expression"
+  = "NOT"i whitespace+ operand:logicalNotDirect {
+      var loc = location(), src = text();
+      return { value: function () {
+          return (~getSymbolValueOrValue(operand.value, 'direct', 16, loc)) & 0xFFFF;
+      }, location: loc, text: src };
   }
-  / subtractionDirect
+  / additiveDirect
 
-subtractionDirect "Subtraction"
-  = left:multiplicationDirect whitespace* "-" whitespace* right:subtractionDirect {
-    return { value: function () {
-        var l = getSymbolValueOrValue(left.value, 'direct', 8, location());
-        var r = getSymbolValueOrValue(right.value, 'direct', 8, location());
-        return l - r;
-    }, location: location() };
+additiveDirect "Addition or subtraction"
+  = first:multiplicativeDirect rest:(whitespace* op:("+" / "-") whitespace* operand:multiplicativeDirect { return { op: op, operand: operand }; })* {
+      return foldExpression(first, rest, 'direct', 8, location(), text());
   }
-  / multiplicationDirect
 
-multiplicationDirect "Multiplication"
-  = left:divisionDirect whitespace* "*" whitespace* right:multiplicationDirect {
-    return { value: function() {
-        var l = getSymbolValueOrValue(left.value, 'direct', 8, location());
-        var r = getSymbolValueOrValue(right.value, 'direct', 8, location());
-        return l * r;
-    }, location: location() };
+multiplicativeDirect "Multiplication, division, modulo or shift"
+  = first:unaryDirect rest:(
+        whitespace* op:("*" / "/") whitespace* operand:unaryDirect { return { op: op, operand: operand }; }
+      / whitespace+ op:("MOD"i / "SHL"i / "SHR"i) whitespace+ operand:unaryDirect { return { op: op.toUpperCase(), operand: operand }; }
+    )* {
+      return foldExpression(first, rest, 'direct', 8, location(), text());
   }
-  / divisionDirect
 
-divisionDirect "Division"
-  = left:moduloDirect whitespace* "/" whitespace* right:divisionDirect {
-    return { value: function () {
-        var l = getSymbolValueOrValue(left.value, 'direct', 8, location());
-        var r = getSymbolValueOrValue(right.value, 'direct', 8, location());
-        return l / r;
-    }, location: location() };
+unaryDirect "HIGH or LOW"
+  = op:("HIGH"i / "LOW"i) whitespace+ operand:unaryDirect {
+      var loc = location(), src = text(), name = op.toUpperCase();
+      return { value: function () {
+          var v = getSymbolValueOrValue(operand.value, 'direct', 16, loc) & 0xFFFF;
+          return name === "HIGH" ? (v >> 8) & 0xFF : v & 0xFF;
+      }, location: loc, text: src };
   }
-  / moduloDirect
+  / primaryDirect
 
-moduloDirect "Modulo"
-  = left:(numLiteral / labelDirect) whitespace* "MOD"i whitespace* right:moduloDirect {
-    return { value: function () {
-        var l = getSymbolValueOrValue(left.value, 'direct', 8, location());
-        var r = getSymbolValueOrValue(right.value, 'direct', 8, location());
-        return l % r;
-    }, location: location() };
-  }
+primaryDirect "value"
+  = "(" whitespace* e:logicalOrDirect whitespace* ")" { return e; }
   / labelDirect
   / numLiteral
-  / shiftDirect
-  / "(" addition:additionDirect ")" { return addition; }
-
-shiftDirect "Shift Expression" = shiftRightDirect
-
-shiftRightDirect "Shift Right"
-  = left:shiftLeftDirect whitespace+ "SHR"i whitespace+ right:shiftRightDirect {
-    return { value: function () {
-        var l = getSymbolValueOrValue(left.value, 'direct', 8, location());
-        var r = getSymbolValueOrValue(right.value, 'direct', 8, location());
-        return l >> r;
-    }, location: location() };
-  }
-  / shiftLeftDirect
-
-
-shiftLeftDirect "Shift Left"
-  = left:(numLiteral / labelDirect) whitespace+ "SHL"i whitespace+ right:shiftLeftDirect {
-    return { value: function () {
-        var l = getSymbolValueOrValue(left.value, 'direct', 8, location());
-        var r = getSymbolValueOrValue(right.value, 'direct', 8, location());
-        return l << r;
-    }, location: location() };
-  }
-  / labelDirect
-  / numLiteral
-  / "(" shr:shiftDirect ")" { return shr; }
 
 comment "comment" = ";" c:[^\n\r\n\u2028\u2029]* { return { text: ";" + c.join(""), comment: c.join("") }; }
 
@@ -909,7 +909,9 @@ directive = dir:(dataDefinition / orgDirective / endDirective) whitespace* {
     return {
         opcode: opcode,
         data: dir.params,
-        size: opcode === "org" || opcode === 'equ' || opcode === 'end' ? 0 : dir.params.length,
+        size: opcode === "org" || opcode === 'equ' || opcode === 'end'
+                ? 0
+                : opcode === 'dw' ? dir.params.length * 2 : dir.params.length,
         location: location(),
         ilcBeforeOrg: dir.ilcBeforeOrg,
         dir
@@ -1220,7 +1222,7 @@ setSymbol = dir:(dir_set) {
     }
 }
 
-dataDefinition = dir:(dir_db) {
+dataDefinition = dir:(dir_db / dir_dw) {
     return {
        name: dir,
        params: dir[2].value.map(function (v) { return v; })
@@ -1248,6 +1250,7 @@ endDirective = dir:(dir_end) {
 }
 
 dir_db  = "DB"i  whitespace+ (expression_list / data8_list)
+dir_dw  = "DW"i  whitespace+ (expression_list / data16_list)
 dir_equ = "EQU"i whitespace+ (expressionImmediate / data16)
 dir_set = "SET"i whitespace+ (expressionImmediate / data16)
 dir_org = "ORG"i whitespace+ (expressionImmediate / data16)
