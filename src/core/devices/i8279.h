@@ -20,8 +20,19 @@
 #include <stdint.h>
 #include <string.h>
 
-#define I8279_DATA    0x1800
-#define I8279_COMMAND 0x1900
+#include "../bus.h"
+
+// The SDK-85 wires the 8279's A0 to address line A8, so 1800h-18FFh is the
+// data port and 1900h-19FFh the command port. The chip decodes nothing below
+// that, which is why it answers across both pages rather than at two single
+// addresses.
+#define I8279_BASE    0x1800
+#define I8279_PAGES   2
+#define I8279_COMMAND_LINE 0x0100
+
+static inline int i8279_is_command(uint16_t address) {
+    return (address & I8279_COMMAND_LINE) != 0;
+}
 
 #define I8279_FIFO_DEPTH 8
 #define I8279_DISPLAY_BYTES 16
@@ -56,7 +67,7 @@ static inline int i8279_press(I8279 *d, uint8_t code) {
 static inline int i8279_irq(const I8279 *d) { return d->count > 0; }
 
 static inline uint8_t i8279_read(I8279 *d, uint16_t address) {
-    if (address == I8279_COMMAND) {
+    if (i8279_is_command(address)) {
         // Status: the low three bits are the number of characters in the FIFO.
         return (uint8_t)(d->count & 0x07);
     }
@@ -67,7 +78,7 @@ static inline uint8_t i8279_read(I8279 *d, uint16_t address) {
 }
 
 static inline void i8279_write(I8279 *d, uint16_t address, uint8_t value) {
-    if (address == I8279_COMMAND) {
+    if (i8279_is_command(address)) {
         d->commands_seen++;
         switch (value & 0xe0) {
             case 0x40: // read FIFO: the next data read comes from the keyboard
@@ -89,6 +100,31 @@ static inline void i8279_write(I8279 *d, uint16_t address, uint8_t value) {
     d->display[d->display_address] = value;
     d->display_writes++;
     if (d->auto_increment) d->display_address = (d->display_address + 1) & 0x0f;
+}
+
+// The chip as it hangs on the bus.
+static uint8_t i8279_bus_read(Device *self, uint16_t address) {
+    return i8279_read((I8279 *)self->ctx, address);
+}
+
+static void i8279_bus_write(Device *self, uint16_t address, uint8_t value) {
+    i8279_write((I8279 *)self->ctx, address, value);
+}
+
+// The 8279's interrupt output goes to RST 5.5 on the SDK-85. It is a level:
+// high for as long as a key is waiting to be read.
+static uint8_t i8279_bus_irq(Device *self) {
+    return i8279_irq((I8279 *)self->ctx) ? IRQ_RST55 : 0;
+}
+
+static inline Device i8279_device(I8279 *chip) {
+    Device device;
+    device.name = "8279";
+    device.ctx = chip;
+    device.read = i8279_bus_read;
+    device.write = i8279_bus_write;
+    device.irq = i8279_bus_irq;
+    return device;
 }
 
 #endif

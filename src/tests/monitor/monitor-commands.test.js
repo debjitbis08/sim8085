@@ -8,9 +8,13 @@ import { assembleProgram } from "../../core/simulator.js";
 // Drives the SDK-85 monitor by pressing keys on a modelled 8279, and checks
 // what the monitor does with them.
 //
-// sdk85-monitor.test.js boots the monitor and delivers interrupts; this goes a
-// step further and runs its commands, which needs a keyboard. See harness.c for
-// why the device is attached natively rather than through the browser build.
+// The board is assembled by src/core/machines/sdk85.h: ROM, RAM and the 8279
+// mapped onto the address bus. The processor reaches the keyboard the same way
+// it reaches anything else, and the 8279 drives RST 5.5 rather than anything
+// poking an interrupt flag.
+//
+// Run natively because building a board means writing devices, and a device is
+// a struct of function pointers. See harness.c.
 const here = path.dirname(fileURLToPath(import.meta.url));
 const harness = path.join(here, "harness");
 const romPath = path.join(here, "monitor.bin");
@@ -57,6 +61,8 @@ function press(keys, dumps = []) {
     const memory = new Map(
         [...output.matchAll(/^MEM ([0-9A-F]{4}) ([0-9A-F]{2})$/gm)].map((m) => [parseInt(m[1], 16), parseInt(m[2], 16)]),
     );
+    const rom = /^ROM ([0-9A-F]{2}) ([0-9A-F]{2})$/m.exec(output);
+    const unmapped = /^UNMAPPED ([0-9A-F]{2})$/m.exec(output);
     const keyLines = [...output.matchAll(/^KEY ([0-9A-F]{2}) pc=([0-9A-F]{4}) curad=([0-9A-F]{4}) curdt=([0-9A-F]{2})$/gm)];
     const last = keyLines[keyLines.length - 1];
 
@@ -66,6 +72,8 @@ function press(keys, dumps = []) {
         curad: last ? parseInt(last[3], 16) : null,
         curdt: last ? parseInt(last[4], 16) : null,
         boot: /^BOOT pc=([0-9A-F]{4}) sp=([0-9A-F]{4}) ibuff=([0-9A-F]{2})$/m.exec(output),
+        rom: { before: parseInt(rom[1], 16), after: parseInt(rom[2], 16) },
+        unmapped: parseInt(unmapped[1], 16),
         // The monitor complements each character before sending it, and may set
         // the decimal point bit, so both come off before the lookup.
         text: display
@@ -120,5 +128,19 @@ describe("Driving the SDK-85 monitor from the keypad", () => {
         // CMMND is doing real work rather than always landing on SUBST.
         const { display } = press([KEY.EXAM, KEY[0]]);
         expect(display.slice(0, 4)).not.toEqual([0xff, 0xff, 0xff, 0xff]);
+    });
+});
+
+describe("The SDK-85 memory map", () => {
+    test("the monitor ROM ignores writes", () => {
+        // 0000h is in the 8355's two kilobytes, which are mask ROM. On a flat
+        // 64K of RAM this write would have patched the monitor.
+        const { rom } = press([]);
+        expect(rom.after).toBe(rom.before);
+    });
+
+    test("the empty expansion space floats high", () => {
+        // Nothing is fitted above the 8155, so nothing drives the bus there.
+        expect(press([]).unmapped).toBe(0xff);
     });
 });

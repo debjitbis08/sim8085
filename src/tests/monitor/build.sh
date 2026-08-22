@@ -3,4 +3,4 @@
 # through the browser build.
 set -e
 cd "$(dirname "$0")"
-gcc -O2 -std=c11 -I ../exerciser/shim -I ../../core -o harness harness.c
+gcc -O2 -std=c11 -I ../exerciser/shim -I ../../core -I ../../core/machines -o harness harness.c
