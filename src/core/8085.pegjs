@@ -998,7 +998,7 @@ requiredOperandWhitespace "space between instruction and operands"
     }));
   }
 
-directive = dir:(dataDefinition / storageDirective / orgDirective / endDirective) whitespace* {
+directive = dir:(dataDefinition / storageDirective / moduleDirective / orgDirective / endDirective) whitespace* {
     var opcode = dir.name[0].toLowerCase();
     return {
         opcode: opcode,
@@ -1317,6 +1317,10 @@ setSymbol = dir:(dir_set) {
     }
 }
 
+moduleDirective = dir:(dir_name) {
+    return { name: dir.name, params: dir.params };
+}
+
 storageDirective = dir:(dir_ds) {
     return { name: dir.name, params: dir.params, reserved: dir.reserved };
 }
@@ -1379,6 +1383,12 @@ dir_endif = "ENDIF"i {
     }
     conditionalStack.pop();
     return { name: ["endif"], params: [] };
+}
+
+dir_name = "NAME"i whitespace+ $([A-Za-z0-9_?@]+) {
+    // ISIS-II names the object module being produced. It has no bearing on the
+    // code, but real Intel sources open with it, so it has to parse.
+    return { name: ["name"], params: [] };
 }
 
 dir_ds = "DS"i whitespace+ count:(expressionImmediate / data16) {

@@ -95,20 +95,25 @@ function neutralise(operand) {
 }
 
 // The listing is a scan, and the scan has recognition errors. Address
-// contiguity catches the ones in the address column; the object-code column has
-// no such redundancy, so an error there is only visible as a disagreement with
-// a correct assembler. Each one here was confirmed by hand against the
-// instruction's documented encoding.
+// contiguity catches most of the ones in the address column; the object-code
+// column has no such redundancy, so an error there is only visible as a
+// disagreement with a correct assembler.
+//
+// Every entry below was confirmed by hand, and each is a plausible misreading:
+// B as 8, D as 0, C as B, or a transposed pair of digits. The second
+// transcription of the same listing at github.com/otabuzzman/SDK85 agrees with
+// this one on all 2057 bytes, including these, which rules out one transcriber
+// slipping but not a defect in the page both were made from.
 export const LISTING_ERRATA = [
     {
         lineNumber: 1773,
-        source: "DCR     C",
+        address: 0x05ac,
         printed: 0x00,
         correct: 0x0d,
-        // The following instruction is listed at the next address, so the
-        // instruction really is one byte; only the value is wrong. DCR C is 0Dh
-        // and 00h is NOP, a D read as a 0.
-        reason: "0D scanned as 00",
+        source: "DCR     C",
+        // The next instruction is listed at the following address, so the
+        // instruction really is one byte; only the value is wrong.
+        reason: "DCR C is 0Dh, scanned as 00h",
     },
 ];
 const ERRATA_LINES = new Set(LISTING_ERRATA.map((e) => e.lineNumber));
@@ -134,3 +139,47 @@ const all = rows.flatMap((row) => {
 
 export const LISTING_INSTRUCTIONS = all.filter((i) => !ERRATA_LINES.has(i.lineNumber));
 export const LISTING_ERRATA_INSTRUCTIONS = all.filter((i) => ERRATA_LINES.has(i.lineNumber));
+
+// Corrections to the listing's object code, keyed by address, for the
+// whole-image comparison in sdk85-image.test.js. Four records carry a corrupt
+// address rather than a corrupt byte: the byte is right but printed against the
+// wrong location, which is why some entries restore a byte the listing never
+// shows at all.
+export const IMAGE_ERRATA = [
+    { address: 0x0384, correct: 0xf3, reason: "the DB 0F3H record is right; the DB 1 record below claims this address too" },
+    { address: 0x03b4, correct: 0x01, reason: "DB 1, whose address 03B4h was scanned as 0384h" },
+    { address: 0x03bd, correct: 0x15, reason: "address 03BDh was scanned as 63BDh" },
+    { address: 0x03e7, correct: 0x0c, reason: "LETRC is 0Ch, scanned as BCh" },
+    { address: 0x05ac, correct: 0x0d, reason: "DCR C is 0Dh, scanned as 00h" },
+    { address: 0x06e3, correct: 0xb4, reason: "the low byte of DIGTB is B4h, scanned as 84h" },
+    { address: 0x0707, correct: 0x06, reason: "the code byte here; the register table record below claims this address too" },
+    { address: 0x07d7, correct: 0xf1, reason: "DB ISAV AND 0FFH, whose address 07D7h was scanned as 0707h" },
+    { address: 0x070a, correct: 0xca, reason: "the code byte here; the register table record below claims this address too" },
+    { address: 0x07da, correct: 0xf0, reason: "DB HSAV AND 0FFH, whose address 07DAh was scanned as 07DAh printed as 070Ah" },
+];
+
+// A record whose address is corrupt and whose byte is already restored above,
+// so the record itself has nowhere to go.
+const DROPPED_ADDRESSES = new Set([0x63bd]);
+
+// The monitor ROM as the listing records it, one byte per address, with the
+// errata applied.
+export const LISTING_IMAGE = (() => {
+    const corrected = new Map(IMAGE_ERRATA.map((e) => [e.address, e.correct]));
+    const image = new Map();
+    // Scanned afresh rather than reusing `rows`, because the continuation lines
+    // of a multi-byte DB carry an address and a byte but no line number, and so
+    // are not instruction rows.
+    for (const line of readFileSync(LISTING, "latin1").split("\n")) {
+        const m = /^([0-9A-F]{4})    ([0-9A-F]+)(?:\s|$)/.exec(line);
+        if (!m || m[2].length % 2) continue;
+        const base = parseInt(m[1], 16);
+        m[2].match(/../g).forEach((b, i) => {
+            const address = base + i;
+            if (corrected.has(address) || DROPPED_ADDRESSES.has(address)) return;
+            image.set(address, parseInt(b, 16));
+        });
+    }
+    for (const [address, byte] of corrected) image.set(address, byte);
+    return image;
+})();
