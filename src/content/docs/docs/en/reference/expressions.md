@@ -61,20 +61,42 @@ an ordinary label.
 
 Relational operators — `EQ`, `NE`, `LT`, `LE`, `GT`, `GE` — are not supported.
 
-## Labels in expressions
+## Labels
 
-A label used on its own means different things in different places, and the
-difference is worth knowing:
+A label's value is its address — the location the assembler had reached when it
+was defined. That is true whether it labels an instruction, a `DB`, a `DW` or a
+`DS`.
 
-| Written                | Yields                                    |
-|------------------------|-------------------------------------------|
-| `MVI A, TABLE`         | The **byte stored at** `TABLE`             |
-| `LXI H, TABLE`         | The **address** of `TABLE`                 |
-| `MVI A, TABLE+0`       | The **address** of `TABLE`                 |
+```asm
+        ORG     2000H
+TABLE:  DB      42H             ; TABLE is 2000H, not 42H
+        LXI     H, TABLE        ; loads 2000H
+        MVI     A, LOW TABLE    ; loads 00H, the low half of the address
+        LDA     TABLE           ; loads 42H, the byte stored there
+```
 
-An operand that is nothing but a label, in an instruction that takes 8-bit
-immediate data, gives the value stored there. Anywhere else — a 16-bit operand,
-or a label used inside a larger expression — a label means its address.
+A name defined with `EQU` or `SET` has whatever value you gave it, so those are
+what you use for constants:
 
-If you want the address in 8-bit immediate data, write `LOW TABLE`. If you want
-the byte stored there, load it: `LDA TABLE`.
+```asm
+COUNT   EQU     16
+        MVI     B, COUNT        ; loads 16
+```
+
+### Addresses in 8-bit operands
+
+An instruction that takes 8-bit data will not accept a 16-bit address. Writing
+one is an error, because there is no way for the assembler to guess which half
+you meant:
+
+```asm
+        ORG     2000H
+TABLE:  DB      42H
+        MVI     A, TABLE        ; error: 8194 does not fit in one byte
+        MVI     A, LOW TABLE    ; the low half
+        MVI     A, HIGH TABLE   ; the high half
+        LDA     TABLE           ; or load what is stored there
+```
+
+The same limit applies to `DB`, whose values must be in the range -256 to 255.
+Use `DW` to store a whole address.

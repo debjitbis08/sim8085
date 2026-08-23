@@ -461,6 +461,17 @@ machineCode = prg:program {
                     var raw = (d && typeof d === "object" && typeof d.value !== "undefined") ? d.value : d;
                     if (typeof raw === "function") raw = raw();
                     if (typeof raw === "string") raw = getSymbolValue(raw, "immediate", 8, (d && d.location) || line.location);
+                    if (line.opcode === "db" && (raw > 0xFF || raw < -256)) {
+                        var dbError = new Error();
+                        dbError.message = "Value " + raw + " does not fit in one byte.";
+                        dbError.hint = [
+                            "DB stores 8-bit values, and this one is larger than a byte.",
+                            "A label's value is its address, so LABEL here is a 16-bit address.",
+                            "Write LOW LABEL or HIGH LABEL to choose a half, or use DW to store the whole address."
+                        ];
+                        dbError.location = (d && d.location) || line.location;
+                        throw dbError;
+                    }
                     var ret = {
                         data: raw,
                         kind: typeof line.opcode === "string" ? line.opcode : "data",
@@ -506,6 +517,21 @@ machineCode = prg:program {
             } else {
                 // Default to 0 if no conditions are met
                 dataVal = 0;
+            }
+
+            // The manual allows -256 through 255 in a byte. An address landing
+            // here is the usual cause, and the manual's own remedy is to say
+            // which half of it you meant.
+            if (dataVal > 0xFF || dataVal < -256) {
+                var rangeError = new Error();
+                rangeError.message = "Value " + dataVal + " does not fit in one byte.";
+                rangeError.hint = [
+                    "This instruction takes 8-bit data, and the operand is larger than a byte.",
+                    "A label's value is its address, so LABEL in an 8-bit operand is a 16-bit address.",
+                    "Write LOW LABEL or HIGH LABEL to choose a half, or LDA LABEL to load what is stored there."
+                ];
+                rangeError.location = (line.data && line.data.location) || line.location;
+                throw rangeError;
             }
 
             if (dataVal < 0) {
@@ -569,16 +595,18 @@ opWithLabel = labels:(labelPart)* op:(operation / directive) comment? {
     if (labels.length) {
         var labelAddress = typeof op.ilcBeforeOrg === "number" ? op.ilcBeforeOrg : ilc;
         labels.forEach(function (label) {
+            // A label's value is where it is, not what is stored there. The
+            // manual is explicit: "An instruction label is a symbol name whose
+            // value is the location where the instruction is assembled", and a
+            // label on DB, DW or DS "is assigned the starting value of the
+            // location counter".
+            //
+            // Keeping the directive's data here instead made a label mean five
+            // different things -- the byte for DB, a whole word for DW, nothing
+            // at all for DS, the address for a code label, the number for EQU.
             symbolTable[label.value] = {
                 addr: labelAddress,
-                value: op.data ?
-                        Array.isArray(op.data) ?
-                            op.data.map(function (d) {
-                                return d.value ? d.value : d;
-                            })
-                            : op.data.value ?
-                                op.data.value : op.data
-                        : labelAddress
+                value: labelAddress
             };
         });
     }

@@ -116,3 +116,68 @@ describe("A label alone on its line", () => {
         expect(bytes("NOP\nHERE:   ; nothing here\nDW HERE")).toEqual([0x00, 0x01, 0x00]);
     });
 });
+
+// Worked examples from the Intel 8080/8085 Assembly Language Programming
+// Manual, Chapter 2, "Precedence of Operators".
+describe("The manual's own examples", () => {
+    test("15/3 + 18/9 is 7", () => {
+        expect(operand("15/3 + 18/9")).toBe(7);
+    });
+
+    test("15/(3 + 18/9) is 3", () => {
+        expect(operand("15/(3 + 18/9)")).toBe(3);
+    });
+
+    // "If NOT is immediately preceded by another operator ... an error will
+    // result. To code the expression for correct assembly, parenthesize the
+    // expression to force NOT to be evaluated first."
+    test("NOT directly after another operator is an error", () => {
+        expect(() => bytes("MVI A, 1 + NOT 5")).toThrow();
+    });
+
+    test("and parenthesising it is the remedy", () => {
+        expect(() => bytes("LXI H, 1 + (NOT 5)")).not.toThrow();
+    });
+});
+
+describe("What a label is worth", () => {
+    // "An instruction label is a symbol name whose value is the location where
+    // the instruction is assembled", and a label on DB, DW or DS "is assigned
+    // the ... value of the location counter". A label is where it is, not what
+    // is stored there.
+    test.each([
+        ["an instruction", "HERE: NOP"],
+        ["a DB", "HERE: DB 42H"],
+        ["a DW", "HERE: DW 1234H"],
+        ["a DS", "HERE: DS 22H"],
+    ])("a label on %s is its address", (_what, definition) => {
+        // The label sits at 0002H, after the two-byte MVI.
+        expect(bytes(`MVI A, HERE\n${definition}`)[1]).toBe(0x02);
+    });
+
+    test("a name defined with EQU is its value", () => {
+        expect(bytes("N EQU 16\nMVI A, N")[1]).toBe(16);
+    });
+
+    test("an address does not fit an 8-bit operand", () => {
+        // There is no way to guess which half was meant, so the manual requires
+        // HIGH or LOW and an error without one.
+        expect(() => bytes("ORG 2000H\nMVI A, TABLE\nTABLE: DB 42H")).toThrow(/one byte/);
+    });
+
+    // The MVI is two bytes, so TABLE lands at 2002H.
+    test.each([
+        ["LOW", 0x02],
+        ["HIGH", 0x20],
+    ])("%s names the half you wanted", (operator, expected) => {
+        expect(bytes(`ORG 2000H\nMVI A, ${operator} TABLE\nTABLE: DB 42H`)[1]).toBe(expected);
+    });
+
+    test("a 16-bit operand takes the address as it is", () => {
+        expect(bytes("ORG 2000H\nLXI H, TABLE\nTABLE: DB 42H").slice(1, 3)).toEqual([0x03, 0x20]);
+    });
+
+    test("DB will not store a value wider than a byte", () => {
+        expect(() => bytes("ORG 2000H\nDB TABLE\nTABLE: DB 42H")).toThrow(/one byte/);
+    });
+});
