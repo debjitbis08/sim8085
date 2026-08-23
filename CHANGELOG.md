@@ -1,3 +1,27 @@
+# [2.23.0](https://github.com/debjitbis08/sim8085/compare/v2.22.0...v2.23.0) (2026-08-23)
+
+
+### Bug Fixes
+
+* A label's value is its address, and an address does not fit a byte ([dab518f](https://github.com/debjitbis08/sim8085/commit/dab518fede63210667972359d87555385a7591ae))
+* Correct DAA's auxiliary carry and carry, found by CP/M exercisers ([eadd7ef](https://github.com/debjitbis08/sim8085/commit/eadd7effd46cf4e09fe592a5e3cf2c674fd3654b))
+* Improve 8085 instruction accuracy and coverage ([21be716](https://github.com/debjitbis08/sim8085/commit/21be716c3a0b05b3d49be205d6d697bd8a9e8751))
+* Improve missing operand spacing errors ([9918a74](https://github.com/debjitbis08/sim8085/commit/9918a74b665d9869018c76c409e1155db2043180))
+* Keep the interrupt pins in the application store ([69ceed3](https://github.com/debjitbis08/sim8085/commit/69ceed39a1fe60919cd719b299ddf49502daa97a))
+* Register each device once, and refuse to map one that cannot be clocked ([4eb2b64](https://github.com/debjitbis08/sim8085/commit/4eb2b647b73dc1917f2f365310a0c8ec5022a034))
+* Separate the interrupt pins from the processor's view in serialized state ([dd4e5b6](https://github.com/debjitbis08/sim8085/commit/dd4e5b6c07fd89e3a00433e59d377b8f304b01d1))
+* Stop devices owning the interrupt pins, and make the machine explicit ([6f0c282](https://github.com/debjitbis08/sim8085/commit/6f0c282dfd2bd2424c7278d8683b11bcecf90809))
+
+
+### Features
+
+* Add conditional assembly, macros and DS, so the SDK-85 monitor assembles ([c99e1c7](https://github.com/debjitbis08/sim8085/commit/c99e1c74dbff0ff52a503ec5131ba96f20e22c95))
+* Add DW and the missing expression operators to the assembler ([8443765](https://github.com/debjitbis08/sim8085/commit/844376524879108d31972358e62f76a136347113))
+* Build the SDK-85 machine so the 8279 answers on the bus ([5eb767c](https://github.com/debjitbis08/sim8085/commit/5eb767c988fdc8be5e8e2fba6b1a907532ae92a4))
+* Expose the SDK-85 machine to JavaScript, and drive EXAM REG properly ([4523fc9](https://github.com/debjitbis08/sim8085/commit/4523fc9a883a0ba189047cb106ec3b44d8e1d4b8))
+* Let devices drive the interrupt lines and answer on the port space ([c6c04dc](https://github.com/debjitbis08/sim8085/commit/c6c04dc4ca93681e91890465091e04cba1f5461d))
+* Model the 8155 timer, completing GO and SINGLE STEP ([65eb426](https://github.com/debjitbis08/sim8085/commit/65eb4262b0604ec5c4a46c9447784968ab069faa))
+
 # [2.22.0](https://github.com/debjitbis08/sim8085/compare/v2.21.0...v2.22.0) (2026-08-21)
 
 
