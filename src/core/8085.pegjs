@@ -406,7 +406,14 @@ machineCode = prg:program {
         if (line.opcode == null || typeof line.opcode === "string") {
             if (line.opcode === "end") {
                 if (line.data.length) {
-                    pcStartValue = line.data[0];
+                    // END names the address execution begins at. Its operand is
+                    // resolved here, in the second pass, so that it may be a
+                    // label defined anywhere in the program.
+                    var endValue = line.data[0];
+                    if (typeof endValue === "function") endValue = endValue();
+                    pcStartValue = typeof endValue === "string"
+                        ? getSymbolValue(endValue, "direct", 16, line.location)
+                        : Number(endValue) & 0xFFFF;
                 }
                 break;
             }

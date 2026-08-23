@@ -46,29 +46,13 @@ export const MONITOR_RAM_START = 0x20c0;
 const BLANK_DIGITS = Array.from({ length: DISPLAY_DIGITS }, () => ({ segments: 0, dot: false }));
 
 /**
- * Where a program starts.
- *
- * `END` hands its operand back as the user wrote it, so a label arrives here as
- * a name rather than an address. The assembler did place that label, though, so
- * it can be looked up: find the source line it is on and take the address of
- * the first byte assembled from that line. Anything that cannot be resolved
- * falls back to the lowest address the program occupies, which is where it
- * would start anyway.
+ * Where a program starts: the address `END` names, or, for a program that does
+ * not say, the lowest address it occupies, which is where it would start
+ * anyway.
  */
-function startAddress(assembled, lines, pcStartValue) {
-    const lowest = Math.min(...assembled.map((byte) => byte.currentAddress));
-    const value = typeof pcStartValue === "function" ? pcStartValue() : pcStartValue;
-    if (typeof value === "number") return value;
-    if (typeof value === "string") {
-        const name = value.toUpperCase();
-        for (const line of lines ?? []) {
-            const labelled = line?.labels?.some((label) => String(label.value).toUpperCase() === name);
-            if (!labelled) continue;
-            const byte = assembled.find((b) => b.location?.start?.line === line.location?.start?.line);
-            if (byte) return byte.currentAddress;
-        }
-    }
-    return lowest;
+function startAddress(assembled, pcStartValue) {
+    if (typeof pcStartValue === "number") return pcStartValue;
+    return Math.min(...assembled.map((byte) => byte.currentAddress));
 }
 
 // The processor as the simulator wants it handed over: everything cleared, the
@@ -275,7 +259,7 @@ export function useSdk85() {
      * would not be there to run.
      */
     const assembleAndLoad = (source) => {
-        const { assembled, lines, pcStartValue } = assembleProgram(source);
+        const { assembled, pcStartValue } = assembleProgram(source);
         const addresses = assembled.map((byte) => byte.currentAddress);
         const outside = addresses.filter((address) => address < RAM_START || address > RAM_END);
         if (outside.length > 0) {
@@ -288,7 +272,7 @@ export function useSdk85() {
         for (const byte of assembled) setMemoryLocation(machine, byte.currentAddress, byte.data & 0xff);
         sample();
         return {
-            start: startAddress(assembled, lines, pcStartValue),
+            start: startAddress(assembled, pcStartValue),
             first: Math.min(...addresses),
             last: Math.max(...addresses),
             size: assembled.length,
