@@ -92,9 +92,9 @@ you meant:
 ```asm
         ORG     2000H
 TABLE:  DB      42H
-        MVI     A, TABLE        ; error: 8194 does not fit in one byte
-        MVI     A, LOW TABLE    ; the low half
-        MVI     A, HIGH TABLE   ; the high half
+        MVI     A, TABLE        ; error: value 8192 does not fit in one byte
+        MVI     A, LOW TABLE    ; 00H, the low half
+        MVI     A, HIGH TABLE   ; 20H, the high half
         LDA     TABLE           ; or load what is stored there
 ```
 
