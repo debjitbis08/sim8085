@@ -1,3 +1,16 @@
+# [2.24.0](https://github.com/debjitbis08/sim8085/compare/v2.23.0...v2.24.0) (2026-08-23)
+
+
+### Bug Fixes
+
+* Refuse a macro defined inside a conditional block ([d0fa9b3](https://github.com/debjitbis08/sim8085/commit/d0fa9b3e49b83bf95a8a579b1e4a05d368741676))
+* Resolve the label END names instead of handing back its name ([6c6627a](https://github.com/debjitbis08/sim8085/commit/6c6627a0a283c4d0efe36d6a3fb2efa682a4f1d6))
+
+
+### Features
+
+* An SDK-85 page, with the keypad and a modern interface onto it ([25c738f](https://github.com/debjitbis08/sim8085/commit/25c738ffb2f9df31334ca0ba5f09877b6a27448f))
+
 # [2.23.0](https://github.com/debjitbis08/sim8085/compare/v2.22.0...v2.23.0) (2026-08-23)
 
 
