@@ -194,6 +194,7 @@ export default function Actions() {
                 draftStore.interruptsEnabled = outputState.interruptsEnabled;
                 draftStore.interruptMasks = outputState.interruptMasks;
                 draftStore.pendingInterrupts = outputState.pendingInterrupts;
+                draftStore.interruptPins = outputState.interruptPins;
                 draftStore.memory = outputState.memory;
                 draftStore.io = outputState.io;
             }),
@@ -719,6 +720,7 @@ export default function Actions() {
                 draftStore.interruptsEnabled = outputState.interruptsEnabled;
                 draftStore.interruptMasks = outputState.interruptMasks;
                 draftStore.pendingInterrupts = outputState.pendingInterrupts;
+                draftStore.interruptPins = outputState.interruptPins;
             }),
         );
 

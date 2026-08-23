@@ -121,7 +121,18 @@ export const [store, setStore] = createStore({
         rst65: false,
         rst75: false,
     },
+    // What the processor sees on its interrupt inputs, which on a machine with
+    // peripherals includes whatever they are driving. Read, not set.
     pendingInterrupts: {
+        trap: false,
+        rst55: false,
+        rst65: false,
+        rst75: false,
+    },
+    // The pins as driven from outside the processor, which is the half this
+    // application owns. Restoring state uses these; leaving them out makes a
+    // line a device merely raised look like one the user is holding down.
+    interruptPins: {
         trap: false,
         rst55: false,
         rst65: false,
