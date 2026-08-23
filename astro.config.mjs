@@ -114,8 +114,27 @@ export default defineConfig({
                     ],
                 },
                 {
+                    label: "Directives",
+                    items: [
+                        { label: "DB", link: "/directives/db" },
+                        { label: "DW", link: "/directives/dw" },
+                        { label: "DS", link: "/directives/ds" },
+                        { label: "EQU", link: "/directives/equ" },
+                        { label: "SET", link: "/directives/set" },
+                        { label: "ORG", link: "/directives/org" },
+                        { label: "END", link: "/directives/end" },
+                        { label: "IF, ELSE and ENDIF", link: "/directives/if" },
+                        { label: "MACRO and ENDM", link: "/directives/macro" },
+                        { label: "NAME", link: "/directives/name" },
+                    ],
+                },
+                {
                     label: "References",
                     items: [
+                        {
+                            label: "Expressions",
+                            link: "/reference/expressions",
+                        },
                         {
                             label: "ASCII Table",
                             link: "/reference/ascii",

@@ -18,13 +18,18 @@ GitHub [discussions](https://github.com/debjitbis08/sim8085/discussions/categori
 
 The application does not support the following,
 
-- `DS`
-- `IF`, `ELSE` & `ENDIF`
 - `EOT`
-- Some of the relocation directives, `CSEG`, `DSEG`, `PUBLIC`, `EXTRN`, `NAME`, `STKLN` & the `STACK` and `MEMORY`
-reserved words.
-- None of the macro directives, `MACRO`, `ENDM`, `LOCAL`, `REPT`, `IRP`, `IRPC`, `EXITM`
+- The relocation directives, `CSEG`, `DSEG`, `PUBLIC`, `EXTRN` & `STKLN`, and the
+  `STACK` and `MEMORY` reserved words.
+- The remaining macro directives, `LOCAL`, `REPT`, `IRP`, `IRPC` & `EXITM`.
+
+`DB`, `DW`, `DS`, `EQU`, `SET`, `ORG`, `END`, `NAME`, `IF`, `ELSE`, `ENDIF`,
+`MACRO` and `ENDM` are all supported. See [Directives](/docs/en/directives/db).
 
 ### Unsupported Expressions
 
-Apart of the arithmetic expression, no other kind of expression are supported right now.
+The relational operators — `EQ`, `NE`, `LT`, `LE`, `GT` & `GE` — are not
+supported.
+
+Arithmetic, logical, shift and byte isolation operators are. See
+[Expressions](/docs/en/reference/expressions) for the full set and how they group.
