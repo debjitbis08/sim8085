@@ -21,6 +21,10 @@ Format:
   expansion.
 * A macro may use another macro. A macro that uses itself is an error rather
   than a program that never finishes assembling.
+* A macro cannot be defined inside an `IF ... ENDIF` block. Macros are expanded
+  before the conditions are decided, so such a definition would be available
+  whichever arm the assembler takes; it is refused instead. A macro may be
+  *used* inside a conditional block, and its body may contain one.
 
 ```asm
 TRUE    MACRO   WHERE           ; branch if the last test succeeded

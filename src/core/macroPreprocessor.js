@@ -18,6 +18,7 @@
 
 const DEFINITION = /^\s*([A-Za-z?@][A-Za-z0-9_?@]*)\s+MACRO\b\s*(.*)$/i;
 const ENDM = /^\s*ENDM\b/i;
+const CONDITIONAL = /^\s*(IF|ELSE|ENDIF)\b/i;
 
 const stripComment = (line) => line.replace(/;.*$/, "");
 
@@ -52,10 +53,16 @@ function substitute(line, parameters, args) {
     });
 }
 
-function collectDefinitions(lines) {
+// This pass runs before the grammar, so it cannot know which arm of an IF the
+// assembler will take. A definition inside a conditional block would therefore
+// become available whether or not the block is assembled, which is not what the
+// source says; the definition is refused rather than quietly misread. Only the
+// nesting is tracked here, never the conditions themselves.
+function collectDefinitions(lines, locate) {
     const macros = new Map();
     const remaining = [];
     let current = null;
+    let conditionalDepth = 0;
 
     lines.forEach((line, index) => {
         if (current) {
@@ -71,10 +78,27 @@ function collectDefinitions(lines) {
             return;
         }
 
+        const conditional = CONDITIONAL.exec(stripComment(line));
+        if (conditional) {
+            const directive = conditional[1].toUpperCase();
+            if (directive === "IF") conditionalDepth += 1;
+            else if (directive === "ENDIF") conditionalDepth = Math.max(0, conditionalDepth - 1);
+        }
+
         const definition = DEFINITION.exec(stripComment(line));
         if (definition) {
+            if (conditionalDepth) {
+                const error = new Error(`MACRO ${definition[1]} cannot be defined inside IF ... ENDIF.`);
+                error.hint = [
+                    "Macros are expanded before the conditions are decided, so a macro defined in a skipped block would still be available.",
+                    "Move the definition outside the conditional block, or put the IF inside the macro body.",
+                ];
+                error.location = locate(index);
+                throw error;
+            }
             current = {
                 name: definition[1],
+                line: index,
                 parameters: splitArguments(definition[2]),
                 body: [],
             };
@@ -87,7 +111,7 @@ function collectDefinitions(lines) {
 
     if (current) {
         const error = new Error(`MACRO ${current.name} has no matching ENDM.`);
-        error.location = { start: { line: 1, column: 1, offset: 0 }, end: { line: 1, column: 1, offset: 0 } };
+        error.location = locate(current.line);
         throw error;
     }
 
@@ -124,12 +148,29 @@ function expandOnce(rows, macros) {
     return { rows: out, expanded };
 }
 
+// Points an error at a whole source line, which is as precise as anything this
+// pass knows about.
+function lineLocator(source) {
+    const starts = [0];
+    for (let i = 0; i < source.length; i += 1) {
+        if (source[i] === "\n") starts.push(i + 1);
+    }
+    return (index) => {
+        const start = starts[index] ?? 0;
+        const length = (starts[index + 1] ?? source.length + 1) - start - 1;
+        return {
+            start: { line: index + 1, column: 1, offset: start },
+            end: { line: index + 1, column: Math.max(1, length + 1), offset: start + Math.max(0, length) },
+        };
+    };
+}
+
 export function expandMacros(source) {
     // Nothing to do for the overwhelming majority of programs, and skipping the
     // work also guarantees their locations are untouched.
     if (!/\bMACRO\b/i.test(source)) return { text: source, lineMap: null };
 
-    const { macros, remaining } = collectDefinitions(source.split("\n"));
+    const { macros, remaining } = collectDefinitions(source.split("\n"), lineLocator(source));
     if (!macros.size) return { text: source, lineMap: null };
 
     let rows = remaining;

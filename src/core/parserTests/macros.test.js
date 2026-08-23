@@ -69,3 +69,34 @@ describe("Macro expansion and source locations", () => {
         }
     });
 });
+
+describe("Macros and conditional assembly", () => {
+    // Expansion happens before the grammar decides any condition, so a macro
+    // defined inside an IF would be available whichever arm is taken. Refusing
+    // the definition is the honest answer until the two passes are one.
+    test("a definition inside a conditional block is an error", () => {
+        expect(() => bytes("IF 0\nM MACRO\n NOP\n ENDM\nENDIF\n M")).toThrow(/cannot be defined inside IF/);
+    });
+
+    test("the error points at the definition", () => {
+        try {
+            bytes("NOP\nIF 1\nM MACRO\n NOP\n ENDM\nENDIF");
+            throw new Error("expected the definition to be refused");
+        } catch (e) {
+            expect(e.location.start.line).toBe(3);
+        }
+    });
+
+    test("a definition after the block has closed is fine", () => {
+        expect(bytes("IF 0\n NOP\nENDIF\nM MACRO\n NOP\n ENDM\n M")).toEqual([0x00]);
+    });
+
+    test("a macro may be used inside a conditional block", () => {
+        expect(bytes("M MACRO\n NOP\n ENDM\nIF 1\n M\nENDIF")).toEqual([0x00]);
+        expect(bytes("M MACRO\n NOP\n ENDM\nIF 0\n M\nENDIF\n HLT")).toEqual([0x76]);
+    });
+
+    test("a body may contain a conditional", () => {
+        expect(bytes("M MACRO C\nIF C\n NOP\nENDIF\n ENDM\n M 1\n HLT")).toEqual([0x00, 0x76]);
+    });
+});
