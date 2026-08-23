@@ -22,6 +22,20 @@ export const SDK85_KEYS = {
     SINGLE_STEP: 0x15,
 };
 
+/**
+ * What each key is called on the board, so a sequence of key codes can be
+ * shown the way the manual writes it.
+ */
+export const SDK85_KEY_LABELS = {
+    [SDK85_KEYS.PERIOD]: ".",
+    [SDK85_KEYS.COMMA]: ",",
+    [SDK85_KEYS.GO]: "GO",
+    [SDK85_KEYS.SUBST_MEM]: "SUBST MEM",
+    [SDK85_KEYS.EXAM_REG]: "EXAM REG",
+    [SDK85_KEYS.SINGLE_STEP]: "SINGLE STEP",
+};
+for (let i = 0; i < 16; i++) SDK85_KEY_LABELS[i] = i.toString(16).toUpperCase();
+
 /** DSPTB, the monitor's character-to-segment table. */
 export const DISPLAY_TABLE = 0x0384;
 /** DTMSK, the bit the monitor sets to light a decimal point. */
@@ -58,4 +72,29 @@ export function decodeDisplayDots(store) {
     return sdk85Display(store)
         .slice(0, DISPLAY_DIGITS)
         .map((byte) => ((~byte & 0xff) & DISPLAY_DOT) !== 0);
+}
+
+/**
+ * Which bit of a display byte lights which segment.
+ *
+ * Read off DSPTB itself: `1` is 60H and `7` is 70H, so bit 4 is the top bar;
+ * `P` is 37H and lights b but not c, so bit 5 is b and bit 6 is c; `3` is F4H,
+ * which needs the bottom bar, so bit 7 is d; and `L` is 83H, leaving bits 1 and
+ * 0 as f and e. Bit 2 is g and bit 3 is the decimal point, DTMSK above.
+ */
+export const SEGMENT_BITS = { a: 0x10, b: 0x20, c: 0x40, d: 0x80, e: 0x01, f: 0x02, g: 0x04 };
+
+/**
+ * The six digits as segment patterns, for drawing them rather than reading
+ * them. Unlike decodeDisplay this needs no table lookup, so it shows the
+ * monitor's letters -- ERR, the register names -- as they actually appear on
+ * the board.
+ */
+export function decodeDisplaySegments(store) {
+    return sdk85Display(store)
+        .slice(0, DISPLAY_DIGITS)
+        .map((byte) => {
+            const lit = ~byte & 0xff;
+            return { segments: lit & ~DISPLAY_DOT & 0xff, dot: (lit & DISPLAY_DOT) !== 0 };
+        });
 }

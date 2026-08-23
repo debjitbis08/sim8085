@@ -1,0 +1,302 @@
+---
+title: The SDK-85
+description: How to operate Sim8085's Intel SDK-85 — the keypad monitor's commands, the board's memory map, and loading a program into it from the editor.
+---
+
+The [SDK-85 page](/sdk-85/) is a different machine from the rest of Sim8085, not a
+mode of it. Instead of 64K of RAM and no peripherals, you get an Intel SDK-85 as
+it was shipped in 1977: Intel's monitor in ROM, 256 bytes of RAM, a six-digit
+display and a twenty-four key keypad, all driven by the same 8085 the simulator
+uses everywhere else.
+
+There are two ways to work with it, and they are the same machine being
+commanded the same way.
+
+## Two interfaces, one monitor
+
+Every control on the page that names a monitor command — `SUBST MEM` beneath the
+memory panel, `EXAM REG` beneath the registers, `GO` and `SINGLE STEP` above the
+editor — **does not implement that command**. It queues the command's keys on the
+8279, one at a time, and Intel's own `SUBST`, `EXAM`, `GOCMD` and `SSTEP`
+routines in ROM are what run.
+
+That is why the display reacts the same way whichever you use: it is the monitor
+driving it, not the page. Press `SUBST MEM` in the memory panel and you will
+watch the address arrive digit by digit on the seven-segment display exactly as
+if you had keyed it, because that is what is happening. Each button shows the
+sequence it sends underneath it, the key lights up on the keypad as it goes in,
+and a strip under the board lists the keys still on their way.
+
+You can mix the two freely, including halfway through a command: start
+`SUBST MEM` from the panel, key the byte on the keypad, and press `.` on either.
+While a command is open the other commands are refused, because the monitor is
+inside a command and would read their keys as its own.
+
+Two things on the page are **not** monitor commands, and say so:
+
+- **Assemble & Load** writes the assembled bytes into RAM directly. Keying 192
+  bytes in through `SUBST MEM` is precisely the tedium the editor exists to
+  spare you; the bytes are the same bytes.
+- **Pause** and **Step one instruction** stop the emulated processor itself,
+  which no key on a real board can do. They stop the monitor along with
+  everything else — that is the point of them.
+
+---
+
+## The display
+
+Six seven-segment digits, in two fields:
+
+| Field | Digits | Shows |
+|-------|--------|-------|
+| Address | 4 left | an address, a register name, or a message |
+| Data | 2 right | the byte at that address, or the contents of that register |
+
+The decimal point is the monitor's cursor: it marks the field that is waiting
+for you to type. A few messages use the digits as letters — `Err` for a command
+the monitor did not understand, and `E` alone in the address field while your
+program is executing.
+
+After `RESET` the display reads `- 8085`: the sign-on message, with the
+monitor's `-` prompt in front of it. That dash means the monitor is waiting for
+a command.
+
+---
+
+## The keypad
+
+```
+ RESET   VECT     C     D     E     F
+         INTR
+ SINGLE   GO      8     9     A     B
+  STEP
+ SUBST   EXAM     4     5     6     7
+  MEM     REG
+   .       ,      0     1     2     3
+  EXEC    NEXT
+```
+
+`.` and `,` are the two keys everything ends with: `,` (`NEXT`) moves on to the
+next location or register, and `.` (`EXEC`) finishes the command.
+
+`RESET` and `VECT INTR` are wired to the processor rather than to the keyboard
+controller, so they work even when the monitor is busy. Everything else is read
+by the monitor's interrupt routine, which means **the board has to be running
+for a key to do anything** — a key pressed while the board is paused is queued
+and read when it resumes.
+
+On the page, the hex keys and `.`, `,` and Enter (as `GO`) can also be typed on
+your own keyboard, as long as the editor does not have focus.
+
+---
+
+## Commands
+
+### SUBST MEM — read and write memory
+
+```
+SUBST MEM  2 0 0 0  ,        show what is at 2000H
+           3 E      ,        store 3EH there, then move to 2001H
+                    ,        leave 2001H alone, move to 2002H
+                    .        done
+```
+
+Press `SUBST MEM`, key the four hex digits of an address, then `,`. The address
+field holds the address and the data field shows the byte there. From then on:
+
+- Type up to two hex digits to change the byte. The last two you type are what
+  is stored.
+- `,` stores what you typed — nothing, if you typed nothing — and moves to the
+  next address.
+- `.` ends the command.
+
+If a byte does not store, the monitor shows `Err`. That is the monitor reading
+back what it wrote and finding it unchanged, which is what happens at a ROM
+address like 0000H or in the empty expansion space.
+
+### EXAM REG — read and write the registers
+
+```
+EXAM REG  A    ,     show the accumulator, then move on to B
+          F F  ,     store FFH in that register, move on
+               .     done
+```
+
+Press `EXAM REG` and then one key to say which register. The register's name
+appears in the address field and its contents in the data field; typing hex
+digits changes it, `,` moves to the next register in the order below, and `.`
+ends the command.
+
+Note that the register keys are **not** the letters you might expect — the
+keypad has no `S`, `P` or `I` keys, so the digits stand in for them:
+
+| Key | Register | Key | Register |
+|-----|----------|-----|----------|
+| `A` | A, the accumulator | `3` | I, the interrupt mask |
+| `B` | B | `4` | SPH, stack pointer, high byte |
+| `C` | C | `5` | SPL, stack pointer, low byte |
+| `D` | D | `6` | PCH, program counter, high byte |
+| `E` | E | `7` | PCL, program counter, low byte |
+| `F` | F, the flags | `8` | H |
+|     |   | `9` | L |
+
+Pressing `,` walks the registers in the order the monitor keeps them: A, B, C,
+D, E, F, I, H, L, SPH, SPL, PCH, PCL. After PCL there is nowhere further to go
+and the command ends.
+
+These are the registers as they were **saved** when the monitor took control.
+Changing one changes what will be restored when your program next runs, which is
+how you set up its inputs.
+
+### GO — run a program
+
+```
+GO  2 0 0 0  .       run from 2000H
+GO           .       carry on from where the program was
+```
+
+Press `GO`, key the address to start at, and press `.`. The display shows `E`
+while your program has the processor.
+
+Keying no address and pressing `.` straight away resumes from the saved program
+counter — after a `SINGLE STEP`, or after your program returned to the monitor.
+
+Your program gets the processor entirely; the monitor sees it again when the
+program executes `RST 1`, when you press `VECT INTR`, or when you press `RESET`.
+
+### SINGLE STEP — one instruction at a time
+
+```
+SINGLE STEP  2 0 0 0  ,      execute the instruction at 2000H
+             ,               and the next one
+             .               done
+```
+
+Press `SINGLE STEP`, optionally key an address to start at, then `,` for each
+instruction. The address field shows the program counter — where the *next*
+instruction is — so you can follow the program as it goes. `.` ends the command.
+
+Between steps, `EXAM REG` shows what the instruction did.
+
+### RESET and VECT INTR
+
+`RESET` restarts the monitor, exactly as the key on the board did: the processor
+starts again at 0000H, the 8279 and the 8155 are reset with it, and the display
+goes back to `- 8085`. **It does not clear RAM**, so a program you keyed in or
+loaded is still there afterwards, and `GO` will run it.
+
+`VECT INTR` raises RST 7.5 on the processor. On a real board it is the way to
+interrupt a program that has stopped responding — the monitor's RST 7.5 handler
+takes control back and shows the program counter.
+
+### Power
+
+The **Power off** / **Power on** buttons in the Machine panel are the mains
+switch, and the difference from `RESET` is the one that mattered in 1977: a
+power cycle comes up with the ROM as burned and **RAM empty**, and anything
+queued in the 8279 is gone with it. `RESET` keeps RAM.
+
+While the board is off the display is dark and the keypad does nothing, because
+there is nothing there to read the keys.
+
+---
+
+## The memory map
+
+An SDK-85 as shipped has three chips answering on the bus and nothing else:
+
+| Addresses | What is there |
+|-----------|---------------|
+| `0000`–`07FF` | the 8355 ROM: the monitor. Writes are ignored. |
+| `1800`–`19FF` | the 8279 keyboard and display controller |
+| `2000`–`20FF` | the 8155: 256 bytes of RAM |
+| everything else | empty. Nothing answers; reads float. |
+
+Of that RAM, the monitor keeps `20C0`–`20FF` for its stack and its register save
+area. **Your program has `2000`–`20BF`: 192 bytes.** That is the real
+constraint of the machine, not a limit of the simulation — programs on a real
+SDK-85 were this size unless you bought the expansion RAM.
+
+Writing into `20C0` and above overwrites the monitor's own state, and the board
+will usually stop making sense shortly afterwards. The memory panel dims those
+addresses for that reason.
+
+---
+
+## Loading a program from the editor
+
+Write your program in the editor beside the board and press **Assemble &
+Load**. The assembler is the same one the rest of Sim8085 uses, so the syntax,
+[directives](/docs/en/directives/db/) and
+[expressions](/docs/en/reference/expressions/) are all the ones documented here.
+
+Two things are particular to the board:
+
+- **Start with `ORG 2000H`.** Without it the program assembles at 0000H, which
+  is ROM on this machine. Bytes that would land outside `2000`–`20FF` are
+  reported instead of written, because on the real board they would have gone
+  nowhere.
+- **End with `RST 1`** where you want control to go back to the monitor. `RST 1`
+  is the monitor's warm-start entry: it saves your registers — which is what
+  makes `EXAM REG` afterwards worth looking at — and returns to the prompt.
+
+A program that adds two bytes:
+
+```asm
+        ORG     2000H
+
+START:  LXI     H, DATA
+        MOV     A, M      ; first number
+        INX     H
+        ADD     M         ; add the second
+        INX     H
+        MOV     M, A      ; leave the sum at RESULT
+        RST     1         ; back to the monitor
+
+DATA:   DB      2AH, 18H
+RESULT: DB      0
+
+        END     START
+```
+
+Press **Run on the board** and the monitor's `GO` runs it from the start
+address — registers restored from its save area, exactly as `GO` always did.
+`SUBST MEM 200B ,` then shows the sum, and so does the memory panel.
+
+### The buttons
+
+| Control | Where | Sends |
+|---------|-------|-------|
+| Run on the board | above the editor | `GO <start> .` |
+| Single step, Step again, Finish stepping | above the editor | `SINGLE STEP <address> ,` then `,` … `.` |
+| SUBST MEM, Store & next, Next, Done | memory panel | `SUBST MEM <address> ,` then `<byte> ,` … `.` |
+| EXAM REG, Store & next, Next, Done | registers panel | `EXAM REG <key>` then `<byte> ,` … `.` |
+| VECT INTR | machine panel | RST 7.5, the pin itself |
+| RESET | machine panel | the RESET key |
+
+And the two that are the simulator's rather than the board's:
+
+| Control | What it does |
+|---------|--------------|
+| Assemble & Load | writes the assembled bytes straight into RAM |
+| Pause / Resume | stops and restarts the emulated processor, monitor included |
+| Step one instruction | one instruction, wherever the processor is — including inside the monitor's own code |
+| Power off / Power on | a power cycle: ROM reburned, RAM lost |
+
+`Step one instruction` and the monitor's `SINGLE STEP` are different things.
+The monitor's version steps *user programs*, using the 8155's timer to fire TRAP
+one instruction later — that is what the board did, and you can watch it do it.
+`Step one instruction` steps the 8085 itself, anywhere, which no SDK-85 could.
+
+---
+
+## What is and is not simulated
+
+The board is the 8085, the 8355 ROM, the 8155 RAM and its timer, and the 8279
+keyboard and display controller. The monitor running on it is Intel's, assembled
+from its published source, and it is checked byte for byte against Intel's own
+object code.
+
+The serial teletype interface, the expansion sockets and the second 8355/8155
+pair an expanded SDK-85 could carry are not fitted. Neither is the 8279's
+sensor-matrix mode, which the SDK-85 does not use.

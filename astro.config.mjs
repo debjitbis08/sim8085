@@ -64,6 +64,7 @@ export default defineConfig({
                 { label: "Interrupts in Sim8085", link: "/interrupts" },
                 { label: "Reasons for Infinite Loops", link: "/infinite-loop-reasons" },
                 { label: "Installing Sim8085", link: "/app-install" },
+                { label: "The SDK-85", link: "/sdk-85" },
                 {
                     label: "Programs",
                     items: [

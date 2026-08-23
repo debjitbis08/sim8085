@@ -4,13 +4,17 @@ import {
     initSimulator,
     loadProgram,
     runProgramWithBudget,
+    runMachineSlice,
+    readMemory,
+    resetProcessor,
+    setMemoryLocation,
     attachSDK85,
     detachSDK85,
     sdk85PressKey,
     sdk85PendingKeys,
     sdk85Display,
 } from "../core/simulator.js";
-import { decodeDisplay, SDK85_KEYS } from "../core/sdk85.js";
+import { decodeDisplay, decodeDisplaySegments, displayCharacters, SDK85_KEYS } from "../core/sdk85.js";
 
 // The SDK-85 as a caller in the browser would use it: attach the machine, load
 // the monitor, run it, press keys, read the display.
@@ -80,6 +84,27 @@ describe("The SDK-85 machine from JavaScript", () => {
     });
 });
 
+describe("Driving the board as a front panel", () => {
+    // What the page does: the machine keeps its own state, so nothing is
+    // written back between slices, and the display is drawn from the segment
+    // patterns rather than read as characters.
+    test("keys pressed between slices reach the monitor, and the segments spell what it shows", () => {
+        runProgramWithBudget(blankStore({ statePointer, memory: booted.memory }), { maxTstates: 3_000_000 });
+
+        for (const key of [SDK85_KEYS.SUBST_MEM, SDK85_KEYS[2], SDK85_KEYS[0], SDK85_KEYS[5], SDK85_KEYS[0], SDK85_KEYS.COMMA]) {
+            sdk85PressKey({ statePointer }, key);
+            runMachineSlice({ statePointer }, 400_000);
+        }
+
+        const characters = displayCharacters(booted.memory);
+        const digits = decodeDisplaySegments({ statePointer });
+        expect(digits).toHaveLength(6);
+        expect(digits.map((d) => characters.get(d.segments) ?? "?").join("").slice(0, 4)).toBe("2050");
+        // And the same digits read as characters, which is the other way in.
+        expect(decodeDisplay({ statePointer }, booted.memory).slice(0, 4)).toBe("2050");
+    });
+});
+
 describe("Resuming a paused machine", () => {
     test("a line the 8279 was driving is not adopted by the caller", () => {
         // pendingInterrupts is what the processor sees, devices included.
@@ -113,6 +138,25 @@ describe("Resuming a paused machine", () => {
 
         expect(sdk85PendingKeys({ statePointer })).toBe(0);
         expect(state.pendingInterrupts.rst55).toBe(false);
+    });
+});
+
+describe("RESET, as against a power cycle", () => {
+    // The key on the board restarts the processor and the peripherals. It does
+    // not clear RAM, which is what makes a program keyed in before it still
+    // runnable afterwards -- and what a power cycle does differently.
+    test("the processor restarts but RAM keeps what was put in it", () => {
+        runProgramWithBudget(blankStore({ statePointer, memory: booted.memory }), { maxTstates: 3_000_000 });
+        setMemoryLocation({ statePointer }, 0x2050, 0x7f);
+
+        detachSDK85({ statePointer });
+        attachSDK85({ statePointer });
+        resetProcessor({ statePointer });
+        runMachineSlice({ statePointer }, 3_000_000);
+
+        // Read it back out of the machine rather than through a call that
+        // would write a memory image in on the way past.
+        expect(readMemory({ statePointer }, 0x2050, 1)[0]).toBe(0x7f);
     });
 });
 

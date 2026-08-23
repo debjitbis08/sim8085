@@ -2,6 +2,7 @@ import Module from "./8085.js";
 import { expandMacros, remapLocations } from "./macroPreprocessor.js";
 import {
     getInterruptStateFromPtr,
+    getRegistersFromPtr,
     getStateFromPtr,
     setFlagState,
     setInterruptState as setInterruptStateFromPtr,
@@ -604,4 +605,85 @@ export function sdk85Display(store) {
     const bytes = [];
     for (let i = 0; i < 16; i++) bytes.push(simulator.getValue(pointer + i, "i8") & 0xff);
     return bytes;
+}
+
+/**
+ * Runs the machine forward by `tstates`, leaving every bit of state inside the
+ * emulator.
+ *
+ * `runProgramWithBudget` writes the caller's state -- all 64K of memory
+ * included -- into the emulator before each run and reads it back after, which
+ * is what a caller holding the state in JavaScript needs. A board does not:
+ * the machine is already there, running, with its own devices, so a front panel
+ * only has to let it run and then look at the display. Returns whether the
+ * processor halted, which on a board means the monitor stopped.
+ */
+export function runMachineSlice(store, tstates) {
+    const resultPtr = simulator._malloc(8);
+    let ran = 0;
+    let halted = false;
+    try {
+        // ExecuteProgramSlice takes its budget as a uint16, so a longer run has
+        // to be asked for a slice at a time.
+        while (!halted && ran < tstates) {
+            const budget = Math.min(SLICE_TSTATES, tstates - ran);
+            // -1 keeps the emulator's own PC and SP; see runProgramWithBudget.
+            execute8085ProgramSlice(store.statePointer, -1, budget, resultPtr);
+            halted = simulator.getValue(resultPtr, "i32") !== 0;
+            const sliceTstates = simulator.getValue(resultPtr + 4, "i32");
+            ran += sliceTstates;
+            // A slice that neither halts nor advances would spin forever.
+            if (sliceTstates <= 0 && !halted) break;
+        }
+    } finally {
+        simulator._free(resultPtr);
+    }
+    return { halted, tstates: ran };
+}
+
+/**
+ * Runs a single instruction, leaving the state in the emulator. A one T-state
+ * budget is spent by whatever instruction runs first, so the slice stops after
+ * exactly one of them.
+ */
+export function stepMachine(store) {
+    return runMachineSlice(store, 1);
+}
+
+/** The registers and flags, without copying memory out with them. */
+export function getRegisters(store) {
+    return getRegistersFromPtr(simulator, store.statePointer);
+}
+
+/** A window of memory, for a view that shows part of the map rather than all of it. */
+export function readMemory(store, start, length) {
+    const memoryPointer = simulator._getMemory(store.statePointer);
+    const bytes = new Uint8Array(length);
+    for (let i = 0; i < length; i++) bytes[i] = simulator.getValue(memoryPointer + start + i, "i8") & 0xff;
+    return bytes;
+}
+
+/**
+ * Resets the processor, leaving memory as it is: what the RESET line does.
+ *
+ * A power cycle is the other thing, and goes through the loader instead --
+ * the ROM is written again and RAM comes up empty. Pressing RESET on a board
+ * that has been running keeps whatever was keyed into RAM, which is the whole
+ * reason the key is useful.
+ */
+export function resetProcessor(store) {
+    const pointer = store.statePointer;
+    setRegisterState(simulator, pointer, { a: 0, b: 0, c: 0, d: 0, e: 0, h: 0, l: 0, sp: 0, pc: 0 });
+    setFlagState(simulator, pointer, { flags: { z: false, s: false, p: false, cy: false, ac: false, v: false, k: false } });
+    setInterruptStateFromPtr(simulator, pointer, {
+        interruptsEnabled: false,
+        interruptMasks: { rst55: false, rst65: false, rst75: false },
+        pendingInterrupts: { trap: false, rst55: false, rst65: false, rst75: false },
+        interruptPins: { trap: false, rst55: false, rst65: false, rst75: false },
+    });
+}
+
+/** Sets the program counter of a machine that is keeping its own state. */
+export function setMachinePC(store, address) {
+    setPCValue(simulator, store.statePointer, address);
 }

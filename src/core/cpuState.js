@@ -13,10 +13,16 @@ function readUint16(simulator, pointer, def) {
     return v < 0 ? 65536 + v : v;
 }
 
-export function getStateFromPtr(simulator, statePtr) {
-    const getBool = (offset) => !!simulator.getValue(statePtr + offset, "i8", 0);
+/**
+ * The registers and flags on their own.
+ *
+ * Reading the whole state copies all 64K of memory out with it, which is far
+ * too much for a caller that only wants to show what the processor holds --
+ * and much too much to do repeatedly while a program runs.
+ */
+export function getRegistersFromPtr(simulator, statePtr) {
     var flags = simulator.getValue(statePtr + 12, "i8", 0).toString(2);
-    var state = {
+    return {
         a: readUint8(simulator, statePtr + 0, 0),
         b: readUint8(simulator, statePtr + 1, 0),
         c: readUint8(simulator, statePtr + 2, 0),
@@ -35,6 +41,13 @@ export function getStateFromPtr(simulator, statePtr) {
             v: getFlagValue(flags, 5),
             k: getFlagValue(flags, 6),
         },
+    };
+}
+
+export function getStateFromPtr(simulator, statePtr) {
+    const getBool = (offset) => !!simulator.getValue(statePtr + offset, "i8", 0);
+    var state = {
+        ...getRegistersFromPtr(simulator, statePtr),
         interruptsEnabled: getBool(13),
         interruptMasks: {
             rst55: getBool(14),

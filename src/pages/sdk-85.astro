@@ -1,0 +1,180 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { Sdk85Workbench } from '../components/sdk85/Sdk85Workbench.jsx';
+
+// The keypad sequences worth having in front of you while using the board.
+// The full account of each one is in the documentation; this is the reminder.
+const commands = [
+    {
+        name: 'SUBST MEM',
+        summary: 'Read and write memory',
+        button: 'Memory panel',
+        steps: [
+            ['SUBST MEM 2 0 0 0 ,', 'show the byte at 2000H'],
+            ['3 E ,', 'store 3EH, move to 2001H'],
+            [',', 'leave it alone, move on'],
+            ['.', 'done'],
+        ],
+    },
+    {
+        name: 'EXAM REG',
+        summary: 'Read and write the registers',
+        button: 'Registers panel',
+        steps: [
+            ['EXAM REG A', 'show the accumulator'],
+            ['F F ,', 'store FFH, move to the next'],
+            ['.', 'done'],
+        ],
+    },
+    {
+        name: 'GO',
+        summary: 'Run a program',
+        button: 'Run on the board',
+        steps: [
+            ['GO 2 0 0 0 .', 'run from 2000H'],
+            ['GO .', 'carry on from where it stopped'],
+        ],
+    },
+    {
+        name: 'SINGLE STEP',
+        summary: 'One instruction at a time',
+        button: 'Single step',
+        steps: [
+            ['SINGLE STEP 2 0 0 0 ,', 'execute the instruction at 2000H'],
+            [',', 'and the next one'],
+            ['.', 'done'],
+        ],
+    },
+];
+
+// EXAM REG takes a key, not a letter: the keypad has no S, P or I.
+const registerKeys = [
+    ['A', 'A'], ['B', 'B'], ['C', 'C'], ['D', 'D'], ['E', 'E'], ['F', 'Flags'],
+    ['3', 'I mask'], ['8', 'H'], ['9', 'L'],
+    ['4', 'SP high'], ['5', 'SP low'], ['6', 'PC high'], ['7', 'PC low'],
+];
+
+const machineControls = [
+    ['Power off / on', 'A power cycle: the ROM is as burned and RAM comes up empty.'],
+    ['RESET', 'The RESET key. Processor and peripherals restart; RAM is kept.'],
+    ['VECT INTR', 'Raises RST 7.5 to take control back from a running program.'],
+    ['Pause / Step', "The simulator's, not the board's: they stop the 8085 itself, monitor included."],
+];
+
+const memoryMap = [
+    ['0000–07FF', 'Monitor ROM. Writes ignored.'],
+    ['1800–19FF', '8279 keyboard and display'],
+    ['2000–20BF', 'RAM — yours, 192 bytes'],
+    ['20C0–20FF', "RAM — the monitor's stack and saved registers"],
+];
+---
+
+<Layout title="SDK-85 | Sim8085" fullwidth={true} smallFooter={true}>
+    <main class="max-w-7xl mx-auto px-4 py-8">
+        <nav class="mb-4 text-sm">
+            <a href="/" class="text-secondary-foreground hover:text-main-foreground">&larr; Back to the simulator</a>
+        </nav>
+
+        <header class="mb-6">
+            <h1 class="text-3xl mb-2">Intel SDK-85</h1>
+            <p class="text-secondary-foreground max-w-3xl">
+                The 1977 System Design Kit, running Intel's own monitor ROM on the same 8085 the simulator
+                uses. Write a program and load it into the board's RAM, or key it in the way you would have
+                had to. The hex keys, <span class="font-mono">.</span> and <span class="font-mono">,</span>
+                can also be typed when the editor does not have focus.
+                <a href="/docs/en/sdk-85/" class="text-blue-foreground hover:underline">Read how to operate it</a>.
+            </p>
+        </header>
+
+        <Sdk85Workbench client:only="solid-js" />
+
+        <section class="mt-10 border-t border-main-border pt-6">
+            <div class="mb-4 flex flex-wrap items-baseline justify-between gap-2">
+                <h2 class="text-xl">Cheat sheet</h2>
+                <a href="/docs/en/sdk-85/" class="text-sm text-blue-foreground hover:underline">
+                    Full documentation &rarr;
+                </a>
+            </div>
+
+            <p class="mb-5 max-w-3xl text-sm text-secondary-foreground">
+                Every command ends with <span class="font-mono">.</span> (EXEC).
+                <span class="font-mono">,</span> (NEXT) moves to the next location or register.
+                Keys are read by the monitor's interrupt routine, so the board has to be running for one
+                to do anything — and the buttons on this page send these very keys, so both ways of
+                working are the same command running in ROM.
+            </p>
+
+            <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                {commands.map((command) => (
+                    <div class="rounded border border-main-border bg-main-background p-3">
+                        <h3 class="font-mono text-sm">{command.name}</h3>
+                        <p class="text-xs text-secondary-foreground">{command.summary}</p>
+                        <p class="mb-2 text-xs text-secondary-foreground">
+                            Also on this page: <span class="text-main-foreground">{command.button}</span>
+                        </p>
+                        <dl class="space-y-1 text-xs">
+                            {command.steps.map(([keys, meaning]) => (
+                                <div>
+                                    <dt class="font-mono">{keys}</dt>
+                                    <dd class="text-secondary-foreground">{meaning}</dd>
+                                </div>
+                            ))}
+                        </dl>
+                    </div>
+                ))}
+            </div>
+
+            <div class="mt-4 grid gap-4 md:grid-cols-3">
+                <div class="rounded border border-main-border bg-main-background p-3">
+                    <h3 class="font-mono text-sm">EXAM REG keys</h3>
+                    <p class="mb-2 text-xs text-secondary-foreground">
+                        The keypad has no S, P or I, so digits stand in for them.
+                    </p>
+                    <div class="grid grid-cols-3 gap-x-3 gap-y-1 font-mono text-xs sm:grid-cols-4">
+                        {registerKeys.map(([key, register]) => (
+                            <div class="flex items-center gap-1.5">
+                                <span class="rounded border border-inactive-border px-1">{key}</span>
+                                <span class="text-secondary-foreground">{register}</span>
+                            </div>
+                        ))}
+                    </div>
+                    <p class="mt-2 text-xs text-secondary-foreground">
+                        <span class="font-mono">,</span> walks them in order: A, B, C, D, E, F, I, H, L,
+                        SPH, SPL, PCH, PCL.
+                    </p>
+                </div>
+
+                <div class="rounded border border-main-border bg-main-background p-3">
+                    <h3 class="font-mono text-sm">Machine controls</h3>
+                    <p class="mb-2 text-xs text-secondary-foreground">
+                        These are the board itself rather than a monitor command.
+                    </p>
+                    <dl class="space-y-1 text-xs">
+                        {machineControls.map(([control, what]) => (
+                            <div>
+                                <dt class="font-mono">{control}</dt>
+                                <dd class="text-secondary-foreground">{what}</dd>
+                            </div>
+                        ))}
+                    </dl>
+                </div>
+
+                <div class="rounded border border-main-border bg-main-background p-3">
+                    <h3 class="font-mono text-sm">Memory map</h3>
+                    <p class="mb-2 text-xs text-secondary-foreground">
+                        Assemble with <span class="font-mono">ORG 2000H</span>, and finish with
+                        <span class="font-mono">RST 1</span> to hand the board back to the monitor.
+                    </p>
+                    <dl class="space-y-1 text-xs">
+                        {memoryMap.map(([range, what]) => (
+                            <div class="flex gap-3">
+                                <dt class="font-mono whitespace-nowrap">{range}</dt>
+                                <dd class="text-secondary-foreground">{what}</dd>
+                            </div>
+                        ))}
+                    </dl>
+                </div>
+            </div>
+        </section>
+    </main>
+</Layout>
