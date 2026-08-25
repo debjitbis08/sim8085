@@ -1,6 +1,6 @@
 import { onMount, createEffect, onCleanup, createSignal, createMemo } from "solid-js";
 import AdContainer from "./AdContainer.jsx";
-import { shouldLoadAds, loadAdSenseScript } from "../lib/adsense.js";
+import { shouldLoadAds, loadAdSenseScript, getCountry } from "../lib/adsense.js";
 import { MAX_AD_ROTATIONS } from "astro:env/client";
 
 const pubId = import.meta.env.PUBLIC_ADSENSE_PUB_ID ? `ca-${import.meta.env.PUBLIC_ADSENSE_PUB_ID}` : null;
@@ -66,6 +66,7 @@ export default function AdSenseAd(props) {
 
     let visibleAccumulated = 0;
     let visibleStartTime = null;
+    let consentHandler = null;
 
     function handleVisibilityChange() {
         if (document.visibilityState === "hidden" && visibleStartTime) {
@@ -92,12 +93,7 @@ export default function AdSenseAd(props) {
 
         document.addEventListener("visibilitychange", handleVisibilityChange);
 
-        const country = localStorage.getItem("user_country");
-        const consent = localStorage.getItem("cookie_consent");
-        const shouldLoad = shouldLoadAds(country, consent);
-
-        // For non EEA countries and cached consent
-        if (shouldLoad) {
+        const start = () => {
             loadAdSenseScript(pubId, {
                 onLoad: () => {
                     setTimeout(() => {
@@ -107,25 +103,30 @@ export default function AdSenseAd(props) {
                     });
                 },
             });
-        } else {
-            // For EEA countries wait for fresh consent when not provided earlier
-            const handler = (e) => {
-                const { consent } = e.detail || {};
-                if (consent !== "yes") return;
+        };
 
-                loadAdSenseScript(pubId, {
-                    onLoad: () => {
-                        track("ad loaded");
-                        initialized = true;
-                        if (!props.isHidden) pushAd();
-                    },
-                });
+        // For EEA countries wait for fresh consent when not provided earlier
+        const handler = (e) => {
+            const { consent } = e.detail || {};
+            if (consent !== "yes") return;
 
-                window.removeEventListener("adsConsentGiven", handler);
-            };
+            start();
+            window.removeEventListener("adsConsentGiven", handler);
+        };
+
+        consentHandler = handler;
+
+        // Resolve the country first — on a first visit it is not cached yet,
+        // and deciding synchronously would hold ads back from every non-EEA
+        // visitor until they touched the cookie banner.
+        getCountry().then((country) => {
+            if (shouldLoadAds(country, localStorage.getItem("cookie_consent"))) {
+                start();
+                return;
+            }
 
             window.addEventListener("adsConsentGiven", handler);
-        }
+        });
     });
 
     let rotationCount = 0;
@@ -196,6 +197,7 @@ export default function AdSenseAd(props) {
 
     onCleanup(() => {
         document.removeEventListener("visibilitychange", handleVisibilityChange);
+        if (consentHandler) window.removeEventListener("adsConsentGiven", consentHandler);
     });
 
     const adNode = createMemo(() => {

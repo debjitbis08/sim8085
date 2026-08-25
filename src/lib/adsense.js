@@ -38,11 +38,35 @@ export function isEEACountry(code) {
 }
 
 export function shouldLoadAds(country, consent) {
-    if (country == null) return false;
+    // Unknown country — fall back to requiring consent.
+    if (!country) return consent === "yes";
 
     if (!isEEACountry(country)) return true; // Non-EEA — always load
 
     return consent === "yes"; // EEA — require explicit consent
+}
+
+const COUNTRY_KEY = "user_country";
+
+let countryPromise = null;
+
+// Resolves the visitor's country, caching it in localStorage. Callers must
+// await this before calling shouldLoadAds — on a first visit nothing is cached
+// yet, and reading localStorage synchronously would look like "no country".
+export function getCountry() {
+    const cached = localStorage.getItem(COUNTRY_KEY);
+    if (cached) return Promise.resolve(cached);
+
+    countryPromise ||= fetch("/api/location/")
+        .then((res) => res.json())
+        .then((data) => {
+            const country = data.country || "";
+            if (country) localStorage.setItem(COUNTRY_KEY, country);
+            return country;
+        })
+        .catch(() => "");
+
+    return countryPromise;
 }
 
 export function loadAdSenseScript(pubId, { onLoad } = {}) {

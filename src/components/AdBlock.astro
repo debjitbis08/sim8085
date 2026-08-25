@@ -40,7 +40,7 @@ const computedStyle = style ?? `display:block; text-align:${textAlign};`;
 
 <script>
   import Alpine from "alpinejs";
-  import { shouldLoadAds, loadAdSenseScript } from "../lib/adsense.js";
+  import { shouldLoadAds, loadAdSenseScript, getCountry } from "../lib/adsense.js";
 
   document.addEventListener("alpine:init", () => {
     Alpine.data("adsenseBlock", () => {
@@ -89,27 +89,27 @@ const computedStyle = style ?? `display:block; text-align:${textAlign};`;
 
             if (!pubId || !adSlot) return;
 
-            const country = localStorage.getItem("user_country");
-            const consent = localStorage.getItem("cookie_consent");
+            const start = () => loadAdSenseScript(pubId, { onLoad: () => tryPush() });
 
-            if (shouldLoadAds(country, consent)) {
-                loadAdSenseScript(pubId, {
-                    onLoad: () => {
-                        tryPush();
-                    },
-                });
-            } else {
-                window.addEventListener("adsConsentGiven", (e) => {
-                const { consent } = e.detail || {};
-                if (consent === "yes") {
-                    loadAdSenseScript(pubId, {
-                        onLoad: () => {
-                            tryPush();
-                        },
-                    });
+            // Resolve the country first — it is not cached on a first visit,
+            // and deciding synchronously would hold ads back from every
+            // non-EEA visitor until they touched the cookie banner.
+            getCountry().then((country) => {
+                if (shouldLoadAds(country, localStorage.getItem("cookie_consent"))) {
+                    start();
+                    return;
                 }
-                });
-            }
+
+                const handler = (e) => {
+                    const { consent } = e.detail || {};
+                    if (consent !== "yes") return;
+
+                    start();
+                    window.removeEventListener("adsConsentGiven", handler);
+                };
+
+                window.addEventListener("adsConsentGiven", handler);
+            });
         },
       };
     });

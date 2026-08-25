@@ -18,22 +18,12 @@
 
 <script>
     import Alpine from 'alpinejs';
+    import { getCountry } from '../../lib/adsense.js';
 
     const useTracking = document.querySelector('meta[name="posthog-use-tracking"]')?.content === "true";
 
-    async function getCountry() {
-        const cached = localStorage.getItem('user_country');
-        if (cached) return cached;
-        try {
-            const res = await fetch('/api/location/');
-            const data = await res.json();
-            localStorage.setItem('user_country', data.country);
-            return data.country;
-        } catch (e) {
-            return '';
-        }
-    }
-
+    // Prime the cache so the banner's accept/decline path does not have to wait
+    // on the network. The ad components resolve it through the same helper.
     getCountry();
 
     document.addEventListener('alpine:init', () => {
