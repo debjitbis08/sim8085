@@ -1,3 +1,10 @@
+## [2.24.1](https://github.com/debjitbis08/sim8085/compare/v2.24.0...v2.24.1) (2026-08-25)
+
+
+### Bug Fixes
+
+* Resolve the visitor country before deciding whether to load ads ([0421ff5](https://github.com/debjitbis08/sim8085/commit/0421ff5236a1a1cf61c66f0406d615f23448d4b3))
+
 # [2.24.0](https://github.com/debjitbis08/sim8085/compare/v2.23.0...v2.24.0) (2026-08-23)
 
 
