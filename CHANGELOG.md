@@ -1,3 +1,11 @@
+## [2.24.2](https://github.com/debjitbis08/sim8085/compare/v2.24.1...v2.24.2) (2026-08-26)
+
+
+### Bug Fixes
+
+* Keep the left icon rail inside a short window ([9e1fedd](https://github.com/debjitbis08/sim8085/commit/9e1fedd8770e7a7fe8f0798b34538ff202459d6c))
+* Keep the rotating header button on one line ([1420c4c](https://github.com/debjitbis08/sim8085/commit/1420c4ccb1b6d35153476101194579e1a8fe770c))
+
 ## [2.24.1](https://github.com/debjitbis08/sim8085/compare/v2.24.0...v2.24.1) (2026-08-25)
 
 
