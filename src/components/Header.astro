@@ -148,12 +148,12 @@ const avatarUrl = user?.user_metadata?.avatar_url; // Default avatar if none exi
                     }"
                     @mouseenter="paused = true"
                     @mouseleave="paused = false"
-                    class="hidden md:block relative w-[160px] h-8 py-4 px-4 overflow-hidden rounded-lg text-sm bg-transparent box-border text-secondary-foreground hover:text-active-foreground border border-inactive-border hover:border-secondary-border"
+                    class="hidden md:block relative w-[180px] h-8 overflow-hidden rounded-lg text-sm bg-transparent box-border text-secondary-foreground hover:text-active-foreground border border-inactive-border hover:border-secondary-border"
                 >
                     <template x-for="(item, i) in items" :key="i">
                         <a
                             :href="item.href"
-                            class="absolute left-0 top-0 w-full h-8 flex items-center justify-center gap-2 transition-transform duration-500"
+                            class="absolute left-0 top-0 w-full h-full px-3 flex items-center justify-center gap-2 whitespace-nowrap transition-transform duration-500"
                             :style="`transform: translateY(${(i - index) * 100}%);`"
                             target="_blank"
                         >
