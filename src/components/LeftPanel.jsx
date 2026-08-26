@@ -130,7 +130,7 @@ export function LeftPanel(props) {
         >
             <div
                 class="
-                    md:relative z-10 bg-page-background flex md:flex-col items-center h-sm:gap-4 gap-4 pt-2 md:pt-4 border-r-0 md:border-r border-r-main-border md:h-[calc(100vh-6.2rem)]
+                    md:relative z-10 bg-page-background flex md:flex-col items-center gap-4 h-md:md:gap-2 pt-2 md:pt-4 h-md:md:pt-2 border-r-0 md:border-r border-r-main-border md:h-[calc(100vh-6.2rem)] md:overflow-y-auto md:overflow-x-hidden
                     fixed bottom-[5.5rem] left-0 h-auto flex-row w-full text-xl pl-2 content-evenly justify-evenly
                     md:bottom-0 md:left-0 md:pl-0 md:w-auto
                 "
@@ -206,14 +206,14 @@ export function LeftPanel(props) {
                         title="Show Tips"
                     />
                 </Show>
-                <div class="py-1 md:py-2">
+                <div class="py-1 md:py-2 h-md:md:py-1">
                     <DelayedComponent
                         delayInMs={4000}
                         fn={() => import("./KeyboardShortcuts.jsx")}
                         fallback={<VsLoading class="animate-spin" />}
                     />
                 </div>
-                <div class="py-1 md:py-2">
+                <div class="py-1 md:py-2 h-md:md:py-1">
                     <DelayedComponent
                         delayInMs={4000}
                         fn={() => import("./Settings.jsx")}
@@ -314,7 +314,7 @@ export function PanelButton(props) {
                 onClick={props.onClick}
                 disabled={props.disabled}
             >
-                <span class="sm:text-xl md:text-xl lg:text-2xl py-1 md:py-2 px-2 lg:px-4">{props.icon}</span>
+                <span class="sm:text-xl md:text-xl lg:text-2xl py-1 md:py-2 h-md:md:py-1 px-2 lg:px-4">{props.icon}</span>
             </Tooltip.Trigger>
             <Tooltip.Portal>
                 <Tooltip.Content class="tooltip__content">
