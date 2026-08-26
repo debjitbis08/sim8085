@@ -27,6 +27,66 @@ Sim8085 is a modern web-based development environment for the Intel 8085 micropr
 
 ---
 
+## 🎯 Accuracy and CPU Validation
+
+Sim8085 is tested against independent, external references rather than only
+against its own expectations. Everything below is reproducible from a clean
+checkout with `pnpm test`. A fuller write-up, including what each suite
+actually proves, is in the docs:
+[Accuracy and CPU Validation](https://www.sim8085.com/docs/en/accuracy/).
+
+| Validation | Coverage | Status |
+| --- | --- | --- |
+| Instruction unit tests | 8085 semantics and flags, per mnemonic | Pass |
+| Opcode inventory | All 256 opcode bytes, cross-checked against the C dispatch | Pass |
+| Timing tests | T-states for every opcode (199 documented, 47 control-flow, 10 undocumented) | Pass |
+| [8080PRE](src/tests/exerciser) | Preliminary 8080/8085 exerciser (Cringle, Bartholomew) | Pass |
+| [TST8080](src/tests/exerciser) | 8080/8085 CPU Diagnostic v1.0 (Microcosm Associates, 1980) | Pass |
+| [CPUTEST](src/tests/exerciser) | Diagnostics II v1.2 CPU test (SuperSoft, 1981) | Pass |
+| [8080EXM](src/tests/exerciser) | Full instruction exerciser, ~2.9 billion instructions | 25/25 CRC groups |
+| SDK-85 monitor ROM | Assembles byte-for-byte against Intel's own object code | Pass |
+| SDK-85 boot | Intel's complete monitor boots from reset and reaches its idle loop | Pass |
+| SDK-85 interrupts | TRAP, RST 5.5/6.5/7.5, EI, SIM, RIM | Pass |
+| Differential testing against physical 8085 silicon | Not performed | Not claimed |
+
+### What the exercisers add
+
+The unit tests assert on cases we thought to write down. The CP/M exercisers
+walk the operand space and CRC the entire machine state after every
+instruction, comparing against CRCs captured from real hardware — a single
+wrong flag in a single addressing mode changes the result.
+
+This is not theoretical: the exercisers found two real `DAA` defects on their
+first run, in an instruction the unit tests already covered. See
+[src/tests/exerciser/README.md](src/tests/exerciser/README.md) for the full
+account, ROM provenance and checksums.
+
+Because the ROMs were written for the 8080 and CRC the whole PSW byte, the
+harness enables a documented 8080 compatibility mode for the flag bits where
+the 8085 legitimately differs. The browser simulator always uses 8085
+behaviour.
+
+### Reproducing it
+
+```sh
+pnpm test                                          # everything except 8080EXM (~seconds)
+RUN_8080EXM=1 npx vitest run src/tests/exerciser   # adds the exhaustive run (~35s)
+```
+
+`8080EXM` is opt-in only because of its runtime, not because it is expected to
+fail.
+
+### What is not claimed
+
+Undocumented 8085 instructions (`DSUB`, `ARHL`, `RDEL`, `LDHI`, `LDSI`,
+`RSTV`, `SHLX`, `LHLX`, `JX5`/`JNX5`) and the K/V flags are implemented and
+tested, but their expected behaviour comes from documentation and community
+reverse-engineering rather than from hardware measurement — no 8080 exerciser
+can cover instructions the 8080 does not have. Corrections backed by silicon
+are very welcome.
+
+---
+
 ## 🖼️ Screenshot
 
 <img src="public/images/screen.png" width="60%" alt="Sim8085 Screenshot" />

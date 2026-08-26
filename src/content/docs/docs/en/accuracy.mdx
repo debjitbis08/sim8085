@@ -1,0 +1,131 @@
+---
+title: Accuracy and CPU Validation
+description: How Sim8085's 8085 core is tested — the CP/M exercisers (8080PRE, TST8080, CPUTEST, 8080EXM), full opcode and T-state coverage, the Intel SDK-85 monitor booted from reset, and what is deliberately not claimed.
+---
+
+Sim8085 is meant to be trusted for coursework and for programs whose behaviour
+depends on exact flags and timing. This page describes how that is checked, so
+the claim is verifiable rather than asserted.
+
+Everything here runs from a clean checkout of the
+[repository](https://github.com/debjitbis08/sim8085) with `pnpm test`.
+
+## Summary
+
+| Validation | Coverage | Status |
+| --- | --- | --- |
+| Instruction unit tests | 8085 semantics and flags, per mnemonic | Pass |
+| Opcode inventory | All 256 opcode bytes, cross-checked against the C dispatch | Pass |
+| Timing tests | T-states for every opcode (199 documented, 47 control-flow, 10 undocumented) | Pass |
+| 8080PRE | Preliminary 8080/8085 exerciser (Cringle, Bartholomew) | Pass |
+| TST8080 | 8080/8085 CPU Diagnostic v1.0 (Microcosm Associates, 1980) | Pass |
+| CPUTEST | Diagnostics II v1.2 CPU test (SuperSoft, 1981) | Pass |
+| 8080EXM | Full instruction exerciser, ~2.9 billion instructions | 25/25 CRC groups |
+| SDK-85 monitor ROM | Assembles byte-for-byte against Intel's own object code | Pass |
+| SDK-85 boot | Intel's complete monitor boots from reset and reaches its idle loop | Pass |
+| SDK-85 interrupts | TRAP, RST 5.5/6.5/7.5, EI, SIM, RIM | Pass |
+| Differential testing against physical 8085 silicon | Not performed | Not claimed |
+
+## The CP/M exercisers
+
+Unit tests assert on cases someone thought to write down. They cannot find a bug
+nobody anticipated.
+
+The CP/M exercisers work the other way around. They walk the operand space and
+compute a CRC over the **entire machine state** after every instruction, then
+compare it against CRCs captured from real hardware. A single wrong flag, in a
+single addressing mode, changes the CRC and fails the run. `8080EXM` alone
+executes about 2.9 billion instructions across 25 such groups.
+
+These are the same suites that 8080 and Z80 emulator projects have used as a
+reference for decades, and they are external: the expected values were not
+produced by Sim8085.
+
+### Bugs this actually caught
+
+On their first run the exercisers found two real defects in `DAA` — an
+instruction the unit tests already covered:
+
+- `DAA` never cleared the auxiliary carry. An AC left standing by a previous
+  instruction survived even when adding six to the low nibble produced no carry
+  out of bit 3. `CPUTEST` reported it as
+  `REGISTER f CONTAINS 16H BUT SHOULD CONTAIN 06H`.
+- `DAA` could clear the carry flag. It recomputed carry from the result, but
+  `DAA` only ever sets carry — one already standing on entry must survive.
+
+A third was found while reading the core to add the 8080 compatibility switch:
+`LogicFlagsA` accepted an `ac` argument and ignored it, hardcoding `AC = 0`, so
+every `ANA`/`ANI` site was silently passing the 8085 rule into a void.
+
+### 8080 compatibility mode
+
+The exerciser ROMs were written for the 8080 and CRC the whole PSW byte. On the
+handful of flag bits where the 8085 legitimately differs from the 8080, the test
+harness enables a documented compatibility mode so the published CRCs can match.
+
+**This affects the test harness only.** The simulator you use in the browser
+always implements 8085 behaviour.
+
+## Opcode and timing coverage
+
+An inventory lists all 256 opcode bytes. The test suite then checks that:
+
+- every byte value appears exactly once;
+- each one assembles from its mnemonic to the inventoried opcode;
+- the emulator's C dispatch implements every one of the 256 **exactly once** —
+  verified by parsing the core source, so an opcode cannot be quietly dropped;
+- every opcode is owned by a named semantic test suite that exists;
+- every opcode has T-state cases, partitioned across documented (199),
+  control-flow (47) and undocumented (10) timing suites.
+
+Timing is checked against the tables in Intel's manual, including the
+taken/not-taken split for conditional calls and returns.
+
+## The Intel SDK-85
+
+Sim8085's [SDK-85](/sdk-85/) runs Intel's genuine 1977 monitor ROM, and that is
+tested at two levels.
+
+The assembler is checked against Intel's own assembler: the complete monitor
+source is assembled and compared **byte for byte, at every address**, against the
+object code in Intel's printed listing. Address arithmetic, forward references,
+`ORG` placement and directive sizing all have to be right or the image moves.
+
+The machine is then checked end to end. The monitor boots from reset, reaches its
+idle loop, never halts or stalls, places its stack in RAM, and executes the `EI`
+and `SIM` in its cold start with the exact interrupt masks Intel's code asks for.
+Interrupt tests confirm TRAP is taken and consumed once, RST 5.5 reaches the
+input interrupt routine, and RST 6.5 and 7.5 are ignored while masked but taken
+once unmasked — so the mask is demonstrably what blocked them.
+
+A note on the listing: ten bytes in the scanned Intel document are recorded as
+errata, because the printed listing itself has OCR-era scan errors (for example
+address `03BDh` printed as `63BDh`). These are corrections to the reference
+document, not deviations in the assembler.
+
+## Reproducing it
+
+```sh
+pnpm test                                          # everything except 8080EXM
+RUN_8080EXM=1 npx vitest run src/tests/exerciser   # adds the exhaustive run (~1 min)
+```
+
+`8080EXM` is opt-in only because of its runtime, not because it is expected to
+fail. The ROM provenance and SHA-256 checksums are listed in
+[`src/tests/exerciser/README.md`](https://github.com/debjitbis08/sim8085/blob/master/src/tests/exerciser/README.md).
+
+## What is not claimed
+
+Sim8085 has **not** been differentially tested against physical 8085 silicon.
+
+That matters most for the undocumented 8085 instructions — `DSUB`, `ARHL`,
+`RDEL`, `LDHI`, `LDSI`, `RSTV`, `SHLX`, `LHLX`, `JX5`/`JNX5` — and for the K and
+V flags. These are implemented, and they have both semantic and T-state tests,
+but their expected behaviour comes from documentation and community
+reverse-engineering rather than from hardware measurement. No 8080 exerciser can
+cover them, because the 8080 does not have them: the CRC evidence above provides
+zero coverage of this area.
+
+If you have access to real 8085 hardware and find a disagreement, please
+[open an issue](https://github.com/debjitbis08/sim8085/issues) — corrections
+backed by silicon are very welcome.
