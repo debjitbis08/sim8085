@@ -1,5 +1,4 @@
 use lsp_server::{ExtractError, Request, RequestId};
-use serde::de::DeserializeOwned;
 
 pub fn cast<R>(req: Request) -> Result<(RequestId, R::Params), ExtractError<Request>>
 where
@@ -19,9 +18,9 @@ macro_rules! wasm_lsp_router {
         use crate::server::routers::cast;
 
 $(
-                let $req = match cast::<$method>($req) {
+                let _ = match cast::<$method>($req) {
                     Ok((id, params)) => {
-                        let resp = Response {
+                        let _ = Response {
                             result: Some(
                                         serde_wasm_bindgen::from_value( $handler( &id ,&params).expect("[ERROR] Failure in communication!"))?) ,
                             id,

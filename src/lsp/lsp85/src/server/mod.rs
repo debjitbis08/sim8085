@@ -1,17 +1,19 @@
 #[macro_use]
 pub mod routers;
-pub mod bindings;
+pub mod completion_items;
 pub mod handlers;
+pub mod utils;
+pub mod bindings;
 
-use lsp_server::{Connection, IoThreads, Message, Notification, Request, RequestId};
+
+use lsp_server::{Connection, IoThreads, RequestId};
 use lsp_types::{
-    ClientCapabilities, CompletionOptions, HoverProviderCapability, InitializeParams,
-    ServerCapabilities,
+    ClientCapabilities, CompletionOptions, DiagnosticOptions, HoverProviderCapability,
+    InitializeParams, ServerCapabilities,
 };
 use std::error::Error;
-use std::rc::Rc;
 
-pub struct lsp85 {
+pub struct Lsp85 {
     id: Option<RequestId>,
     pub conn: Option<Connection>,
     pub io_threads: Option<IoThreads>,
@@ -20,7 +22,7 @@ pub struct lsp85 {
 }
 
 // builder methods
-impl lsp85 {
+impl Lsp85 {
     pub fn build() -> Self {
         return Self {
             id: None,
@@ -56,7 +58,7 @@ impl lsp85 {
                     .expect("[[ERROR] Failed to parse initialization params!");
                 self.client_cap = Some(init_params.capabilities);
             }
-            Err(e) => {
+            Err(_) => {
                 eprintln!("[ERROR] Failed to initialize LSP");
             }
         }
@@ -74,6 +76,29 @@ impl lsp85 {
             .as_mut()
             .expect("[ERROR] Expected existing server_cap!")
             .hover_provider = Some(HoverProviderCapability::Simple(true));
+        self
+    }
+    pub fn enable_diagnostics(mut self) -> Self {
+        self.server_cap
+            .as_mut()
+            .expect("[ERROR] Expected existing server_cap!")
+            .diagnostic_provider = Some(lsp_types::DiagnosticServerCapabilities::Options(
+            DiagnosticOptions {
+                ..Default::default()
+            },
+        ));
+        self
+    }
+
+    pub fn enable_signature_help(mut self) -> Self {
+        self.server_cap
+            .as_mut()
+            .expect("[ERROR] Expected existing server_cap!")
+            .signature_help_provider = Some(lsp_types::SignatureHelpOptions {
+            trigger_characters: Some(vec![" ".to_string(), ",".to_string()]),
+            retrigger_characters: None,
+            work_done_progress_options: Default::default(),
+        });
         self
     }
 

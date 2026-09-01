@@ -28,6 +28,7 @@ impl Tree {
         }
     }
 
+    #[allow(dead_code)]
     pub fn new(l_child: Option<Node>, r_child: Option<Node>) -> Self {
         Self { l_child, r_child }
     }
@@ -50,34 +51,34 @@ impl Node {
 impl Parser {
     pub fn parse_expression(&mut self) -> Option<Node> {
         if let Some(peeked_token) = self.tok_stream.peek() {
-            println!("parse_expression() called! {:?}", peeked_token);
+            eprintln!("parse_expression() called! {:?}", peeked_token);
             match peeked_token {
                 Token {
                     tok_type: TokenType::OPERATION,
                     ..
-                } => {
-                    return self.parse_operation();
-                }
+                } => self.parse_operation(),
                 Token {
                     tok_type: TokenType::REGISTER,
                     ..
                 } => {
-                    println!("unexpected placement of register!");
-                    return None;
+                    eprintln!("unexpected placement of register!");
+                    None
                 }
                 Token {
                     tok_type: TokenType::EOF,
                     ..
-                } => {
-                    return None;
-                }
+                } => None,
+                Token {
+                    tok_type: TokenType::EOL,
+                    ..
+                } => None,
                 _ => {
                     self.tok_stream.next();
-                    return self.parse_expression();
+                    self.parse_expression()
                 }
             }
         } else {
-            return None;
+            None
         }
     }
     pub fn parse_operation(&mut self) -> Option<Node> {
@@ -88,57 +89,53 @@ impl Parser {
             return None;
         }
         self.tok_stream.next();
+
         if let Some(peeked_token) = self.tok_stream.peek() {
             match peeked_token {
                 Token {
                     tok_type: TokenType::REGISTER,
+                    ..
+                }
+                | Token {
+                    tok_type: TokenType::ImmValue,
                     ..
                 } => {
                     l_child.branch.l_child = self.parse_operand();
                     l_child.branch.r_child = self.parse_operand();
-                    return Some(l_child);
+                    Some(l_child)
                 }
-                _ => {
-                    return Some(l_child);
-                }
+                _ => Some(l_child),
             }
         } else {
-            return Some(l_child);
+            Some(l_child)
         }
     }
     pub fn parse_operand(&mut self) -> Option<Node> {
-        let mut l_child: Node;
         if let Some(peeked_token) = self.tok_stream.peek() {
             match peeked_token {
                 Token {
                     tok_type: TokenType::REGISTER,
                     ..
-                } => {
-                    let token_buffer = peeked_token.clone();
-                    self.tok_stream.next();
-                    return Some(Node::new(token_buffer, Box::new(Tree::default())));
                 }
-                Token {
-                    tok_type: TokenType::COMMA_DELIM,
-                    ..
-                } => {
-                    self.tok_stream.next();
-                    return self.parse_operand();
-                }
-                Token {
-                    tok_type: TokenType::IMM_VALUE,
+                | Token {
+                    tok_type: TokenType::ImmValue,
                     ..
                 } => {
                     let token_buffer = peeked_token.clone();
                     self.tok_stream.next();
-                    return Some(Node::new(token_buffer, Box::new(Tree::default())));
+                    Some(Node::new(token_buffer, Box::new(Tree::default())))
                 }
-                _ => {
-                    return None;
+                Token {
+                    tok_type: TokenType::CommaDelim,
+                    ..
+                } => {
+                    self.tok_stream.next();
+                    self.parse_operand()
                 }
+                _ => None,
             }
         } else {
-            return None;
+            None
         }
     }
 }

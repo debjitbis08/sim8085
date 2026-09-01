@@ -4,13 +4,21 @@ path = "src/lib.rs"
 
 [package]
 name = "lsp85"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2024"
+include = [
+    "**/*.rs",
+]
+description = "lsp85 is a standalone LSP implementation for Intel 8085 assembly."
+license = "MIT"
 
 [dependencies]
+js-sys = "0.3.83"
 lsp-server = "0.7.9"
 lsp-types = "0.97.0"
 serde = { version = "1", features = ["derive"] }
 serde-wasm-bindgen = "0.6.5"
 serde_json = "1"
+substring = "1.4.5"
 wasm-bindgen = "0.2.106"
+
