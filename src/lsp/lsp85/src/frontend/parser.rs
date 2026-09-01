@@ -6,6 +6,7 @@ use std::vec::IntoIter;
 pub struct Parser {
     tok_stream: Peekable<IntoIter<Token>>,
 }
+
 impl Parser {
     pub fn new(tok_stream: IntoIter<Token>) -> Self {
         Self {
@@ -33,6 +34,7 @@ impl Tree {
         Self { l_child, r_child }
     }
 }
+
 #[derive(Debug, PartialEq)]
 pub struct Node {
     pub value: Token,
@@ -48,94 +50,76 @@ impl Node {
     }
 }
 
+pub fn expected_operand_count(op: &str) -> usize {
+    match op.to_uppercase().as_str() {
+        "NOP" | "HLT" | "RET" | "RLC" | "RRC" | "RAL" | "RAR" | "CMA" | "STC" | "CMC"
+        | "DAA" | "XCHG" | "XTHL" | "SPHL" | "PCHL" | "EI" | "DI" | "RZ" | "RNZ" | "RC"
+        | "RNC" | "RPE" | "RPO" | "RP" | "RM" | "RIM" | "SIM" => 0,
+
+        "ADD" | "ADC" | "SUB" | "SBB" | "ANA" | "ORA" | "XRA" | "CMP" | "INR" | "DCR"
+        | "PUSH" | "POP" | "DAD" | "INX" | "DCX" | "LDAX" | "STAX" | "ADI" | "ACI"
+        | "SUI" | "SBI" | "ANI" | "ORI" | "XRI" | "CPI" | "JMP" | "JZ" | "JNZ" | "JC"
+        | "JNC" | "JPE" | "JPO" | "JP" | "JM" | "CALL" | "CZ" | "CNZ" | "CC" | "CNC"
+        | "CPE" | "CPO" | "CP" | "CM" | "STA" | "LDA" | "SHLD" | "LHLD" | "OUT" | "IN"
+        | "RST" => 1,
+
+        "MOV" | "MVI" | "LXI" => 2,
+
+        _ => 0,
+    }
+}
+
 impl Parser {
     pub fn parse_expression(&mut self) -> Option<Node> {
-        if let Some(peeked_token) = self.tok_stream.peek() {
-            eprintln!("parse_expression() called! {:?}", peeked_token);
-            match peeked_token {
-                Token {
-                    tok_type: TokenType::OPERATION,
-                    ..
-                } => self.parse_operation(),
-                Token {
-                    tok_type: TokenType::REGISTER,
-                    ..
-                } => {
-                    eprintln!("unexpected placement of register!");
-                    None
+        while let Some(peeked_token) = self.tok_stream.peek() {
+            match peeked_token.tok_type {
+                TokenType::OPERATION => return self.parse_operation(),
+                TokenType::EOF | TokenType::EOL => {
+                    self.tok_stream.next();
                 }
-                Token {
-                    tok_type: TokenType::EOF,
-                    ..
-                } => None,
-                Token {
-                    tok_type: TokenType::EOL,
-                    ..
-                } => None,
                 _ => {
                     self.tok_stream.next();
-                    self.parse_expression()
                 }
             }
-        } else {
-            None
         }
+        None
     }
+
     pub fn parse_operation(&mut self) -> Option<Node> {
-        let mut l_child: Node;
-        if let Some(peeked_token) = self.tok_stream.peek() {
-            l_child = Node::new(peeked_token.clone(), Box::new(Tree::default()));
-        } else {
-            return None;
-        }
+        let op_tok = match self.tok_stream.peek() {
+            Some(t) if t.tok_type == TokenType::OPERATION => t.clone(),
+            _ => return None,
+        };
         self.tok_stream.next();
 
-        if let Some(peeked_token) = self.tok_stream.peek() {
-            match peeked_token {
-                Token {
-                    tok_type: TokenType::REGISTER,
-                    ..
-                }
-                | Token {
-                    tok_type: TokenType::ImmValue,
-                    ..
-                } => {
-                    l_child.branch.l_child = self.parse_operand();
-                    l_child.branch.r_child = self.parse_operand();
-                    Some(l_child)
-                }
-                _ => Some(l_child),
-            }
-        } else {
-            Some(l_child)
+        let mut node = Node::new(op_tok.clone(), Box::new(Tree::default()));
+        let expected = expected_operand_count(&op_tok.tok_literal);
+
+        if expected >= 1 {
+            node.branch.l_child = self.parse_operand();
         }
+        if expected >= 2 {
+            node.branch.r_child = self.parse_operand();
+        }
+
+        Some(node)
     }
+
     pub fn parse_operand(&mut self) -> Option<Node> {
-        if let Some(peeked_token) = self.tok_stream.peek() {
-            match peeked_token {
-                Token {
-                    tok_type: TokenType::REGISTER,
-                    ..
-                }
-                | Token {
-                    tok_type: TokenType::ImmValue,
-                    ..
-                } => {
+        while let Some(peeked_token) = self.tok_stream.peek() {
+            match peeked_token.tok_type {
+                TokenType::REGISTER | TokenType::ImmValue | TokenType::LABEL => {
                     let token_buffer = peeked_token.clone();
                     self.tok_stream.next();
-                    Some(Node::new(token_buffer, Box::new(Tree::default())))
+                    return Some(Node::new(token_buffer, Box::new(Tree::default())));
                 }
-                Token {
-                    tok_type: TokenType::CommaDelim,
-                    ..
-                } => {
+                TokenType::CommaDelim => {
                     self.tok_stream.next();
-                    self.parse_operand()
+                    continue;
                 }
-                _ => None,
+                _ => return None,
             }
-        } else {
-            None
         }
+        None
     }
 }

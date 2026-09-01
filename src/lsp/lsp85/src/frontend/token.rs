@@ -45,6 +45,7 @@ pub enum TokenType {
     ImmValue,
     REGISTER,
     CommaDelim,
+    LABEL,
     #[allow(dead_code)]
     BOL,
     EOL,

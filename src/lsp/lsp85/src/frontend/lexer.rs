@@ -35,11 +35,10 @@ impl Iterator for Lexer {
     type Item = Token;
     fn next(&mut self) -> Option<Token> {
         match self.ch {
-            c if self.ch.is_alphabetic() => {
-                // identifier
+            _ if self.ch.is_alphabetic() || self.ch == '_' || self.ch == '@' || self.ch == '?' => {
                 return Some(self.read_identifier());
             }
-            c if self.ch.is_numeric() => {
+            _ if self.ch.is_numeric() => {
                 return Some(self.read_immediate());
             }
             ',' => {
@@ -51,7 +50,17 @@ impl Iterator for Lexer {
                     String::from(','),
                 ));
             }
-            ' ' => {
+            ':' => {
+                self.consume();
+                return self.next();
+            }
+            ';' => {
+                while self.ch != '\n' && self.ch != '\0' {
+                    self.consume();
+                }
+                return self.next();
+            }
+            ' ' | '\t' | '\r' => {
                 self.consume();
                 return self.next();
             }
@@ -96,13 +105,32 @@ impl Lexer {
     }
     pub fn read_identifier(&mut self) -> Token {
         let mut identifier_buf = String::new();
-        while self.ch.is_alphabetic() {
+        while self.ch.is_alphanumeric() || self.ch == '_' || self.ch == '@' || self.ch == '?' {
             identifier_buf.push(self.ch);
             self.consume();
         }
+        let is_label_def = if self.ch == ':' {
+            self.consume();
+            true
+        } else {
+            false
+        };
+
+        let tok_type = if is_label_def {
+            TokenType::LABEL
+        } else {
+            get_identifier_token(&identifier_buf)
+        };
+
+        let offset = if is_label_def {
+            identifier_buf.len() + 1
+        } else {
+            identifier_buf.len()
+        };
+
         Token::new(
-            identifier_buf.len(),
-            get_identifier_token(&identifier_buf),
+            offset,
+            tok_type,
             self.location,
             identifier_buf,
         )
@@ -140,7 +168,7 @@ fn get_identifier_token(identifier_lit: &str) -> TokenType {
         | "RNC" | "RZ" | "RNZ" | "RM" | "RP" | "RPE" | "RPO" | "RST" | "IN" | "OUT" | "NOP"
         | "HLT" | "DI" | "EI" | "RIM" | "SIM" => TokenType::OPERATION,
         "A" | "B" | "C" | "D" | "E" | "PSW" | "H" | "L" | "SP" => TokenType::REGISTER,
-        _ => TokenType::ILLEGAL,
+        _ => TokenType::LABEL,
     }
 }
 
