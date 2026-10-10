@@ -19,7 +19,8 @@ const useTracking = USE_TRACKING === "true"
 
     if (useTracking && apiKey && !window.location.host.includes('127.0.0.1') && !window.location.host.includes('localhost')) {
         posthog.init(apiKey, {
-            api_host: 'https://us.i.posthog.com',
+            api_host: 'https://b.sim8085.com',
+            ui_host: 'https://us.posthog.com',
             persistence: cookieConsent === 'yes' ? 'localStorage+cookie' : 'memory',
         });
 
