@@ -4,7 +4,7 @@ description: Compare bytes without destroying them, and carry a running best thr
 difficulty: intermediate
 order: 30
 tags: [arrays, loops, comparison, flags]
-access: plus
+access: free
 status: active
 workedExample: /docs/en/programs/largest-number-in-array/
 ---

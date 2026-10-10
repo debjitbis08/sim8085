@@ -4,7 +4,7 @@ description: Add numbers that do not fit in a register, first a byte at a time w
 difficulty: intermediate
 order: 50
 tags: [arithmetic, 16-bit, register-pairs, flags]
-access: plus
+access: free
 status: active
 ---
 

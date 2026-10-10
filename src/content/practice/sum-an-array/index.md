@@ -4,7 +4,7 @@ description: Walk a block of memory with a counter and accumulate a total. This 
 difficulty: intermediate
 order: 10
 tags: [arrays, loops, counters, flags]
-access: plus
+access: free
 status: active
 workedExample: /docs/en/programs/sum-array-elements/
 ---

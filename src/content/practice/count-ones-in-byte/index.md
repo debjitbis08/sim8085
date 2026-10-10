@@ -4,7 +4,7 @@ description: Rotate a byte through the carry flag one bit at a time and tally th
 difficulty: intermediate
 order: 40
 tags: [bits, rotate, loops, flags]
-access: plus
+access: free
 status: active
 workedExample: /docs/en/programs/count-ones-in-byte/
 ---

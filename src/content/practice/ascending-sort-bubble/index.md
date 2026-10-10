@@ -4,7 +4,7 @@ description: Bubble sort, built one pass at a time. A loop inside a loop, a swap
 difficulty: intermediate
 order: 70
 tags: [arrays, sorting, loops, comparison]
-access: plus
+access: free
 status: active
 ---
 

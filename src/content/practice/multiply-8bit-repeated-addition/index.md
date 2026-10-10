@@ -4,7 +4,7 @@ description: The 8085 has no multiply instruction, so build one out of a counted
 difficulty: intermediate
 order: 60
 tags: [arithmetic, loops, 16-bit, counters]
-access: plus
+access: free
 status: active
 workedExample: /docs/en/programs/multiply-8bit-numbers/
 ---

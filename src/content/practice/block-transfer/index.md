@@ -4,7 +4,7 @@ description: Move N bytes from one place to another with two pointers, then find
 difficulty: intermediate
 order: 20
 tags: [memory, pointers, loops, arrays]
-access: plus
+access: free
 status: active
 ---
 
