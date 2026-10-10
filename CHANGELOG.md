@@ -1,3 +1,11 @@
+## [2.24.3](https://github.com/debjitbis08/sim8085/compare/v2.24.2...v2.24.3) (2026-10-10)
+
+
+### Bug Fixes
+
+* Grant Data API access to practice_progress explicitly ([c981f4a](https://github.com/debjitbis08/sim8085/commit/c981f4ad939fe1d34dfd3de67aa241c038bdb277))
+* Send PostHog events through the b.sim8085.com reverse proxy ([21b2946](https://github.com/debjitbis08/sim8085/commit/21b2946f36ed4032d219ea0b305ef1f08a2c4779))
+
 ## [2.24.2](https://github.com/debjitbis08/sim8085/compare/v2.24.1...v2.24.2) (2026-08-26)
 
 
