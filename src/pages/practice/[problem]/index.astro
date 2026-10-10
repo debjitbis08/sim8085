@@ -1,0 +1,191 @@
+---
+import { getCollection } from "astro:content";
+import { marked } from "marked";
+import Layout from "../../../layouts/Layout.astro";
+import { isPublished, stepsForProblem } from "../../../lib/practice/catalogue.js";
+import { parseStepKey } from "../../../lib/practice/step-key.js";
+import "../../../components/styles.css";
+
+/**
+ * One page per problem: what it is, what the steps are, and where to go if
+ * this is not what you came for.
+ *
+ * This is the page meant to be found in search. The step pages are the
+ * working surface and are marked noindex; people searching for "8085 program
+ * to add two numbers" landed on them and mostly wanted the plain editor or the
+ * finished program, so both are offered here before the exercise starts.
+ */
+
+export async function getStaticPaths() {
+    const problems = (await getCollection("practiceProblems")).filter(isPublished);
+    return problems.map((problem) => ({ params: { problem: problem.id }, props: { problem } }));
+}
+
+const { problem } = Astro.props;
+const steps = stepsForProblem(await getCollection("practiceSteps"), problem.id).map((step) => ({
+    stepKey: step.id,
+    title: step.data.title,
+    stepNumber: step.data.stepNumber,
+    href: `/practice/${problem.id}/${parseStepKey(step.id).step}/`,
+}));
+
+// First-party markdown authored in this repo, so it is rendered rather than
+// sanitized.
+const introHtml = marked.parse(problem.body ?? "", { async: false, gfm: true });
+
+const isPaid = problem.data.access === "plus";
+const firstHref = steps[0]?.href ?? "/practice/";
+
+const difficultyClass = {
+    beginner: "text-green-foreground border-green-foreground",
+    intermediate: "text-yellow-foreground border-yellow-foreground",
+    advanced: "text-red-foreground border-red-foreground",
+};
+---
+
+<Layout
+    title={`${problem.data.title} in 8085 Assembly: Step-by-Step Practice | Sim8085`}
+    description={problem.data.description}
+    smallFooter={true}
+>
+    <main class="max-w-3xl mx-auto px-4 py-10" data-problem={problem.id}>
+        <a href="/practice/" class="text-xs text-inactive-foreground hover:text-terminal">← All practice problems</a>
+
+        <header class="mt-4 mb-6">
+            <div class="flex items-center gap-2 mb-2 flex-wrap">
+                <span
+                    class={`text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded border ${difficultyClass[problem.data.difficulty]}`}
+                >
+                    {problem.data.difficulty}
+                </span>
+                {
+                    isPaid && (
+                        <span class="text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded border border-yellow-foreground text-yellow-foreground">
+                            Plus
+                        </span>
+                    )
+                }
+                <span class="text-xs text-inactive-foreground font-mono">
+                    {steps.length} {steps.length === 1 ? "step" : "steps"}
+                </span>
+            </div>
+            <h1 class="text-3xl mb-2">{problem.data.title}</h1>
+            <p class="text-secondary-foreground mb-4">{problem.data.description}</p>
+            {/* Repeated after the step list for anyone who read that far. */}
+            <div class="flex items-center gap-3 flex-wrap">
+                <a
+                    href={firstHref}
+                    class="inline-block px-4 py-2 rounded border border-terminal text-terminal hover:bg-terminal hover:text-page-background"
+                    data-start
+                >
+                    Start step 1 →
+                </a>
+                {isPaid && <span class="text-xs text-inactive-foreground">Part of Sim8085 Plus.</span>}
+            </div>
+        </header>
+
+        {/* Say what this page is up front, so someone who wanted
+            the simulator or the answer can leave in one click. */}
+        <aside class="border border-main-border rounded p-4 mb-8 text-sm flex flex-col gap-2">
+            <p>
+                This is a guided exercise: you write the program yourself, one step at a time, and each step is
+                checked automatically.
+            </p>
+            <ul class="flex flex-col gap-1 text-secondary-foreground">
+                <li>
+                    Just want to write and run 8085 code?{" "}
+                    <a
+                        href="/"
+                        class="underline text-terminal"
+                        data-track="practice left"
+                        data-track-to="editor"
+                    >
+                        Open the simulator
+                    </a>
+                </li>
+                {
+                    problem.data.workedExample && (
+                        <li>
+                            Looking for the finished program?{" "}
+                            <a
+                                href={problem.data.workedExample}
+                                class="underline text-terminal"
+                                data-track="practice left"
+                                data-track-to="worked example"
+                            >
+                                See the worked example
+                            </a>
+                        </li>
+                    )
+                }
+            </ul>
+        </aside>
+
+        <div class="practice-brief text-sm leading-relaxed mb-8" set:html={introHtml} />
+
+        <section class="mb-8">
+            <h2 class="text-lg mb-3">Steps</h2>
+            <ol class="flex flex-col border border-main-border rounded">
+                {
+                    steps.map((step) => (
+                        <li
+                            class="flex items-center gap-3 px-4 py-2 border-b border-main-border last:border-b-0"
+                            data-step-key={step.stepKey}
+                        >
+                            <span class="text-xs font-mono text-inactive-foreground w-6">{step.stepNumber}</span>
+                            <span class="grow">{step.title}</span>
+                            <span class="text-xs text-terminal hidden" data-step-done>
+                                done
+                            </span>
+                        </li>
+                    ))
+                }
+            </ol>
+        </section>
+
+        <div class="flex items-center gap-3 flex-wrap">
+            <a
+                href={firstHref}
+                class="inline-block px-4 py-2 rounded border border-terminal text-terminal hover:bg-terminal hover:text-page-background"
+                data-start
+            >
+                Start step 1 →
+            </a>
+            {isPaid && <span class="text-xs text-inactive-foreground">Part of Sim8085 Plus.</span>}
+        </div>
+    </main>
+</Layout>
+
+<script>
+    import { initProgress, isStepComplete } from "../../../lib/practice/progress.js";
+    import { nextIncompleteStep } from "../../../lib/practice/gating.js";
+    import { trackLeaveLinks } from "../../../components/analytics/track-links.js";
+
+    trackLeaveLinks();
+
+    // The page is static; progress lives in the browser and the account, so
+    // the "done" marks and the Continue button are filled in here.
+    const rows = [...document.querySelectorAll<HTMLElement>("[data-step-key]")];
+    const keys = rows.map((row) => row.dataset.stepKey!);
+    const starts = [...document.querySelectorAll<HTMLAnchorElement>("[data-start]")];
+
+    function refresh() {
+        for (const row of rows) {
+            row.querySelector("[data-step-done]")?.classList.toggle("hidden", !isStepComplete(row.dataset.stepKey!));
+        }
+        if (!keys.some((key) => isStepComplete(key))) return;
+
+        const next = nextIncompleteStep(keys, isStepComplete);
+        for (const start of starts) {
+            if (!next) {
+                start.textContent = "Review step 1 →";
+                continue;
+            }
+            start.href = `/practice/${next}/`;
+            start.textContent = `Continue at step ${keys.indexOf(next) + 1} →`;
+        }
+    }
+
+    refresh();
+    initProgress().then(refresh, () => {});
+</script>

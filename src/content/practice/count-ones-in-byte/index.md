@@ -6,6 +6,7 @@ order: 40
 tags: [bits, rotate, loops, flags]
 access: plus
 status: active
+workedExample: /docs/en/programs/count-ones-in-byte/
 ---
 
 A byte sits at `2000H`. Count how many of its eight bits are `1` and store

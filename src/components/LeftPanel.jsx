@@ -72,8 +72,10 @@ export function LeftPanel(props) {
         // Listen for resize events
         window.addEventListener("resize", handleResize);
 
-        window.addEventListener("showLeftPanel", () => {
-            setExpanded(true);
+        // `detail.tab` opens a specific tab, e.g. the exercise from a practice page.
+        window.addEventListener("showLeftPanel", (event) => {
+            if (event.detail?.tab) showTab(event.detail.tab);
+            else setExpanded(true);
         });
 
         window.addEventListener("showRightPanel", () => {

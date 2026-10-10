@@ -22,6 +22,11 @@ export const problemSchema = z.object({
     access: z.enum(["free", "plus"]).default("free"),
     /** `draft` problems are visible in dev only. */
     status: z.enum(["active", "draft"]).default("active"),
+    /**
+     * Site path of the finished program in the docs, for visitors who came
+     * looking for the answer rather than the exercise.
+     */
+    workedExample: z.string().startsWith("/docs/").optional(),
 });
 
 export const stepSchema = z.object({

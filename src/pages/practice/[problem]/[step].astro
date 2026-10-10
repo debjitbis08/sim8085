@@ -82,6 +82,8 @@ const practice = {
     prevHref: previous ? href(previous) : null,
     nextHref: next ? href(next) : null,
 };
+
+const problemHref = `/practice/${problemSlug}/`;
 ---
 
 <Layout
@@ -90,22 +92,54 @@ const practice = {
     fullwidth={true}
     fullHeight={true}
     smallFooter={true}
+    description={`Step ${step.data.stepNumber} of ${siblings.length} of the ${problem.data.title} exercise in the Sim8085 8085 simulator.`}
+    robots="noindex, follow"
 >
-    <main class="relative h-full">
+    {/* Steps are noindex: the problem page is the one meant to be found in
+        search, and says up front what this is and how to leave it. */}
+    <main class="relative h-full" data-problem={problemSlug}>
         <div class="flex items-start h-full md:h-[calc(100vh-6.2rem)]">
             <div id="left-panel" class="absolute md:static z-10 min-w-max max-w-[520px] hidden md:block">
                 <LeftPanel client:idle practice={practice} catalogue={catalogue} />
             </div>
 
             <div
-                class="px-2 md:px-0 md:pr-0 md:pl-0 border-y border-y-main-border bg-main-background md:bg-secondary-background flex-grow min-w-0 h-full"
+                class="px-2 md:px-0 md:pr-0 md:pl-0 border-y border-y-main-border bg-main-background md:bg-secondary-background flex-grow min-w-0 h-full flex flex-col"
             >
-                <CodingArea
-                    client:load
-                    practiceStepKey={stepKey}
-                    starterCode={isPaid ? null : starterCode}
-                    carryForwardFrom={previous ? previous.id : null}
-                />
+                {/* Search brings people straight to a step who wanted the plain
+                    simulator. Say what this page is, and give them the way out. */}
+                <div
+                    class="shrink-0 flex items-center gap-x-3 gap-y-1 flex-wrap px-3 py-1.5 text-xs border-b border-main-border bg-secondary-background text-secondary-foreground"
+                >
+                    <span>
+                        Practice exercise:{" "}
+                        <a href={problemHref} class="underline hover:text-terminal">{problem.data.title}</a>, step{" "}
+                        {step.data.stepNumber} of {siblings.length}
+                    </span>
+                    <button
+                        type="button"
+                        class="md:hidden underline hover:text-terminal cursor-pointer"
+                        data-show-exercise
+                    >
+                        Show instructions
+                    </button>
+                    <a
+                        href="/"
+                        class="ml-auto underline hover:text-terminal"
+                        data-track="practice left"
+                        data-track-to="editor"
+                    >
+                        Just want the simulator? Open the editor →
+                    </a>
+                </div>
+                <div class="flex-1 min-h-0">
+                    <CodingArea
+                        client:load
+                        practiceStepKey={stepKey}
+                        starterCode={isPaid ? null : starterCode}
+                        carryForwardFrom={previous ? previous.id : null}
+                    />
+                </div>
             </div>
 
             <div
@@ -122,6 +156,14 @@ const practice = {
 </Layout>
 
 <script>
+    import { trackLeaveLinks } from "../../../components/analytics/track-links.js";
+
+    trackLeaveLinks();
+
+    document.querySelector("[data-show-exercise]")?.addEventListener("click", () => {
+        window.dispatchEvent(new CustomEvent("showLeftPanel", { detail: { tab: "practice" } }));
+    });
+
     window.addEventListener("showLeftPanel", () => {
         document.getElementById("left-panel")?.classList.remove("hidden");
     });

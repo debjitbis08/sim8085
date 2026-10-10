@@ -6,6 +6,7 @@ order: 60
 tags: [arithmetic, loops, 16-bit, counters]
 access: plus
 status: active
+workedExample: /docs/en/programs/multiply-8bit-numbers/
 ---
 
 A multiplicand sits at `2000H` and a multiplier at `2001H`. Multiply them.

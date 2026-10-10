@@ -19,9 +19,14 @@ interface Props {
 	smallFooter?: boolean;
 	noHeader?: boolean;
 	noFooter?: boolean;
+	description?: string;
+	/** e.g. "noindex, follow" for pages that should not compete in search. */
+	robots?: string;
 }
 
-const { title, showActions, fullwidth, fullHeight, smallFooter, noHeader, noFooter } = Astro.props;
+const DEFAULT_DESCRIPTION = "Fast, accurate, and offline-capable Intel 8085 simulator with assembler and debugger. Works on desktop and mobile, no installation needed.";
+
+const { title, showActions, fullwidth, fullHeight, smallFooter, noHeader, noFooter, description = DEFAULT_DESCRIPTION, robots } = Astro.props;
 ---
 
 <!doctype html>
@@ -29,7 +34,8 @@ const { title, showActions, fullwidth, fullHeight, smallFooter, noHeader, noFoot
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
-        <meta name="description" content="Fast, accurate, and offline-capable Intel 8085 simulator with assembler and debugger. Works on desktop and mobile, no installation needed." />
+        <meta name="description" content={description} />
+        {robots && <meta name="robots" content={robots} />}
         <meta name="author" content="Debjit Biswas, www.debjitbiswas.com" />
         <meta name="keywords" content="8085, assembler, simulator, IDE, Intel">
 		<meta name="generator" content={Astro.generator} />
@@ -135,11 +141,10 @@ document.addEventListener('alpine:init', () => {
 
     if (useTracking && !window.location.host.includes('127.0.0.1') && !window.location.host.includes('localhost')) {
         waitForPostHog(async () => {
-            const cookieConsent = localStorage.getItem('cookie_consent');
-            if (cookieConsent === "yes" || cookieConsent === "no") {
-                const { identifyUser } = await import('../components/analytics/identify.js');
-                identifyUser();
-            }
+            // Regardless of consent: signed-in users are identified by account
+            // even before they answer the banner. identify.js decides who else.
+            const { identifyUser } = await import('../components/analytics/identify.js');
+            identifyUser();
         })
     }
 </script>

@@ -16,6 +16,7 @@ import { canAccess, unseal } from "../../lib/practice/access.js";
 import { getUserTier } from "../../lib/subscription.js";
 import { CheckResults } from "./CheckResults.jsx";
 import { StarterCode } from "./StarterCode.jsx";
+import { trackEvent } from "../analytics/tracker.js";
 
 /**
  * The practice tab: the step brief, the Check button, and what the check said.
@@ -39,6 +40,14 @@ export function PracticePanel(props) {
     // "checking" rather than flashing a paywall at someone who has paid.
     const [entitled, setEntitled] = createSignal(props.access === "plus" ? null : true);
     const [content, setContent] = createSignal(props.content ?? null);
+    // Counted per page load: how many tries it takes is the question, and a
+    // reload starting over is close enough to a fresh attempt.
+    let attempts = 0;
+
+    const stepProps = () => {
+        const [problem, step] = props.stepKey.split("/");
+        return { problem, step, step_key: props.stepKey, step_number: props.step.stepNumber };
+    };
 
     const refreshGate = () => {
         setComplete(isStepComplete(props.stepKey));
@@ -96,6 +105,17 @@ export function PracticePanel(props) {
                 budgetTstates: props.budgetTstates,
             });
             setVerdict(result);
+            attempts += 1;
+            trackEvent("practice check", {
+                ...stepProps(),
+                pass: result.pass,
+                reason: result.reason,
+                attempt: attempts,
+                cases_total: result.caseResults?.length ?? 0,
+                cases_passed: result.caseResults?.filter((r) => r.pass).length ?? 0,
+                // e.g. "constraints.mustNotUse.LDA": which rule people trip on.
+                constraint_failures: (result.constraintDiffs ?? []).map((d) => d.path),
+            });
 
             if (result.pass) {
                 saveSolution(props.stepKey, store.activeFile.content);
@@ -252,7 +272,14 @@ export function PracticePanel(props) {
                                     <button
                                         type="button"
                                         class="text-sm underline text-inactive-foreground hover:text-foreground cursor-pointer"
-                                        onClick={() => setHintsShown((n) => n + 1)}
+                                        onClick={() => {
+                                            setHintsShown((n) => n + 1);
+                                            trackEvent("practice hint shown", {
+                                                ...stepProps(),
+                                                hint_number: hintsShown(),
+                                                attempts_before: attempts,
+                                            });
+                                        }}
                                     >
                                         {hintsShown() === 0 ? "Show a hint" : "Show another hint"}
                                     </button>

@@ -6,6 +6,7 @@ order: 10
 tags: [arithmetic, memory, flags]
 access: free
 status: active
+workedExample: /docs/en/programs/add-8bit-numbers/
 ---
 
 Two numbers are waiting in memory at `2000H` and `2001H`. Your job is to add

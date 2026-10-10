@@ -6,6 +6,7 @@ order: 30
 tags: [arrays, loops, comparison, flags]
 access: plus
 status: active
+workedExample: /docs/en/programs/largest-number-in-array/
 ---
 
 A count sits at `2000H`, and that many bytes follow from `2001H`. Find the

@@ -2,7 +2,6 @@
 import { getCollection } from "astro:content";
 import Layout from "../../layouts/Layout.astro";
 import { allTags, isPublished, sortProblems, stepsForProblem } from "../../lib/practice/catalogue.js";
-import { parseStepKey } from "../../lib/practice/step-key.js";
 
 const problems = sortProblems((await getCollection("practiceProblems")).filter(isPublished));
 const allSteps = await getCollection("practiceSteps");
@@ -10,12 +9,11 @@ const tags = allTags(problems);
 
 const entries = problems.map((problem) => {
     const steps = stepsForProblem(allSteps, problem.id);
-    const first = steps[0];
     return {
         id: problem.id,
         data: problem.data,
         stepCount: steps.length,
-        href: first ? `/practice/${problem.id}/${parseStepKey(first.id).step}/` : null,
+        href: `/practice/${problem.id}/`,
     };
 });
 
@@ -26,7 +24,11 @@ const difficultyClass = {
 };
 ---
 
-<Layout title="Practice | Sim8085" smallFooter={true}>
+<Layout
+    title="8085 Assembly Practice Problems | Sim8085"
+    description="Step-by-step 8085 assembly exercises, checked automatically in the Sim8085 simulator: arithmetic, memory, loops, arrays and sorting."
+    smallFooter={true}
+>
     <main class="max-w-4xl mx-auto px-4 py-10">
         <header class="mb-8">
             <h1 class="text-3xl mb-2">Practice</h1>

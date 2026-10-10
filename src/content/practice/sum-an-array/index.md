@@ -6,6 +6,7 @@ order: 10
 tags: [arrays, loops, counters, flags]
 access: plus
 status: active
+workedExample: /docs/en/programs/sum-array-elements/
 ---
 
 A count sits at `2000H`, and that many bytes follow it from `2001H` onwards.

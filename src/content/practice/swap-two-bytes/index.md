@@ -6,6 +6,7 @@ order: 30
 tags: [memory, pointers, registers]
 access: free
 status: active
+workedExample: /docs/en/programs/swap-8bit-numbers/
 ---
 
 Two bytes are in memory. Exchange them, so that each ends up where the other
