@@ -30,6 +30,7 @@
         "@catppuccin/tailwindcss": "^0.1.6",
         "@codemirror/commands": "^6.6.2",
         "@codemirror/language": "^6.10.3",
+        "@codemirror/lsp-client": "^6.2.5",
         "@codemirror/state": "^6.4.1",
         "@codemirror/view": "^6.33.0",
         "@kobalte/core": "^0.13.6",

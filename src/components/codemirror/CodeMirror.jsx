@@ -3,6 +3,8 @@ import { EditorState, StateField, StateEffect, RangeSet, Compartment } from "@co
 import { EditorView, GutterMarker, Decoration, keymap, gutter } from "@codemirror/view";
 import { defaultKeymap, indentWithTab } from "@codemirror/commands";
 import { basicSetup } from "codemirror";
+import { LSPClient, languageServerExtensions, serverDiagnostics } from "@codemirror/lsp-client";
+import { createWasmLspTransport } from "../../lsp/interface";
 import { Syntax8085 } from "./8085";
 import "./CodeMirror.css";
 import { Tooltip } from "../generic/Tooltip.jsx";
@@ -113,6 +115,22 @@ export function CodeMirror(props) {
     let view = null;
     // Initialize the CodeMirror editor
     onMount(() => {
+        // Initialize LSP client with Web Worker WASM transport
+        let transport = null;
+        let lspClient = null;
+        let lspExtension = [];
+
+        try {
+            transport = createWasmLspTransport();
+            lspClient = new LSPClient({
+                extensions: [...languageServerExtensions(), serverDiagnostics()],
+            });
+            lspClient.connect(transport);
+            lspExtension = [lspClient.plugin("file:///main.8085", "8085")];
+        } catch (err) {
+            console.error("Failed to initialize WASM LSP client:", err);
+        }
+
         const onChangeListener = EditorView.updateListener.of((update) => {
             if (update.docChanged) {
                 const newDoc = update.state.doc.toString(); // Get the new document content
@@ -136,6 +154,7 @@ export function CodeMirror(props) {
                 onChangeListener,
                 Syntax8085(),
                 readOnly.of(EditorState.readOnly.of(false)),
+                ...lspExtension,
             ],
         });
 
@@ -149,6 +168,16 @@ export function CodeMirror(props) {
         // Cleanup when the component is destroyed
         onCleanup(() => {
             view.destroy(); // Destroy the editor instance
+            if (lspClient) {
+                try {
+                    lspClient.disconnect();
+                } catch (e) {}
+            }
+            if (transport) {
+                try {
+                    transport.destroy();
+                } catch (e) {}
+            }
         });
     });
 
