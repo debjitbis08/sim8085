@@ -11,34 +11,33 @@ const useTracking = USE_TRACKING === "true"
 <script>
     import posthog from 'posthog-js';
     import {getSession} from '../../lib/supabase.js';
-    import { getFingerprint } from '@thumbmarkjs/thumbmarkjs';
 
     const apiKey = document.querySelector('meta[name="posthog-api-key"]')?.content;
     const useTracking = document.querySelector('meta[name="posthog-use-tracking"]')?.content === "true";
     const cookieConsent = localStorage.getItem('cookie_consent');
+    // supabase-js keeps its session under sb-<project-ref>-auth-token.
+    const signedIn = Object.keys(localStorage).some((key) => /^sb-.+-auth-token$/.test(key));
 
     if (useTracking && apiKey && !window.location.host.includes('127.0.0.1') && !window.location.host.includes('localhost')) {
+        // Same three cases as PostHogInitialize.astro, which explains them.
         posthog.init(apiKey, {
             api_host: 'https://b.sim8085.com',
             ui_host: 'https://us.posthog.com',
-            persistence: cookieConsent === 'yes' ? 'localStorage+cookie' : 'memory',
+            ...(cookieConsent === 'yes'
+                ? { persistence: 'localStorage+cookie' }
+                : signedIn
+                    ? { persistence: 'memory' }
+                    : { cookieless_mode: 'always' }),
         });
 
-        getSession().then(async ({session, error}) => {
-            if (!error && session?.user) {
-                const name = session.user?.user_metadata?.name || "";
+        getSession().then(({session, error}) => {
+            if (error || !session?.user || posthog.config.cookieless_mode === 'always') return;
 
-                posthog.identify(
-                    session.user.id,
-                    {email: session.user.email, name}
-                );
-            } else if (cookieConsent === "no") {
-                const fingerprint = await getFingerprint();
-                posthog.identify(
-                    fingerprint,
-                    { anon: true }
-                );
-            }
+            const name = session.user?.user_metadata?.name || "";
+            posthog.identify(
+                session.user.id,
+                {email: session.user.email, name}
+            );
         });
     }
 </script>

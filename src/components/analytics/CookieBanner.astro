@@ -50,7 +50,9 @@
                 localStorage.setItem('cookie_consent', 'yes');
                 window.dispatchEvent(new CustomEvent('adsConsentGiven', { detail: { country, consent: 'yes' } }));
                 this.showBanner = false;
-                if (window.posthog) {
+                // A cookieless page stays cookieless; PostHogInitialize picks
+                // cookies up from the next page load.
+                if (window.posthog && posthog.config?.cookieless_mode !== 'always') {
                     posthog.set_config({ persistence: 'localStorage+cookie' });
                     import('./identify.js').then(mod => mod.identifyUser());
                 }
@@ -61,11 +63,10 @@
                 localStorage.setItem('cookie_consent', 'no');
                 window.dispatchEvent(new CustomEvent('adsConsentGiven', { detail: { country, consent: 'no' } }));
                 this.showBanner = false;
-                if (window.posthog) {
+                if (window.posthog && posthog.config?.cookieless_mode !== 'always') {
                     // Mirror of acceptCookies(): keep PostHog out of localStorage and
                     // cookies for anyone who declined.
                     posthog.set_config({ persistence: 'memory' });
-                    import('./identify.js').then(mod => mod.identifyUser());
                 }
             }
         }));

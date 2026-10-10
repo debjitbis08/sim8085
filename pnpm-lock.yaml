@@ -53,9 +53,6 @@ importers:
       '@tanstack/solid-virtual':
         specifier: ^3.10.8
         version: 3.10.8(solid-js@1.9.5)
-      '@thumbmarkjs/thumbmarkjs':
-        specifier: ^0.20.2
-        version: 0.20.2
       '@types/jsonwebtoken':
         specifier: ^9.0.10
         version: 9.0.10
@@ -2266,10 +2263,6 @@ packages:
 
   '@tanstack/virtual-core@3.10.8':
     resolution: {integrity: sha512-PBu00mtt95jbKFi6Llk9aik8bnR3tR/oQP1o3TSi+iG//+Q2RTIzCEgKkHG8BB86kxMNW6O8wku+Lmi+QFR6jA==}
-
-  '@thumbmarkjs/thumbmarkjs@0.20.2':
-    resolution: {integrity: sha512-g77RC/Bwl1x6+kko+odtg47iAhEe8FIKSnRWnT1YMJNa0Uv2/JuEZVIaY0rWYH9P8FU8kDBijgqiSoYjSbX5ag==}
-    deprecated: Please upgrade to v1
 
   '@types/acorn@4.0.6':
     resolution: {integrity: sha512-veQTnWP+1D/xbxVrPC3zHnCZRjSrKfhbMUlEA43iMZLu7EsnTtkJklIuwrCPbOi8YkvDQAiW05VQQFvvz9oieQ==}
@@ -9224,8 +9217,6 @@ snapshots:
       solid-js: 1.9.5
 
   '@tanstack/virtual-core@3.10.8': {}
-
-  '@thumbmarkjs/thumbmarkjs@0.20.2': {}
 
   '@types/acorn@4.0.6':
     dependencies:
