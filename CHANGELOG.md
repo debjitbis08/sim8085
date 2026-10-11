@@ -1,3 +1,16 @@
+# [2.25.0](https://github.com/debjitbis08/sim8085/compare/v2.24.3...v2.25.0) (2026-10-11)
+
+
+### Bug Fixes
+
+* Track visitors without cookie consent in cookieless mode ([0d4b118](https://github.com/debjitbis08/sim8085/commit/0d4b1188d43e38630619c969e0887982f4aadb43))
+
+
+### Features
+
+* Add problem landing pages and measure practice use ([47d2853](https://github.com/debjitbis08/sim8085/commit/47d28533ca2c14bd9774be1021999fe59a5133be))
+* Open all practice problems to every user ([0ad277c](https://github.com/debjitbis08/sim8085/commit/0ad277c36de1d47337fac0f5879fe523b34fda6b))
+
 ## [2.24.3](https://github.com/debjitbis08/sim8085/compare/v2.24.2...v2.24.3) (2026-10-10)
 
 
